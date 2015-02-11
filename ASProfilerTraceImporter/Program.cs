@@ -22,10 +22,10 @@ namespace ASProfilerTraceImporter
 
             // Set file extension to the way we want to handle it
             RegistryKey r;
-            if (Registry.CurrentUser.OpenSubKey("Software\\Classes\\ASProfilerTraceImporter.Program") == null)
-                r = Registry.CurrentUser.CreateSubKey("Software\\Classes\\ASProfilerTraceImporter.Program").CreateSubKey("shell").CreateSubKey("Open").CreateSubKey("Command");
+            if (Registry.CurrentUser.OpenSubKey("Software\\Classes\\ASProfilerTraceImporter") == null)
+                r = Registry.CurrentUser.CreateSubKey("Software\\Classes\\ASProfilerTraceImporter").CreateSubKey("shell").CreateSubKey("Open").CreateSubKey("Command");
             else
-                r = Registry.CurrentUser.CreateSubKey("Software\\Classes\\ASProfilerTraceImporter.Program\\shell\\open\\command", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                r = Registry.CurrentUser.CreateSubKey("Software\\Classes\\ASProfilerTraceImporter\\shell\\open\\command", RegistryKeyPermissionCheck.ReadWriteSubTree);
             r.SetValue("", "\"" + Application.ExecutablePath + "\" \"%1\"");
             if (Registry.CurrentUser.OpenSubKey("Software\\Classes\\.trc") == null)
                 r = Registry.CurrentUser.CreateSubKey("Software\\Classes\\.trc", RegistryKeyPermissionCheck.ReadWriteSubTree);
@@ -35,7 +35,7 @@ namespace ASProfilerTraceImporter
                 r = r.CreateSubKey("OpenWithProgids");
             else
                 r = r.OpenSubKey("OpenWithProgids", true);
-            r.SetValue("ASProfilerTraceImporter.Program", "");
+            r.SetValue("ASProfilerTraceImporter", "");
 
             Application.Run(new frmProfilerTraceImporter());
         }

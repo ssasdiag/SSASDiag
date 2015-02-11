@@ -223,7 +223,11 @@ namespace ASProfilerTraceImporter
                 if (File.Exists(Environment.GetCommandLineArgs()[1]) && Environment.GetCommandLineArgs()[1].Substring(Environment.GetCommandLineArgs()[1].Length - 4) == ".trc")
                     TraceFilePath = Environment.GetCommandLineArgs()[1];
                 else
-                    return;
+                    BrowseForTrace_Click(sender, e);
+
+                txtFile.Text = TraceFilePath;
+                this.Text = "AS Profiler Trace Importer - " + TraceFilePath.Substring(TraceFilePath.LastIndexOf("\\"));
+                
                 if (Environment.GetCommandLineArgs().Length > 2)
                     SQLDBServer = Environment.GetCommandLineArgs()[2];
                 if (Environment.GetCommandLineArgs().Length > 3)
