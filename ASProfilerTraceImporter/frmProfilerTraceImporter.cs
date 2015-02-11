@@ -47,7 +47,7 @@ namespace ASProfilerTraceImporter
         public delegate void TraceUpdateRowCountsDelegate();
         public void UpdateRowCounts()
         {
-            SetTextCallback("Loaded " + RowCount + " rows...");
+            SetTextCallback("Loaded " + String.Format("{0:#,##0}", RowCount) + " rows...");
         }
 
         static public bool bCancel = false;
@@ -66,7 +66,6 @@ namespace ASProfilerTraceImporter
         }
 
         public SqlConnectionInfo cib = new SqlConnectionInfo();
-
 
         private void btnImport_Click(object sender, System.EventArgs e)
         {
@@ -107,7 +106,7 @@ namespace ASProfilerTraceImporter
                     cols = "";
                     tfps = new List<TraceFileProcessor>();
 
-                    Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to 2 * number of processors
+                    Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to 2 * number of processors, starts with just 1 free thread until cols are initialized
                     foreach (string f in files)
                     {
                         if (!bCancel)
@@ -126,8 +125,6 @@ namespace ASProfilerTraceImporter
                                 tfp.ProcessTraceFile()
                                 ));
                             workers.Last().Start();
-                            //if (CurFile == 0) 
-                            //    workers.Last().Join();  // instability in SMO objects - serializing for now...  :|
                         }
                     }
                     foreach (Thread wrkr in workers) wrkr.Join();  // wait for all threads before merging
@@ -142,16 +139,16 @@ namespace ASProfilerTraceImporter
                             if (i > 0)
                             {
                                 new SqlCommand("insert into [" + txtTable.Text + "] (" + cols + ") select " + cols + " from [##" + txtTable.Text + "_" + i + "]", conn2).ExecuteNonQuery();
-                                SetText("Loaded " + (RowCount + CurFile + 1).ToString() + " rows in " + (CurFile + 1).ToString() + " files.  Merging file " + (i + 1).ToString() + "...");
+                                SetText("Loaded " + String.Format("{0:#,##0}", (RowCount + CurFile + 1)) + " rows in " + (CurFile + 1).ToString() + " files.  Merging file " + (i + 1).ToString() + "...");
                             }
                             tfps[i].tIn.Close();
                             tfps[i].tOut.Close();
                         }
-                        SetText("Done loading " + (RowCount + CurFile + 1).ToString() + " rows.");
+                        SetText("Done loading " + String.Format("{0:#,##0}", (RowCount + CurFile + 1)) + " rows.");
                         conn2.Close();
                     }
                     else
-                        SetText("Cancelled loading after reading " + (RowCount + CurFile + 1).ToString() + " rows.");
+                        SetText("Cancelled loading after reading " + String.Format("{0:#,##0}", (RowCount + CurFile + 1)) + " rows.");
                 });
                 th.Start();
             }
@@ -179,7 +176,7 @@ namespace ASProfilerTraceImporter
                 {
                     // get column list from first trace file...
                     cols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
-                    s.Release((System.Environment.ProcessorCount * 2) - 1);
+                    s.Release((System.Environment.ProcessorCount * 2) - 1);  // We blocked everything until we got initial cols, now we release them all to run...
                 }
                 else
                     if (cols != new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string)
