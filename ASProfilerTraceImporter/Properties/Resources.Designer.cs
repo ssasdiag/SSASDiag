@@ -61,42 +61,12 @@ namespace ASProfilerTraceImporter.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap heart {
-            get {
-                object obj = ResourceManager.GetObject("heart", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         internal static System.Drawing.Icon Microsoft_107 {
             get {
                 object obj = ResourceManager.GetObject("Microsoft_107", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap SHELL32_324 {
-            get {
-                object obj = ResourceManager.GetObject("SHELL32_324", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap SHELL32_3241 {
-            get {
-                object obj = ResourceManager.GetObject("SHELL32_3241", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }

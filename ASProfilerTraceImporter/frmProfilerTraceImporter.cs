@@ -107,7 +107,7 @@ namespace ASProfilerTraceImporter
                     cols = "";
                     tfps = new List<TraceFileProcessor>();
 
-                    Semaphore s = new Semaphore(System.Environment.ProcessorCount * 2, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to 2 * number of processors
+                    Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to 2 * number of processors
                     foreach (string f in files)
                     {
                         if (!bCancel)
@@ -126,8 +126,8 @@ namespace ASProfilerTraceImporter
                                 tfp.ProcessTraceFile()
                                 ));
                             workers.Last().Start();
-                            if (CurFile == 0) 
-                                workers.Last().Join();  // instability in SMO objects - serializing for now...  :|
+                            //if (CurFile == 0) 
+                            //    workers.Last().Join();  // instability in SMO objects - serializing for now...  :|
                         }
                     }
                     foreach (Thread wrkr in workers) wrkr.Join();  // wait for all threads before merging
@@ -176,8 +176,11 @@ namespace ASProfilerTraceImporter
                 SqlConnection conn = new System.Data.SqlClient.SqlConnection(frmProcessingParent.cib.ConnectionString);
                 conn.Open();
                 if (cols == "")
+                {
                     // get column list from first trace file...
                     cols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
+                    s.Release((System.Environment.ProcessorCount * 2) - 1);
+                }
                 else
                     if (cols != new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string)
                         // only happens if there is column mismatch between files - we won't read the whole file, just skip over...
