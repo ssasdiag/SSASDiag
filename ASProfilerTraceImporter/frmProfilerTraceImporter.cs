@@ -100,7 +100,7 @@ namespace ASProfilerTraceImporter
                     SetText2("");
                     SetText("");
 
-                    Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to 2 * number of processors, starts with just 1 free thread until cols are initialized
+                    Semaphore s = new Semaphore(1, System.Environment.ProcessorCount); // throttles simultaneous threads to 2 * number of processors, starts with just 1 free thread until cols are initialized
                     foreach (string f in files)
                     {
                         if (!bCancel)
@@ -189,7 +189,7 @@ namespace ASProfilerTraceImporter
                     // get column list from first trace file...
                     cols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
                     bFirstFile = true;
-                    s.Release((System.Environment.ProcessorCount * 2));  // We blocked everything until we got initial cols, now we release them all to run...
+                    s.Release((System.Environment.ProcessorCount));  // We blocked everything until we got initial cols, now we release them all to run...
                 }
                 else
                     if (cols != new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string)
