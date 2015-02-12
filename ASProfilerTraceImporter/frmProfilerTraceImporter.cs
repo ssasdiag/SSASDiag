@@ -47,7 +47,7 @@ namespace ASProfilerTraceImporter
         public delegate void TraceUpdateRowCountsDelegate();
         public void UpdateRowCounts()
         {
-            SetTextCallback("Loaded " + String.Format("{0:#,##0}", RowCount) + " rows...");
+            SetTextCallback("Loaded " + String.Format("{0:#,##0}", RowCount) + " rows from " + tfps.Count + " files...");
         }
 
         static public bool bCancel = false;
@@ -59,8 +59,8 @@ namespace ASProfilerTraceImporter
             get
             {
                 int TotalRowCounts = 0;
-                foreach (TraceFileProcessor t in tfps)
-                    TotalRowCounts += t.RowCount;
+                for (int i = 0; i < tfps.Count; i++)
+                    TotalRowCounts += tfps[i].RowCount;
                 return TotalRowCounts;
             }
         }
@@ -69,6 +69,7 @@ namespace ASProfilerTraceImporter
 
         private void btnImport_Click(object sender, System.EventArgs e)
         {
+            DateTime startTime = DateTime.Now;
             if (btnImport.Text == "Cancel...")
             {
                 bCancel = true;
@@ -128,27 +129,33 @@ namespace ASProfilerTraceImporter
                         }
                     }
                     foreach (Thread wrkr in workers) wrkr.Join();  // wait for all threads before merging
+                    DateTime loadedTime = DateTime.Now;
                     if (!bCancel)
                     {
-                        
-
                         SqlConnection conn2 = new System.Data.SqlClient.SqlConnection(cib.ConnectionString);
                         conn2.Open();
                         for (int i = 0; i <= CurFile; i++)
                         {
                             if (i > 0)
                             {
+                                new SqlCommand("delete from [##" + txtTable.Text + "_" + i + "] where eventclass = 65528", conn2).ExecuteNonQuery();
                                 new SqlCommand("insert into [" + txtTable.Text + "] (" + cols + ") select " + cols + " from [##" + txtTable.Text + "_" + i + "]", conn2).ExecuteNonQuery();
-                                SetText("Loaded " + String.Format("{0:#,##0}", (RowCount + CurFile + 1)) + " rows in " + (CurFile + 1).ToString() + " files.  Merging file " + (i + 1).ToString() + "...");
+                                SetText("Loaded " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows in " + (CurFile + 1).ToString() + " files.  Merging file " + (i + 1).ToString() + "...");
                             }
                             tfps[i].tIn.Close();
                             tfps[i].tOut.Close();
                         }
-                        SetText("Done loading " + String.Format("{0:#,##0}", (RowCount + CurFile + 1)) + " rows.");
+                        SetText("Done loading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
                         conn2.Close();
                     }
                     else
-                        SetText("Cancelled loading after reading " + String.Format("{0:#,##0}", (RowCount + CurFile + 1)) + " rows.");
+                        SetText("Cancelled loading after reading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
+
+                    DateTime endTime = DateTime.Now;
+                    TimeSpan timeToLoad = loadedTime.Subtract(startTime);
+                    Debug.WriteLine("Load time: " + timeToLoad + "s");
+                    TimeSpan timeToMerge = endTime.Subtract(loadedTime);
+                    Debug.WriteLine("Merge time: " + timeToMerge + "s");
                 });
                 th.Start();
             }
@@ -185,7 +192,7 @@ namespace ASProfilerTraceImporter
                 conn.Close();
                 TraceUpdateRowCountsDelegate UpdateRowCounts = new TraceUpdateRowCountsDelegate(frmProcessingParent.UpdateRowCounts);
                 while (tOut.Write() && !bCancel)
-                    if (RowCount++ % 99 == 0) UpdateRowCounts();
+                    if (RowCount++ % 256 == 0) UpdateRowCounts();
                 s.Release();  // release this code for semaphore
             }
         }
