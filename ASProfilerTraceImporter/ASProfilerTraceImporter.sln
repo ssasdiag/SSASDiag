@@ -5,8 +5,6 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASProfilerTraceImporter", "ASProfilerTraceImporter.csproj", "{55304D5A-1DE5-479C-9274-CBFE25D16AA1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASProfilerTraceImporterShellHandler", "..\ASProfilerTraceImporterShellHandler\ASProfilerTraceImporterShellHandler.csproj", "{A998A96E-0046-4542-882A-70D9ED3944FC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{55304D5A-1DE5-479C-9274-CBFE25D16AA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55304D5A-1DE5-479C-9274-CBFE25D16AA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55304D5A-1DE5-479C-9274-CBFE25D16AA1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A998A96E-0046-4542-882A-70D9ED3944FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A998A96E-0046-4542-882A-70D9ED3944FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A998A96E-0046-4542-882A-70D9ED3944FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A998A96E-0046-4542-882A-70D9ED3944FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

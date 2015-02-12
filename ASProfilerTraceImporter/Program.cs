@@ -22,20 +22,12 @@ namespace ASProfilerTraceImporter
 
             // Set file extension to the way we want to handle it
             RegistryKey r;
-            if (Registry.CurrentUser.OpenSubKey("Software\\Classes\\ASProfilerTraceImporter") == null)
-                r = Registry.CurrentUser.CreateSubKey("Software\\Classes\\ASProfilerTraceImporter").CreateSubKey("shell").CreateSubKey("Open").CreateSubKey("Command");
+            if (Registry.ClassesRoot.OpenSubKey("SystemFileAssociations\\.trc\\Shell\\Import\\Command") == null)
+                r = Registry.ClassesRoot.CreateSubKey("SystemFileAssociations").CreateSubKey(".trc").CreateSubKey("Shell").CreateSubKey("Import").CreateSubKey("Command");
             else
-                r = Registry.CurrentUser.CreateSubKey("Software\\Classes\\ASProfilerTraceImporter\\shell\\open\\command", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                r = Registry.ClassesRoot.CreateSubKey("Software\\Classes\\ASProfilerTraceImporter\\shell\\import\\command", RegistryKeyPermissionCheck.ReadWriteSubTree);
             r.SetValue("", "\"" + Application.ExecutablePath + "\" \"%1\"");
-            if (Registry.CurrentUser.OpenSubKey("Software\\Classes\\.trc") == null)
-                r = Registry.CurrentUser.CreateSubKey("Software\\Classes\\.trc", RegistryKeyPermissionCheck.ReadWriteSubTree);
-            else
-                r = Registry.CurrentUser.OpenSubKey("Software\\Classes\\.trc", true);
-            if (r.OpenSubKey("OpenWithProgids") == null)
-                r = r.CreateSubKey("OpenWithProgids");
-            else
-                r = r.OpenSubKey("OpenWithProgids", true);
-            r.SetValue("ASProfilerTraceImporter", "");
+            Registry.ClassesRoot.OpenSubKey("SystemFileAssociations\\.trc\\shell\\import", true).SetValue("", "&Import profiler trace to SQL table");
 
             Application.Run(new frmProfilerTraceImporter());
         }
