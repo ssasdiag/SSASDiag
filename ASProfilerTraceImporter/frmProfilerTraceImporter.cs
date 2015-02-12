@@ -40,11 +40,16 @@ namespace ASProfilerTraceImporter
         public void SetTextCallback(string text)
         {
             lblStatus.Invoke(new Action(() => { lblStatus.Text = text; }));
-            if (text.Substring(0, "Done loading".Length) == "Done loading")
+            if (text.Length > "Done loading".Length && text.Substring(0, "Done loading".Length) == "Done loading")
                 btnImport.Invoke(new Action(() => { btnImport.Text = "Import"; }));
+        }
+        public void SetTextCallback2(string text)
+        {
+            lblStatus2.Invoke(new Action(() => { lblStatus2.Text = text; }));
         }
 
         public delegate void TraceUpdateRowCountsDelegate();
+
         public void UpdateRowCounts()
         {
             SetTextCallback("Loaded " + String.Format("{0:#,##0}", RowCount) + " rows from " + tfps.Count + " files...");
@@ -102,10 +107,13 @@ namespace ASProfilerTraceImporter
                 Thread th = new Thread(() =>
                 {
                     TraceSetTextDelegate SetText = new TraceSetTextDelegate(SetTextCallback);
+                    TraceSetTextDelegate SetText2 = new TraceSetTextDelegate(SetTextCallback2);
                     List<Thread> workers = new List<Thread>();
                     int CurFile = -1;
                     cols = "";
                     tfps = new List<TraceFileProcessor>();
+                    SetText2("");
+                    SetText("");
 
                     Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to 2 * number of processors, starts with just 1 free thread until cols are initialized
                     foreach (string f in files)
@@ -128,7 +136,7 @@ namespace ASProfilerTraceImporter
                             workers.Last().Start();
                         }
                     }
-                    foreach (Thread wrkr in workers) wrkr.Join();  // wait for all threads before merging
+//                    foreach (Thread wrkr in workers) wrkr.Join();  // wait for all threads before merging
                     DateTime loadedTime = DateTime.Now;
                     if (!bCancel)
                     {
@@ -136,19 +144,28 @@ namespace ASProfilerTraceImporter
                         conn2.Open();
                         for (int i = 0; i <= CurFile; i++)
                         {
-                            if (i > 0)
+                            workers[i].Join();
+                            if (!bCancel)
                             {
-                                new SqlCommand("delete from [##" + txtTable.Text + "_" + i + "] where eventclass = 65528", conn2).ExecuteNonQuery();
-                                new SqlCommand("insert into [" + txtTable.Text + "] (" + cols + ") select " + cols + " from [##" + txtTable.Text + "_" + i + "]", conn2).ExecuteNonQuery();
-                                SetText("Loaded " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows in " + (CurFile + 1).ToString() + " files.  Merging file " + (i + 1).ToString() + "...");
+                                if (i > 0)
+                                {
+                                    new SqlCommand("delete from [##" + txtTable.Text + "_" + i + "] where eventclass = 65528", conn2).ExecuteNonQuery();
+                                    new SqlCommand("insert into [" + txtTable.Text + "] (" + cols + ") select " + cols + " from [##" + txtTable.Text + "_" + i + "]", conn2).ExecuteNonQuery();
+                                    SetText2("Merging file " + (i + 1).ToString() + "...");
+                                }
                             }
                             tfps[i].tIn.Close();
                             tfps[i].tOut.Close();
                         }
-                        SetText("Done loading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
+                        if (!bCancel)
+                        {
+                            SetText2("Merged " + (CurFile + 1).ToString() + " files.");
+                            SetText("Done loading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
+                        }
                         conn2.Close();
+
                     }
-                    else
+                    if (bCancel)
                         SetText("Cancelled loading after reading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
 
                     DateTime endTime = DateTime.Now;
@@ -179,11 +196,13 @@ namespace ASProfilerTraceImporter
                 tOut.InitializeAsWriter(tIn, frmProcessingParent.cib, CurFile == 0 ? Table : "##" + Table + "_" + CurFile);
                 SqlConnection conn = new System.Data.SqlClient.SqlConnection(frmProcessingParent.cib.ConnectionString);
                 conn.Open();
+                bool bFirstFile = false;
                 if (cols == "")
                 {
                     // get column list from first trace file...
                     cols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
-                    s.Release((System.Environment.ProcessorCount * 2) - 1);  // We blocked everything until we got initial cols, now we release them all to run...
+                    bFirstFile = true;
+                    s.Release((System.Environment.ProcessorCount * 2));  // We blocked everything until we got initial cols, now we release them all to run...
                 }
                 else
                     if (cols != new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string)
@@ -193,7 +212,8 @@ namespace ASProfilerTraceImporter
                 TraceUpdateRowCountsDelegate UpdateRowCounts = new TraceUpdateRowCountsDelegate(frmProcessingParent.UpdateRowCounts);
                 while (tOut.Write() && !bCancel)
                     if (RowCount++ % 256 == 0) UpdateRowCounts();
-                s.Release();  // release this code for semaphore
+                // release this code for semaphore
+                if (!bFirstFile) s.Release(); 
             }
         }
 

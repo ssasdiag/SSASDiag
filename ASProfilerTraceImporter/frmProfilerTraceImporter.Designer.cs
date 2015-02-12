@@ -40,6 +40,7 @@
             this.txtFile = new System.Windows.Forms.TextBox();
             this.lblStatus = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
+            this.lblStatus2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -103,7 +104,7 @@
             // 
             // btnImport
             // 
-            this.btnImport.Location = new System.Drawing.Point(76, 143);
+            this.btnImport.Location = new System.Drawing.Point(76, 148);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(80, 23);
             this.btnImport.TabIndex = 5;
@@ -137,11 +138,20 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.BrowseForTrace_Click);
             // 
+            // lblStatus2
+            // 
+            this.lblStatus2.AutoSize = true;
+            this.lblStatus2.Location = new System.Drawing.Point(174, 163);
+            this.lblStatus2.Name = "lblStatus2";
+            this.lblStatus2.Size = new System.Drawing.Size(0, 13);
+            this.lblStatus2.TabIndex = 11;
+            // 
             // frmProfilerTraceImporter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(453, 175);
+            this.ClientSize = new System.Drawing.Size(453, 185);
+            this.Controls.Add(this.lblStatus2);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.txtFile);
@@ -179,6 +189,7 @@
         private System.Windows.Forms.TextBox txtFile;
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label lblStatus2;
     }
 }
 
