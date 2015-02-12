@@ -122,7 +122,7 @@ namespace ASProfilerTraceImporter
                         }
                     }
 
-                    DateTime loadedTime = DateTime.Now;
+                    
                     if (!bCancel)
                     {
                         SqlConnection conn2 = new System.Data.SqlClient.SqlConnection(cib.ConnectionString);
@@ -145,7 +145,7 @@ namespace ASProfilerTraceImporter
                         if (!bCancel)
                         {
                             SetText2("Merged " + (CurFile + 1).ToString() + " files.");
-                            SetText("Done loading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
+                            SetText("Done loading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows in " + Math.Round((DateTime.Now - startTime).TotalSeconds, 1) + "s.");
                         }
                         conn2.Close();
                     }
@@ -154,12 +154,6 @@ namespace ASProfilerTraceImporter
                         SetText("Cancelled loading after reading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
                         SetText2("");
                     }
-
-                    DateTime endTime = DateTime.Now;
-                    TimeSpan timeToLoad = loadedTime.Subtract(startTime);
-                    Debug.WriteLine("Load time: " + timeToLoad + "s");
-                    TimeSpan timeToMerge = endTime.Subtract(loadedTime);
-                    Debug.WriteLine("Merge time: " + timeToMerge + "s");
                 });
                 th.Start();
             }
