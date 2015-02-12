@@ -102,26 +102,14 @@ namespace ASProfilerTraceImporter
 
                     Semaphore s = new Semaphore(1, System.Environment.ProcessorCount); // throttles simultaneous threads to 2 * number of processors, starts with just 1 free thread until cols are initialized
                     foreach (string f in files)
-                    {
                         if (!bCancel)
                         {
                             CurFile++;
-                            TraceFileProcessor tfp = new TraceFileProcessor();
-                            tfp.CurFile = CurFile;
-                            tfp.FileName = f;
-                            tfp.Table = txtTable.Text;
-                            tfp.s = s;
-                            tfp.tIn = new TraceFile();
-                            tfp.tOut = new TraceTable();
-                            tfp.frmProcessingParent = this;
+                            TraceFileProcessor tfp = new TraceFileProcessor(CurFile, f, txtTable.Text, s, new TraceFile(), new TraceTable());
                             tfps.Add(tfp);
-                            workers.Add(new Thread(() => 
-                                tfp.ProcessTraceFile()
-                                ));
+                            workers.Add(new Thread(() => tfp.ProcessTraceFile()));
                             workers.Last().Start();
                         }
-                    }
-
                     
                     if (!bCancel)
                     {
@@ -131,21 +119,19 @@ namespace ASProfilerTraceImporter
                         {
                             workers[i].Join();
                             if (!bCancel)
-                            {
                                 if (i > 0)
                                 {
                                     new SqlCommand("delete from [##" + txtTable.Text + "_" + i + "] where eventclass = 65528", conn2).ExecuteNonQuery();
                                     new SqlCommand("insert into [" + txtTable.Text + "] (" + cols + ") select " + cols + " from [##" + txtTable.Text + "_" + i + "]", conn2).ExecuteNonQuery();
                                     SetText2("Merging file " + (i + 1).ToString() + "...");
                                 }
-                            }
                             tfps[i].tIn.Close();
                             tfps[i].tOut.Close();
                         }
                         if (!bCancel)
                         {
                             SetText2("Merged " + (CurFile + 1).ToString() + " files.");
-                            SetText("Done loading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows in " + Math.Round((DateTime.Now - startTime).TotalSeconds, 1) + "s.");
+                            SetText("Done loading " + String.Format("{0:#,##0}", (RowCount)) + " rows in " + Math.Round((DateTime.Now - startTime).TotalSeconds, 1) + "s.");
                         }
                         conn2.Close();
                     }
@@ -165,14 +151,17 @@ namespace ASProfilerTraceImporter
             public string Table;
             public int CurFile = 0;
             public string FileName = "";
-            public Semaphore s;
+            public Semaphore Sem;
             public TraceFile tIn;
             public TraceTable tOut;
             public frmProfilerTraceImporter frmProcessingParent;
 
+            public TraceFileProcessor(int curFile, string fileName, string table, Semaphore sem, TraceFile tin, TraceTable tout)
+            { CurFile = curFile; FileName = fileName; Table = table; Sem = sem; tIn = tin; tOut = tout; }
+
             public void ProcessTraceFile()
             {
-                s.WaitOne();  // throttle execution based on semaphore
+                Sem.WaitOne();  // throttle execution based on semaphore
                 tIn.InitializeAsReader(FileName);
                 tOut.InitializeAsWriter(tIn, frmProcessingParent.cib, CurFile == 0 ? Table : "##" + Table + "_" + CurFile);
                 SqlConnection conn = new System.Data.SqlClient.SqlConnection(frmProcessingParent.cib.ConnectionString);
@@ -183,7 +172,7 @@ namespace ASProfilerTraceImporter
                     // get column list from first trace file...
                     cols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
                     bFirstFile = true;
-                    s.Release((System.Environment.ProcessorCount));  // We blocked everything until we got initial cols, now we release them all to run...
+                    Sem.Release((System.Environment.ProcessorCount));  // We blocked everything until we got initial cols, now we release them all to run...
                 }
                 else
                     if (cols != new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string)
@@ -194,7 +183,7 @@ namespace ASProfilerTraceImporter
                 while (tOut.Write() && !bCancel)
                     if (RowCount++ % 256 == 0) UpdateRowCounts();
                 // release this code for semaphore
-                if (!bFirstFile) s.Release(); 
+                if (!bFirstFile) Sem.Release(); 
             }
         }
 
