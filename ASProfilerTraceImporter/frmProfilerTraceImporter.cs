@@ -22,19 +22,10 @@ namespace ASProfilerTraceImporter
         string SQLDBServer = "";
         string SQLDB = "";
         string SQLTable = "";
-
-        private void cmbDatabase_DropDown(object sender, System.EventArgs e)
-        {
-            SqlConnection conn = new System.Data.SqlClient.SqlConnection("Server="+txtServer.Text+";Initial Catalog=master;Persist Security Info=False;Integrated Security=true;");
-            conn.Open();
-            SqlCommand cmd = new System.Data.SqlClient.SqlCommand("select * from sys.databases", conn);
-            SqlDataReader rdr = cmd.ExecuteReader();
-            cmbDatabase.Items.Clear();
-            while (rdr.Read())
-                cmbDatabase.Items.Add(rdr.GetString(0));
-            rdr.Close();
-            conn.Close();            
-        }
+        static public bool bCancel = false;
+        static public string cols = "";
+        public SqlConnectionInfo cib = new SqlConnectionInfo();
+        public List<TraceFileProcessor> tfps = new List<TraceFileProcessor>();
 
         public delegate void TraceSetTextDelegate(string text);
         public void SetTextCallback(string text)
@@ -55,10 +46,6 @@ namespace ASProfilerTraceImporter
             SetTextCallback("Loaded " + String.Format("{0:#,##0}", RowCount) + " rows from " + tfps.Count + " files...");
         }
 
-        static public bool bCancel = false;
-        static public string cols = "";
-        public List<TraceFileProcessor> tfps = new List<TraceFileProcessor>();
-
         public int RowCount
         {
             get
@@ -69,8 +56,6 @@ namespace ASProfilerTraceImporter
                 return TotalRowCounts;
             }
         }
-
-        public SqlConnectionInfo cib = new SqlConnectionInfo();
 
         private void btnImport_Click(object sender, System.EventArgs e)
         {
@@ -136,7 +121,7 @@ namespace ASProfilerTraceImporter
                             workers.Last().Start();
                         }
                     }
-//                    foreach (Thread wrkr in workers) wrkr.Join();  // wait for all threads before merging
+
                     DateTime loadedTime = DateTime.Now;
                     if (!bCancel)
                     {
@@ -163,10 +148,12 @@ namespace ASProfilerTraceImporter
                             SetText("Done loading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
                         }
                         conn2.Close();
-
                     }
                     if (bCancel)
+                    {
                         SetText("Cancelled loading after reading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
+                        SetText2("");
+                    }
 
                     DateTime endTime = DateTime.Now;
                     TimeSpan timeToLoad = loadedTime.Subtract(startTime);
@@ -267,6 +254,19 @@ namespace ASProfilerTraceImporter
         private void frmProfilerTraceImporter_HelpButtonClicked(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Process.Start("http://asprofilertraceimporter.codeplex.com");
+        }
+
+        private void cmbDatabase_DropDown(object sender, System.EventArgs e)
+        {
+            SqlConnection conn = new System.Data.SqlClient.SqlConnection("Server=" + txtServer.Text + ";Initial Catalog=master;Persist Security Info=False;Integrated Security=true;");
+            conn.Open();
+            SqlCommand cmd = new System.Data.SqlClient.SqlCommand("select * from sys.databases", conn);
+            SqlDataReader rdr = cmd.ExecuteReader();
+            cmbDatabase.Items.Clear();
+            while (rdr.Read())
+                cmbDatabase.Items.Add(rdr.GetString(0));
+            rdr.Close();
+            conn.Close();
         }
     }
 }

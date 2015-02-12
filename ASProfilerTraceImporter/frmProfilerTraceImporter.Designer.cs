@@ -104,9 +104,9 @@
             // 
             // btnImport
             // 
-            this.btnImport.Location = new System.Drawing.Point(76, 148);
+            this.btnImport.Location = new System.Drawing.Point(76, 143);
             this.btnImport.Name = "btnImport";
-            this.btnImport.Size = new System.Drawing.Size(80, 23);
+            this.btnImport.Size = new System.Drawing.Size(80, 33);
             this.btnImport.TabIndex = 5;
             this.btnImport.Text = "Import";
             this.btnImport.UseVisualStyleBackColor = true;
