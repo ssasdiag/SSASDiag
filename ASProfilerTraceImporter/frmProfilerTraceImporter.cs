@@ -113,6 +113,8 @@ namespace ASProfilerTraceImporter
                         .OrderBy(x => x.CreationTime).Where(x => x.CreationTime >= fi.CreationTime.Subtract(new TimeSpan(0, 0, 45))).ToList();
                     List<string> files = fileInfos.Select(x => x.Name.Substring(trcbase.Length)).ToList();
                     files.Sort((x, y) => ExtractNumber(x).CompareTo(ExtractNumber(y)));
+                    if (txtFile.Text != path + trcbase + files[0])
+                        files.RemoveRange(0, files.IndexOf(txtFile.Text.Substring((path + trcbase).Length)));
                     
                     bCancel = false;
                     btnImport.Text = "Cancel...";
@@ -257,20 +259,14 @@ namespace ASProfilerTraceImporter
             if (txtFile.Text.Trim() == "") btnImport.Enabled = false; else btnImport.Enabled = true;
         }
 
-        // Extract connection dialog binaries we embed in ourselves so we don't have to distribute multiple files...
-        // extracts [resource] into the the file specified by [path]
-        private void ExtractResource(string resource, string path)
-        {
-            Stream stream = Properties.Resources.ResourceManager.GetStream("Microsoft.Data.ConnectionUI.dll");
-            byte[] bytes = new byte[(int)stream.Length];
-            stream.Read(bytes, 0, bytes.Length);
-            
-        }
-
         private void frmProfilerTraceImporter_Shown(object sender, EventArgs e)
         {
-            File.WriteAllBytes(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
-            File.WriteAllBytes(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog); 
+            try
+            {
+                File.WriteAllBytes(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
+                File.WriteAllBytes(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
+            }
+            catch { }
 
             txtConn.Text = ConnStr = Properties.Settings.Default.ConnStr;
             txtTable.Text = Table = Properties.Settings.Default.Table;
