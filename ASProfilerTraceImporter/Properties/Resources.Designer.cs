@@ -69,5 +69,25 @@ namespace ASProfilerTraceImporter.Properties {
                 return ((System.Drawing.Icon)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Microsoft_Data_ConnectionUI {
+            get {
+                object obj = ResourceManager.GetObject("Microsoft_Data_ConnectionUI", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Microsoft_Data_ConnectionUI_Dialog {
+            get {
+                object obj = ResourceManager.GetObject("Microsoft_Data_ConnectionUI_Dialog", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

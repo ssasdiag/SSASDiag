@@ -29,7 +29,20 @@ namespace ASProfilerTraceImporter
             r.SetValue("", "\"" + Application.ExecutablePath + "\" \"%1\"");
             Registry.ClassesRoot.OpenSubKey("SystemFileAssociations\\.trc\\shell\\import", true).SetValue("", "&Import profiler trace to SQL table");
 
-            Application.Run(new frmProfilerTraceImporter());
+            Application.ThreadException += Application_ThreadException;
+            try
+            {
+                Application.Run(new frmProfilerTraceImporter());
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.ToString(), "Oops!  Exception...");
+            }
+        }
+
+        static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
+        {
+            MessageBox.Show(e.Exception.ToString(), "Oops!  Exception...");
         }
     }
 }
