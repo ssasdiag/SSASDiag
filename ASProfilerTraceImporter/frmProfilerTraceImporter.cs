@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using Microsoft.Data.ConnectionUI;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace ASProfilerTraceImporter
 {
@@ -109,6 +110,9 @@ namespace ASProfilerTraceImporter
                     // Remove numbers trailing from trace file name (if they are there) as well as file extension...
                     trcbase = trcbase.Substring(0, trcbase.Length - 4); int j = trcbase.Length - 1; while (Char.IsDigit(trcbase[j])) j--; trcbase = trcbase.Substring(0, j + 1);
                     FileInfo fi = new FileInfo(txtFile.Text);
+
+                    Debug.WriteLine(fi.CreationTime);
+
                     var fileInfos = Directory.GetFiles(path, trcbase + "*.trc", SearchOption.TopDirectoryOnly).Select(p => new FileInfo(p))
                         .OrderBy(x => x.CreationTime).Where(x => x.CreationTime >= fi.CreationTime.Subtract(new TimeSpan(0, 0, 45))).ToList();
                     List<string> files = fileInfos.Select(x => x.Name.Substring(trcbase.Length)).ToList();
@@ -174,9 +178,12 @@ namespace ASProfilerTraceImporter
                         }
                         if (bCancel)
                         {
+                            
                             SetText("Cancelled loading after reading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
                             SetText2("");
                         }
+                        foreach (Thread w in workers)
+                            w.Join();
                     });
                     th.Start();
                 }
@@ -261,12 +268,7 @@ namespace ASProfilerTraceImporter
 
         private void frmProfilerTraceImporter_Shown(object sender, EventArgs e)
         {
-            try
-            {
-                File.WriteAllBytes(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
-                File.WriteAllBytes(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
-            }
-            catch { }
+            
 
             txtConn.Text = ConnStr = Properties.Settings.Default.ConnStr;
             txtTable.Text = Table = Properties.Settings.Default.Table;
@@ -294,18 +296,49 @@ namespace ASProfilerTraceImporter
 
         private void btnConnDlg_Click(object sender, EventArgs e)
         {
-            DataConnectionDialog dcd = new DataConnectionDialog();
-            DataSource sql = new DataSource("MicrosoftSqlServer", "Microsoft SQL Server");
-            sql.Providers.Add(DataProvider.SqlDataProvider);
-            dcd.DataSources.Add(sql);
-            dcd.SelectedDataProvider = DataProvider.SqlDataProvider;
-            dcd.SelectedDataSource = sql;
-            dcd.ConnectionString = txtConn.Text;
-            DataConnectionDialog.Show(dcd);
-            txtConn.Text = ConnStr = dcd.ConnectionString;
-            dcd.Close();
-            dcd.Dispose();
-            dcd = null;
+            try
+            {
+                if (!File.Exists(Path.GetTempPath() + "\\Microsoft.Data.ConnectionUI.dll")) File.WriteAllBytes(Path.GetTempPath() + "\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
+                if (!File.Exists(Path.GetTempPath() + "\\Microsoft.Data.ConnectionUI.Dialog.dll")) File.WriteAllBytes(Path.GetTempPath() + "\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
+
+                AppDomainSetup ds = new AppDomainSetup();
+                ds.ApplicationBase = Environment.CurrentDirectory;
+                ds.ShadowCopyFiles = "true";
+                ds.CachePath = Environment.CurrentDirectory;
+                AppDomain ad = AppDomain.CreateDomain("tempdomain", null, Path.GetTempPath(), Path.GetTempPath(), true);
+                
+                ad.DomainUnload += ad_DomainUnload;
+                
+                Assembly asm = ad.Load(Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
+                DataConnectionDialog dcd = asm.CreateInstance(asm.DefinedTypes.Where(x => x.Name == "DataConnectionDialog").First().FullName) as DataConnectionDialog;
+                //DataConnectionDialog dcd = new DataConnectionDialog();
+                DataSource sql = new DataSource("MicrosoftSqlServer", "Microsoft SQL Server");
+                sql.Providers.Add(DataProvider.SqlDataProvider);
+                dcd.DataSources.Add(sql);
+                dcd.SelectedDataProvider = DataProvider.SqlDataProvider;
+                dcd.SelectedDataSource = sql;
+                dcd.ConnectionString = txtConn.Text;
+                DataConnectionDialog.Show(dcd);
+                txtConn.Text = ConnStr = dcd.ConnectionString;
+                dcd.Close();
+                dcd.Dispose();
+                AppDomain.Unload(ad);
+                
+                
+
+
+            }
+            catch ( Exception ex )
+            {
+
+            }
         }
+
+        void ad_DomainUnload(object sender, EventArgs e)
+        {
+            File.Delete(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.dll");
+            File.Delete(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll");
+        }
+
     }
 }
