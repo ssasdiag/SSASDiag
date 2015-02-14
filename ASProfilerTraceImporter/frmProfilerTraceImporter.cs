@@ -33,7 +33,7 @@ namespace ASProfilerTraceImporter
         public void SetTextCallback(string text)
         {
             lblStatus.Invoke(new Action(() => { lblStatus.Text = text; }));
-            if (text.Length > "Done loading".Length && text.Substring(0, "Done loading".Length) == "Done loading")
+            if (text.StartsWith("Done loading"))
                 btnImport.Invoke(new Action(() => { btnImport.Text = "Import"; }));
         }
         public void SetTextCallback2(string text)
@@ -46,8 +46,7 @@ namespace ASProfilerTraceImporter
             public void SetConnectionString(string conn)
             {
                 System.Security.SecureString s = new System.Security.SecureString();
-                foreach (char c in conn)
-                    s.AppendChar(c);
+                foreach (char c in conn) s.AppendChar(c);
                 this.ConnectionStringInternal= s;
                 this.RebuildConnectionStringInternal = false;
             }
@@ -65,26 +64,17 @@ namespace ASProfilerTraceImporter
             get
             {
                 int TotalRowCounts = 0;
-                for (int i = 0; i < tfps.Count; i++)
-                    TotalRowCounts += tfps[i].RowCount;
+                for (int i = 0; i < tfps.Count; i++) TotalRowCounts += tfps[i].RowCount;
                 return TotalRowCounts;
             }
         }
 
-        int ExtractNumber(string text)
+        int ExtractNumberPartFromText(string text)
         {
             Match match = Regex.Match(text, @"(\d+)");
-            if (match == null)
-            {
-                return 0;
-            }
-
+            if (match == null) return 0;
             int value;
-            if (!int.TryParse(match.Value, out value))
-            {
-                return 0;
-            }
-
+            if (!int.TryParse(match.Value, out value)) return 0;
             return value;
         }
 
@@ -117,13 +107,10 @@ namespace ASProfilerTraceImporter
                     // Remove numbers trailing from trace file name (if they are there) as well as file extension...
                     trcbase = trcbase.Substring(0, trcbase.Length - 4); int j = trcbase.Length - 1; while (Char.IsDigit(trcbase[j])) j--; trcbase = trcbase.Substring(0, j + 1);
                     FileInfo fi = new FileInfo(txtFile.Text);
-
-                    Debug.WriteLine(fi.CreationTime);
-
                     var fileInfos = Directory.GetFiles(path, trcbase + "*.trc", SearchOption.TopDirectoryOnly).Select(p => new FileInfo(p))
                         .OrderBy(x => x.CreationTime).Where(x => x.CreationTime >= fi.CreationTime.Subtract(new TimeSpan(0, 0, 45))).ToList();
                     List<string> files = fileInfos.Select(x => x.Name.Substring(trcbase.Length)).ToList();
-                    files.Sort((x, y) => ExtractNumber(x).CompareTo(ExtractNumber(y)));
+                    files.Sort((x, y) => ExtractNumberPartFromText(x).CompareTo(ExtractNumberPartFromText(y)));
                     if (txtFile.Text != path + trcbase + files[0])
                         files.RemoveRange(0, files.IndexOf(txtFile.Text.Substring((path + trcbase).Length)));
                     
@@ -141,7 +128,7 @@ namespace ASProfilerTraceImporter
                         SetText2("");
                         SetText("");
 
-                        Semaphore s = new Semaphore(1, System.Environment.ProcessorCount); // throttles simultaneous threads to 2 * number of processors, starts with just 1 free thread until cols are initialized
+                        Semaphore s = new Semaphore(1, System.Environment.ProcessorCount); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
                         foreach (string f in files)
                             if (!bCancel)
                             {
@@ -176,12 +163,7 @@ namespace ASProfilerTraceImporter
                                 SetText("Done loading " + String.Format("{0:#,##0}", (RowCount)) + " rows in " + Math.Round((DateTime.Now - startTime).TotalSeconds, 1) + "s.");
                                 cols = new SqlCommand("SELECT SUBSTRING((SELECT ', t.' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn2).ExecuteScalar() as string;
                                 new SqlCommand("if exists(select * from sys.views where name = '" + Table + "v') drop view [" + Table + "v];", conn2).ExecuteNonQuery();
-                                string qry = "create view [" + Table + "v] as select "
-                                    + cols.Replace("t.[EventClass]", "c.[Name] as EventClass, c.EventClassID")
-                                          .Replace("t.[EventSubclass]", "s.[Name] as EventSubclass, s.EventSubclassID")
-                                    + "from [" + Table + "] as t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass "
-                                    + "left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;";
-                                new SqlCommand(qry, conn2).ExecuteNonQuery();
+                                new SqlCommand("create view [" + Table + "v] as select " + cols.Replace("t.[EventClass]", "c.[Name] as EventClass, c.EventClassID").Replace("t.[EventSubclass]", "s.[Name] as EventSubclass, s.EventSubclassID") + "left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
                             }
                             conn2.Close();
                         }
@@ -277,8 +259,8 @@ namespace ASProfilerTraceImporter
 
         private void frmProfilerTraceImporter_Shown(object sender, EventArgs e)
         {
-            
-
+            if (!File.Exists(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
+            if (!File.Exists(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
             txtConn.Text = ConnStr = Properties.Settings.Default.ConnStr;
             txtTable.Text = Table = Properties.Settings.Default.Table;
 
@@ -304,50 +286,17 @@ namespace ASProfilerTraceImporter
         }
 
         private void btnConnDlg_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                if (!File.Exists(Path.GetTempPath() + "\\Microsoft.Data.ConnectionUI.dll")) File.WriteAllBytes(Path.GetTempPath() + "\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
-                if (!File.Exists(Path.GetTempPath() + "\\Microsoft.Data.ConnectionUI.Dialog.dll")) File.WriteAllBytes(Path.GetTempPath() + "\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
-
-                AppDomainSetup ds = new AppDomainSetup();
-                ds.ApplicationBase = Environment.CurrentDirectory;
-                ds.ShadowCopyFiles = "true";
-                ds.CachePath = Environment.CurrentDirectory;
-                AppDomain ad = AppDomain.CreateDomain("tempdomain", null, Path.GetTempPath(), Path.GetTempPath(), true);
-                
-                ad.DomainUnload += ad_DomainUnload;
-                
-                Assembly asm = ad.Load(Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
-                DataConnectionDialog dcd = asm.CreateInstance(asm.DefinedTypes.Where(x => x.Name == "DataConnectionDialog").First().FullName) as DataConnectionDialog;
-                //DataConnectionDialog dcd = new DataConnectionDialog();
-                DataSource sql = new DataSource("MicrosoftSqlServer", "Microsoft SQL Server");
-                sql.Providers.Add(DataProvider.SqlDataProvider);
-                dcd.DataSources.Add(sql);
-                dcd.SelectedDataProvider = DataProvider.SqlDataProvider;
-                dcd.SelectedDataSource = sql;
-                dcd.ConnectionString = txtConn.Text;
-                DataConnectionDialog.Show(dcd);
+        {                
+            DataConnectionDialog dcd = new DataConnectionDialog();
+            DataSource sql = new DataSource("MicrosoftSqlServer", "Microsoft SQL Server");
+            sql.Providers.Add(DataProvider.SqlDataProvider);
+            dcd.DataSources.Add(sql);
+            dcd.SelectedDataProvider = DataProvider.SqlDataProvider;
+            dcd.SelectedDataSource = sql;
+            dcd.ConnectionString = txtConn.Text;
+            if (DataConnectionDialog.Show(dcd) == System.Windows.Forms.DialogResult.OK);
                 txtConn.Text = ConnStr = dcd.ConnectionString;
-                dcd.Close();
-                dcd.Dispose();
-                AppDomain.Unload(ad);
-                
-                
-
-
-            }
-            catch ( Exception ex )
-            {
-
-            }
+            dcd.Close();
         }
-
-        void ad_DomainUnload(object sender, EventArgs e)
-        {
-            File.Delete(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.dll");
-            File.Delete(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll");
-        }
-
     }
 }
