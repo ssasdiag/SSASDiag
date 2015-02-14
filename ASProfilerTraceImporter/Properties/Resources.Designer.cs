@@ -61,6 +61,15 @@ namespace ASProfilerTraceImporter.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N&apos;[dbo].[ProfilerEventClass]&apos;) AND type in (N&apos;U&apos;)) DROP TABLE [dbo].[ProfilerEventClass]; CREATE TABLE [dbo].[ProfilerEventClass]([EventClassID] [int] NOT NULL, [Name] [nvarchar](50) NULL, [Description] [nvarchar](500) NULL, CONSTRAINT [PK_ProfilerEventClass] PRIMARY KEY CLUSTERED ([EventClassID] ASC) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]) ON [PRIMAR [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string EventClassSubClassTablesScript {
+            get {
+                return ResourceManager.GetString("EventClassSubClassTablesScript", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         internal static System.Drawing.Icon Microsoft_107 {

@@ -159,11 +159,12 @@ namespace ASProfilerTraceImporter
                             }
                             if (!bCancel)
                             {
+                                BuildEventClassSubclassTables();
                                 SetText2("Merged " + (CurFile + 1).ToString() + " files.");
                                 SetText("Done loading " + String.Format("{0:#,##0}", (RowCount)) + " rows in " + Math.Round((DateTime.Now - startTime).TotalSeconds, 1) + "s.");
                                 cols = new SqlCommand("SELECT SUBSTRING((SELECT ', t.' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn2).ExecuteScalar() as string;
                                 new SqlCommand("if exists(select * from sys.views where name = '" + Table + "v') drop view [" + Table + "v];", conn2).ExecuteNonQuery();
-                                new SqlCommand("create view [" + Table + "v] as select " + cols.Replace("t.[EventClass]", "c.[Name] as EventClass, c.EventClassID").Replace("t.[EventSubclass]", "s.[Name] as EventSubclass, s.EventSubclassID") + "left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
+                                new SqlCommand("create view [" + Table + "v] as select " + cols.Replace("t.[EventClass]", "c.[Name] as EventClass, c.EventClassID").Replace("t.[EventSubclass]", "s.[Name] as EventSubclass, s.EventSubclassID") + " from " + Table + "  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
                             }
                             conn2.Close();
                         }
@@ -297,6 +298,14 @@ namespace ASProfilerTraceImporter
             if (DataConnectionDialog.Show(dcd) == System.Windows.Forms.DialogResult.OK);
                 txtConn.Text = ConnStr = dcd.ConnectionString;
             dcd.Close();
+        }
+
+        private void BuildEventClassSubclassTables()
+        {
+            SqlConnection conn = new SqlConnection(ConnStr);
+            conn.Open();
+            new SqlCommand(Properties.Resources.EventClassSubClassTablesScript, conn).ExecuteNonQuery();
+            conn.Close();
         }
     }
 }
