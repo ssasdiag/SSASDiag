@@ -105,6 +105,13 @@ namespace ASProfilerTraceImporter
                     Properties.Settings.Default.Save();
                     cib.SetConnectionString(txtConn.Text);
 
+                    SqlConnection conn = new SqlConnection(txtConn.Text);
+                    conn.Open();
+                    if (new SqlCommand("select count(*) from sys.tables where name = '" + txtTable.Text + "'", conn).ExecuteScalar() as int? > 0)
+                        if (MessageBox.Show("The table already exists.  Overwrite?", "Table Exists", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) == System.Windows.Forms.DialogResult.No)
+                            return;
+                    conn.Close();
+
                     string path = txtFile.Text.Substring(0, txtFile.Text.LastIndexOf('\\') + 1);
                     string trcbase = txtFile.Text.Substring(txtFile.Text.LastIndexOf('\\') + 1);
                     // Remove numbers trailing from trace file name (if they are there) as well as file extension...
@@ -122,6 +129,7 @@ namespace ASProfilerTraceImporter
                     
                     bCancel = false;
                     btnImport.Text = "Cancel...";
+                        
                     Thread th = new Thread(() =>
                     {
                         TraceSetTextDelegate SetText = new TraceSetTextDelegate(SetTextCallback);
@@ -158,6 +166,7 @@ namespace ASProfilerTraceImporter
                                         new SqlCommand("insert into [" + txtTable.Text + "] (" + cols + ") select " + cols + " from [##" + txtTable.Text + "_" + i + "]", conn2).ExecuteNonQuery();
                                         SetText2("Merging file " + (i + 1).ToString() + "...");
                                     }
+
                                 tfps[i].tIn.Close();
                                 tfps[i].tOut.Close();
                             }
