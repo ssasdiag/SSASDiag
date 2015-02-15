@@ -162,6 +162,7 @@
             this.Name = "frmProfilerTraceImporter";
             this.Text = "AS Profiler Trace Importer";
             this.HelpButtonClicked += new System.ComponentModel.CancelEventHandler(this.frmProfilerTraceImporter_HelpButtonClicked);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmProfilerTraceImporter_FormClosing);
             this.Shown += new System.EventHandler(this.frmProfilerTraceImporter_Shown);
             this.ResumeLayout(false);
             this.PerformLayout();

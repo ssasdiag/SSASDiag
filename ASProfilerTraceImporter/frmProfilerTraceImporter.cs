@@ -32,13 +32,18 @@ namespace ASProfilerTraceImporter
         public delegate void TraceSetTextDelegate(string text);
         public void SetTextCallback(string text)
         {
-            lblStatus.Invoke(new Action(() => { lblStatus.Text = text; }));
-            if (text.StartsWith("Done loading"))
-                btnImport.Invoke(new Action(() => { btnImport.Text = "Import"; }));
+            try
+            {
+                lblStatus.Invoke(new Action(() => { lblStatus.Text = text; }));
+                if (text.StartsWith("Done loading"))
+                    btnImport.Invoke(new Action(() => { btnImport.Text = "Import"; }));
+            }
+            catch { }
         }
         public void SetTextCallback2(string text)
         {
-            lblStatus2.Invoke(new Action(() => { lblStatus2.Text = text; }));
+            try { lblStatus2.Invoke(new Action(() => { lblStatus2.Text = text; })); }
+            catch { }
         }
 
         public class SqlConnectionInfo2 : SqlConnectionInfo
@@ -98,7 +103,7 @@ namespace ASProfilerTraceImporter
                     SqlConnection conn = new SqlConnection(txtConn.Text);
                     conn.Open();
                     if (new SqlCommand("select count(*) from sys.tables where name = '" + txtTable.Text + "'", conn).ExecuteScalar() as int? > 0)
-                        if (MessageBox.Show("The table already exists.  Overwrite?", "Table Exists", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) == System.Windows.Forms.DialogResult.No)
+                        if (!bCancel && MessageBox.Show("The table already exists.  Overwrite?", "Table Exists", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) == System.Windows.Forms.DialogResult.No)
                             return;
                     conn.Close();
 
@@ -128,7 +133,7 @@ namespace ASProfilerTraceImporter
                         SetText2("");
                         SetText("");
 
-                        Semaphore s = new Semaphore(1, System.Environment.ProcessorCount); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
+                        Semaphore s = new Semaphore(1, System.Environment.ProcessorCount* 2); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
                         foreach (string f in files)
                             if (!bCancel)
                             {
@@ -146,12 +151,14 @@ namespace ASProfilerTraceImporter
                             for (int i = 0; i <= CurFile; i++)
                             {
                                 workers[i].Join();
+                                SetText2("Merging file " + (i + 1).ToString() + "...");
                                 if (!bCancel)
                                     if (i > 0)
                                     {
                                         new SqlCommand("delete from [##" + txtTable.Text + "_" + i + "] where eventclass = 65528", conn2).ExecuteNonQuery();
-                                        new SqlCommand("insert into [" + txtTable.Text + "] (" + cols + ") select " + cols + " from [##" + txtTable.Text + "_" + i + "]", conn2).ExecuteNonQuery();
-                                        SetText2("Merging file " + (i + 1).ToString() + "...");
+                                        SqlCommand cmd = new SqlCommand("insert into [" + txtTable.Text + "] (" + cols + ") select " + cols + " from [##" + txtTable.Text + "_" + i + "]", conn2);
+                                        cmd.CommandTimeout = 0;
+                                        cmd.ExecuteNonQuery();
                                     }
 
                                 tfps[i].tIn.Close();
@@ -164,7 +171,7 @@ namespace ASProfilerTraceImporter
                                 SetText("Done loading " + String.Format("{0:#,##0}", (RowCount)) + " rows in " + Math.Round((DateTime.Now - startTime).TotalSeconds, 1) + "s.");
                                 cols = new SqlCommand("SELECT SUBSTRING((SELECT ', t.' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn2).ExecuteScalar() as string;
                                 new SqlCommand("if exists(select * from sys.views where name = '" + Table + "v') drop view [" + Table + "v];", conn2).ExecuteNonQuery();
-                                new SqlCommand("create view [" + Table + "v] as select " + cols.Replace("t.[EventClass]", "c.[Name] as EventClass, c.EventClassID").Replace("t.[EventSubclass]", "s.[Name] as EventSubclass, s.EventSubclassID") + " from " + Table + "  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
+                                new SqlCommand("create view [" + Table + "v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from " + Table + "  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
                             }
                             conn2.Close();
                         }
@@ -182,7 +189,7 @@ namespace ASProfilerTraceImporter
             }
             catch (Exception exc)
             {
-                MessageBox.Show(exc.ToString(), "Oops!  Exception...");
+                if (!bCancel) MessageBox.Show(exc.ToString(), "Oops!  Exception...");
             }
         }
 
@@ -215,7 +222,7 @@ namespace ASProfilerTraceImporter
                         // get column list from first trace file...
                         cols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
                         bFirstFile = true;
-                        Sem.Release(System.Environment.ProcessorCount);  // We blocked everything until we got initial cols, now we release them all to run...
+                        Sem.Release(System.Environment.ProcessorCount * 2);  // We blocked everything until we got initial cols, now we release them all to run...
                     }
                     else
                         if (cols != new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string)
@@ -235,7 +242,7 @@ namespace ASProfilerTraceImporter
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show(e.ToString() + "\r\n\r\nException occurred while loading file " + FileName + ".");
+                    if (!bCancel) MessageBox.Show(e.ToString() + "\r\n\r\nException occurred while loading file " + FileName + ".");
                 }
             }
         }
@@ -306,6 +313,12 @@ namespace ASProfilerTraceImporter
             conn.Open();
             new SqlCommand(Properties.Resources.EventClassSubClassTablesScript, conn).ExecuteNonQuery();
             conn.Close();
+        }
+
+        private void frmProfilerTraceImporter_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            bCancel = true;
+            Application.Exit();
         }
     }
 }
