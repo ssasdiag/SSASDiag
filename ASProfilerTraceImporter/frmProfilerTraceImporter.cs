@@ -166,12 +166,13 @@ namespace ASProfilerTraceImporter
                             }
                             if (!bCancel)
                             {
-                                BuildEventClassSubclassTables();
+                                
                                 SetText(lblStatus2, "Building index and adding views...");
                                 SetText(lblStatus, "Done loading " + String.Format("{0:#,##0}", (RowCount)) + " rows in " + Math.Round((DateTime.Now - startTime).TotalSeconds, 1) + "s.");
                                 cols = SqlCommandInfiniteConstructor("SELECT SUBSTRING((SELECT ', t.' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn2).ExecuteScalar() as string;
                                 if (chkCreateView.Checked)
                                 {
+                                    SqlCommandInfiniteConstructor(Properties.Resources.EventClassSubClassTablesScript, conn2).ExecuteNonQuery();
                                     SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_v') drop view [" + Table + "_v];", conn2).ExecuteNonQuery();
                                     SqlCommandInfiniteConstructor("create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from " + Table + "  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
                                 }
@@ -320,14 +321,6 @@ namespace ASProfilerTraceImporter
             dcd.Close();
         }
 
-        private void BuildEventClassSubclassTables()
-        {
-            SqlConnection conn = new SqlConnection(ConnStr);
-            conn.Open();
-            new SqlCommand(Properties.Resources.EventClassSubClassTablesScript, conn).ExecuteNonQuery();
-            conn.Close();
-        }
-
         private void frmProfilerTraceImporter_FormClosing(object sender, FormClosingEventArgs e)
         {
             bCancel = true;
@@ -336,8 +329,8 @@ namespace ASProfilerTraceImporter
 
         private void txtTable_TextChanged(object sender, EventArgs e)
         {
-            chkCalcStats.Text = "Create query statistics view: " + (txtTable.Text == "" ? "." : " " + txtTable.Text + "_QueryStats.");
-            chkCreateView.Text = "Imported event names view: " + (txtTable.Text == "" ? "." : " " + txtTable.Text + "_v.");
+            chkCalcStats.Text = txtTable.Text == "" ? "Create query statistics view." : "Create query stastics view: " + txtTable.Text + "_QueryStats.";
+            chkCreateView.Text = txtTable.Text == "" ? "Import event names view." : "Import event names view:  " + txtTable.Text + "_v.";
         }
     }
 }

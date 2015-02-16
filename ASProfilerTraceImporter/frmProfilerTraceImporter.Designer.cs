@@ -161,9 +161,9 @@
             this.chkCalcStats.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkCalcStats.Location = new System.Drawing.Point(85, 126);
             this.chkCalcStats.Name = "chkCalcStats";
-            this.chkCalcStats.Size = new System.Drawing.Size(179, 17);
+            this.chkCalcStats.Size = new System.Drawing.Size(183, 17);
             this.chkCalcStats.TabIndex = 17;
-            this.chkCalcStats.Text = "Create query statistics with view.";
+            this.chkCalcStats.Text = "Expose query statistics with view.";
             this.chkCalcStats.UseVisualStyleBackColor = true;
             // 
             // chkReplace
