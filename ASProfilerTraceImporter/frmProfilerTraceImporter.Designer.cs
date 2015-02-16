@@ -40,6 +40,10 @@
             this.label1 = new System.Windows.Forms.Label();
             this.txtTable = new System.Windows.Forms.TextBox();
             this.btnConnDlg = new System.Windows.Forms.Button();
+            this.chkCreateView = new System.Windows.Forms.CheckBox();
+            this.chkCalcStats = new System.Windows.Forms.CheckBox();
+            this.chkReplace = new System.Windows.Forms.CheckBox();
+            this.lblStatus3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblImporting
@@ -53,7 +57,7 @@
             // 
             // btnImport
             // 
-            this.btnImport.Location = new System.Drawing.Point(85, 103);
+            this.btnImport.Location = new System.Drawing.Point(85, 173);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(80, 33);
             this.btnImport.TabIndex = 5;
@@ -72,7 +76,7 @@
             // lblStatus
             // 
             this.lblStatus.AutoSize = true;
-            this.lblStatus.Location = new System.Drawing.Point(180, 105);
+            this.lblStatus.Location = new System.Drawing.Point(180, 175);
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(0, 13);
             this.lblStatus.TabIndex = 10;
@@ -90,7 +94,7 @@
             // lblStatus2
             // 
             this.lblStatus2.AutoSize = true;
-            this.lblStatus2.Location = new System.Drawing.Point(180, 120);
+            this.lblStatus2.Location = new System.Drawing.Point(180, 190);
             this.lblStatus2.Name = "lblStatus2";
             this.lblStatus2.Size = new System.Drawing.Size(0, 13);
             this.lblStatus2.TabIndex = 11;
@@ -126,6 +130,7 @@
             this.txtTable.Name = "txtTable";
             this.txtTable.Size = new System.Drawing.Size(328, 20);
             this.txtTable.TabIndex = 4;
+            this.txtTable.TextChanged += new System.EventHandler(this.txtTable_TextChanged);
             // 
             // btnConnDlg
             // 
@@ -137,12 +142,61 @@
             this.btnConnDlg.UseVisualStyleBackColor = true;
             this.btnConnDlg.Click += new System.EventHandler(this.btnConnDlg_Click);
             // 
+            // chkCreateView
+            // 
+            this.chkCreateView.AutoSize = true;
+            this.chkCreateView.Checked = true;
+            this.chkCreateView.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkCreateView.Location = new System.Drawing.Point(85, 103);
+            this.chkCreateView.Name = "chkCreateView";
+            this.chkCreateView.Size = new System.Drawing.Size(169, 17);
+            this.chkCreateView.TabIndex = 16;
+            this.chkCreateView.Text = "Import event names with view.";
+            this.chkCreateView.UseVisualStyleBackColor = true;
+            // 
+            // chkCalcStats
+            // 
+            this.chkCalcStats.AutoSize = true;
+            this.chkCalcStats.Checked = true;
+            this.chkCalcStats.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkCalcStats.Location = new System.Drawing.Point(85, 126);
+            this.chkCalcStats.Name = "chkCalcStats";
+            this.chkCalcStats.Size = new System.Drawing.Size(179, 17);
+            this.chkCalcStats.TabIndex = 17;
+            this.chkCalcStats.Text = "Create query statistics with view.";
+            this.chkCalcStats.UseVisualStyleBackColor = true;
+            // 
+            // chkReplace
+            // 
+            this.chkReplace.AutoSize = true;
+            this.chkReplace.Checked = true;
+            this.chkReplace.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkReplace.Location = new System.Drawing.Point(85, 149);
+            this.chkReplace.Name = "chkReplace";
+            this.chkReplace.Size = new System.Drawing.Size(167, 17);
+            this.chkReplace.TabIndex = 18;
+            this.chkReplace.Text = "Replace existing table silently.";
+            this.chkReplace.UseVisualStyleBackColor = true;
+            // 
+            // lblStatus3
+            // 
+            this.lblStatus3.AutoSize = true;
+            this.lblStatus3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblStatus3.Location = new System.Drawing.Point(82, 209);
+            this.lblStatus3.Name = "lblStatus3";
+            this.lblStatus3.Size = new System.Drawing.Size(0, 13);
+            this.lblStatus3.TabIndex = 19;
+            // 
             // frmProfilerTraceImporter
             // 
             this.AcceptButton = this.btnImport;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(450, 145);
+            this.ClientSize = new System.Drawing.Size(450, 227);
+            this.Controls.Add(this.lblStatus3);
+            this.Controls.Add(this.chkReplace);
+            this.Controls.Add(this.chkCalcStats);
+            this.Controls.Add(this.chkCreateView);
             this.Controls.Add(this.txtTable);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnConnDlg);
@@ -182,6 +236,10 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtTable;
         private System.Windows.Forms.Button btnConnDlg;
+        private System.Windows.Forms.CheckBox chkCreateView;
+        private System.Windows.Forms.CheckBox chkCalcStats;
+        private System.Windows.Forms.CheckBox chkReplace;
+        private System.Windows.Forms.Label lblStatus3;
     }
 }
 
