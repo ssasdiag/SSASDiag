@@ -87,6 +87,7 @@ namespace ASProfilerTraceImporter
 
         private void btnImport_Click(object sender, System.EventArgs e)
         {
+            Table = txtTable.Text;
             try
             {
                 DateTime startTime = DateTime.Now;
