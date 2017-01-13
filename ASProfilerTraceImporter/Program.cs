@@ -17,9 +17,19 @@ namespace ASProfilerTraceImporter
         [STAThread]
         static void Main()
         {
-            AppDomainSetup ads = new AppDomainSetup();
-            ads.PrivateBinPath = "dll";
+            Application.ApplicationExit += Application_ApplicationExit;
 
+            if (!Directory.Exists(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll")) Directory.CreateDirectory(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll");
+            Environment.CurrentDirectory = Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter";
+
+            AppDomainSetup ads = new AppDomainSetup();
+            ads.PrivateBinPath = "dll";           
+
+            if (!Directory.Exists(Environment.CurrentDirectory + "\\dll")) Directory.CreateDirectory(Environment.CurrentDirectory + "\\dll");
+            if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
+            if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.Dialog.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
+            if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.SqlServer.ConnectionInfo.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\SqlServer.ConnectionInfo.dll", Properties.Resources.Microsoft_SqlServer_ConnectionInfo);
+            if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.SqlServer.ConnectionInfoExtended.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\Microsoft.SqlServer.ConnectionInfoExtended.dll", Properties.Resources.Microsoft_SqlServer_ConnectionInfoExtended);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -42,6 +52,12 @@ namespace ASProfilerTraceImporter
             {
                 MessageBox.Show(e.ToString(), "Oops!  Exception...");
             }
+        }
+
+        private static void Application_ApplicationExit(object sender, EventArgs e)
+        {
+            Environment.CurrentDirectory = Environment.GetEnvironmentVariable("temp");
+            Directory.Delete(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter", true);
         }
 
         static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)

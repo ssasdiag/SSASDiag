@@ -284,11 +284,6 @@ namespace ASProfilerTraceImporter
 
         private void frmProfilerTraceImporter_Shown(object sender, EventArgs e)
         {
-            if (!Directory.Exists(Environment.CurrentDirectory + "\\dll")) Directory.CreateDirectory(Environment.CurrentDirectory + "\\dll");
-            if (!File.Exists(Environment.CurrentDirectory +  "\\dll\\Microsoft.Data.ConnectionUI.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
-            if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.Dialog.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
-            if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.SqlServer.ConnectionInfo.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\SqlServer.ConnectionInfo.dll", Properties.Resources.Microsoft_SqlServer_ConnectionInfo);
-            if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.SqlServer.ConnectionInfoExtended.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\Microsoft.SqlServer.ConnectionInfoExtended.dll", Properties.Resources.Microsoft_SqlServer_ConnectionInfoExtended);
             txtConn.Text = ConnStr = Properties.Settings.Default.ConnStr;
             txtTable.Text = Table = Properties.Settings.Default.Table;
 
