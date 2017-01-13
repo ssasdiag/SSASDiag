@@ -17,7 +17,9 @@ namespace ASProfilerTraceImporter
         [STAThread]
         static void Main()
         {
-            Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + Environment.GetEnvironmentVariable("temp"));
+            AppDomainSetup ads = new AppDomainSetup();
+            ads.PrivateBinPath = "dll";
+
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

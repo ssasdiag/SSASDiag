@@ -91,12 +91,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Data.ConnectionUI, Version=0.0.0.0, Culture=neutral, PublicKeyToken=f4ca07f51760da93, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\AppData\Local\Temp\Microsoft.Data.ConnectionUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Data.ConnectionUI.Dialog, Version=0.0.0.0, Culture=neutral, PublicKeyToken=f4ca07f51760da93, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\AppData\Local\Temp\Microsoft.Data.ConnectionUI.Dialog.dll</HintPath>
       <Private>False</Private>
     </Reference>
@@ -130,7 +128,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings.cs" />
     <EmbeddedResource Include="frmProfilerTraceImporter.resx">
       <DependentUpon>frmProfilerTraceImporter.cs</DependentUpon>
     </EmbeddedResource>
