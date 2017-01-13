@@ -23,7 +23,7 @@ namespace ASProfilerTraceImporter
             Environment.CurrentDirectory = Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter";
 
             AppDomainSetup ads = new AppDomainSetup();
-            ads.PrivateBinPath = "dll";           
+            ads.PrivateBinPathProbe = "dll";           
 
             if (!Directory.Exists(Environment.CurrentDirectory + "\\dll")) Directory.CreateDirectory(Environment.CurrentDirectory + "\\dll");
             if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
