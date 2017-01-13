@@ -252,7 +252,7 @@ namespace ASProfilerTraceImporter
                     }
                     catch(SqlTraceException ste)
                     {
-                        MessageBox.Show("Error from SQL Trace library:\r\n" + ste.Message + "\r\n" + ste.StackTrace, "Error from SQL Trace Library", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                     }
                     if (!bFirstFile) Sem.Release(); // release this code for next thread waiting on the semaphore 
                 }
