@@ -17,13 +17,15 @@ namespace ASProfilerTraceImporter
         [STAThread]
         static void Main()
         {
+            Environment.SetEnvironmentVariable("PATH", Environment.GetEnvironmentVariable("PATH") + ";" + Environment.GetEnvironmentVariable("temp"));
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
             // Set file extension to the way we want to handle it
             RegistryKey r;
             if (Registry.ClassesRoot.OpenSubKey("SystemFileAssociations\\.trc\\Shell\\Import\\Command") == null)
-                r = Registry.ClassesRoot.CreateSubKey("SystemFileAssociations").CreateSubKey(".trc").CreateSubKey("Shell").CreateSubKey("Import").CreateSubKey("Command");
+                r = Registry.ClassesRoot.CreateSubKey("SystemFileAssociations").CreateSubKey(".trc").CreateSubKey("Shell").CreateSubKey("Import").CreateSubKey("Command", RegistryKeyPermissionCheck.ReadWriteSubTree);
             else
                 r = Registry.ClassesRoot.CreateSubKey("Software\\Classes\\ASProfilerTraceImporter\\shell\\import\\command", RegistryKeyPermissionCheck.ReadWriteSubTree);
             r.SetValue("", "\"" + Application.ExecutablePath + "\" \"%1\"");

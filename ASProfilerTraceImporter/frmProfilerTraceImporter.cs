@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Microsoft.Data.ConnectionUI;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using System.Runtime;
 
 namespace ASProfilerTraceImporter
 {
@@ -136,7 +137,7 @@ namespace ASProfilerTraceImporter
                         SetText(lblStatus2, "");
                         SetText(lblStatus, "");
 
-                        Semaphore s = new Semaphore(1, System.Environment.ProcessorCount* 2); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
+                        Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 4); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
                         foreach (string f in files)
                             if (!bCancel)
                             {
@@ -252,7 +253,7 @@ namespace ASProfilerTraceImporter
                     }
                     catch(SqlTraceException ste)
                     {
-
+                        string s = ste.Message;
                     }
                     if (!bFirstFile) Sem.Release(); // release this code for next thread waiting on the semaphore 
                 }
@@ -283,8 +284,11 @@ namespace ASProfilerTraceImporter
 
         private void frmProfilerTraceImporter_Shown(object sender, EventArgs e)
         {
-            if (!File.Exists(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
-            if (!File.Exists(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
+            if (!Directory.Exists(Environment.CurrentDirectory + "\\dll")) Directory.CreateDirectory(Environment.CurrentDirectory + "\\dll");
+            if (!File.Exists(Environment.CurrentDirectory +  "\\dll\\Microsoft.Data.ConnectionUI.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
+            if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.Dialog.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
+            if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.SqlServer.ConnectionInfo.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\SqlServer.ConnectionInfo.dll", Properties.Resources.Microsoft_SqlServer_ConnectionInfo);
+            if (!File.Exists(Environment.CurrentDirectory + "\\dll\\Microsoft.SqlServer.ConnectionInfoExtended.dll")) File.WriteAllBytes(Environment.CurrentDirectory + "\\dll\\Microsoft.SqlServer.ConnectionInfoExtended.dll", Properties.Resources.Microsoft_SqlServer_ConnectionInfoExtended);
             txtConn.Text = ConnStr = Properties.Settings.Default.ConnStr;
             txtTable.Text = Table = Properties.Settings.Default.Table;
 
@@ -310,18 +314,30 @@ namespace ASProfilerTraceImporter
         }
 
         private void btnConnDlg_Click(object sender, EventArgs e)
-        {                
-            DataConnectionDialog dcd = new DataConnectionDialog();
+        {
+            // Assembly condlg = Assembly.LoadFile(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll");
+            // Type condlgtype = condlg.GetType("Microsoft.Data.ConnectionUI.DataConnectionDialog");
+            // var dcd = Activator.CreateInstance(condlgtype);
             DataSource sql = new DataSource("MicrosoftSqlServer", "Microsoft SQL Server");
             sql.Providers.Add(DataProvider.SqlDataProvider);
+
+            //// condlgtype.InvokeMember("DataSources", BindingFlags.InvokeMethod, null, dcd, new object[] { sql });
+            // condlgtype.GetProperty("SelectedDataProvider").SetValue(dcd, DataProvider.SqlDataProvider);
+            // condlgtype.GetProperty("SelectedDataSource").SetValue(dcd, sql);
+            // condlgtype.GetProperty("ConnectionString").SetValue(dcd, txtConn.Text);
+            // DataConnectionDialog.Show(dcd as DataConnectionDialog);
+
+            DataConnectionDialog dcd = new DataConnectionDialog();
+
             dcd.DataSources.Add(sql);
             dcd.SelectedDataProvider = DataProvider.SqlDataProvider;
             dcd.SelectedDataSource = sql;
             dcd.ConnectionString = txtConn.Text;
-            if (DataConnectionDialog.Show(dcd) == System.Windows.Forms.DialogResult.OK);
+            if (DataConnectionDialog.Show(dcd) == System.Windows.Forms.DialogResult.OK)
                 txtConn.Text = ConnStr = dcd.ConnectionString;
             dcd.Close();
         }
+
 
         private void frmProfilerTraceImporter_FormClosing(object sender, FormClosingEventArgs e)
         {

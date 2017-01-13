@@ -130,4 +130,10 @@
   <data name="Microsoft_Data_ConnectionUI_Dialog" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Microsoft.Data.ConnectionUI.Dialog.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="Microsoft_SqlServer_ConnectionInfo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Microsoft.SqlServer.ConnectionInfo.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Microsoft_SqlServer_ConnectionInfoExtended" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Microsoft.SqlServer.ConnectionInfoExtended.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>
