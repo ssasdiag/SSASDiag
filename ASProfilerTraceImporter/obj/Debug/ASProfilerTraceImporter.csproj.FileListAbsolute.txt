@@ -1,0 +1,1 @@
+C:\Users\jburchel\Source\Repos\asprofilertraceimporter\ASProfilerTraceImporter\bin\Debug\AS Profiler Trace Importer.exe.config
