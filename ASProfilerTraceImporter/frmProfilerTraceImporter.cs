@@ -48,8 +48,20 @@ namespace ASProfilerTraceImporter
             {
                 System.Security.SecureString s = new System.Security.SecureString();
                 foreach (char c in conn) s.AppendChar(c);
-                this.ConnectionStringInternal= s;
+                this.ConnectionStringInternal = s;
+                foreach (string prop in conn.Split(';'))
+                {
+                    string[] kv = prop.Split('=');
+                    if (kv[0].ToLower() == "database" || kv[0].ToLower() == "initial catalog") this.DatabaseName = kv[1];
+                    if (kv[0].ToLower() == "server" || kv[0].ToLower() == "data source") this.ServerName = kv[1];
+                    if (kv[0].ToLower() == "integrated security") this.UseIntegratedSecurity = Convert.ToBoolean(kv[1]);
+                    if (kv[0].ToLower() == "user" || kv[0].ToLower() == "user id" || kv[0].ToLower() == "username") this.UserName = kv[1];
+                    if (kv[0].ToLower() == "password") this.Password = kv[1];
+                }
+                
+                
                 this.RebuildConnectionStringInternal = false;
+
             }
         }
 
@@ -137,7 +149,7 @@ namespace ASProfilerTraceImporter
                         SetText(lblStatus2, "");
                         SetText(lblStatus, "");
 
-                        Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 4); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
+                        Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
                         foreach (string f in files)
                             if (!bCancel)
                             {
@@ -176,7 +188,8 @@ namespace ASProfilerTraceImporter
                                 {
                                     SqlCommandInfiniteConstructor(Properties.Resources.EventClassSubClassTablesScript, conn2).ExecuteNonQuery();
                                     SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_v') drop view [" + Table + "_v];", conn2).ExecuteNonQuery();
-                                    SqlCommandInfiniteConstructor("create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from " + Table + "  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
+                                    SqlCommandInfiniteConstructor(
+                                        "create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from " + Table + "  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
                                 }
                                 SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "EventClassIndex') drop view [" + Table + "EventClassIndex];", conn2).ExecuteNonQuery();
                                 SqlCommandInfiniteConstructor("create index [" + Table + "EventClassIndex] on [" + Table + "] (EventClass)", conn2).ExecuteNonQuery();
@@ -310,17 +323,8 @@ namespace ASProfilerTraceImporter
 
         private void btnConnDlg_Click(object sender, EventArgs e)
         {
-            // Assembly condlg = Assembly.LoadFile(Environment.CurrentDirectory + "\\Microsoft.Data.ConnectionUI.Dialog.dll");
-            // Type condlgtype = condlg.GetType("Microsoft.Data.ConnectionUI.DataConnectionDialog");
-            // var dcd = Activator.CreateInstance(condlgtype);
             DataSource sql = new DataSource("MicrosoftSqlServer", "Microsoft SQL Server");
             sql.Providers.Add(DataProvider.SqlDataProvider);
-
-            //// condlgtype.InvokeMember("DataSources", BindingFlags.InvokeMethod, null, dcd, new object[] { sql });
-            // condlgtype.GetProperty("SelectedDataProvider").SetValue(dcd, DataProvider.SqlDataProvider);
-            // condlgtype.GetProperty("SelectedDataSource").SetValue(dcd, sql);
-            // condlgtype.GetProperty("ConnectionString").SetValue(dcd, txtConn.Text);
-            // DataConnectionDialog.Show(dcd as DataConnectionDialog);
 
             DataConnectionDialog dcd = new DataConnectionDialog();
 
