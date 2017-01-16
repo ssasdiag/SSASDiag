@@ -52,6 +52,9 @@ namespace SSASDiag
                     lbStatus.Items[lbStatus.Items.Count - 1] += ".";
             }
             lbStatus.TopIndex = lbStatus.Items.Count - 1;
+
+            if (DateTime.Now > dtStopTime.Value && chkStopTime.Checked)
+                btnCapture_Click(m_PerfMonIntervalTimer, new EventArgs());
         }
 
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
@@ -80,6 +83,7 @@ namespace SSASDiag
         {
             if (btnCapture.Text == "Start Capture")
             {
+                btnCapture.Text = "Stop Capture";
                 chkAutoRestart.Enabled = dtStopTime.Enabled = chkRollover.Enabled = chkStopTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
 
                 TraceID = Environment.MachineName + "_" 
@@ -120,6 +124,7 @@ namespace SSASDiag
             }
             else
             {
+                btnCapture.Text = "Start Capture";
                 chkAutoRestart.Enabled = chkRollover.Enabled = chkStopTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
                 udRollover.Enabled = chkRollover.Checked;
                 dtStopTime.Enabled = chkStopTime.Checked;
@@ -140,7 +145,7 @@ namespace SSASDiag
         {
             m_PerfMonIntervalTimer.Stop();
             m_PdhHelperInstance.Dispose();
-            btnCapture.Text = "Start Capture";
+            
             return 0;
         }
 
@@ -177,11 +182,9 @@ namespace SSASDiag
 
             // Add all the counters now to the query...
             m_PdhHelperInstance.AddCounters(ref s, false);
-
-            uint ret = m_PdhHelperInstance.OpenLogForWriting(TraceID + ".blg", PdhLogFileType.PDH_LOG_TYPE_BINARY, true, 0, false, "SSAS Diagnostics Performance Monitor Log");
+            uint ret = m_PdhHelperInstance.OpenLogForWriting(TraceID + ".blg", PdhLogFileType.PDH_LOG_TYPE_BINARY, true, chkRollover.Checked ? (uint)udRollover.Value : 0, chkRollover.Checked ? true : false, "SSAS Diagnostics Performance Monitor Log");
             if (ret == 0)
             {
-                btnCapture.Text = "Stop Capture";
                 m_PerfMonIntervalTimer.Interval = (int)udInterval.Value * 1000;
                 m_PerfMonIntervalTimer.Start();
             }
