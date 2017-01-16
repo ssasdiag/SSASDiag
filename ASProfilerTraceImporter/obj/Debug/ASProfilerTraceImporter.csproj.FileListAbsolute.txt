@@ -6,3 +6,5 @@ C:\Users\jburchel\Source\Repos\asprofilertraceimporter\ASProfilerTraceImporter\o
 C:\Users\jburchel\Source\Repos\asprofilertraceimporter\ASProfilerTraceImporter\obj\Debug\AS Profiler Trace Importer.exe
 C:\Users\jburchel\Source\Repos\asprofilertraceimporter\ASProfilerTraceImporter\obj\Debug\AS Profiler Trace Importer.pdb
 C:\Users\jburchel\Source\Repos\asprofilertraceimporter\ASProfilerTraceImporter\obj\Debug\ASProfilerTraceImporter.csprojResolveAssemblyReference.cache
+d:\jburchel\Source\Repos\asprofilertraceimporter\ASProfilerTraceImporter\obj\Debug\AS Profiler Trace Importer.exe
+d:\jburchel\Source\Repos\asprofilertraceimporter\ASProfilerTraceImporter\obj\Debug\AS Profiler Trace Importer.pdb
