@@ -19,6 +19,8 @@ namespace SSASDiag
     public partial class frmSSASDiag : Form
     {
         string m_instanceVersion = "";
+        string m_instanceType = "";
+        string m_instanceEdition = "";
         PdhHelper m_PdhHelperInstance = new PdhHelper(false);
         Timer m_PerfMonIntervalTimer = new Timer();
         string TraceID = "";
@@ -62,7 +64,9 @@ namespace SSASDiag
             Server srv = new Server();
             srv.Connect("." + (cbInstances.SelectedItem.ToString() == "Default instance (MSSQLServer)" ? "" : "\\" + cbInstances.SelectedItem));
             lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition;
-            m_instanceVersion = srv.Version;
+            m_instanceType = srv.ServerMode.ToString();
+            m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
+            m_instanceEdition = srv.Edition.ToString();
             srv.Disconnect();
             btnCapture.Enabled = true;
         }
@@ -96,6 +100,8 @@ namespace SSASDiag
                     + ".");
                 lbStatus.Items.Add("Collecting on server " + Environment.MachineName + ".");
                 lbStatus.Items.Add("Collecting for instance " + cbInstances.SelectedItem + ".");
+                lbStatus.Items.Add("The version of the instance is " + m_instanceVersion + ".");
+                lbStatus.Items.Add("The edition of the instance is " + m_instanceEdition + ".");
 
                 StartPerfMon();
 
