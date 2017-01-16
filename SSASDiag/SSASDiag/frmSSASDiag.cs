@@ -32,12 +32,18 @@ namespace SSASDiag
 
         private void frmSSASDiag_Load(object sender, EventArgs e)
         {
+            this.FormClosing += frmSSASDiag_FormClosing;
             PopulateInstanceDropdown();
 
             m_PerfMonIntervalTimer.Tick += PerfMonIntervalTimer_Tick;
             dtStopTime.Value = DateTime.Now.AddHours(1);
             dtStopTime.MinDate = DateTime.Now.AddMinutes(1);
             dtStopTime.CustomFormat += TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours > 0 ? "+" + TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours.ToString() : TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours.ToString();
+        }
+
+        private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (btnCapture.Text == "Stop Capture") btnCapture_Click(this, new EventArgs());
         }
 
         private void PerfMonIntervalTimer_Tick(object sender, EventArgs e)
@@ -102,6 +108,7 @@ namespace SSASDiag
                 lbStatus.Items.Add("Collecting for instance " + cbInstances.SelectedItem + ".");
                 lbStatus.Items.Add("The version of the instance is " + m_instanceVersion + ".");
                 lbStatus.Items.Add("The edition of the instance is " + m_instanceEdition + ".");
+                lbStatus.Items.Add("The instance mode is " + m_instanceType + ".");
 
                 StartPerfMon();
 
