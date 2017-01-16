@@ -86,23 +86,36 @@ namespace SSASDiag
                     + (cbInstances.SelectedIndex == 0 ? "" : "_" + cbInstances.SelectedItem.ToString() + "_") 
                     + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" 
                     + "_SSASDiag";
+
                 lbStatus.Items.Add("Initializing SSAS diagnostics collection at "
                     + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")
                     + ".");
                 lbStatus.Items.Add("Collecting on server " + Environment.MachineName + ".");
                 lbStatus.Items.Add("Collecting for instance " + cbInstances.SelectedItem + ".");
+
                 StartPerfMon();
-                lbStatus.Items.Add("Started performance monitor logging to file: " + TraceID + ".blg.");
+
+                lbStatus.Items.Add("Performance logging to file: " + TraceID + ".blg.");
+                lbStatus.Items.Add("Performance logging every " + udInterval.Value + " seconds.");
+
                 string XMLABatch = Properties.Resources.ProfilerTraceStartXMLA
                     .Replace("<LogFileName/>", "<LogFileName>" + Environment.CurrentDirectory + "\\" + TraceID + ".trc</LogFileName>")
-                    .Replace("<LogFileSize/>", "")
+                    .Replace("<LogFileSize/>", chkRollover.Checked ? "<LogFileSize>" + udRollover.Value + "</LogFileSize>" : "")
+                    .Replace("<LogFileRollover/>", chkRollover.Checked ? "<LogFileRollover>" + chkRollover.Checked.ToString().ToLower() + "</LogFileRollover>" : "")
+                    .Replace("<AutoRestart/>", "<AutoRestart>" + chkAutoRestart.Checked.ToString().ToLower() + "</AutoRestart>")
+                    .Replace("<StartTime/>", "")
+                    .Replace("<StopTime/>", chkStopTime.Checked ? "<StopTime>" + dtStopTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") + "</StopTime>" : "")
                     .Replace("<ID/>", "<ID>" + TraceID + "</ID>")
                     .Replace("<Name/>", "<Name>" + TraceID + "</Name>");
+
                 string ret = ServerExecute(XMLABatch);
+
                 if (ret.Substring(0, "Success".Length) != "Success")
                     lbStatus.Items.Add("Error starting profiler trace: " + ret);
                 else
                     lbStatus.Items.Add("Started profiler tracing to file: " + TraceID + ".trc.");
+                if (chkRollover.Checked) lbStatus.Items.Add("Log and trace files rollover after " + udRollover.Value + "MB.");
+                if (chkStopTime.Checked) lbStatus.Items.Add("Diagnostic collection stops automatically at " + dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
                 lbStatus.TopIndex = lbStatus.Items.Count - 1;
             }
             else

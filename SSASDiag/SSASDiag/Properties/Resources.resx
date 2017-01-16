@@ -140,9 +140,9 @@
 			&lt;Trace&gt;
 				&lt;LogFileName/&gt;
 				&lt;ID/&gt;
-				&lt;LogFileSize/&gt;
+				&lt;LogFileSize/&gt;&lt;LogFileRollover/&gt;
 				&lt;Name/&gt;
-				&lt;AutoRestart&gt;true&lt;/AutoRestart&gt;
+				&lt;AutoRestart/&gt;&lt;StartTime/&gt;&lt;StopTime/&gt;
 				&lt;LogFileAppend&gt;false&lt;/LogFileAppend&gt;
 				&lt;Events&gt;
 					&lt;Event&gt;
