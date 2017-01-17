@@ -97,7 +97,7 @@
             // lbStatus
             // 
             this.lbStatus.BackColor = System.Drawing.SystemColors.InfoText;
-            this.lbStatus.ForeColor = System.Drawing.Color.PaleGreen;
+            this.lbStatus.ForeColor = System.Drawing.Color.LightSkyBlue;
             this.lbStatus.FormattingEnabled = true;
             this.lbStatus.HorizontalScrollbar = true;
             this.lbStatus.Location = new System.Drawing.Point(12, 197);

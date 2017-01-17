@@ -46,7 +46,7 @@ namespace SSASDiag
 
         private void timerPerfMon_Tick(object sender, EventArgs e)
         {
-            int SelectedIndex = lbStatus.Items.Count - 1;
+            int SelectedIndex = lbStatus.TopIndex;
             lbStatus.SuspendLayout();
 
             if (bScheduledStartPending)
@@ -72,20 +72,6 @@ namespace SSASDiag
                         lbStatus.Items[i] = "Diagnostics captured for " + t.ToString("hh\\:mm\\:ss") + "...";
                         break;
                     }
-
-                // Update UI...
-                if (!((string)lbStatus.Items[lbStatus.Items.Count - 1]).StartsWith("."))
-                    lbStatus.Items.Add(".");
-                else
-                {
-                    // I wish the character width were exposed directly but I just counted the number of dots at the selected font that fit before it fills up...  :|
-                    if (((string)lbStatus.Items[lbStatus.Items.Count - 1]).Length > 183)
-                        lbStatus.Items.Add(".");
-                    else
-                    {
-                        lbStatus.Items[lbStatus.Items.Count - 1] += ".";
-                    }
-                }
 
                 int secondsSinceLastPerfMon = 0;
                 int.TryParse((string)timerPerfMon.Tag, out secondsSinceLastPerfMon);
