@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Microsoft.AnalysisServices;
-using System.ServiceProcess;
-using System.Data.Sql;
+﻿using Microsoft.AnalysisServices;
 using PdhNative;
-using Microsoft.SqlServer.Management.Trace;
+using System;
+using System.Data;
+using System.Linq;
+using System.ComponentModel;
+using System.ServiceProcess;
+using System.Windows.Forms;
 
 namespace SSASDiag
 {
@@ -22,7 +15,6 @@ namespace SSASDiag
         string m_instanceType = "";
         string m_instanceEdition = "";
         PdhHelper m_PdhHelperInstance = new PdhHelper(false);
-        Timer m_PerfMonIntervalTimer = new Timer();
         string TraceID = "";
 
         public frmSSASDiag()
@@ -34,8 +26,6 @@ namespace SSASDiag
         {
             this.FormClosing += frmSSASDiag_FormClosing;
             PopulateInstanceDropdown();
-
-            m_PerfMonIntervalTimer.Tick += PerfMonIntervalTimer_Tick;
             dtStopTime.Value = DateTime.Now.AddHours(1);
             dtStopTime.MinDate = DateTime.Now.AddMinutes(1);
             dtStopTime.CustomFormat += TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours > 0 ? "+" + TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours.ToString() : TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours.ToString();
@@ -46,29 +36,34 @@ namespace SSASDiag
             if (btnCapture.Text == "Stop Capture") btnCapture_Click(this, new EventArgs());
         }
 
-        private void PerfMonIntervalTimer_Tick(object sender, EventArgs e)
+
+        private void timerPerfMon_Tick(object sender, EventArgs e)
         {
-            m_PdhHelperInstance.UpdateLog("SSASDiag");
+            // Update UI...
             if (!((string)lbStatus.Items[lbStatus.Items.Count - 1]).StartsWith("."))
                 lbStatus.Items.Add(".");
             else
             {
                 // I wish the character width were exposed directly but I just counted the number of dots at the selected font that fit before it fills up...  :|
-                if (((string)lbStatus.Items[lbStatus.Items.Count - 1]).Length > 183) 
+                if (((string)lbStatus.Items[lbStatus.Items.Count - 1]).Length > 183)
                     lbStatus.Items.Add(".");
                 else
                     lbStatus.Items[lbStatus.Items.Count - 1] += ".";
             }
+
             lbStatus.TopIndex = lbStatus.Items.Count - 1;
 
+            // If perfmon logging failed we still want to tick our timer so just fail past this with try/catch anything...
+            try { m_PdhHelperInstance.UpdateLog("SSASDiag"); } catch (Exception ex) { MessageBox.Show(ex.Message); }
+
             if (DateTime.Now > dtStopTime.Value && chkStopTime.Checked)
-                btnCapture_Click(m_PerfMonIntervalTimer, new EventArgs());
+                btnCapture_Click(timerPerfMon, new EventArgs());
         }
 
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
             Server srv = new Server();
-            srv.Connect("." + (cbInstances.SelectedItem.ToString() == "Default instance (MSSQLServer)" ? "" : "\\" + cbInstances.SelectedItem));
+            srv.Connect("Data source=" + Environment.MachineName + (cbInstances.SelectedItem.ToString() == "Default instance (MSSQLServer)" ? "" : "\\" + cbInstances.SelectedItem) + ";Integrated Security=SSPI;");
             lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition;
             m_instanceType = srv.ServerMode.ToString();
             m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
@@ -96,9 +91,9 @@ namespace SSASDiag
                 btnCapture.Text = "Stop Capture";
                 chkAutoRestart.Enabled = dtStopTime.Enabled = chkRollover.Enabled = chkStopTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
 
-                TraceID = Environment.MachineName + "_" 
-                    + (cbInstances.SelectedIndex == 0 ? "" : "_" + cbInstances.SelectedItem.ToString() + "_") 
-                    + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" 
+                TraceID = Environment.MachineName + "_"
+                    + (cbInstances.SelectedIndex == 0 ? "" : "_" + cbInstances.SelectedItem.ToString() + "_")
+                    + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC"
                     + "_SSASDiag";
 
                 lbStatus.Items.Add("Initializing SSAS diagnostics collection at "
@@ -110,10 +105,17 @@ namespace SSASDiag
                 lbStatus.Items.Add("The edition of the instance is " + m_instanceEdition + ".");
                 lbStatus.Items.Add("The instance mode is " + m_instanceType + ".");
 
-                StartPerfMon();
-
-                lbStatus.Items.Add("Performance logging to file: " + TraceID + ".blg.");
-                lbStatus.Items.Add("Performance logging every " + udInterval.Value + " seconds.");
+                uint r = StartPerfMon();
+                if (r != 0)
+                {
+                    lbStatus.Items.Add("Error starting PerfMon logging: " + r.ToString("X"));
+                    lbStatus.Items.Add("Other diagnostic collection will still be attempted.");
+                }
+                else
+                {
+                    lbStatus.Items.Add("Performance logging every " + udInterval.Value + " seconds.");
+                    lbStatus.Items.Add("Performance logging started to file: " + TraceID + ".blg.");
+                }
 
                 string XMLABatch = Properties.Resources.ProfilerTraceStartXMLA
                     .Replace("<LogFileName/>", "<LogFileName>" + Environment.CurrentDirectory + "\\" + TraceID + ".trc</LogFileName>")
@@ -130,19 +132,19 @@ namespace SSASDiag
                 if (ret.Substring(0, "Success".Length) != "Success")
                     lbStatus.Items.Add("Error starting profiler trace: " + ret);
                 else
-                    lbStatus.Items.Add("Started profiler tracing to file: " + TraceID + ".trc.");
+                    lbStatus.Items.Add("Profiler tracing started to file: " + TraceID + ".trc.");
                 if (chkRollover.Checked) lbStatus.Items.Add("Log and trace files rollover after " + udRollover.Value + "MB.");
                 if (chkStopTime.Checked) lbStatus.Items.Add("Diagnostic collection stops automatically at " + dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
                 lbStatus.TopIndex = lbStatus.Items.Count - 1;
             }
             else
             {
-                btnCapture.Text = "Start Capture";
                 chkAutoRestart.Enabled = chkRollover.Enabled = chkStopTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
                 udRollover.Enabled = chkRollover.Checked;
                 dtStopTime.Enabled = chkStopTime.Checked;
 
                 StopPerfMon();
+
                 lbStatus.Items.Add("Stopped performance monitor logging.");
                 ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
                 lbStatus.Items.Add("Stopped profiler trace.");
@@ -151,14 +153,14 @@ namespace SSASDiag
                     + ".");
                 lbStatus.Items.Add("");
                 lbStatus.TopIndex = lbStatus.Items.Count - 1;
+                btnCapture.Text = "Start Capture";
             }
         }
 
         private uint StopPerfMon()
         {
-            m_PerfMonIntervalTimer.Stop();
-            m_PdhHelperInstance.Dispose();
-            
+            timerPerfMon.Stop();
+            //m_PdhHelperInstance = null;
             return 0;
         }
 
@@ -196,11 +198,11 @@ namespace SSASDiag
             // Add all the counters now to the query...
             m_PdhHelperInstance.AddCounters(ref s, false);
             uint ret = m_PdhHelperInstance.OpenLogForWriting(TraceID + ".blg", PdhLogFileType.PDH_LOG_TYPE_BINARY, true, chkRollover.Checked ? (uint)udRollover.Value : 0, chkRollover.Checked ? true : false, "SSAS Diagnostics Performance Monitor Log");
-            if (ret == 0)
-            {
-                m_PerfMonIntervalTimer.Interval = (int)udInterval.Value * 1000;
-                m_PerfMonIntervalTimer.Start();
-            }
+
+            // Start the timer ticking...
+            timerPerfMon.Interval = (int)udInterval.Value * 1000;
+            timerPerfMon.Start();
+
             return ret;
         }
 
@@ -235,7 +237,11 @@ namespace SSASDiag
 
         private void chkAutoRestart_CheckedChanged(object sender, EventArgs e)
         {
-            if (chkAutoRestart.Checked) chkStopTime.Checked = true;
+            if (chkAutoRestart.Checked && chkStopTime.Checked == false)
+            {
+                ttStatus.Show("Stop time required for your protection for traces configured to start after service restart.", dtStopTime, 1000);
+                chkStopTime.Checked = true;
+            }
         }
 
         private void chkRollover_CheckedChanged_1(object sender, EventArgs e)
@@ -246,7 +252,10 @@ namespace SSASDiag
         private void chkStopTime_CheckedChanged(object sender, EventArgs e)
         {
             dtStopTime.Enabled = chkStopTime.Checked;
-            if (!chkStopTime.Checked) chkAutoRestart.Checked = false;
+            if (!chkStopTime.Checked)
+                chkAutoRestart.Checked = false;
+            else
+                dtStopTime.Value = DateTime.Now.AddHours(1);
         }
 
         private void lbStatus_MouseClick(object sender, MouseEventArgs e)
@@ -257,7 +266,7 @@ namespace SSASDiag
                 foreach (string Item in lbStatus.Items)
                     clip += Item + "\r\n";
                 Clipboard.SetData(DataFormats.StringFormat, clip);
-                ttStatus.Show("Status output copied to clipboard.", lblRightClick, 1000);
+                ttStatus.Show("Status output copied to clipboard.", lblRightClick, 10, 10, 2000);
             }
         }
     }

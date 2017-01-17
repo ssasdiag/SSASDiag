@@ -46,6 +46,7 @@
             this.dtStopTime = new System.Windows.Forms.DateTimePicker();
             this.lblRightClick = new System.Windows.Forms.Label();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
+            this.timerPerfMon = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).BeginInit();
             this.SuspendLayout();
@@ -83,7 +84,7 @@
             this.btnCapture.Location = new System.Drawing.Point(384, 75);
             this.btnCapture.Name = "btnCapture";
             this.btnCapture.Size = new System.Drawing.Size(128, 46);
-            this.btnCapture.TabIndex = 3;
+            this.btnCapture.TabIndex = 7;
             this.btnCapture.Text = "Start Capture";
             this.btnCapture.UseVisualStyleBackColor = true;
             this.btnCapture.Click += new System.EventHandler(this.btnCapture_Click);
@@ -93,12 +94,13 @@
             this.lbStatus.BackColor = System.Drawing.SystemColors.InfoText;
             this.lbStatus.ForeColor = System.Drawing.Color.YellowGreen;
             this.lbStatus.FormattingEnabled = true;
+            this.lbStatus.HorizontalScrollbar = true;
             this.lbStatus.Location = new System.Drawing.Point(12, 150);
             this.lbStatus.Name = "lbStatus";
             this.lbStatus.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lbStatus.SelectionMode = System.Windows.Forms.SelectionMode.None;
             this.lbStatus.Size = new System.Drawing.Size(559, 160);
-            this.lbStatus.TabIndex = 4;
+            this.lbStatus.TabIndex = 8;
             this.lbStatus.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lbStatus_MouseClick);
             // 
             // chkRollover
@@ -107,7 +109,7 @@
             this.chkRollover.Location = new System.Drawing.Point(12, 53);
             this.chkRollover.Name = "chkRollover";
             this.chkRollover.Size = new System.Drawing.Size(115, 17);
-            this.chkRollover.TabIndex = 5;
+            this.chkRollover.TabIndex = 1;
             this.chkRollover.Text = "Rollover log files at";
             this.chkRollover.UseVisualStyleBackColor = true;
             this.chkRollover.CheckedChanged += new System.EventHandler(this.chkRollover_CheckedChanged_1);
@@ -118,7 +120,7 @@
             this.chkAutoRestart.Location = new System.Drawing.Point(12, 76);
             this.chkAutoRestart.Name = "chkAutoRestart";
             this.chkAutoRestart.Size = new System.Drawing.Size(227, 17);
-            this.chkAutoRestart.TabIndex = 6;
+            this.chkAutoRestart.TabIndex = 3;
             this.chkAutoRestart.Text = "Restart profiler trace when service restarts.";
             this.chkAutoRestart.UseVisualStyleBackColor = true;
             this.chkAutoRestart.CheckedChanged += new System.EventHandler(this.chkAutoRestart_CheckedChanged);
@@ -139,13 +141,12 @@
             0});
             this.udRollover.Name = "udRollover";
             this.udRollover.Size = new System.Drawing.Size(54, 20);
-            this.udRollover.TabIndex = 7;
-            this.udRollover.TabStop = false;
+            this.udRollover.TabIndex = 2;
             this.udRollover.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.udRollover.ThousandsSeparator = true;
             this.udRollover.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
             this.udRollover.Value = new decimal(new int[] {
-            128,
+            2048,
             0,
             0,
             0});
@@ -174,8 +175,7 @@
             0});
             this.udInterval.Name = "udInterval";
             this.udInterval.Size = new System.Drawing.Size(45, 20);
-            this.udInterval.TabIndex = 9;
-            this.udInterval.TabStop = false;
+            this.udInterval.TabIndex = 6;
             this.udInterval.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.udInterval.ThousandsSeparator = true;
             this.udInterval.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
@@ -209,7 +209,7 @@
             this.chkStopTime.Location = new System.Drawing.Point(12, 99);
             this.chkStopTime.Name = "chkStopTime";
             this.chkStopTime.Size = new System.Drawing.Size(73, 17);
-            this.chkStopTime.TabIndex = 12;
+            this.chkStopTime.TabIndex = 4;
             this.chkStopTime.Text = "Stop time:";
             this.chkStopTime.UseVisualStyleBackColor = true;
             this.chkStopTime.CheckedChanged += new System.EventHandler(this.chkStopTime_CheckedChanged);
@@ -222,7 +222,7 @@
             this.dtStopTime.Location = new System.Drawing.Point(86, 96);
             this.dtStopTime.Name = "dtStopTime";
             this.dtStopTime.Size = new System.Drawing.Size(180, 20);
-            this.dtStopTime.TabIndex = 13;
+            this.dtStopTime.TabIndex = 5;
             // 
             // lblRightClick
             // 
@@ -233,6 +233,10 @@
             this.lblRightClick.Size = new System.Drawing.Size(181, 12);
             this.lblRightClick.TabIndex = 14;
             this.lblRightClick.Text = "*Right click status box to copy to clipboard.";
+            // 
+            // timerPerfMon
+            // 
+            this.timerPerfMon.Tick += new System.EventHandler(this.timerPerfMon_Tick);
             // 
             // frmSSASDiag
             // 
@@ -285,6 +289,7 @@
         private System.Windows.Forms.DateTimePicker dtStopTime;
         private System.Windows.Forms.Label lblRightClick;
         private System.Windows.Forms.ToolTip ttStatus;
+        private System.Windows.Forms.Timer timerPerfMon;
     }
 }
 

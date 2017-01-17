@@ -80,6 +80,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Windows" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -144,7 +145,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Microsoft.AnalysisServices.Core.DLL" />
-    <Content Include="Resources\Microsoft.AnalysisServices.Core.XML" />
     <Content Include="Resources\Microsoft.AnalysisServices.DLL" />
     <None Include="Resources\Microsoft_107.ico" />
   </ItemGroup>
