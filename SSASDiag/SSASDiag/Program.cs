@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Collections;
 using System.IO;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace SSASDiag
 {
@@ -51,16 +52,28 @@ namespace SSASDiag
                     //  Finally unload our actual executing AppDomain after finished from temp directory, to delete the files there...
                     AppDomain.Unload(tempDomain);
                 }
-                catch
+                catch (Exception ex)
                 {
                     // This is the generic exception handler from the top level default AppDomain, 
                     // which catches any previously uncaught exceptions originating from the tempDomain.
                     // This should avoid any crashes of the app in theory, instead providing graceful error messaging.
                     //
 
-                    // not implemented now, not sure it is needed either...
+                    string msg = "There was an unexpected error in the SSAS Diagnostics Collector and the application will close.  " 
+                                    + "Details of the error are provided for debugging purposes, and copied on the clipboard.\r\n\r\n"
+                                    + "An email will also be generated to the tool's author after you click OK.  Please paste the details there to report the issue.\r\n\r\n" 
+                        + ex.Message + "\r\n at " + ex.TargetSite + ".";
+                    if (ex.InnerException != null) msg += "\r\n\r\n Inner Exception: " + ex.InnerException.Message + "\r\n  at " + ex.InnerException.TargetSite + ".";
 
-                    // MessageBox.Show("Unexpected error in SSAS Diagnostics Collection", e.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(msg, "Unexpected error in SSAS Diagnostics Collection", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    Clipboard.SetData(DataFormats.StringFormat, "Error: " + ex.Message + " at " + ex.TargetSite + "\n"
+                                        + ex.StackTrace
+                                        + (ex.InnerException == null ? "" :
+                                            "\n\n=====================\nInner Exception: " + ex.InnerException.Message + " at " + ex.InnerException.TargetSite + "\n"
+                                            + ex.InnerException.StackTrace));
+
+                    Process.Start("mailto:jon.burchel@mcirosoft.com?subject=" + "SSASDiag error");
                 }
 
 

@@ -3,6 +3,7 @@ using PdhNative;
 using System;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.ComponentModel;
 using System.ServiceProcess;
 using System.Windows.Forms;
@@ -30,7 +31,8 @@ namespace SSASDiag
             PopulateInstanceDropdown();
             dtStopTime.Value = DateTime.Now.AddHours(1);
             dtStopTime.MinDate = DateTime.Now.AddMinutes(1);
-            dtStopTime.CustomFormat += TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours > 0 ? "+" + TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours.ToString() : TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours.ToString();
+            dtStopTime.CustomFormat += TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours > 0 ? "+" 
+                + TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours.ToString() : TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours.ToString();
             dtStartTime.CustomFormat = dtStopTime.CustomFormat;
             dtStartTime.MinDate = DateTime.Now;
             dtStartTime.MaxDate = DateTime.Now.AddDays(30);
@@ -45,20 +47,31 @@ namespace SSASDiag
         private void timerPerfMon_Tick(object sender, EventArgs e)
         {
             int SelectedIndex = lbStatus.Items.Count - 1;
+            lbStatus.SuspendLayout();
 
             if (bScheduledStartPending)
             {
                 TimeSpan t = dtStartTime.Value - DateTime.Now;
-                lbStatus.Items[lbStatus.Items.Count - 1] = "Time remaining until collection starts: " + (t.TotalHours > 0 ? ((int)t.TotalHours).ToString("00") : "00")  + ":" + t.Minutes.ToString("00") + ":" + t.Seconds.ToString("00");
+                lbStatus.Items[lbStatus.Items.Count - 1] = "Time remaining until collection starts: " + t.TotalHours.ToString("hh\\:mm\\:ss");
                 if (t.TotalSeconds < 0)
                 {
-                    lbStatus.Items.Add("Scheduled start time reached at " + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".  Starting diagnostic collection now.");
-                    SelectedIndex = lbStatus.Items.Count;
+                    lbStatus.Items.Add("Scheduled start time reached at " + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") 
+                        + ".  Starting diagnostic collection now.");
+                    SelectedIndex = lbStatus.Items.Count - 1;
                     StartAllDiagnostics();
                 }
             }
             else
             {
+
+                // Update elapsed time.
+                for (int i = lbStatus.Items.Count - 1; i > 0; i--)
+                    if (((string)lbStatus.Items[i]).StartsWith("Diagnostics captured for "))
+                    {
+                        TimeSpan t = DateTime.Now - m_StartTime;
+                        lbStatus.Items[i] = "Diagnostics captured for " + t.ToString("hh\\:mm\\:ss") + "...";
+                        break;
+                    }
 
                 // Update UI...
                 if (!((string)lbStatus.Items[lbStatus.Items.Count - 1]).StartsWith("."))
@@ -70,18 +83,26 @@ namespace SSASDiag
                         lbStatus.Items.Add(".");
                     else
                     {
-                        SelectedIndex = lbStatus.TopIndex;
                         lbStatus.Items[lbStatus.Items.Count - 1] += ".";
                     }
                 }
 
-                // If perfmon logging failed we still want to tick our timer so just fail past this with try/catch anything...
-                try { m_PdhHelperInstance.UpdateLog("SSASDiag"); } catch (Exception ex) { MessageBox.Show(ex.Message); }
+                int secondsSinceLastPerfMon = 0;
+                int.TryParse((string)timerPerfMon.Tag, out secondsSinceLastPerfMon);
+                if (secondsSinceLastPerfMon >= udInterval.Value)
+                {
+                    // If perfmon logging failed we still want to tick our timer so just fail past this with try/catch anything...
+                    try { m_PdhHelperInstance.UpdateLog("SSASDiag"); } catch (Exception ex) { MessageBox.Show(ex.Message); }
+                    timerPerfMon.Tag = "0";
+                }
+                else
+                    timerPerfMon.Tag = (secondsSinceLastPerfMon + 1).ToString();
 
                 if (DateTime.Now > dtStopTime.Value && chkStopTime.Checked)
                     btnCapture_Click(timerPerfMon, new EventArgs());
             }
             lbStatus.TopIndex = SelectedIndex;
+            lbStatus.ResumeLayout();
         }
 
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
@@ -178,8 +199,9 @@ namespace SSASDiag
 
         private void StartAllDiagnostics()
         {
+            m_StartTime = DateTime.Now;
             bScheduledStartPending = false;
-            uint r = StartPerfMon();
+            uint r = InitializePerfLog();
             if (r != 0)
             {
                 lbStatus.Items.Add("Error starting PerfMon logging: " + r.ToString("X"));
@@ -209,10 +231,13 @@ namespace SSASDiag
                 lbStatus.Items.Add("Profiler tracing started to file: " + TraceID + ".trc.");
             if (chkRollover.Checked) lbStatus.Items.Add("Log and trace files rollover after " + udRollover.Value + "MB.");
             if (chkStopTime.Checked) lbStatus.Items.Add("Diagnostic collection stops automatically at " + dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+            lbStatus.Items.Add("Diagnostics captured for 00:00:00...");
             lbStatus.TopIndex = lbStatus.Items.Count - 1;
+            // Start the timer ticking...
+            timerPerfMon.Start();
         }
 
-        private uint StartPerfMon()
+        private uint InitializePerfLog()
         {
             m_PdhHelperInstance.OpenQuery();
 
@@ -252,10 +277,6 @@ namespace SSASDiag
                             chkRollover.Checked ? (uint)udRollover.Value : 0, 
                             chkRollover.Checked ? true : false, 
                             "SSAS Diagnostics Performance Monitor Log");
-
-            // Start the timer ticking...
-            timerPerfMon.Interval = (int)udInterval.Value * 1000;
-            timerPerfMon.Start();
 
             return ret;
         }

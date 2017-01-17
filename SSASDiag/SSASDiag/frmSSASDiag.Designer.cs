@@ -48,10 +48,10 @@
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
+            this.lkDiscussion = new System.Windows.Forms.LinkLabel();
             this.timerPerfMon = new System.Windows.Forms.Timer(this.components);
             this.dtStopTime = new System.Windows.Forms.DateTimePicker();
             this.chkStopTime = new System.Windows.Forms.CheckBox();
-            this.lkDiscussion = new System.Windows.Forms.LinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).BeginInit();
             this.SuspendLayout();
@@ -276,8 +276,28 @@
             this.ttStatus.SetToolTip(this.lkBugs, "Fix it!");
             this.lkBugs.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkBugs_LinkClicked);
             // 
+            // lkDiscussion
+            // 
+            this.lkDiscussion.AutoSize = true;
+            this.lkDiscussion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lkDiscussion.ForeColor = System.Drawing.SystemColors.Highlight;
+            this.lkDiscussion.Image = ((System.Drawing.Image)(resources.GetObject("lkDiscussion.Image")));
+            this.lkDiscussion.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lkDiscussion.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
+            this.lkDiscussion.Location = new System.Drawing.Point(154, 360);
+            this.lkDiscussion.Name = "lkDiscussion";
+            this.lkDiscussion.Padding = new System.Windows.Forms.Padding(2);
+            this.lkDiscussion.Size = new System.Drawing.Size(111, 17);
+            this.lkDiscussion.TabIndex = 17;
+            this.lkDiscussion.TabStop = true;
+            this.lkDiscussion.Text = "      Discussion/Ideas";
+            this.ttStatus.SetToolTip(this.lkDiscussion, "Make it better!");
+            this.lkDiscussion.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkDiscussion_LinkClicked);
+            // 
             // timerPerfMon
             // 
+            this.timerPerfMon.Interval = 1000;
+            this.timerPerfMon.Tag = "0";
             this.timerPerfMon.Tick += new System.EventHandler(this.timerPerfMon_Tick);
             // 
             // dtStopTime
@@ -300,24 +320,6 @@
             this.chkStopTime.Text = "Stop time:";
             this.chkStopTime.UseVisualStyleBackColor = true;
             this.chkStopTime.CheckedChanged += new System.EventHandler(this.chkStopTime_CheckedChanged);
-            // 
-            // lkDiscussion
-            // 
-            this.lkDiscussion.AutoSize = true;
-            this.lkDiscussion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lkDiscussion.ForeColor = System.Drawing.SystemColors.Highlight;
-            this.lkDiscussion.Image = ((System.Drawing.Image)(resources.GetObject("lkDiscussion.Image")));
-            this.lkDiscussion.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lkDiscussion.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkDiscussion.Location = new System.Drawing.Point(154, 360);
-            this.lkDiscussion.Name = "lkDiscussion";
-            this.lkDiscussion.Padding = new System.Windows.Forms.Padding(2);
-            this.lkDiscussion.Size = new System.Drawing.Size(111, 17);
-            this.lkDiscussion.TabIndex = 17;
-            this.lkDiscussion.TabStop = true;
-            this.lkDiscussion.Text = "      Discussion/Ideas";
-            this.ttStatus.SetToolTip(this.lkDiscussion, "Make it better!");
-            this.lkDiscussion.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkDiscussion_LinkClicked);
             // 
             // frmSSASDiag
             // 
