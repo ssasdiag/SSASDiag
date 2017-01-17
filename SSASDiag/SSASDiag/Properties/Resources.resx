@@ -122,10 +122,10 @@
     <value>..\Resources\Microsoft_107.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Microsoft_AnalysisServices" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\microsoft.analysisservices.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\Microsoft.AnalysisServices.DLL;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="Microsoft_AnalysisServices_Core" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\microsoft.analysisservices.core.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\Microsoft.AnalysisServices.Core.DLL;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="Microsoft_SqlServer_ConnectionInfo" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Microsoft.SqlServer.ConnectionInfo.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
