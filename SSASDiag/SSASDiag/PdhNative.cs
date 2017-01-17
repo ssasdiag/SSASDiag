@@ -693,7 +693,7 @@ namespace PdhNative
                                   accessFlags,
                                   ref logFileType,
                                   _hQuery,
-                                  maxSize,
+                                  maxSize * 1024 * 1024,
                                   caption,
                                   out _hOutputLog);
             return res;

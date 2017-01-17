@@ -39,37 +39,58 @@ namespace SSASDiag
 
         private void timerPerfMon_Tick(object sender, EventArgs e)
         {
+            int SelectedIndex = 0;
             // Update UI...
             if (!((string)lbStatus.Items[lbStatus.Items.Count - 1]).StartsWith("."))
+            {
                 lbStatus.Items.Add(".");
+                SelectedIndex = lbStatus.Items.Count - 1;
+            }
             else
             {
                 // I wish the character width were exposed directly but I just counted the number of dots at the selected font that fit before it fills up...  :|
                 if (((string)lbStatus.Items[lbStatus.Items.Count - 1]).Length > 183)
+                {
                     lbStatus.Items.Add(".");
+                    SelectedIndex = lbStatus.Items.Count - 1;
+                }
                 else
+                {
+                    SelectedIndex = lbStatus.TopIndex;
                     lbStatus.Items[lbStatus.Items.Count - 1] += ".";
+                }
             }
-
-            lbStatus.TopIndex = lbStatus.Items.Count - 1;
 
             // If perfmon logging failed we still want to tick our timer so just fail past this with try/catch anything...
             try { m_PdhHelperInstance.UpdateLog("SSASDiag"); } catch (Exception ex) { MessageBox.Show(ex.Message); }
 
             if (DateTime.Now > dtStopTime.Value && chkStopTime.Checked)
                 btnCapture_Click(timerPerfMon, new EventArgs());
+
+            lbStatus.TopIndex = SelectedIndex;
         }
 
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Server srv = new Server();
-            srv.Connect("Data source=" + Environment.MachineName + (cbInstances.SelectedItem.ToString() == "Default instance (MSSQLServer)" ? "" : "\\" + cbInstances.SelectedItem) + ";Integrated Security=SSPI;");
-            lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition;
-            m_instanceType = srv.ServerMode.ToString();
-            m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
-            m_instanceEdition = srv.Edition.ToString();
-            srv.Disconnect();
-            btnCapture.Enabled = true;
+            try
+            {
+                Server srv = new Server();
+                srv.Connect("Data source="
+                            + Environment.MachineName
+                            + (cbInstances.SelectedItem.ToString() == "Default instance (MSSQLServer)" ? "" : "\\" + cbInstances.SelectedItem)
+                            + ";SSPI=NTLM");
+                lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition;
+                m_instanceType = srv.ServerMode.ToString();
+                m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
+                m_instanceEdition = srv.Edition.ToString();
+                srv.Disconnect();
+                btnCapture.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                lblInstanceDetails.Text = "Instance details could not be obtained due to failure connecting:\r\n" + ex.Message;
+                btnCapture.Enabled = false;
+            }
         }
 
         private void PopulateInstanceDropdown()
@@ -197,7 +218,13 @@ namespace SSASDiag
 
             // Add all the counters now to the query...
             m_PdhHelperInstance.AddCounters(ref s, false);
-            uint ret = m_PdhHelperInstance.OpenLogForWriting(TraceID + ".blg", PdhLogFileType.PDH_LOG_TYPE_BINARY, true, chkRollover.Checked ? (uint)udRollover.Value : 0, chkRollover.Checked ? true : false, "SSAS Diagnostics Performance Monitor Log");
+            uint ret = m_PdhHelperInstance.OpenLogForWriting(
+                            TraceID + ".blg", 
+                            PdhLogFileType.PDH_LOG_TYPE_BINARY, 
+                            true, 
+                            chkRollover.Checked ? (uint)udRollover.Value : 0, 
+                            chkRollover.Checked ? true : false, 
+                            "SSAS Diagnostics Performance Monitor Log");
 
             // Start the timer ticking...
             timerPerfMon.Interval = (int)udInterval.Value * 1000;
@@ -212,7 +239,7 @@ namespace SSASDiag
             try
             {
                 Server s = new Server();
-                s.Connect("Data source=." + (cbInstances.SelectedIndex != 0 ? "\\" + cbInstances.SelectedItem.ToString() : ""));
+                s.Connect("Data source=." + (cbInstances.SelectedIndex != 0 ? "\\" + cbInstances.SelectedItem.ToString() : ";Integrated Security=SSPI;"));
                 try
                 {
                     XmlaResultCollection results = s.Execute(command);

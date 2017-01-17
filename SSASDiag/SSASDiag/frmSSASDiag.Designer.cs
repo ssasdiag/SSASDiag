@@ -64,7 +64,7 @@
             // lblInstanceDetails
             // 
             this.lblInstanceDetails.AutoSize = true;
-            this.lblInstanceDetails.Location = new System.Drawing.Point(275, 23);
+            this.lblInstanceDetails.Location = new System.Drawing.Point(267, 23);
             this.lblInstanceDetails.Name = "lblInstanceDetails";
             this.lblInstanceDetails.Size = new System.Drawing.Size(0, 13);
             this.lblInstanceDetails.TabIndex = 1;
@@ -146,7 +146,7 @@
             this.udRollover.ThousandsSeparator = true;
             this.udRollover.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
             this.udRollover.Value = new decimal(new int[] {
-            2048,
+            128,
             0,
             0,
             0});
