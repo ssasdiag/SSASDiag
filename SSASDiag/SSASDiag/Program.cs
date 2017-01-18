@@ -56,14 +56,14 @@ namespace SSASDiag
                     // Check for new version but just spawn a new thread to do it without blocking...
                     new Thread(new ThreadStart(() =>
                         {
-                            WebRequest req = HttpWebRequest.Create("https://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=asprofilertraceimporter&DownloadId=1630229&FileTime=131291942951730000&Build=21031");
+                            WebRequest req = HttpWebRequest.Create("https://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=asprofilertraceimporter&DownloadId=1630229");
                             req.Method = "HEAD";
                             int ContentLength;
                             if (int.TryParse(req.GetResponse().Headers.Get("Content-Length"), out ContentLength))
                             {
                                 if (ContentLength != new FileInfo(Assembly.GetEntryAssembly().Location).Length)
                                 {
-                                    req = HttpWebRequest.Create("https://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=asprofilertraceimporter&DownloadId=1630229&FileTime=131291942951730000&Build=21031");
+                                    req = HttpWebRequest.Create("https://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=asprofilertraceimporter&DownloadId=1630229");
                                     req.Method = "GET";
                                     Stream newBin = File.OpenWrite(sNewBin);
                                     req.GetResponse().GetResponseStream().CopyTo(newBin);
