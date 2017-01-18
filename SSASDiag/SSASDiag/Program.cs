@@ -58,6 +58,7 @@ namespace SSASDiag
                         {
                             try
                             {
+                                // Just get content length first to compare with our file, and we only download if it is actually newer.
                                 WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiag.exe");
                                 req.Method = "HEAD";
                                 WebResponse wr = req.GetResponse();

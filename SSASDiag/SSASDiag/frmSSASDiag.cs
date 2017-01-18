@@ -77,7 +77,6 @@ namespace SSASDiag
             }
             else
             {
-
                 // Update elapsed time.
                 for (int i = lbStatus.Items.Count - 1; i > 0; i--)
                     if (((string)lbStatus.Items[i]).StartsWith("Diagnostics captured for "))
@@ -247,6 +246,8 @@ namespace SSASDiag
             ZipFile z = new ZipFile();
             z.AddDirectory("Output");
             z.MaxOutputSegmentSize = 1024 * 1024 * (int)udRollover.Value;
+            z.Encryption = EncryptionAlgorithm.WinZipAes256;
+            z.CompressionLevel = Ionic.Zlib.CompressionLevel.BestCompression;
             z.Save(TraceID + ".zip");
             
             lbStatus.Items.Add("Created zip file of output at " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
