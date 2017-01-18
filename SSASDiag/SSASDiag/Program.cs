@@ -56,21 +56,30 @@ namespace SSASDiag
                     // Check for new version but just spawn a new thread to do it without blocking...
                     new Thread(new ThreadStart(() =>
                         {
-                            WebRequest req = HttpWebRequest.Create("https://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=asprofilertraceimporter&DownloadId=1630229");
-                            req.Method = "HEAD";
-                            int ContentLength;
-                            if (int.TryParse(req.GetResponse().Headers.Get("Content-Length"), out ContentLength))
+                            try
                             {
-                                if (ContentLength != new FileInfo(Assembly.GetEntryAssembly().Location).Length)
+                                WebRequest req = HttpWebRequest.Create("https://drive.google.com/uc?export=download&id=0B5YFG-S3ZutCOWFzTm9xa0p1b2M");
+                                req.Method = "HEAD";
+                                WebResponse wr = req.GetResponse();
+                                string realUrl = wr.Headers["RedirectUrl"];
+                                int ContentLength;
+                                if (int.TryParse(req.GetResponse().Headers.Get("Content-Length"), out ContentLength))
                                 {
-                                    req = HttpWebRequest.Create("https://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=asprofilertraceimporter&DownloadId=1630229");
-                                    req.Method = "GET";
-                                    Stream newBin = File.OpenWrite(sNewBin);
-                                    req.GetResponse().GetResponseStream().CopyTo(newBin);
-                                    newBin.Close();
-                                    bScheduleUpdateOfBin = true;
+                                    if (ContentLength != new FileInfo(Assembly.GetEntryAssembly().Location).Length)
+                                    {
+                                        req = HttpWebRequest.Create("https://drive.google.com/uc?export=download&id=0B5YFG-S3ZutCOWFzTm9xa0p1b2M");
+                                        req.Method = "GET";
+                                        Stream newBin = File.OpenWrite(sNewBin);
+                                        req.GetResponse().GetResponseStream().CopyTo(newBin);
+                                        newBin.Close();
+                                        if (new FileInfo(sNewBin).Length != new FileInfo(Assembly.GetEntryAssembly().Location).Length)
+                                            bScheduleUpdateOfBin = true;
+                                        else
+                                            File.Delete(sNewBin);
+                                    }
                                 }
                             }
+                            catch (Exception ex) { Debug.WriteLine(ex)}
                         })).Start();
                     
                     AppDomainSetup ads = new AppDomainSetup();
