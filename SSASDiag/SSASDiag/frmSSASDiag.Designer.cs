@@ -347,12 +347,13 @@
             this.Controls.Add(this.cbInstances);
             this.Controls.Add(this.label2);
             this.DoubleBuffered = true;
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(599, 350);
             this.Name = "frmSSASDiag";
             this.Text = "SSAS Diagnostics Collector";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmSSASDiag_FormClosing);
             this.Load += new System.EventHandler(this.frmSSASDiag_Load);
+            this.Resize += new System.EventHandler(this.frmSSASDiag_Resize);
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).EndInit();
             this.ResumeLayout(false);

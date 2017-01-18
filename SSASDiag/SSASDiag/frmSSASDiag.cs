@@ -419,5 +419,14 @@ namespace SSASDiag
         {
             Process.Start("mailto:SSASDiagChamps@microsoft.com");
         }
+
+        private void frmSSASDiag_Resize(object sender, EventArgs e)
+        {
+            lbStatus.Width = this.Width - 50;
+            lbStatus.Height = this.Height - 267;
+            lblRightClick.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 67;
+            lblRightClick.Left = this.Width - 257;
+            
+        }
     }
 }
