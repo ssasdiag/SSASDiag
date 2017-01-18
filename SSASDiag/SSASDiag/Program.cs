@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 using System.Diagnostics;
+using System.Threading;
 
 namespace SSASDiag
 {
@@ -31,6 +33,9 @@ namespace SSASDiag
             // Setup custom app domain to launch real assembly from temp location, and act as singleton also...
             if (AppDomain.CurrentDomain.BaseDirectory != m_strPrivateTempBinPath)
             {
+                bool bScheduleUpdateOfBin = false;
+                string sNewBin = Environment.GetEnvironmentVariable("temp") + "\\ssasdiag_newbin_tmp";
+
                 int ret = 0;
 
                 // Extract all embedded file type (byte[]) resource assemblies and copy self into temp location
@@ -47,6 +52,27 @@ namespace SSASDiag
                 {
                     // Initialize the new app domain from temp location...
                     var currentAssembly = Assembly.GetExecutingAssembly();
+
+                    // Check for new version but just spawn a new thread to do it without blocking...
+                    new Thread(new ThreadStart(() =>
+                        {
+                            WebRequest req = HttpWebRequest.Create("https://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=asprofilertraceimporter&DownloadId=1630229&FileTime=131291942951730000&Build=21031");
+                            req.Method = "HEAD";
+                            int ContentLength;
+                            if (int.TryParse(req.GetResponse().Headers.Get("Content-Length"), out ContentLength))
+                            {
+                                if (ContentLength != new FileInfo(Assembly.GetEntryAssembly().Location).Length)
+                                {
+                                    req = HttpWebRequest.Create("https://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=asprofilertraceimporter&DownloadId=1630229&FileTime=131291942951730000&Build=21031");
+                                    req.Method = "GET";
+                                    Stream newBin = File.OpenWrite(sNewBin);
+                                    req.GetResponse().GetResponseStream().CopyTo(newBin);
+                                    newBin.Close();
+                                    bScheduleUpdateOfBin = true;
+                                }
+                            }
+                        })).Start();
+                    
                     AppDomainSetup ads = new AppDomainSetup();
                     ads.ApplicationBase = m_strPrivateTempBinPath;
                     AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
@@ -56,6 +82,8 @@ namespace SSASDiag
 
                     //  Finally unload our actual executing AppDomain after finished from temp directory, to delete the files there...
                     AppDomain.Unload(tempDomain);
+
+
                 }
                 catch (Exception ex)
                 {
@@ -83,6 +111,18 @@ namespace SSASDiag
 
 
                 try { Directory.Delete(m_strPrivateTempBinPath, true); } catch { /* ignore failures on cleanup */ }
+
+                // Don't forget to kick off the file replacement copy to run 2s after we complete if there was a new version!  ;)
+                if (bScheduleUpdateOfBin)
+                {
+                    Process p = new Process();
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.CreateNoWindow = true;
+                    p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    p.StartInfo.FileName = "cmd.exe";
+                    p.StartInfo.Arguments = "/c ping 127.0.0.1 -n 2 > nul & move /y \"" + sNewBin + "\" " + Assembly.GetEntryAssembly().Location;
+                    p.Start();
+                }
 
                 // After the inner app domain exits
                 Environment.ExitCode = ret;
