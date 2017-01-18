@@ -49,9 +49,14 @@ namespace SSASDiag
 
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (btnCapture.Text == "Stop Capture") btnCapture_Click(this, new EventArgs());
+            if (btnCapture.Text == "Stop Capture")
+            {
+                if (MessageBox.Show("Capture in progress, exiting will stop.\r\nExit anyway?", "Capture in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+                    btnCapture_Click(this, new EventArgs());
+                else
+                    e.Cancel = true;
+            }
         }
-
 
         private void timerPerfMon_Tick(object sender, EventArgs e)
         {
