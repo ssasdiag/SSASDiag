@@ -21,10 +21,15 @@ namespace SSASDiag
         [STAThread]
         static void Main()
         {
-            string m_strPrivateTempBinPath = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\";
+            string m_strPrivateTempBinPath = "";
+
+            if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
+                m_strPrivateTempBinPath = AppDomain.CurrentDomain.GetData("tempbinlocation") as string;
+            else
+                m_strPrivateTempBinPath =  new DirectoryInfo(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\").FullName;
 
             // Setup custom app domain to launch real assembly from temp location, and act as singleton also...
-            if (AppDomain.CurrentDomain.BaseDirectory != m_strPrivateTempBinPath || AppDomain.CurrentDomain.IsDefaultAppDomain())
+            if (AppDomain.CurrentDomain.BaseDirectory != m_strPrivateTempBinPath)
             {
                 int ret = 0;
 
@@ -45,9 +50,9 @@ namespace SSASDiag
                     AppDomainSetup ads = new AppDomainSetup();
                     ads.ApplicationBase = m_strPrivateTempBinPath;
                     AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
-
+                    tempDomain.SetData("tempbinlocation", m_strPrivateTempBinPath);
                     // Execute the domain.
-                    ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName, new string[] { });
+                    ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName, new string[] { "", "/templocation=" + m_strPrivateTempBinPath });
 
                     //  Finally unload our actual executing AppDomain after finished from temp directory, to delete the files there...
                     AppDomain.Unload(tempDomain);
