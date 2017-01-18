@@ -58,7 +58,7 @@ namespace SSASDiag
                         {
                             try
                             {
-                                WebRequest req = HttpWebRequest.Create("https://drive.google.com/uc?export=download&id=0B5YFG-S3ZutCOWFzTm9xa0p1b2M");
+                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiag.exe");
                                 req.Method = "HEAD";
                                 WebResponse wr = req.GetResponse();
                                 string realUrl = wr.Headers["RedirectUrl"];
@@ -67,7 +67,7 @@ namespace SSASDiag
                                 {
                                     if (ContentLength != new FileInfo(Assembly.GetEntryAssembly().Location).Length)
                                     {
-                                        req = HttpWebRequest.Create("https://drive.google.com/uc?export=download&id=0B5YFG-S3ZutCOWFzTm9xa0p1b2M");
+                                        req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiag.exe");
                                         req.Method = "GET";
                                         Stream newBin = File.OpenWrite(sNewBin);
                                         req.GetResponse().GetResponseStream().CopyTo(newBin);
@@ -79,7 +79,7 @@ namespace SSASDiag
                                     }
                                 }
                             }
-                            catch (Exception ex) { Debug.WriteLine(ex)}
+                            catch (Exception ex) { Debug.WriteLine(ex); }
                         })).Start();
                     
                     AppDomainSetup ads = new AppDomainSetup();
