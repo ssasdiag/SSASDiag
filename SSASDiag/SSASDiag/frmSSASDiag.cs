@@ -11,7 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.Win32;
 using System.Collections.Generic;
-using System.IO.Compression;
+using Ionic.Zip;
 
 namespace SSASDiag
 {
@@ -244,16 +244,18 @@ namespace SSASDiag
             File.WriteAllText("Output\\SSASDiag.log", status);
 
             // Zip up all output into a single zip file.
-            ZipFile.CreateFromDirectory("output", TraceID + ".zip", CompressionLevel.Optimal, false);
+            ZipFile z = new ZipFile();
+            z.AddDirectory("Output");
+            z.MaxOutputSegmentSize = 1024 * 1024 * (int)udRollover.Value;
+            z.Save(TraceID + ".zip");
+            
             lbStatus.Items.Add("Created zip file of output at " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
             Directory.Delete("Output", true);
             lbStatus.Items.Add("Deleted capture output folder.");
             
             lbStatus.Items.Add("");
             lbStatus.TopIndex = lbStatus.Items.Count - 1;
-
-
-
+            
             btnCapture.Text = "Start Capture";
         }
 

@@ -71,6 +71,16 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Ionic_Zip {
+            get {
+                object obj = ResourceManager.GetObject("Ionic_Zip", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         internal static System.Drawing.Icon Microsoft_107 {
