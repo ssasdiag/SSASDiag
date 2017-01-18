@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.Win32;
 using System.Collections.Generic;
+using System.IO.Compression;
 
 namespace SSASDiag
 {
@@ -174,6 +175,25 @@ namespace SSASDiag
                 lbStatus.Items.Add("The instance mode is " + m_instanceType + ".");
                 lbStatus.Items.Add("The OLAP\\LOG folder for the instance is " + m_LogDir + ".");
                 lbStatus.Items.Add("The msmdsrv.ini configuration for the instance at " + m_ConfigDir + ".");
+               
+                if (!Directory.Exists("Output"))
+                    Directory.CreateDirectory("Output");
+                else
+                {
+                    if (MessageBox.Show("There is an existing output directory found.\r\nDelete these files to start with a fresh output folder?", "Existing output folder found", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        try { Directory.Delete("Output"); } catch { }
+                        Directory.CreateDirectory("Output");
+                    }
+                }
+                lbStatus.Items.Add("Created temporary folder Output to collect diagnostic files.");
+
+                // Collect SSAS LOG dir, config and save log of this diagnostic capture
+                if (!Directory.Exists("Output\\Log")) Directory.CreateDirectory("Output\\Log");
+                foreach (string f in Directory.GetFiles(m_LogDir))
+                    File.Copy(f, "Output\\Log\\" + f.Substring(f.LastIndexOf("\\") + 1), true);
+                File.Copy(m_ConfigDir + "\\msmdsrv.ini", "Output\\msmdsrv.ini", true);
+                lbStatus.Items.Add("Captured OLAP\\Log contents and msmdsrv.ini config for the instance.");
 
                 if (chkStartTime.Checked && DateTime.Now < dtStartTime.Value)
                 {
@@ -195,33 +215,40 @@ namespace SSASDiag
 
         private void StopAndFinalizeAllDiagnostics()
         {
-            // Collect SSAS LOG dir, config and save log of this diagnostic capture
-            if (!Directory.Exists("Log")) Directory.CreateDirectory("Log");
-            foreach (string f in Directory.GetFiles(m_LogDir))
-                File.Copy(f, "Log\\" + f.Substring(f.LastIndexOf("\\") + 1), true);
-            File.Copy(m_ConfigDir + "\\msmdsrv.ini", "msmdsrv.ini");
-            string status = "";
-            foreach (string s in lbStatus.Items) status += s + "\r\n";
-            File.WriteAllText("SSASDiag.log", status);
-
-            // Zip up all output into a single zip file.
-            // To Do...
-
             bScheduledStartPending = false;
-            timerPerfMon.Stop();
             chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
             udRollover.Enabled = chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Checked;
 
+            timerPerfMon.Stop();
+            m_PdhHelperInstance.Dispose();
             lbStatus.Items.Add("Stopped performance monitor logging.");
+
             ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
             lbStatus.Items.Add("Stopped profiler trace.");
-            lbStatus.Items.Add("Stoppped SSAS diagnostics collection at "
-                + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")
-                + ".");
+
+            lbStatus.Items.Add("Stoppped SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+
+            string status = "";
+            int i = lbStatus.Items.Count - 1;
+            for (; i > 0; i--)
+                if (((string)lbStatus.Items[i]).StartsWith("Initializing")) break;
+            for (; i < lbStatus.Items.Count - 1; i++)
+                status += lbStatus.Items[i] + "\r\n";
+            File.WriteAllText("Output\\SSASDiag.log", status);
+
+            // Zip up all output into a single zip file.
+            ZipFile.CreateFromDirectory("output", TraceID + ".zip", CompressionLevel.Optimal, false);
+            lbStatus.Items.Add("Created zip file of output at " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
+            Directory.Delete("Output", true);
+            lbStatus.Items.Add("Deleted capture output folder.");
+            
             lbStatus.Items.Add("");
             lbStatus.TopIndex = lbStatus.Items.Count - 1;
+
+
+
             btnCapture.Text = "Start Capture";
         }
 
@@ -230,6 +257,7 @@ namespace SSASDiag
             m_StartTime = DateTime.Now;
             bScheduledStartPending = false;
             uint r = InitializePerfLog();
+
             if (r != 0)
             {
                 lbStatus.Items.Add("Error starting PerfMon logging: " + r.ToString("X"));
@@ -242,7 +270,7 @@ namespace SSASDiag
             }
 
             string XMLABatch = Properties.Resources.ProfilerTraceStartXMLA
-                .Replace("<LogFileName/>", "<LogFileName>" + Environment.CurrentDirectory + "\\" + TraceID + ".trc</LogFileName>")
+                .Replace("<LogFileName/>", "<LogFileName>" + Environment.CurrentDirectory + "\\Output\\" + TraceID + ".trc</LogFileName>")
                 .Replace("<LogFileSize/>", chkRollover.Checked ? "<LogFileSize>" + udRollover.Value + "</LogFileSize>" : "")
                 .Replace("<LogFileRollover/>", chkRollover.Checked ? "<LogFileRollover>" + chkRollover.Checked.ToString().ToLower() + "</LogFileRollover>" : "")
                 .Replace("<AutoRestart/>", "<AutoRestart>" + chkAutoRestart.Checked.ToString().ToLower() + "</AutoRestart>")
@@ -299,7 +327,7 @@ namespace SSASDiag
             // Add all the counters now to the query...
             m_PdhHelperInstance.AddCounters(ref s, false);
             uint ret = m_PdhHelperInstance.OpenLogForWriting(
-                            TraceID + ".blg", 
+                            Environment.CurrentDirectory + "\\Output\\" + TraceID + ".blg", 
                             PdhLogFileType.PDH_LOG_TYPE_BINARY, 
                             true, 
                             chkRollover.Checked ? (uint)udRollover.Value : 0, 
