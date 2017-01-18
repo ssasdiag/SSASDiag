@@ -8,6 +8,9 @@ using System.ComponentModel;
 using System.ServiceProcess;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.IO;
+using Microsoft.Win32;
+using System.Collections.Generic;
 
 namespace SSASDiag
 {
@@ -16,7 +19,10 @@ namespace SSASDiag
         string m_instanceVersion = "";
         string m_instanceType = "";
         string m_instanceEdition = "";
+        string m_LogDir = "";
+        string m_ConfigDir = "";
         DateTime m_StartTime = DateTime.Now;
+        List<ComboBoxTaggedItem> LocalInstances = new List<ComboBoxTaggedItem>();
         bool bScheduledStartPending = false;
         PdhHelper m_PdhHelperInstance = new PdhHelper(false);
         string TraceID = "";
@@ -36,6 +42,8 @@ namespace SSASDiag
             dtStartTime.CustomFormat = dtStopTime.CustomFormat;
             dtStartTime.MinDate = DateTime.Now;
             dtStartTime.MaxDate = DateTime.Now.AddDays(30);
+            cbInstances.DataSource = LocalInstances;
+            cbInstances.DisplayMember = "Text";
         }
 
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
@@ -96,11 +104,13 @@ namespace SSASDiag
             try
             {
                 Server srv = new Server();
-                srv.Connect("Data source=." + (cbInstances.SelectedItem.ToString() == "Default instance (MSSQLServer)" ? "" : "\\" + cbInstances.SelectedItem));
+                srv.Connect("Data source=." + ((cbInstances.SelectedItem as ComboBoxTaggedItem).Text == "Default instance (MSSQLServer)" ? "" : "\\" + (cbInstances.SelectedItem as ComboBoxTaggedItem).Text));
                 lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition;
                 m_instanceType = srv.ServerMode.ToString();
                 m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
                 m_instanceEdition = srv.Edition.ToString();
+                m_LogDir = srv.ServerProperties["LogDir"].Value;
+                m_ConfigDir = (cbInstances.SelectedItem as ComboBoxTaggedItem).Tag;
                 srv.Disconnect();
                 btnCapture.Enabled = true;
             }
@@ -111,6 +121,12 @@ namespace SSASDiag
             }
         }
 
+        class ComboBoxTaggedItem
+        {
+            public string Text { get; set; }
+            public string Tag { get; set; }
+        }
+
         private void PopulateInstanceDropdown()
         {
             try
@@ -118,17 +134,24 @@ namespace SSASDiag
                 ServiceController[] services = ServiceController.GetServices();
                 foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
                     if (s.DisplayName.Contains("Analysis Services") && !s.DisplayName.Contains("SQL Server Analysis Services CEIP ("))
+                    {
+                        string ConfigPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + s.ServiceName, false).GetValue("ImagePath") as string;
+                        ConfigPath = ConfigPath.Substring(ConfigPath.IndexOf("-s \"") + "-s \"".Length).TrimEnd('\"');
                         if (s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "").ToUpper() == "MSSQLSERVER")
-                            cbInstances.Items.Insert(0, "Default instance (MSSQLServer)");
+                            LocalInstances.Insert(0, new ComboBoxTaggedItem() { Text = "Default instance (MSSQLServer)", Tag = ConfigPath });
                         else
-                            cbInstances.Items.Add(s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", ""));
+                            LocalInstances.Add(new ComboBoxTaggedItem() { Text = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", ""), Tag = ConfigPath });
+                        
+                        
+                    }
                 cbInstances.SelectedIndex = 0;
             }
-            catch
+            catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Failure during instance enumeration - could be because no instances were there.  Move on quietly then.");
+                Debug.WriteLine("Failure during instance enumeration - could be because no instances were there.  Move on quietly then.");
+                Debug.WriteLine(ex);
             }
-            if (cbInstances.Items.Count == 0) lblInstanceDetails.Text = "There were no Analysis Services instances found on this server.\r\nPlease run this on a server with a SQL 2008 Analysis Services or later instance.";
+            if (LocalInstances.Count == 0) lblInstanceDetails.Text = "There were no Analysis Services instances found on this server.\r\nPlease run on a server with a SQL 2008 or later SSAS instance.";
         }
 
         private void btnCapture_Click(object sender, EventArgs e)
@@ -139,16 +162,18 @@ namespace SSASDiag
                 dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
 
                 TraceID = Environment.MachineName + "_"
-                    + (cbInstances.SelectedIndex == 0 ? "" : "_" + cbInstances.SelectedItem.ToString() + "_")
+                    + (cbInstances.SelectedIndex == 0 ? "" : "_" + (cbInstances.SelectedItem as ComboBoxTaggedItem).Text + "_")
                     + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC"
                     + "_SSASDiag";
 
                 lbStatus.Items.Add("Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
                 lbStatus.Items.Add("Collecting on server " + Environment.MachineName + ".");
-                lbStatus.Items.Add("Collecting for instance " + cbInstances.SelectedItem + ".");
+                lbStatus.Items.Add("Collecting for instance " + (cbInstances.SelectedItem as ComboBoxTaggedItem).Text + ".");
                 lbStatus.Items.Add("The version of the instance is " + m_instanceVersion + ".");
                 lbStatus.Items.Add("The edition of the instance is " + m_instanceEdition + ".");
                 lbStatus.Items.Add("The instance mode is " + m_instanceType + ".");
+                lbStatus.Items.Add("The OLAP\\LOG folder for the instance is " + m_LogDir + ".");
+                lbStatus.Items.Add("The msmdsrv.ini configuration for the instance at " + m_ConfigDir + ".");
 
                 if (chkStartTime.Checked && DateTime.Now < dtStartTime.Value)
                 {
@@ -164,23 +189,40 @@ namespace SSASDiag
             }
             else
             {
-                bScheduledStartPending = false;
-                timerPerfMon.Stop();
-                chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
-                udRollover.Enabled = chkRollover.Checked;
-                dtStartTime.Enabled = chkStartTime.Checked;
-                dtStopTime.Enabled = chkStopTime.Checked;              
-
-                lbStatus.Items.Add("Stopped performance monitor logging.");
-                ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
-                lbStatus.Items.Add("Stopped profiler trace.");
-                lbStatus.Items.Add("Stoppped SSAS diagnostics collection at "
-                    + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")
-                    + ".");
-                lbStatus.Items.Add("");
-                lbStatus.TopIndex = lbStatus.Items.Count - 1;
-                btnCapture.Text = "Start Capture";
+                StopAndFinalizeAllDiagnostics();
             }
+        }
+
+        private void StopAndFinalizeAllDiagnostics()
+        {
+            // Collect SSAS LOG dir, config and save log of this diagnostic capture
+            if (!Directory.Exists("Log")) Directory.CreateDirectory("Log");
+            foreach (string f in Directory.GetFiles(m_LogDir))
+                File.Copy(f, "Log\\" + f.Substring(f.LastIndexOf("\\") + 1), true);
+            File.Copy(m_ConfigDir + "\\msmdsrv.ini", "msmdsrv.ini");
+            string status = "";
+            foreach (string s in lbStatus.Items) status += s + "\r\n";
+            File.WriteAllText("SSASDiag.log", status);
+
+            // Zip up all output into a single zip file.
+            // To Do...
+
+            bScheduledStartPending = false;
+            timerPerfMon.Stop();
+            chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+            udRollover.Enabled = chkRollover.Checked;
+            dtStartTime.Enabled = chkStartTime.Checked;
+            dtStopTime.Enabled = chkStopTime.Checked;
+
+            lbStatus.Items.Add("Stopped performance monitor logging.");
+            ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
+            lbStatus.Items.Add("Stopped profiler trace.");
+            lbStatus.Items.Add("Stoppped SSAS diagnostics collection at "
+                + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")
+                + ".");
+            lbStatus.Items.Add("");
+            lbStatus.TopIndex = lbStatus.Items.Count - 1;
+            btnCapture.Text = "Start Capture";
         }
 
         private void StartAllDiagnostics()
@@ -239,7 +281,7 @@ namespace SSASDiag
             if (cbInstances.SelectedIndex == 0)
                 PerfMonInstanceID = "\\MSAS" + m_instanceVersion.Substring(0,2);
             else
-                PerfMonInstanceID = "\\MSOLAP$" + cbInstances.SelectedItem;
+                PerfMonInstanceID = "\\MSOLAP$" + (cbInstances.SelectedItem as ComboBoxTaggedItem).Text;
             // Now add the SSAS counters using correct instance prefix...
             s.Add(PerfMonInstanceID + ":Cache\\*");
             s.Add(PerfMonInstanceID + ":Connection\\*");
@@ -273,7 +315,7 @@ namespace SSASDiag
             try
             {
                 Server s = new Server();
-                s.Connect("Data source=." + (cbInstances.SelectedIndex != 0 ? "\\" + cbInstances.SelectedItem.ToString() : ";Integrated Security=SSPI;"));
+                s.Connect("Data source=." + (cbInstances.SelectedIndex != 0 ? "\\" + (cbInstances.SelectedItem as ComboBoxTaggedItem).Text : ";Integrated Security=SSPI;"));
                 try
                 {
                     XmlaResultCollection results = s.Execute(command);
