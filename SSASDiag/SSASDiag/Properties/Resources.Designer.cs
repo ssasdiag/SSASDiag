@@ -141,6 +141,16 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap play {
+            get {
+                object obj = ResourceManager.GetObject("play", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;Batch xmlns=&quot;http://schemas.microsoft.com/analysisservices/2003/engine&quot; xmlns:soap=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;&gt;
         ///	&lt;Create xmlns=&quot;http://schemas.microsoft.com/analysisservices/2003/engine&quot;&gt;
         ///		&lt;ObjectDefinition&gt;
@@ -183,6 +193,16 @@ namespace SSASDiag.Properties {
             get {
                 object obj = ResourceManager.GetObject("SHELL32_324", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap stop_button_th {
+            get {
+                object obj = ResourceManager.GetObject("stop_button_th", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }

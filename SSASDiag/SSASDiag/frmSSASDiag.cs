@@ -12,6 +12,7 @@ using System.IO;
 using Microsoft.Win32;
 using System.Collections.Generic;
 using Ionic.Zip;
+using System.Threading;
 
 namespace SSASDiag
 {
@@ -45,6 +46,11 @@ namespace SSASDiag
             dtStartTime.MaxDate = DateTime.Now.AddDays(30);
             cbInstances.DataSource = LocalInstances;
             cbInstances.DisplayMember = "Text";
+            if (!(Environment.OSVersion.Version.Major > 7  || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)))
+            {
+                MessageBox.Show("Network tracing with this tool requires\nWindows 7 or Server 2008 R2 or greater.\nPlease upgrade your OS to use that feature.", "Network Capture Not Supported on Legacy OS", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+                chkGetNetwork.Enabled = false;
+            }
         }
 
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
@@ -164,6 +170,8 @@ namespace SSASDiag
             if (btnCapture.Text == "Start Capture")
             {
                 btnCapture.Text = "Stop Capture";
+                btnCapture.Image = Properties.Resources.stop_button_th;
+
                 dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
 
                 TraceID = Environment.MachineName + "_"
@@ -186,18 +194,21 @@ namespace SSASDiag
                 {
                     if (MessageBox.Show("There is an existing output directory found.\r\nDelete these files to start with a fresh output folder?", "Existing output folder found", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     {
-                        try { Directory.Delete("Output"); } catch { }
+                        try { Directory.Delete("Output", true); } catch { }
                         Directory.CreateDirectory("Output");
                     }
                 }
                 lbStatus.Items.Add("Created temporary folder Output to collect diagnostic files.");
 
-                // Collect SSAS LOG dir, config and save log of this diagnostic capture
-                if (!Directory.Exists("Output\\Log")) Directory.CreateDirectory("Output\\Log");
-                foreach (string f in Directory.GetFiles(m_LogDir))
-                    File.Copy(f, "Output\\Log\\" + f.Substring(f.LastIndexOf("\\") + 1), true);
-                File.Copy(m_ConfigDir + "\\msmdsrv.ini", "Output\\msmdsrv.ini", true);
-                lbStatus.Items.Add("Captured OLAP\\Log contents and msmdsrv.ini config for the instance.");
+                if (chkGetConfigDetails.Checked)
+                {
+                    // Collect SSAS LOG dir, config and save log of this diagnostic capture
+                    if (!Directory.Exists("Output\\Log")) Directory.CreateDirectory("Output\\Log");
+                    foreach (string f in Directory.GetFiles(m_LogDir))
+                        File.Copy(f, "Output\\Log\\" + f.Substring(f.LastIndexOf("\\") + 1), true);
+                    File.Copy(m_ConfigDir + "\\msmdsrv.ini", "Output\\msmdsrv.ini", true);
+                    lbStatus.Items.Add("Captured OLAP\\Log contents and msmdsrv.ini config for the instance.");
+                }
 
                 if (chkStartTime.Checked && DateTime.Now < dtStartTime.Value)
                 {
@@ -217,86 +228,66 @@ namespace SSASDiag
             }
         }
 
-        private void StopAndFinalizeAllDiagnostics()
-        {
-            bScheduledStartPending = false;
-            chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
-            udRollover.Enabled = chkRollover.Checked;
-            dtStartTime.Enabled = chkStartTime.Checked;
-            dtStopTime.Enabled = chkStopTime.Checked;
-
-            timerPerfMon.Stop();
-            m_PdhHelperInstance.Dispose();
-            lbStatus.Items.Add("Stopped performance monitor logging.");
-
-            ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
-            lbStatus.Items.Add("Stopped profiler trace.");
-
-            lbStatus.Items.Add("Stoppped SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-
-            string status = "";
-            int i = lbStatus.Items.Count - 1;
-            for (; i > 0; i--)
-                if (((string)lbStatus.Items[i]).StartsWith("Initializing")) break;
-            for (; i < lbStatus.Items.Count - 1; i++)
-                status += lbStatus.Items[i] + "\r\n";
-            File.WriteAllText("Output\\SSASDiag.log", status);
-
-            // Zip up all output into a single zip file.
-            ZipFile z = new ZipFile();
-            z.AddDirectory("Output");
-            z.MaxOutputSegmentSize = 1024 * 1024 * (int)udRollover.Value;
-            z.Encryption = EncryptionAlgorithm.WinZipAes256;
-            z.CompressionLevel = Ionic.Zlib.CompressionLevel.BestCompression;
-            z.Save(TraceID + ".zip");
-            
-            lbStatus.Items.Add("Created zip file of output at " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
-            Directory.Delete("Output", true);
-            lbStatus.Items.Add("Deleted capture output folder.");
-            
-            lbStatus.Items.Add("");
-            lbStatus.TopIndex = lbStatus.Items.Count - 1;
-            
-            btnCapture.Text = "Start Capture";
-        }
-
         private void StartAllDiagnostics()
         {
             m_StartTime = DateTime.Now;
             bScheduledStartPending = false;
-            uint r = InitializePerfLog();
 
-            if (r != 0)
+            if (chkGetPerfMon.Checked)
             {
-                lbStatus.Items.Add("Error starting PerfMon logging: " + r.ToString("X"));
-                lbStatus.Items.Add("Other diagnostic collection will still be attempted.");
+                uint r = InitializePerfLog();
+
+                if (r != 0)
+                {
+                    lbStatus.Items.Add("Error starting PerfMon logging: " + r.ToString("X"));
+                    lbStatus.Items.Add("Other diagnostic collection will still be attempted.");
+                }
+                else
+                {
+
+                    lbStatus.Items.Add("Performance logging every " + udInterval.Value + " seconds.");
+                    lbStatus.Items.Add("Performance logging started to file: " + TraceID + ".blg.");
+                }
             }
-            else
+
+            if (chkGetProfiler.Checked)
             {
-                lbStatus.Items.Add("Performance logging every " + udInterval.Value + " seconds.");
-                lbStatus.Items.Add("Performance logging started to file: " + TraceID + ".blg.");
+                string XMLABatch = Properties.Resources.ProfilerTraceStartXMLA
+                    .Replace("<LogFileName/>", "<LogFileName>" + Environment.CurrentDirectory + "\\Output\\" + TraceID + ".trc</LogFileName>")
+                    .Replace("<LogFileSize/>", chkRollover.Checked ? "<LogFileSize>" + udRollover.Value + "</LogFileSize>" : "")
+                    .Replace("<LogFileRollover/>", chkRollover.Checked ? "<LogFileRollover>" + chkRollover.Checked.ToString().ToLower() + "</LogFileRollover>" : "")
+                    .Replace("<AutoRestart/>", "<AutoRestart>" + chkAutoRestart.Checked.ToString().ToLower() + "</AutoRestart>")
+                    .Replace("<StartTime/>", "")
+                    .Replace("<StopTime/>", chkStopTime.Checked ? "<StopTime>" + dtStopTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") + "</StopTime>" : "")
+                    .Replace("<ID/>", "<ID>" + TraceID + "</ID>")
+                    .Replace("<Name/>", "<Name>" + TraceID + "</Name>");
+
+                string ret = ServerExecute(XMLABatch);
+
+                if (ret.Substring(0, "Success".Length) != "Success")
+                    lbStatus.Items.Add("Error starting profiler trace: " + ret);
+                else
+                    lbStatus.Items.Add("Profiler tracing started to file: " + TraceID + ".trc.");
             }
 
-            string XMLABatch = Properties.Resources.ProfilerTraceStartXMLA
-                .Replace("<LogFileName/>", "<LogFileName>" + Environment.CurrentDirectory + "\\Output\\" + TraceID + ".trc</LogFileName>")
-                .Replace("<LogFileSize/>", chkRollover.Checked ? "<LogFileSize>" + udRollover.Value + "</LogFileSize>" : "")
-                .Replace("<LogFileRollover/>", chkRollover.Checked ? "<LogFileRollover>" + chkRollover.Checked.ToString().ToLower() + "</LogFileRollover>" : "")
-                .Replace("<AutoRestart/>", "<AutoRestart>" + chkAutoRestart.Checked.ToString().ToLower() + "</AutoRestart>")
-                .Replace("<StartTime/>", "")
-                .Replace("<StopTime/>", chkStopTime.Checked ? "<StopTime>" + dtStopTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") + "</StopTime>" : "")
-                .Replace("<ID/>", "<ID>" + TraceID + "</ID>")
-                .Replace("<Name/>", "<Name>" + TraceID + "</Name>");
+            if (chkGetNetwork.Checked)
+            {
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                p.StartInfo.FileName = "cmd.exe";
+                p.StartInfo.Arguments = "/c netsh trace start persistent=yes capture=yes tracefile=" + Environment.CurrentDirectory + "\\Output\\" + TraceID + ".etl";
+                p.Start();
 
-            string ret = ServerExecute(XMLABatch);
+                lbStatus.Items.Add("Network tracing started to file: " + TraceID + ".etl.");
+            }
 
-            if (ret.Substring(0, "Success".Length) != "Success")
-                lbStatus.Items.Add("Error starting profiler trace: " + ret);
-            else
-                lbStatus.Items.Add("Profiler tracing started to file: " + TraceID + ".trc.");
             if (chkRollover.Checked) lbStatus.Items.Add("Log and trace files rollover after " + udRollover.Value + "MB.");
             if (chkStopTime.Checked) lbStatus.Items.Add("Diagnostic collection stops automatically at " + dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             lbStatus.Items.Add("Diagnostics captured for 00:00:00...");
             lbStatus.TopIndex = lbStatus.Items.Count - 1;
+
             // Start the timer ticking...
             timerPerfMon.Start();
         }
@@ -315,7 +306,7 @@ namespace SSASDiag
             // The SSAS counter path varies depending on instance and version so set it accordingly.
             string PerfMonInstanceID = "";
             if (cbInstances.SelectedIndex == 0)
-                PerfMonInstanceID = "\\MSAS" + m_instanceVersion.Substring(0,2);
+                PerfMonInstanceID = "\\MSAS" + m_instanceVersion.Substring(0, 2);
             else
                 PerfMonInstanceID = "\\MSOLAP$" + (cbInstances.SelectedItem as ComboBoxTaggedItem).Text;
             // Now add the SSAS counters using correct instance prefix...
@@ -335,14 +326,99 @@ namespace SSASDiag
             // Add all the counters now to the query...
             m_PdhHelperInstance.AddCounters(ref s, false);
             uint ret = m_PdhHelperInstance.OpenLogForWriting(
-                            Environment.CurrentDirectory + "\\Output\\" + TraceID + ".blg", 
-                            PdhLogFileType.PDH_LOG_TYPE_BINARY, 
-                            true, 
-                            chkRollover.Checked ? (uint)udRollover.Value : 0, 
-                            chkRollover.Checked ? true : false, 
+                            Environment.CurrentDirectory + "\\Output\\" + TraceID + ".blg",
+                            PdhLogFileType.PDH_LOG_TYPE_BINARY,
+                            true,
+                            chkRollover.Checked ? (uint)udRollover.Value : 0,
+                            chkRollover.Checked ? true : false,
                             "SSAS Diagnostics Performance Monitor Log");
 
             return ret;
+        }
+
+        private async void StopAndFinalizeAllDiagnostics()
+        {
+            bScheduledStartPending = false;
+            chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+            udRollover.Enabled = chkRollover.Checked;
+            dtStartTime.Enabled = chkStartTime.Checked;
+            dtStopTime.Enabled = chkStopTime.Checked;
+
+            timerPerfMon.Stop();
+
+            if (chkGetPerfMon.Checked)
+            {
+                m_PdhHelperInstance.Dispose();
+                lbStatus.Items.Add("Stopped performance monitor logging.");
+            }
+
+            if (chkGetProfiler.Checked)
+            {
+                ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
+                lbStatus.Items.Add("Stopped profiler trace.");
+            }
+
+            if (chkGetNetwork.Checked)
+            {
+                BackgroundWorker bg = new BackgroundWorker();
+                bg.DoWork += bgStopNetworkTracesAsyncDoWork;
+                bg.WorkerReportsProgress = false;
+                bg.WorkerSupportsCancellation = false;
+                bg.RunWorkerCompleted += bgStopNetworkTracesAsyncCompleted;
+                bg.RunWorkerAsync();                
+            }
+            else
+                FinalizeCollection();
+            
+        }
+
+        private void bgStopNetworkTracesAsyncDoWork(object sender, DoWorkEventArgs e)
+        {
+            Process p = new Process();
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            p.StartInfo.FileName = "cmd.exe";
+            p.StartInfo.Arguments = "/c netsh trace stop";
+            p.Start();
+            p.WaitForExit();
+        }
+
+        private void bgStopNetworkTracesAsyncCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            lbStatus.Items.Add("Stopped network trace.");
+            FinalizeCollection();
+        }
+
+        private void FinalizeCollection()
+        {
+            lbStatus.Items.Add("Stoppped SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+
+            string status = "";
+            int i = lbStatus.Items.Count - 1;
+            for (; i > 0; i--)
+                if (((string)lbStatus.Items[i]).StartsWith("Initializing")) break;
+            for (; i < lbStatus.Items.Count - 1; i++)
+                status += lbStatus.Items[i] + "\r\n";
+            File.WriteAllText("Output\\SSASDiag.log", status);
+
+            // Zip up all output into a single zip file.
+            ZipFile z = new ZipFile();
+            z.AddDirectory("Output");
+            z.MaxOutputSegmentSize = 1024 * 1024 * (int)udRollover.Value;
+            z.Encryption = EncryptionAlgorithm.WinZipAes256;
+            z.CompressionLevel = Ionic.Zlib.CompressionLevel.BestCompression;
+            z.Save(TraceID + ".zip");
+
+            lbStatus.Items.Add("Created zip file of output at " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
+            Directory.Delete("Output", true);
+            lbStatus.Items.Add("Deleted capture output folder.");
+
+            lbStatus.Items.Add("");
+            lbStatus.TopIndex = lbStatus.Items.Count - 1;
+
+            btnCapture.Text = "Start Capture";
+            btnCapture.Image = Properties.Resources.play;
         }
 
         private string ServerExecute(string command)
@@ -435,6 +511,32 @@ namespace SSASDiag
             lblRightClick.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 67;
             lblRightClick.Left = this.Width - 257;
             
+        }
+
+        private void SetRolloverAndStartStopEnabledStates()
+        {
+            chkRollover.Enabled = chkStartTime.Enabled = chkStopTime.Enabled = dtStartTime.Enabled = dtStopTime.Enabled
+                = chkGetPerfMon.Checked | chkGetProfiler.Checked | chkGetNetwork.Checked;
+            udRollover.Enabled = chkRollover.Enabled & chkRollover.Checked;
+            dtStartTime.Enabled = chkStartTime.Enabled & chkStartTime.Checked;
+            dtStopTime.Enabled = chkStopTime.Enabled & chkStopTime.Checked;
+        }
+
+        private void chkGetPerfMon_CheckedChanged(object sender, EventArgs e)
+        {
+            lblInterval.Enabled = udInterval.Enabled = lblInterval2.Enabled = chkGetPerfMon.Checked;
+            SetRolloverAndStartStopEnabledStates();
+        }
+
+        private void chkGetProfiler_CheckedChanged(object sender, EventArgs e)
+        {
+            chkAutoRestart.Enabled = chkGetProfiler.Checked;
+            SetRolloverAndStartStopEnabledStates();
+        }
+
+        private void chkGetNetwork_CheckedChanged(object sender, EventArgs e)
+        {
+            SetRolloverAndStartStopEnabledStates();
         }
     }
 }
