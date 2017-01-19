@@ -492,12 +492,12 @@ namespace SSASDiag
 
         private void lkFeedback_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("mailto:SSASDiagChamps@mcirosoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
+            Process.Start("mailto:SSASDiagChamps@microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
         }
 
         private void lkBugs_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("mailto:jon.burchel@mcirosoft.com?subject=Issue with SSASDiag");
+            Process.Start("mailto:jon.burchel@microsoft.com?subject=Issue with SSASDiag");
         }
 
         private void lkDiscussion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
