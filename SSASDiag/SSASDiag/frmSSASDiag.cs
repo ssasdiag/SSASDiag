@@ -172,7 +172,7 @@ namespace SSASDiag
                 btnCapture.Text = "Stop Capture";
                 btnCapture.Image = Properties.Resources.stop_button_th;
 
-                dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+                groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
 
                 TraceID = Environment.MachineName + "_"
                     + (cbInstances.SelectedIndex == 0 ? "" : "_" + (cbInstances.SelectedItem as ComboBoxTaggedItem).Text + "_")
@@ -276,8 +276,8 @@ namespace SSASDiag
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.CreateNoWindow = true;
                 p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                p.StartInfo.FileName = "cmd.exe";
-                p.StartInfo.Arguments = "/c netsh trace start persistent=yes capture=yes tracefile=" + Environment.CurrentDirectory + "\\Output\\" + TraceID + ".etl";
+                p.StartInfo.FileName = "netsh";
+                p.StartInfo.Arguments = "trace start persistent=yes capture=yes tracefile=" + Environment.CurrentDirectory + "\\Output\\" + TraceID + ".etl";
                 p.Start();
 
                 lbStatus.Items.Add("Network tracing started to file: " + TraceID + ".etl.");
@@ -339,7 +339,7 @@ namespace SSASDiag
         private async void StopAndFinalizeAllDiagnostics()
         {
             bScheduledStartPending = false;
-            chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+            groupBox1.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
             udRollover.Enabled = chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Checked;
@@ -378,8 +378,8 @@ namespace SSASDiag
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
             p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            p.StartInfo.FileName = "cmd.exe";
-            p.StartInfo.Arguments = "/c netsh trace stop";
+            p.StartInfo.FileName = "netsh";
+            p.StartInfo.Arguments = "trace stop";
             p.Start();
             p.WaitForExit();
         }
@@ -387,6 +387,7 @@ namespace SSASDiag
         private void bgStopNetworkTracesAsyncCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             lbStatus.Items.Add("Stopped network trace.");
+            Thread.Sleep(1000);
             FinalizeCollection();
         }
 
