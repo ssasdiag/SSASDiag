@@ -21,7 +21,7 @@ namespace SSASDiag
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        public static void Main()
         {
             string m_strPrivateTempBinPath = "";
 
@@ -73,8 +73,13 @@ namespace SSASDiag
                                         Stream newBin = File.OpenWrite(sNewBin);
                                         req.GetResponse().GetResponseStream().CopyTo(newBin);
                                         newBin.Close();
-                                        if (new FileInfo(sNewBin).Length != new FileInfo(Assembly.GetEntryAssembly().Location).Length)
+                                        FileVersionInfo fNew = FileVersionInfo.GetVersionInfo(sNewBin);
+                                        FileVersionInfo fOld = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
+                                        if (fNew.FileMajorPart >  fOld.FileMajorPart || (fNew.FileMajorPart == fOld.FileMajorPart && fNew.FileMinorPart > fOld.FileMinorPart))
+                                        {
+                                            MessageBox.Show("SSASDiag has an update!  Restart to use the updated version.", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
                                             bScheduleUpdateOfBin = true;
+                                        }
                                         else
                                             File.Delete(sNewBin);
                                     }
@@ -87,6 +92,8 @@ namespace SSASDiag
                     ads.ApplicationBase = m_strPrivateTempBinPath;
                     AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
                     tempDomain.SetData("tempbinlocation", m_strPrivateTempBinPath);
+                    
+                    tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
                     // Execute the domain.
                     ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName, new string[] { "", "/templocation=" + m_strPrivateTempBinPath });
 

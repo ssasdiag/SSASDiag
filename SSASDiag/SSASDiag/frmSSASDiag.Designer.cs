@@ -49,7 +49,6 @@
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
             this.lkDiscussion = new System.Windows.Forms.LinkLabel();
-            this.timerPerfMon = new System.Windows.Forms.Timer(this.components);
             this.dtStopTime = new System.Windows.Forms.DateTimePicker();
             this.chkStopTime = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -308,12 +307,6 @@
             this.ttStatus.SetToolTip(this.lkDiscussion, "Make it better!");
             this.lkDiscussion.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkDiscussion_LinkClicked);
             // 
-            // timerPerfMon
-            // 
-            this.timerPerfMon.Interval = 1000;
-            this.timerPerfMon.Tag = "0";
-            this.timerPerfMon.Tick += new System.EventHandler(this.timerPerfMon_Tick);
-            // 
             // dtStopTime
             // 
             this.dtStopTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
@@ -464,7 +457,6 @@
         private System.Windows.Forms.DateTimePicker dtStartTime;
         private System.Windows.Forms.Label lblRightClick;
         private System.Windows.Forms.ToolTip ttStatus;
-        private System.Windows.Forms.Timer timerPerfMon;
         private System.Windows.Forms.DateTimePicker dtStopTime;
         private System.Windows.Forms.CheckBox chkStopTime;
         private System.Windows.Forms.LinkLabel lkFeedback;
