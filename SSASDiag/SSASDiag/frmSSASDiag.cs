@@ -24,8 +24,8 @@ namespace SSASDiag
         string m_instanceEdition = "";
         CDiagnosticsCollector dc;
         string m_LogDir = "", m_ConfigDir = "";  
-        
         List<ComboBoxServiceDetailsItem> LocalInstances = new List<ComboBoxServiceDetailsItem>();
+        bool bInCapture;
 
         public frmSSASDiag()
         {
@@ -51,7 +51,6 @@ namespace SSASDiag
                 chkGetNetwork.Enabled = false;
             }
         }
-
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (btnCapture.Text == "Stop Capture")
@@ -62,7 +61,65 @@ namespace SSASDiag
                     e.Cancel = true;
             }
         }
+        private void frmSSASDiag_Resize(object sender, EventArgs e)
+        {
+            lbStatus.Width = this.Width - 50;
+            lbStatus.Height = this.Height - 267;
+            lblRightClick.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 67;
+            lblRightClick.Left = this.Width - 257;
+        }
 
+        private void btnCapture_Click(object sender, EventArgs e)
+        {
+            if (btnCapture.Text == "Start Capture")
+            {
+                btnCapture.Enabled = false;
+                btnCapture.Text = "Stop Capture";
+                ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
+                btnCapture.Image = Properties.Resources.stop_button_th;
+                groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+                string TracePrefix = Environment.MachineName + "_"
+                    + (cbInstances.SelectedIndex == 0 ? "" : "_" + cbsdi.Text + "_");
+                dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 ? "" : "_" + cbsdi.Text, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, cbsdi.ServiceAccount,
+                    lbStatus, btnCapture,
+                    (int)udInterval.Value, chkAutoRestart.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
+                    chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked);
+                new Thread(new ThreadStart(dc.StartDiagnostics)).Start();
+            }
+            else
+            {
+                {
+                    btnCapture.Enabled = false;
+                    BackgroundWorker bg = new BackgroundWorker();
+                    bg.RunWorkerCompleted += Bg_RunWorkerCompleted;
+                    bg.DoWork += Bg_DoWork;
+                    bg.RunWorkerAsync();
+                }
+            }
+        }
+
+        private void Bg_DoWork(object sender, DoWorkEventArgs e)
+        {
+            dc.StopAndFinalizeAllDiagnostics();
+        }
+
+        private void Bg_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            groupBox1.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+            udRollover.Enabled = chkRollover.Checked;
+            dtStartTime.Enabled = chkStartTime.Checked;
+            dtStopTime.Enabled = chkStopTime.Checked;
+            btnCapture.Text = "Start Capture";
+            btnCapture.Image = Properties.Resources.play;
+            btnCapture.Enabled = true;
+        }
+
+        class ComboBoxServiceDetailsItem
+        {
+            public string Text { get; set; }
+            public string ConfigPath { get; set; }
+            public string ServiceAccount { get; set; }
+        }
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
@@ -84,14 +141,6 @@ namespace SSASDiag
                 btnCapture.Enabled = false;
             }
         }
-
-        class ComboBoxServiceDetailsItem
-        {
-            public string Text { get; set; }
-            public string ConfigPath { get; set; }
-            public string ServiceAccount { get; set; }
-        }
-
         private void PopulateInstanceDropdown()
         {
             try
@@ -113,7 +162,7 @@ namespace SSASDiag
                         else
                             LocalInstances.Add(new ComboBoxServiceDetailsItem() { Text = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", ""), ConfigPath = ConfigPath, ServiceAccount = sSvcUser });
                     }
-                cbInstances.SelectedIndex = 0;
+                if (cbInstances.Items.Count > 0 ) cbInstances.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
@@ -122,40 +171,12 @@ namespace SSASDiag
             }
             if (LocalInstances.Count == 0) lblInstanceDetails.Text = "There were no Analysis Services instances found on this server.\r\nPlease run on a server with a SQL 2008 or later SSAS instance.";
         }
-
-        private void btnCapture_Click(object sender, EventArgs e)
-        {
-            if (btnCapture.Text == "Start Capture")
-            {
-                btnCapture.Text = "Stop Capture";
-                ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
-                btnCapture.Image = Properties.Resources.stop_button_th;
-                groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
-                string TracePrefix = Environment.MachineName + "_"
-                    + (cbInstances.SelectedIndex == 0 ? "" : "_" + cbsdi.Text + "_");
-                dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 ? "" : "_" + cbsdi.Text, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, cbsdi.ServiceAccount,
-                    lbStatus, btnCapture,
-                    (int)udInterval.Value, chkAutoRestart.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
-                    chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked);
-                dc.StartDiagnostics();
-            }
-            else
-            {
-                dc.StopAndFinalizeAllDiagnostics();
-                groupBox1.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
-                udRollover.Enabled = chkRollover.Checked;
-                dtStartTime.Enabled = chkStartTime.Checked;
-                dtStopTime.Enabled = chkStopTime.Checked;
-                btnCapture.Text = "Start Capture";
-                btnCapture.Image = Properties.Resources.play;
-            }
-        }
+        
         
         private void chkRollover_CheckedChanged(object sender, EventArgs e)
         {
             if (chkRollover.Checked) udRollover.Enabled = true; else udRollover.Enabled = false;
         }
-
         private void chkStopTime_CheckedChanged(object sender, EventArgs e)
         {
             dtStopTime.Enabled = chkStopTime.Checked;
@@ -167,11 +188,18 @@ namespace SSASDiag
             else
                 dtStopTime.Value = DateTime.Now.AddHours(1);
         }
-
         private void chkStartTime_CheckedChanged(object sender, EventArgs e)
         {
             dtStartTime.Enabled = chkStartTime.Checked;
             if (chkStartTime.Checked) dtStartTime.Value = DateTime.Now.AddHours(0);
+        }
+        private void chkAutoRestart_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkAutoRestart.Checked && chkAutoRestart.Checked == false)
+            {
+                ttStatus.Show("Stop time required for your protection with AutoRestart=true.", dtStopTime, 1750);
+                chkStopTime.Checked = true;
+            }
         }
 
         private void lbStatus_MouseClick(object sender, MouseEventArgs e)
@@ -190,23 +218,13 @@ namespace SSASDiag
         {
             Process.Start("mailto:SSASDiagChamps@microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
         }
-
         private void lkBugs_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start("mailto:jon.burchel@microsoft.com?subject=Issue with SSASDiag");
         }
-
         private void lkDiscussion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start("mailto:SSASDiagChamps@microsoft.com");
-        }
-
-        private void frmSSASDiag_Resize(object sender, EventArgs e)
-        {
-            lbStatus.Width = this.Width - 50;
-            lbStatus.Height = this.Height - 267;
-            lblRightClick.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 67;
-            lblRightClick.Left = this.Width - 257;   
         }
 
         private void SetRolloverAndStartStopEnabledStates()
@@ -217,31 +235,36 @@ namespace SSASDiag
             dtStartTime.Enabled = chkStartTime.Enabled & chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Enabled & chkStopTime.Checked;
         }
-
         private void chkGetPerfMon_CheckedChanged(object sender, EventArgs e)
         {
             lblInterval.Enabled = udInterval.Enabled = lblInterval2.Enabled = chkGetPerfMon.Checked;
             SetRolloverAndStartStopEnabledStates();
         }
-
         private void chkGetProfiler_CheckedChanged(object sender, EventArgs e)
         {
             chkAutoRestart.Enabled = chkGetProfiler.Checked;
             SetRolloverAndStartStopEnabledStates();
         }
 
+        private void btnCapture_MouseEnter(object sender, EventArgs e)
+        {
+            if (btnCapture.Text == "Start Capture")
+                btnCapture.Image = Properties.Resources.play_lit;
+            else
+                btnCapture.Image = Properties.Resources.stop_button_lit;
+        }
+
+        private void btnCapture_MouseLeave(object sender, EventArgs e)
+        {
+            if (btnCapture.Text == "Start Capture")
+                btnCapture.Image = Properties.Resources.play;
+            else
+                btnCapture.Image = Properties.Resources.stop_button_th;
+        }
+
         private void chkGetNetwork_CheckedChanged(object sender, EventArgs e)
         {
             SetRolloverAndStartStopEnabledStates();
-        }
-
-        private void chkAutoRestart_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkAutoRestart.Checked && chkAutoRestart.Checked == false)
-            {
-                ttStatus.Show("Stop time required for your protection with AutoRestart=true.", dtStopTime, 1750);
-                chkStopTime.Checked = true;
-            }
         }
     }
 }

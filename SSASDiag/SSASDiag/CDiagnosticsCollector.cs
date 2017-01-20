@@ -12,6 +12,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using System.Security.Permissions;
+using System.Management;
 
 namespace SSASDiag
 {
@@ -149,10 +150,11 @@ namespace SSASDiag
                     Process p = new Process();
                     p.StartInfo.UseShellExecute = false;
                     p.StartInfo.CreateNoWindow = true;
-                    p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    p.StartInfo.RedirectStandardOutput = true;
                     p.StartInfo.FileName = "netsh";
                     p.StartInfo.Arguments = "trace start persistent=yes capture=yes tracefile=" + Environment.CurrentDirectory + "\\Output\\" + TraceID + ".etl";
                     p.Start();
+                    p.WaitForExit();
 
                     AddItemToStatusListBox("Network tracing started to file: " + TraceID + ".etl.");
                 }
@@ -164,6 +166,7 @@ namespace SSASDiag
 
                 // Start the timer ticking...
                 PerfMonAndUIPumpTimer.Start();
+                btnStart.Invoke(new System.Action(() => btnStart.Enabled = true));
             }
         }
 
@@ -266,22 +269,16 @@ namespace SSASDiag
 
             if (bGetNetwork)
             {
-                BackgroundWorker bg = new BackgroundWorker();
-                bg.DoWork += bgStopNetworkTracesAsyncDoWork;
-                bg.WorkerReportsProgress = false;
-                bg.WorkerSupportsCancellation = false;
-                bg.RunWorkerCompleted += bgStopNetworkTracesAsyncCompleted;
-                bg.RunWorkerAsync();
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.FileName = "netsh";
+                p.StartInfo.Arguments = "trace stop";
+                p.Start();
+                p.WaitForExit();
             }
 
-            FinalizeCollection();
-
-            btnStart.Invoke(new MethodInvoker(() => { btnStart.Text = "Stop Capture"; btnStart.Image = Properties.Resources.stop_button_th; } ));
-            bScheduledStartPending = false;
-        }
-
-        private void FinalizeCollection()
-        {
             AddItemToStatusListBox("Stoppped SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
 
             string status = "";
@@ -302,30 +299,14 @@ namespace SSASDiag
             z.Save(TraceID + ".zip");
 
             AddItemToStatusListBox("Created zip file of output at " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
-            Directory.Delete("Output", true); 
+            Directory.Delete("Output", true);
             AddItemToStatusListBox("Deleted capture output folder.");
 
             AddItemToStatusListBox("");
             lbStatus.Invoke(new System.Action(() => lbStatus.TopIndex = lbStatus.Items.Count - 1));
-        }
+            btnStart.Invoke(new MethodInvoker(() => { btnStart.Text = "Stop Capture"; btnStart.Image = Properties.Resources.stop_button_th; } ));
 
-        private void bgStopNetworkTracesAsyncDoWork(object sender, DoWorkEventArgs e)
-        {
-            Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            p.StartInfo.FileName = "netsh";
-            p.StartInfo.Arguments = "trace stop";
-            p.Start();
-            p.WaitForExit();
-        }
-
-        private void bgStopNetworkTracesAsyncCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            AddItemToStatusListBox("Stopped network trace.");
-            Thread.Sleep(1000);
-            FinalizeCollection();
+            bScheduledStartPending = false;
         }
 
         private string ServerExecute(string command)

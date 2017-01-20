@@ -106,6 +106,8 @@
             this.btnCapture.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnCapture.UseVisualStyleBackColor = false;
             this.btnCapture.Click += new System.EventHandler(this.btnCapture_Click);
+            this.btnCapture.MouseEnter += new System.EventHandler(this.btnCapture_MouseEnter);
+            this.btnCapture.MouseLeave += new System.EventHandler(this.btnCapture_MouseLeave);
             // 
             // lbStatus
             // 
@@ -352,6 +354,7 @@
             this.chkGetNetwork.Size = new System.Drawing.Size(102, 17);
             this.chkGetNetwork.TabIndex = 13;
             this.chkGetNetwork.Text = "Network Traces";
+            this.ttStatus.SetToolTip(this.chkGetNetwork, "Network trace collection coming soon!");
             this.chkGetNetwork.UseVisualStyleBackColor = true;
             this.chkGetNetwork.CheckedChanged += new System.EventHandler(this.chkGetNetwork_CheckedChanged);
             // 

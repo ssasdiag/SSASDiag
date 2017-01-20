@@ -124,6 +124,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.manifest" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -175,6 +176,8 @@
     <None Include="Resources\play.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\play-lit.png" />
+    <None Include="Resources\stop-button-lit.png" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
