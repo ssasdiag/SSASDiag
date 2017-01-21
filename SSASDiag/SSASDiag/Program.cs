@@ -55,8 +55,7 @@ namespace SSASDiag
                         {
                             try
                             {
-                                // Just get content length first to compare with our file, and we only download if it is actually newer.  UPN for testing only.  Remove before publishing.
-                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiag.exe?user=" + Uri.EscapeUriString(System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName) + "&host=" + Environment.MachineName);
+                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiag.exe";
                                 req.Method = "HEAD";
                                 WebResponse wr = req.GetResponse();
                                 string realUrl = wr.Headers["RedirectUrl"];
