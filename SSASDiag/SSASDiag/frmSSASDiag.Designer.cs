@@ -34,7 +34,6 @@
             this.lblInstanceDetails = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.btnCapture = new System.Windows.Forms.Button();
-            this.lbStatus = new System.Windows.Forms.ListBox();
             this.chkRollover = new System.Windows.Forms.CheckBox();
             this.chkAutoRestart = new System.Windows.Forms.CheckBox();
             this.udRollover = new System.Windows.Forms.NumericUpDown();
@@ -44,18 +43,21 @@
             this.lblInterval2 = new System.Windows.Forms.Label();
             this.chkStartTime = new System.Windows.Forms.CheckBox();
             this.dtStartTime = new System.Windows.Forms.DateTimePicker();
-            this.lblRightClick = new System.Windows.Forms.Label();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
             this.lkDiscussion = new System.Windows.Forms.LinkLabel();
+            this.chkGetNetwork = new System.Windows.Forms.CheckBox();
             this.dtStopTime = new System.Windows.Forms.DateTimePicker();
             this.chkStopTime = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.chkGetNetwork = new System.Windows.Forms.CheckBox();
+            this.chkPerfCtrs = new System.Windows.Forms.CheckBox();
             this.chkGetProfiler = new System.Windows.Forms.CheckBox();
             this.chkGetPerfMon = new System.Windows.Forms.CheckBox();
             this.chkGetConfigDetails = new System.Windows.Forms.CheckBox();
+            this.chkDeleteRaw = new System.Windows.Forms.CheckBox();
+            this.chkZip = new System.Windows.Forms.CheckBox();
+            this.txtStatus = new System.Windows.Forms.RichTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -67,16 +69,17 @@
             this.cbInstances.FormattingEnabled = true;
             this.cbInstances.Location = new System.Drawing.Point(12, 26);
             this.cbInstances.Name = "cbInstances";
-            this.cbInstances.Size = new System.Drawing.Size(232, 21);
+            this.cbInstances.Size = new System.Drawing.Size(252, 21);
             this.cbInstances.TabIndex = 0;
             this.cbInstances.SelectedIndexChanged += new System.EventHandler(this.cbInstances_SelectedIndexChanged);
             // 
             // lblInstanceDetails
             // 
             this.lblInstanceDetails.AutoSize = true;
-            this.lblInstanceDetails.Location = new System.Drawing.Point(267, 23);
+            this.lblInstanceDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblInstanceDetails.Location = new System.Drawing.Point(278, 23);
             this.lblInstanceDetails.Name = "lblInstanceDetails";
-            this.lblInstanceDetails.Size = new System.Drawing.Size(0, 13);
+            this.lblInstanceDetails.Size = new System.Drawing.Size(0, 12);
             this.lblInstanceDetails.TabIndex = 22;
             // 
             // label1
@@ -92,41 +95,25 @@
             // 
             this.btnCapture.BackColor = System.Drawing.Color.Transparent;
             this.btnCapture.Enabled = false;
+            this.btnCapture.FlatAppearance.BorderColor = System.Drawing.SystemColors.ButtonFace;
             this.btnCapture.FlatAppearance.BorderSize = 0;
             this.btnCapture.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
             this.btnCapture.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
             this.btnCapture.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCapture.Image = global::SSASDiag.Properties.Resources.play;
-            this.btnCapture.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.btnCapture.Location = new System.Drawing.Point(270, 65);
+            this.btnCapture.Location = new System.Drawing.Point(296, 82);
             this.btnCapture.Name = "btnCapture";
-            this.btnCapture.Size = new System.Drawing.Size(103, 88);
+            this.btnCapture.Size = new System.Drawing.Size(68, 68);
             this.btnCapture.TabIndex = 14;
-            this.btnCapture.Text = "Start Capture";
-            this.btnCapture.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnCapture.UseVisualStyleBackColor = false;
             this.btnCapture.Click += new System.EventHandler(this.btnCapture_Click);
             this.btnCapture.MouseEnter += new System.EventHandler(this.btnCapture_MouseEnter);
             this.btnCapture.MouseLeave += new System.EventHandler(this.btnCapture_MouseLeave);
             // 
-            // lbStatus
-            // 
-            this.lbStatus.BackColor = System.Drawing.SystemColors.InfoText;
-            this.lbStatus.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.lbStatus.FormattingEnabled = true;
-            this.lbStatus.HorizontalScrollbar = true;
-            this.lbStatus.Location = new System.Drawing.Point(12, 197);
-            this.lbStatus.Name = "lbStatus";
-            this.lbStatus.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.lbStatus.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.lbStatus.Size = new System.Drawing.Size(577, 160);
-            this.lbStatus.TabIndex = 15;
-            this.lbStatus.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lbStatus_MouseClick);
-            // 
             // chkRollover
             // 
             this.chkRollover.AutoSize = true;
-            this.chkRollover.Location = new System.Drawing.Point(12, 65);
+            this.chkRollover.Location = new System.Drawing.Point(12, 81);
             this.chkRollover.Name = "chkRollover";
             this.chkRollover.Size = new System.Drawing.Size(115, 17);
             this.chkRollover.TabIndex = 1;
@@ -137,7 +124,7 @@
             // chkAutoRestart
             // 
             this.chkAutoRestart.AutoSize = true;
-            this.chkAutoRestart.Location = new System.Drawing.Point(12, 133);
+            this.chkAutoRestart.Location = new System.Drawing.Point(12, 150);
             this.chkAutoRestart.Name = "chkAutoRestart";
             this.chkAutoRestart.Size = new System.Drawing.Size(206, 17);
             this.chkAutoRestart.TabIndex = 7;
@@ -148,7 +135,7 @@
             // udRollover
             // 
             this.udRollover.Enabled = false;
-            this.udRollover.Location = new System.Drawing.Point(124, 64);
+            this.udRollover.Location = new System.Drawing.Point(124, 80);
             this.udRollover.Maximum = new decimal(new int[] {
             2048,
             0,
@@ -174,7 +161,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(177, 66);
+            this.label2.Location = new System.Drawing.Point(177, 82);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 13);
             this.label2.TabIndex = 23;
@@ -182,7 +169,7 @@
             // 
             // udInterval
             // 
-            this.udInterval.Location = new System.Drawing.Point(152, 154);
+            this.udInterval.Location = new System.Drawing.Point(150, 171);
             this.udInterval.Maximum = new decimal(new int[] {
             60,
             0,
@@ -208,7 +195,7 @@
             // lblInterval
             // 
             this.lblInterval.AutoSize = true;
-            this.lblInterval.Location = new System.Drawing.Point(28, 156);
+            this.lblInterval.Location = new System.Drawing.Point(28, 173);
             this.lblInterval.Name = "lblInterval";
             this.lblInterval.Size = new System.Drawing.Size(124, 13);
             this.lblInterval.TabIndex = 19;
@@ -217,7 +204,7 @@
             // lblInterval2
             // 
             this.lblInterval2.AutoSize = true;
-            this.lblInterval2.Location = new System.Drawing.Point(197, 156);
+            this.lblInterval2.Location = new System.Drawing.Point(195, 173);
             this.lblInterval2.Name = "lblInterval2";
             this.lblInterval2.Size = new System.Drawing.Size(50, 13);
             this.lblInterval2.TabIndex = 18;
@@ -226,7 +213,7 @@
             // chkStartTime
             // 
             this.chkStartTime.AutoSize = true;
-            this.chkStartTime.Location = new System.Drawing.Point(12, 88);
+            this.chkStartTime.Location = new System.Drawing.Point(12, 104);
             this.chkStartTime.Name = "chkStartTime";
             this.chkStartTime.Size = new System.Drawing.Size(73, 17);
             this.chkStartTime.TabIndex = 3;
@@ -239,21 +226,10 @@
             this.dtStartTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
             this.dtStartTime.Enabled = false;
             this.dtStartTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtStartTime.Location = new System.Drawing.Point(83, 86);
+            this.dtStartTime.Location = new System.Drawing.Point(80, 102);
             this.dtStartTime.Name = "dtStartTime";
-            this.dtStartTime.Size = new System.Drawing.Size(167, 20);
+            this.dtStartTime.Size = new System.Drawing.Size(184, 20);
             this.dtStartTime.TabIndex = 4;
-            // 
-            // lblRightClick
-            // 
-            this.lblRightClick.AutoSize = true;
-            this.lblRightClick.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblRightClick.ForeColor = System.Drawing.SystemColors.Highlight;
-            this.lblRightClick.Location = new System.Drawing.Point(360, 360);
-            this.lblRightClick.Name = "lblRightClick";
-            this.lblRightClick.Size = new System.Drawing.Size(229, 13);
-            this.lblRightClick.TabIndex = 17;
-            this.lblRightClick.Text = "*Right click the output area to copy to clipboard.";
             // 
             // lkFeedback
             // 
@@ -263,7 +239,7 @@
             this.lkFeedback.Image = ((System.Drawing.Image)(resources.GetObject("lkFeedback.Image")));
             this.lkFeedback.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkFeedback.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkFeedback.Location = new System.Drawing.Point(12, 360);
+            this.lkFeedback.Location = new System.Drawing.Point(11, 373);
             this.lkFeedback.Name = "lkFeedback";
             this.lkFeedback.Padding = new System.Windows.Forms.Padding(2);
             this.lkFeedback.Size = new System.Drawing.Size(77, 17);
@@ -281,7 +257,7 @@
             this.lkBugs.Image = ((System.Drawing.Image)(resources.GetObject("lkBugs.Image")));
             this.lkBugs.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkBugs.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkBugs.Location = new System.Drawing.Point(95, 360);
+            this.lkBugs.Location = new System.Drawing.Point(94, 373);
             this.lkBugs.Name = "lkBugs";
             this.lkBugs.Padding = new System.Windows.Forms.Padding(2);
             this.lkBugs.Size = new System.Drawing.Size(53, 17);
@@ -299,7 +275,7 @@
             this.lkDiscussion.Image = ((System.Drawing.Image)(resources.GetObject("lkDiscussion.Image")));
             this.lkDiscussion.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkDiscussion.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkDiscussion.Location = new System.Drawing.Point(154, 360);
+            this.lkDiscussion.Location = new System.Drawing.Point(153, 373);
             this.lkDiscussion.Name = "lkDiscussion";
             this.lkDiscussion.Padding = new System.Windows.Forms.Padding(2);
             this.lkDiscussion.Size = new System.Drawing.Size(111, 17);
@@ -309,20 +285,32 @@
             this.ttStatus.SetToolTip(this.lkDiscussion, "Make it better!");
             this.lkDiscussion.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkDiscussion_LinkClicked);
             // 
+            // chkGetNetwork
+            // 
+            this.chkGetNetwork.AutoSize = true;
+            this.chkGetNetwork.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkGetNetwork.Location = new System.Drawing.Point(14, 113);
+            this.chkGetNetwork.Name = "chkGetNetwork";
+            this.chkGetNetwork.Size = new System.Drawing.Size(102, 17);
+            this.chkGetNetwork.TabIndex = 13;
+            this.chkGetNetwork.Text = "Network Traces";
+            this.chkGetNetwork.UseVisualStyleBackColor = true;
+            this.chkGetNetwork.CheckedChanged += new System.EventHandler(this.chkGetNetwork_CheckedChanged);
+            // 
             // dtStopTime
             // 
             this.dtStopTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
             this.dtStopTime.Enabled = false;
             this.dtStopTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtStopTime.Location = new System.Drawing.Point(83, 109);
+            this.dtStopTime.Location = new System.Drawing.Point(80, 125);
             this.dtStopTime.Name = "dtStopTime";
-            this.dtStopTime.Size = new System.Drawing.Size(167, 20);
+            this.dtStopTime.Size = new System.Drawing.Size(184, 20);
             this.dtStopTime.TabIndex = 6;
             // 
             // chkStopTime
             // 
             this.chkStopTime.AutoSize = true;
-            this.chkStopTime.Location = new System.Drawing.Point(12, 111);
+            this.chkStopTime.Location = new System.Drawing.Point(12, 127);
             this.chkStopTime.Name = "chkStopTime";
             this.chkStopTime.Size = new System.Drawing.Size(73, 17);
             this.chkStopTime.TabIndex = 5;
@@ -332,31 +320,32 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.chkPerfCtrs);
             this.groupBox1.Controls.Add(this.chkGetNetwork);
             this.groupBox1.Controls.Add(this.chkGetProfiler);
             this.groupBox1.Controls.Add(this.chkGetPerfMon);
             this.groupBox1.Controls.Add(this.chkGetConfigDetails);
             this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox1.Location = new System.Drawing.Point(395, 66);
+            this.groupBox1.Location = new System.Drawing.Point(392, 55);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(194, 116);
+            this.groupBox1.Size = new System.Drawing.Size(196, 138);
             this.groupBox1.TabIndex = 9;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Diagnostics to Capture:";
             // 
-            // chkGetNetwork
+            // chkPerfCtrs
             // 
-            this.chkGetNetwork.AutoSize = true;
-            this.chkGetNetwork.Enabled = false;
-            this.chkGetNetwork.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkGetNetwork.Location = new System.Drawing.Point(14, 90);
-            this.chkGetNetwork.Name = "chkGetNetwork";
-            this.chkGetNetwork.Size = new System.Drawing.Size(102, 17);
-            this.chkGetNetwork.TabIndex = 13;
-            this.chkGetNetwork.Text = "Network Traces";
-            this.ttStatus.SetToolTip(this.chkGetNetwork, "Network trace collection coming soon!");
-            this.chkGetNetwork.UseVisualStyleBackColor = true;
-            this.chkGetNetwork.CheckedChanged += new System.EventHandler(this.chkGetNetwork_CheckedChanged);
+            this.chkPerfCtrs.AutoSize = true;
+            this.chkPerfCtrs.Checked = true;
+            this.chkPerfCtrs.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkPerfCtrs.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkPerfCtrs.Location = new System.Drawing.Point(34, 90);
+            this.chkPerfCtrs.Name = "chkPerfCtrs";
+            this.chkPerfCtrs.Size = new System.Drawing.Size(160, 17);
+            this.chkPerfCtrs.TabIndex = 14;
+            this.chkPerfCtrs.Text = "Performance relevant details";
+            this.chkPerfCtrs.UseVisualStyleBackColor = true;
+            this.chkPerfCtrs.CheckedChanged += new System.EventHandler(this.chkPerfCtrs_CheckedChanged);
             // 
             // chkGetProfiler
             // 
@@ -399,35 +388,76 @@
             this.chkGetConfigDetails.Text = "Instance Configuration and Logs";
             this.chkGetConfigDetails.UseVisualStyleBackColor = true;
             // 
+            // chkDeleteRaw
+            // 
+            this.chkDeleteRaw.AutoSize = true;
+            this.chkDeleteRaw.Checked = true;
+            this.chkDeleteRaw.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkDeleteRaw.Location = new System.Drawing.Point(124, 58);
+            this.chkDeleteRaw.Name = "chkDeleteRaw";
+            this.chkDeleteRaw.Size = new System.Drawing.Size(144, 17);
+            this.chkDeleteRaw.TabIndex = 27;
+            this.chkDeleteRaw.Text = "Delete raw data after zip.";
+            this.chkDeleteRaw.UseVisualStyleBackColor = true;
+            this.chkDeleteRaw.CheckedChanged += new System.EventHandler(this.chkDeleteRaw_CheckedChanged);
+            // 
+            // chkZip
+            // 
+            this.chkZip.AutoSize = true;
+            this.chkZip.Checked = true;
+            this.chkZip.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkZip.Location = new System.Drawing.Point(12, 58);
+            this.chkZip.Name = "chkZip";
+            this.chkZip.Size = new System.Drawing.Size(106, 17);
+            this.chkZip.TabIndex = 26;
+            this.chkZip.Text = "Compress to .zip.";
+            this.chkZip.UseVisualStyleBackColor = true;
+            this.chkZip.CheckedChanged += new System.EventHandler(this.chkZip_CheckedChanged);
+            // 
+            // txtStatus
+            // 
+            this.txtStatus.BackColor = System.Drawing.Color.Black;
+            this.txtStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtStatus.Font = new System.Drawing.Font("Consolas", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtStatus.ForeColor = System.Drawing.Color.LightSkyBlue;
+            this.txtStatus.Location = new System.Drawing.Point(12, 197);
+            this.txtStatus.Name = "txtStatus";
+            this.txtStatus.ReadOnly = true;
+            this.txtStatus.Size = new System.Drawing.Size(578, 173);
+            this.txtStatus.TabIndex = 28;
+            this.txtStatus.Text = "";
+            this.txtStatus.MouseDown += new System.Windows.Forms.MouseEventHandler(this.txtStatus_MouseDown);
+            // 
             // frmSSASDiag
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(601, 388);
+            this.ClientSize = new System.Drawing.Size(604, 393);
+            this.Controls.Add(this.chkDeleteRaw);
+            this.Controls.Add(this.chkZip);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.lkDiscussion);
-            this.Controls.Add(this.lkBugs);
-            this.Controls.Add(this.lkFeedback);
             this.Controls.Add(this.dtStopTime);
             this.Controls.Add(this.chkStopTime);
-            this.Controls.Add(this.lblRightClick);
             this.Controls.Add(this.dtStartTime);
             this.Controls.Add(this.chkStartTime);
             this.Controls.Add(this.lblInterval2);
-            this.Controls.Add(this.lblInterval);
             this.Controls.Add(this.udInterval);
             this.Controls.Add(this.udRollover);
             this.Controls.Add(this.chkAutoRestart);
             this.Controls.Add(this.chkRollover);
-            this.Controls.Add(this.lbStatus);
             this.Controls.Add(this.btnCapture);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.lblInstanceDetails);
             this.Controls.Add(this.cbInstances);
             this.Controls.Add(this.label2);
+            this.Controls.Add(this.lkDiscussion);
+            this.Controls.Add(this.lkBugs);
+            this.Controls.Add(this.lkFeedback);
+            this.Controls.Add(this.txtStatus);
+            this.Controls.Add(this.lblInterval);
             this.DoubleBuffered = true;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(599, 350);
+            this.MinimumSize = new System.Drawing.Size(617, 427);
             this.Name = "frmSSASDiag";
             this.Text = "SSAS Diagnostics Collector";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmSSASDiag_FormClosing);
@@ -448,7 +478,6 @@
         private System.Windows.Forms.Label lblInstanceDetails;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnCapture;
-        private System.Windows.Forms.ListBox lbStatus;
         private System.Windows.Forms.CheckBox chkRollover;
         private System.Windows.Forms.CheckBox chkAutoRestart;
         private System.Windows.Forms.NumericUpDown udRollover;
@@ -458,7 +487,6 @@
         private System.Windows.Forms.Label lblInterval2;
         private System.Windows.Forms.CheckBox chkStartTime;
         private System.Windows.Forms.DateTimePicker dtStartTime;
-        private System.Windows.Forms.Label lblRightClick;
         private System.Windows.Forms.ToolTip ttStatus;
         private System.Windows.Forms.DateTimePicker dtStopTime;
         private System.Windows.Forms.CheckBox chkStopTime;
@@ -470,6 +498,10 @@
         private System.Windows.Forms.CheckBox chkGetProfiler;
         private System.Windows.Forms.CheckBox chkGetPerfMon;
         private System.Windows.Forms.CheckBox chkGetConfigDetails;
+        private System.Windows.Forms.CheckBox chkPerfCtrs;
+        private System.Windows.Forms.CheckBox chkDeleteRaw;
+        private System.Windows.Forms.CheckBox chkZip;
+        private System.Windows.Forms.RichTextBox txtStatus;
     }
 }
 

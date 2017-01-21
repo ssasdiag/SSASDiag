@@ -1,4 +1,6 @@
-﻿using Microsoft.AnalysisServices;
+﻿using System.Runtime.InteropServices;
+using System.Drawing; 
+using Microsoft.AnalysisServices;
 using PdhNative;
 using System;
 using System.Data;
@@ -19,21 +21,28 @@ namespace SSASDiag
 {
     public partial class frmSSASDiag : Form
     {
+        #region locals
         string m_instanceVersion = "";
         string m_instanceType = "";
         string m_instanceEdition = "";
         CDiagnosticsCollector dc;
         string m_LogDir = "", m_ConfigDir = "";  
         List<ComboBoxServiceDetailsItem> LocalInstances = new List<ComboBoxServiceDetailsItem>();
-        bool bInCapture;
+        Image imgPlay = Properties.Resources.play, imgPlayLit = Properties.Resources.play_lit, imgPlayHalfLit = Properties.Resources.play_half_lit,
+            imgStop = Properties.Resources.stop_button_th, imgStopLit = Properties.Resources.stop_button_lit, imgStopHalfLit = Properties.Resources.stop_button_half_lit;
+        bool bClosing = false;
+        #endregion
 
         public frmSSASDiag()
         {
             InitializeComponent();
         }
 
+        #region frmSSASDiagEvents
         private void frmSSASDiag_Load(object sender, EventArgs e)
         {
+            imgPlay.Tag = "Play"; imgPlayLit.Tag = "Play Lit"; imgPlayHalfLit.Tag = "Play Half Lit"; imgStop.Tag = "Stop"; imgStopLit.Tag = "Stop Lit"; imgStopHalfLit.Tag = "Stop Half Lit";
+            btnCapture.Image = imgPlay;
             Environment.CurrentDirectory = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
             PopulateInstanceDropdown();
             dtStopTime.Value = DateTime.Now.AddHours(1);
@@ -43,8 +52,6 @@ namespace SSASDiag
             dtStartTime.CustomFormat = dtStopTime.CustomFormat;
             dtStartTime.MinDate = DateTime.Now;
             dtStartTime.MaxDate = DateTime.Now.AddDays(30);
-            cbInstances.DataSource = LocalInstances;
-            cbInstances.DisplayMember = "Text";
             if (!(Environment.OSVersion.Version.Major > 7  || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)))
             {
                 MessageBox.Show("Network tracing with this tool requires\nWindows 7 or Server 2008 R2 or greater.\nPlease upgrade your OS to use that feature.", "Network Capture Not Supported on Legacy OS", MessageBoxButtons.OK, MessageBoxIcon.Hand);
@@ -53,67 +60,115 @@ namespace SSASDiag
         }
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (btnCapture.Text == "Stop Capture")
+            if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
             {
                 if (MessageBox.Show("Capture in progress, exiting will stop.\r\nExit anyway?", "Capture in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
-                    btnCapture_Click(this, new EventArgs());
-                else
-                    e.Cancel = true;
+                {
+                    bClosing = true;
+                    btnCapture_Click(sender, e);
+                }
+                e.Cancel = true;
             }
+            else if (((string)btnCapture.Image.Tag as string).Contains("Half Lit"))
+                if (MessageBox.Show("Diagnostic Capture is in a blocking state.\nForcing exit now may leave locked files and traces in progress.\n\nExit anyway?", "Capture in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
+                    e.Cancel = true;
         }
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
-            lbStatus.Width = this.Width - 50;
-            lbStatus.Height = this.Height - 267;
-            lblRightClick.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 67;
-            lblRightClick.Left = this.Width - 257;
+            lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 59;
+            txtStatus.Width = this.Width - 42;
+            txtStatus.Height = this.Height - 259;
         }
+        #endregion frmSSASDiagEvents
 
         private void btnCapture_Click(object sender, EventArgs e)
         {
-            if (btnCapture.Text == "Start Capture")
+            // worker we use to launch either start or stop blocking operations to the CDiastnosticsCollector asynchronously
+            BackgroundWorker bg = new BackgroundWorker();
+
+            if (dc == null || dc.bRunning || !(btnCapture.Image.Tag as string).Contains("Half Lit"))
             {
-                btnCapture.Enabled = false;
-                btnCapture.Text = "Stop Capture";
-                ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
-                btnCapture.Image = Properties.Resources.stop_button_th;
-                groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
-                string TracePrefix = Environment.MachineName + "_"
-                    + (cbInstances.SelectedIndex == 0 ? "" : "_" + cbsdi.Text + "_");
-                dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 ? "" : "_" + cbsdi.Text, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, cbsdi.ServiceAccount,
-                    lbStatus, btnCapture,
-                    (int)udInterval.Value, chkAutoRestart.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
-                    chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked);
-                new Thread(new ThreadStart(dc.StartDiagnostics)).Start();
-            }
-            else
-            {
+                if (btnCapture.Image.Tag as string == "Play" || btnCapture.Image.Tag as string == "Play Lit")
                 {
-                    btnCapture.Enabled = false;
-                    BackgroundWorker bg = new BackgroundWorker();
-                    bg.RunWorkerCompleted += Bg_RunWorkerCompleted;
-                    bg.DoWork += Bg_DoWork;
-                    bg.RunWorkerAsync();
+                    if (chkGetNetwork.Checked)
+                        if (MessageBox.Show("Networking traces significantly extend start and stop time."
+                            + (chkRollover.Checked ? "\n\nAlso note that network traces do not create multiple rollover files, but only rollover in circular fashion." : "")
+                            + "\n\nContinue anyway?", "Network Trace Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1) == DialogResult.No)
+                            return;
+
+                    btnCapture.Click -= btnCapture_Click;
+                    btnCapture.Image = imgPlayHalfLit;
+                    ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
+                    chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+                    string TracePrefix = Environment.MachineName + "_"
+                        + (cbInstances.SelectedIndex == 0 ? "" : "_" + cbsdi.Text + "_");
+                    
+                    dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 ? "" : "_" + cbsdi.Text, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, cbsdi.ServiceAccount,
+                        txtStatus,
+                        (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkPerfCtrs.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked, 
+                        chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked);
+
+                    txtStatus.DataBindings.Clear();
+                    txtStatus.DataBindings.Add("Lines", dc, "Status", false, DataSourceUpdateMode.OnPropertyChanged);
+                    dc.CompletionCallback = callback_StartDiagnosticsComplete;
+                    // Unhook the status text area from selection while we are actively using it.
+                    // I do allow selection after but it was problematic to scroll correctly while allowing user selection during active collection.
+                    // This is functionally good, allows them to copy paths or file names after completion but also gives nice behavior during collection.
+                    txtStatus.Cursor = Cursors.Arrow;
+                    txtStatus.GotFocus += txtStatus_GotFocusWhileRunning;
+                    txtStatus.Enter += txtStatus_EnterWhileRunning;
+                    new Thread(new ThreadStart(() => dc.StartDiagnostics())).Start();
+                }
+                else if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
+                {
+                    {
+                        btnCapture.Click -= btnCapture_Click;
+                        btnCapture.Image = imgStopHalfLit;
+                        new Thread(new ThreadStart(() => dc.StopAndFinalizeAllDiagnostics())).Start();
+                    }
                 }
             }
         }
 
-        private void Bg_DoWork(object sender, DoWorkEventArgs e)
+        #region CaptureStartAndStop
+        #region StatusHandlingDuringCapture
+        // Minor functions used only while running diagnostic
+        [DllImport("user32.dll")]
+        static extern bool HideCaret(IntPtr hWnd);
+        private void txtStatus_GotFocusWhileRunning(object sender, EventArgs e)
         {
-            dc.StopAndFinalizeAllDiagnostics();
+            HideCaret(txtStatus.Handle);
         }
-
-        private void Bg_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void txtStatus_EnterWhileRunning(object sender, EventArgs e)
         {
-            groupBox1.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+            ActiveControl = btnCapture;
+        }
+        #endregion StatusHandlingDuringCapture
+        private void callback_StartDiagnosticsComplete()
+        {
+            btnCapture.Image = imgStop;
+            btnCapture.Click += btnCapture_Click;
+            dc.CompletionCallback = callback_StopAndFinalizeAllDiagnosticsComplete;
+
+        }       
+        private void callback_StopAndFinalizeAllDiagnosticsComplete()
+        {
+            chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
             udRollover.Enabled = chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Checked;
-            btnCapture.Text = "Start Capture";
-            btnCapture.Image = Properties.Resources.play;
-            btnCapture.Enabled = true;
+            btnCapture.Image = imgPlay;
+            btnCapture.Click += btnCapture_Click;
+            txtStatus.Enter -= txtStatus_EnterWhileRunning;
+            txtStatus.GotFocus -= txtStatus_GotFocusWhileRunning;
+            txtStatus.Cursor = Cursors.Default;
+            if (bClosing)
+                this.Close();
+            dc.CompletionCallback = null;
         }
+        #endregion CaptureStartAndStop
 
+        #region BlockingUIComponentsBesidesCapture
         class ComboBoxServiceDetailsItem
         {
             public string Text { get; set; }
@@ -122,26 +177,45 @@ namespace SSASDiag
         }
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
-            try
+            new Thread(new ThreadStart(() =>
             {
-                Server srv = new Server();
-                srv.Connect("Data source=." + ((cbInstances.SelectedItem as ComboBoxServiceDetailsItem).Text == "Default instance (MSSQLServer)" ? "" : "\\" + (cbInstances.SelectedItem as ComboBoxServiceDetailsItem).Text));
-                lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition;
-                m_instanceType = srv.ServerMode.ToString();
-                m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
-                m_instanceEdition = srv.Edition.ToString();
-                m_LogDir = srv.ServerProperties["LogDir"].Value;
-                m_ConfigDir = (cbInstances.SelectedItem as ComboBoxServiceDetailsItem).ConfigPath;
-                srv.Disconnect();
-                btnCapture.Enabled = true;
-            }
-            catch (Exception ex)
-            {
-                lblInstanceDetails.Text = "Instance details could not be obtained due to failure connecting:\r\n" + ex.Message;
-                btnCapture.Enabled = false;
-            }
+                try
+                {
+                    Server srv = new Server();
+                    ComboBoxServiceDetailsItem SelItem = cbInstances.Invoke(new Func<ComboBoxServiceDetailsItem>(() => { return (cbInstances.SelectedItem as ComboBoxServiceDetailsItem); })) as ComboBoxServiceDetailsItem;
+
+                    srv.Connect("Data source=." + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text));
+                    lblInstanceDetails.Invoke(new System.Action(()=> lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
+                    m_instanceType = srv.ServerMode.ToString();
+                    m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
+                    m_instanceEdition = srv.Edition.ToString();
+                    m_LogDir = srv.ServerProperties["LogDir"].Value;
+                    m_ConfigDir = SelItem.ConfigPath;
+                    srv.Disconnect();
+                    btnCapture.Invoke(new System.Action(()=> btnCapture.Enabled = true));
+                }
+                catch (Exception ex)
+                {
+                    lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance details could not be obtained due to failure connecting:\r\n" + ex.Message));
+                    btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = false));
+                }
+            })).Start();
         }
         private void PopulateInstanceDropdown()
+        {
+            BackgroundWorker bg = new BackgroundWorker();
+            bg.DoWork += bgPopulateInstanceDropdown;
+            bg.RunWorkerCompleted += bgPopulateInstanceDropdownComplete;
+            bg.RunWorkerAsync();
+        }
+        private void bgPopulateInstanceDropdownComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            cbInstances.DataSource = LocalInstances;
+            cbInstances.DisplayMember = "Text";
+            cbInstances.Refresh();
+            if (cbInstances.Items.Count > 0) cbInstances.SelectedIndex = 0;
+        }
+        private void bgPopulateInstanceDropdown(object sender, DoWorkEventArgs e)
         {
             try
             {
@@ -154,28 +228,34 @@ namespace SSASDiag
                         string sSvcUser = "";
                         foreach (ManagementObject svc in mgmtSearcher.Get())
                             sSvcUser = svc["startname"] as string;
-                        
+
                         string ConfigPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + s.ServiceName, false).GetValue("ImagePath") as string;
                         ConfigPath = ConfigPath.Substring(ConfigPath.IndexOf("-s \"") + "-s \"".Length).TrimEnd('\"');
                         if (s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "").ToUpper() == "MSSQLSERVER")
-                            LocalInstances.Insert(0, new ComboBoxServiceDetailsItem() { Text = "Default instance (MSSQLServer)", ConfigPath = ConfigPath, ServiceAccount = sSvcUser});
+                            LocalInstances.Insert(0, new ComboBoxServiceDetailsItem() { Text = "Default instance (MSSQLServer)", ConfigPath = ConfigPath, ServiceAccount = sSvcUser });
                         else
                             LocalInstances.Add(new ComboBoxServiceDetailsItem() { Text = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", ""), ConfigPath = ConfigPath, ServiceAccount = sSvcUser });
                     }
-                if (cbInstances.Items.Count > 0 ) cbInstances.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("Failure during instance enumeration - could be because no instances were there.  Move on quietly then.");
                 Debug.WriteLine(ex);
             }
-            if (LocalInstances.Count == 0) lblInstanceDetails.Text = "There were no Analysis Services instances found on this server.\r\nPlease run on a server with a SQL 2008 or later SSAS instance.";
+            if (LocalInstances.Count == 0)
+                lblInstanceDetails.Invoke(new System.Action(() =>
+                    lblInstanceDetails.Text = "There were no Analysis Services instances found on this server.\r\nPlease run on a server with a SQL 2008 or later SSAS instance."
+                ));
         }
-        
-        
+        #endregion BlockingUIComponentsBesidesCapture
+
+        #region VariousNonBlockingUIElements
         private void chkRollover_CheckedChanged(object sender, EventArgs e)
         {
             if (chkRollover.Checked) udRollover.Enabled = true; else udRollover.Enabled = false;
+            if (chkGetNetwork.Checked && chkRollover.Checked)
+                ttStatus.Show("NOTE: Network traces rollover circularly,\n"
+                            + "always deleting older data automatically.", chkRollover, 3500);
         }
         private void chkStopTime_CheckedChanged(object sender, EventArgs e)
         {
@@ -199,18 +279,6 @@ namespace SSASDiag
             {
                 ttStatus.Show("Stop time required for your protection with AutoRestart=true.", dtStopTime, 1750);
                 chkStopTime.Checked = true;
-            }
-        }
-
-        private void lbStatus_MouseClick(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                string clip = "";
-                foreach (string Item in lbStatus.Items)
-                    clip += Item + "\r\n";
-                Clipboard.SetData(DataFormats.StringFormat, clip);
-                ttStatus.Show("Status output copied to clipboard.", lblRightClick, 10, 10, 2000);
             }
         }
 
@@ -240,31 +308,70 @@ namespace SSASDiag
             lblInterval.Enabled = udInterval.Enabled = lblInterval2.Enabled = chkGetPerfMon.Checked;
             SetRolloverAndStartStopEnabledStates();
         }
+
+        private void chkPerfCtrs_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkPerfCtrs.Checked)
+                chkGetProfiler.Checked = true;
+        }
+
+        private void txtStatus_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                string sOut = "";
+                foreach (string s in txtStatus.Lines)
+                    sOut += s + "\r\n";
+                Clipboard.SetData(DataFormats.StringFormat, sOut);
+                ttStatus.Show("Output window text copied to clipboard.", txtStatus, 2500);
+                new Thread(new ThreadStart(new System.Action(() =>
+                    {
+                        Thread.Sleep(2500);
+                        txtStatus.Invoke(new System.Action(()=>ttStatus.SetToolTip(txtStatus, "")));
+                    }))).Start();
+            }
+        }
+
         private void chkGetProfiler_CheckedChanged(object sender, EventArgs e)
         {
             chkAutoRestart.Enabled = chkGetProfiler.Checked;
             SetRolloverAndStartStopEnabledStates();
+            if (!chkGetProfiler.Checked)
+                chkPerfCtrs.Checked = false;
+        }
+        private void chkGetNetwork_CheckedChanged(object sender, EventArgs e)
+        {
+            SetRolloverAndStartStopEnabledStates();
+            if (chkGetNetwork.Checked && chkRollover.Checked)
+            ttStatus.Show("NOTE: Network traces rollover circularly,\n"
+                        + "always deleting older data automatically.", chkGetNetwork, 2000);
+        }
+
+        private void chkZip_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!chkZip.Checked)
+                chkDeleteRaw.Checked = false;
+        }
+        private void chkDeleteRaw_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkDeleteRaw.Checked)
+                chkZip.Checked = true;
         }
 
         private void btnCapture_MouseEnter(object sender, EventArgs e)
         {
-            if (btnCapture.Text == "Start Capture")
-                btnCapture.Image = Properties.Resources.play_lit;
-            else
-                btnCapture.Image = Properties.Resources.stop_button_lit;
+            if (btnCapture.Image.Tag as string == "Play")
+                btnCapture.Image = imgPlayLit;
+            else if (btnCapture.Image.Tag as string == "Stop")
+                btnCapture.Image = imgStopLit;
         }
-
         private void btnCapture_MouseLeave(object sender, EventArgs e)
         {
-            if (btnCapture.Text == "Start Capture")
-                btnCapture.Image = Properties.Resources.play;
-            else
-                btnCapture.Image = Properties.Resources.stop_button_th;
+            if (btnCapture.Image.Tag as string == "Play Lit")
+                btnCapture.Image = imgPlay;
+            else if (btnCapture.Image.Tag as string == "Stop Lit")
+                btnCapture.Image = imgStop;
         }
-
-        private void chkGetNetwork_CheckedChanged(object sender, EventArgs e)
-        {
-            SetRolloverAndStartStopEnabledStates();
-        }
+        #endregion VariousNonBlockingUIElements
     }
 }

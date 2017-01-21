@@ -153,10 +153,43 @@ namespace SSASDiag.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap play_half_lit {
+            get {
+                object obj = ResourceManager.GetObject("play_half_lit", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap play_lit {
             get {
                 object obj = ResourceManager.GetObject("play_lit", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;Batch xmlns=&quot;http://schemas.microsoft.com/analysisservices/2003/engine&quot; xmlns:soap=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;&gt;
+        ///	&lt;Create xmlns=&quot;http://schemas.microsoft.com/analysisservices/2003/engine&quot;&gt;
+        ///		&lt;ObjectDefinition&gt;
+        ///			&lt;Trace&gt;
+        ///				&lt;LogFileName/&gt;
+        ///				&lt;ID/&gt;
+        ///				&lt;LogFileSize/&gt;&lt;LogFileRollover/&gt;
+        ///				&lt;Name/&gt;
+        ///				&lt;AutoRestart/&gt;&lt;StartTime/&gt;&lt;StopTime/&gt;
+        ///				&lt;LogFileAppend&gt;false&lt;/LogFileAppend&gt;
+        ///				&lt;Events&gt;
+        ///					&lt;Event&gt;
+        ///						&lt;EventID&gt;15&lt;/EventID&gt;
+        ///						&lt;Columns&gt;
+        ///							&lt;ColumnID&gt;32&lt;/ColumnID&gt; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string ProfilerTraceStartWithQuerySubcubeEventsXMLA {
+            get {
+                return ResourceManager.GetString("ProfilerTraceStartWithQuerySubcubeEventsXMLA", resourceCulture);
             }
         }
         
@@ -203,6 +236,16 @@ namespace SSASDiag.Properties {
             get {
                 object obj = ResourceManager.GetObject("SHELL32_324", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap stop_button_half_lit {
+            get {
+                object obj = ResourceManager.GetObject("stop_button_half_lit", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         

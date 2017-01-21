@@ -170,7 +170,7 @@
     <None Include="Resources\SHELL32_324.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Ionic.Zip.dll" />
+    <None Include="Resources\Ionic.Zip.dll" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\play.png" />
@@ -178,6 +178,8 @@
   <ItemGroup>
     <None Include="Resources\play-lit.png" />
     <None Include="Resources\stop-button-lit.png" />
+    <None Include="Resources\play-half-lit.png" />
+    <None Include="Resources\stop-button-half-lit.png" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

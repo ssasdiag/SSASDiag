@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Net;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Resources;
-using System.Globalization;
 using System.Collections;
-using System.IO;
-using System.Reflection;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Reflection;
+using System.Resources;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace SSASDiag
 {
@@ -58,8 +55,8 @@ namespace SSASDiag
                         {
                             try
                             {
-                                // Just get content length first to compare with our file, and we only download if it is actually newer.
-                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiag.exe");
+                                // Just get content length first to compare with our file, and we only download if it is actually newer.  UPN for testing only.  Remove before publishing.
+                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiag.exe?user=" + Uri.EscapeUriString(System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName) + "&host=" + Environment.MachineName);
                                 req.Method = "HEAD";
                                 WebResponse wr = req.GetResponse();
                                 string realUrl = wr.Headers["RedirectUrl"];
