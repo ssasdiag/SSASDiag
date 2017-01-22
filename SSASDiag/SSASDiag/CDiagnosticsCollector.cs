@@ -135,7 +135,7 @@ namespace SSASDiag
                 dirSec.AddAccessRule(new FileSystemAccessRule(sServiceAccount, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
                 dirInfo.SetAccessControl(dirSec);
 
-                AddItemToStatus("Created temporary folder Output to collect diagnostic files.");
+                AddItemToStatus("Created temporary folder " + TraceID + "Output to collect diagnostic files.");
 
                 if (bGetConfigDetails)
                 {
@@ -187,38 +187,13 @@ namespace SSASDiag
                 if (bGetNetwork)
                 {
                     BackgroundWorker bg = new BackgroundWorker();
-                    bg.DoWork += bgGetNetwork;
-                    bg.RunWorkerCompleted += bgGetNetworkCompleted;
+                    bg.DoWork += bgGetNetworkWorker;
+                    bg.RunWorkerCompleted += bgGetNetworkCompletion;
                     bg.RunWorkerAsync();
                 }
                 else
                     FinalizeStart();
             }
-        }
-        private void bgGetNetwork(object sender, DoWorkEventArgs e)
-        {
-            AddItemToStatus("Starting network trace. ");
-            txtStatus.Invoke(new System.Action(() => { txtStatus.Select(txtStatus.Text.Length, 0); txtStatus.ScrollToCaret(); }));
-            Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.FileName = "netsh";
-            p.StartInfo.Arguments = "trace stop";
-            p.Start();
-            p.WaitForExit(500);
-            string sOut = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
-            p.StartInfo.Arguments = "trace start fileMode=" + (bRollover ? "circular" : "single") + " capture=yes tracefile=" + Environment.CurrentDirectory + "\\" + TraceID + "Output\\" + TraceID + ".etl maxSize=" + (bRollover ? iRollover.ToString() : "0");
-            p.Start();
-            sOut = p.StandardOutput.ReadToEnd();
-            Debug.WriteLine("netsh trace start's output: " + sOut);
-            p.WaitForExit();
-            AddItemToStatus("Network tracing started to file: " + TraceID + ".etl.");
-        }
-        private void bgGetNetworkCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            FinalizeStart();
         }
         private uint InitializePerfLog(string strSaveAs)
         {
@@ -262,6 +237,30 @@ namespace SSASDiag
                             "SSAS Diagnostics Performance Monitor Log");
 
             return ret;
+        }
+        private void bgGetNetworkWorker(object sender, DoWorkEventArgs e)
+        {
+            AddItemToStatus("Starting network trace. ");
+            Process p = new Process();
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.FileName = "netsh";
+            p.StartInfo.Arguments = "trace stop";
+            p.Start();
+            p.WaitForExit(500);
+            string sOut = p.StandardOutput.ReadToEnd();
+            p.WaitForExit();
+            p.StartInfo.Arguments = "trace start fileMode=" + (bRollover ? "circular" : "single") + " capture=yes tracefile=" + Environment.CurrentDirectory + "\\" + TraceID + "Output\\" + TraceID + ".etl maxSize=" + (bRollover ? iRollover.ToString() : "0");
+            p.Start();
+            sOut = p.StandardOutput.ReadToEnd();
+            Debug.WriteLine("netsh trace start's output: " + sOut);
+            p.WaitForExit();
+            AddItemToStatus("Network tracing started to file: " + TraceID + ".etl.");
+        }
+        private void bgGetNetworkCompletion(object sender, RunWorkerCompletedEventArgs e)
+        {
+            FinalizeStart();
         }
         private void FinalizeStart()
         {
@@ -334,7 +333,7 @@ namespace SSASDiag
                 if (bGetNetwork)
                 {
                     BackgroundWorker bgStopNetwork = new BackgroundWorker();
-                    bgStopNetwork.DoWork += StopNetwork;
+                    bgStopNetwork.DoWork += bgStopNewtworkWorker;
                     bgStopNetwork.RunWorkerCompleted += bgStopNetworkComplete;
                     bgStopNetwork.RunWorkerAsync();
                 }
@@ -350,11 +349,9 @@ namespace SSASDiag
                 }
             }
         }
-        private void StopNetwork(object sender, DoWorkEventArgs e)
+        private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
             AddItemToStatus("Stopping network trace.  This may take a while. ");
-            txtStatus.Invoke(new System.Action(() => { txtStatus.Select(txtStatus.Text.Length, 0); txtStatus.ScrollToCaret(); }));
-
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
