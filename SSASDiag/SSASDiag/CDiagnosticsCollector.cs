@@ -99,8 +99,6 @@ namespace SSASDiag
             if (bUseStart && DateTime.Now < dtStart)
             {
                 AddItemToStatus("Scheduled Diagnostic collection starts automatically at " + dtStart.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-                if (Program.Case != null && Program.Case != "")
-                    AddItemToStatus("Diagnostic collection associated with case number: " + Program.Case);
                 TimeSpan ts = dtStart - DateTime.Now;
                 AddItemToStatus("Time remaining until collection starts: " + ts.ToString("hh\\:mm\\:ss"), false);
                 bScheduledStartPending = true;
@@ -111,8 +109,9 @@ namespace SSASDiag
                 TraceID = sTracePrefix
                     + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC"
                     + "_SSASDiag";
-
                 AddItemToStatus("Initializing SSAS diagnostics collection at " + m_StartTime.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                if (AppDomain.CurrentDomain.GetData("Case") != null && (AppDomain.CurrentDomain.GetData("Case") as string).Trim() != "")
+                    AddItemToStatus("Diagnostic collection associated with case number: " + AppDomain.CurrentDomain.GetData("Case"));
                 AddItemToStatus("Collecting on server " + Environment.MachineName + ".", true);
                 AddItemToStatus("Collecting for instance " + (sInstanceName == "" ? "Default instance (MSSQLServer)" : sInstanceName) + ".");
                 AddItemToStatus("The version of the instance is " + sInstanceVersion + ".");

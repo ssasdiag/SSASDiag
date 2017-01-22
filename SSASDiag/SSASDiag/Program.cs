@@ -13,7 +13,6 @@ namespace SSASDiag
 {
     static class Program
     {
-        public static string Case = "";
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -49,6 +48,12 @@ namespace SSASDiag
                 {
                     // Initialize the new app domain from temp location...
                     var currentAssembly = Assembly.GetExecutingAssembly();
+                    string Case = "";
+
+                    AppDomainSetup ads = new AppDomainSetup();
+                    ads.ApplicationBase = m_strPrivateTempBinPath;
+                    AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
+                    tempDomain.SetData("tempbinlocation", m_strPrivateTempBinPath);
 
                     // Check for new version but just spawn a new thread to do it without blocking...
                     new Thread(new ThreadStart(() =>
@@ -66,6 +71,7 @@ namespace SSASDiag
                                 // When they download the .exe, the case will be cached in session scope.
                                 // Later when they run it and check version file, their local version will get case number to use locally in logging.
                                 // For now only server guts implemented, and retrieval here, but not doing anything with it until tested further.
+                                
                                 foreach (string v in versionInfo)
                                 {
                                     if (v.Split('=')[0] == "Version") version = v.Split('=')[1];
@@ -88,14 +94,12 @@ namespace SSASDiag
                                     else
                                         File.Delete(sNewBin);
                                 }
+                                tempDomain.SetData("Case", Case);
                             }
                             catch (Exception ex) { Debug.WriteLine(ex); }
                         })).Start();
                     
-                    AppDomainSetup ads = new AppDomainSetup();
-                    ads.ApplicationBase = m_strPrivateTempBinPath;
-                    AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
-                    tempDomain.SetData("tempbinlocation", m_strPrivateTempBinPath);
+                    
                     
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
                     // Execute the domain.
