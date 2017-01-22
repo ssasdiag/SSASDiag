@@ -176,6 +176,9 @@
     <None Include="Resources\play.png" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="SSASDiagLatest.aspx">
+      <SubType>ASPXCodeBehind</SubType>
+    </Content>
     <None Include="Resources\play-lit.png" />
     <None Include="Resources\stop-button-lit.png" />
     <None Include="Resources\play-half-lit.png" />

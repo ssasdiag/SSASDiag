@@ -13,7 +13,7 @@ namespace SSASDiag
 {
     static class Program
     {
-        
+        public static string Case = "";
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -55,31 +55,38 @@ namespace SSASDiag
                         {
                             try
                             {
-                                // Just get content length first to compare with our file, and we only download if it is actually newer.  UPN for testing only.  Remove before publishing.
-                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiag.exe?user=" + Uri.EscapeUriString(System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName) + "&host=" + Environment.MachineName);
-                                req.Method = "HEAD";
+                                // This aspx page exposes the version number of the latest current build there to avoid having to download unnecessarily.
+                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx");
+                                req.Method = "GET";
                                 WebResponse wr = req.GetResponse();
-                                string realUrl = wr.Headers["RedirectUrl"];
-                                int ContentLength;
-                                if (int.TryParse(req.GetResponse().Headers.Get("Content-Length"), out ContentLength))
+                                string[] versionInfo = new StreamReader(req.GetResponse().GetResponseStream()).ReadToEnd().Split('\n');
+                                string version = "";
+                                // We also return the case number cached per IP if any prior access to the server was made with QueryString value Case.
+                                // We can use this to send a link to customers including a query string with case number.
+                                // When they download the .exe, the case will be cached in session scope.
+                                // Later when they run it and check version file, their local version will get case number to use locally in logging.
+                                // For now only server guts implemented, and retrieval here, but not doing anything with it until tested further.
+                                foreach (string v in versionInfo)
                                 {
-                                    if (ContentLength != new FileInfo(Assembly.GetEntryAssembly().Location).Length)
+                                    if (v.Split('=')[0] == "Version") version = v.Split('=')[1];
+                                    if (v.Split('=')[0] == "Case") Case = v.Split('=')[1];
+                                }
+                                if (version == "" || ServerFileIsNewer(FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion, version))
+                                {
+                                    req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagdownload.aspx" + (Case == "" ? "" : "?Case=" + Case));
+                                    req.Method = "GET";
+                                    Stream newBin = File.OpenWrite(sNewBin);
+                                    req.GetResponse().GetResponseStream().CopyTo(newBin);
+                                    newBin.Close();
+                                    FileVersionInfo fNew = FileVersionInfo.GetVersionInfo(sNewBin);
+                                    FileVersionInfo fOld = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
+                                    if (fNew.FileMajorPart >  fOld.FileMajorPart || (fNew.FileMajorPart == fOld.FileMajorPart && fNew.FileMinorPart > fOld.FileMinorPart))
                                     {
-                                        req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiag.exe");
-                                        req.Method = "GET";
-                                        Stream newBin = File.OpenWrite(sNewBin);
-                                        req.GetResponse().GetResponseStream().CopyTo(newBin);
-                                        newBin.Close();
-                                        FileVersionInfo fNew = FileVersionInfo.GetVersionInfo(sNewBin);
-                                        FileVersionInfo fOld = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
-                                        if (fNew.FileMajorPart >  fOld.FileMajorPart || (fNew.FileMajorPart == fOld.FileMajorPart && fNew.FileMinorPart > fOld.FileMinorPart))
-                                        {
-                                            MessageBox.Show("SSASDiag has an update!  Restart to use the updated version.", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                            bScheduleUpdateOfBin = true;
-                                        }
-                                        else
-                                            File.Delete(sNewBin);
+                                        MessageBox.Show("SSASDiag has an update!  Restart to use the updated version.", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                        bScheduleUpdateOfBin = true;
                                     }
+                                    else
+                                        File.Delete(sNewBin);
                                 }
                             }
                             catch (Exception ex) { Debug.WriteLine(ex); }
@@ -147,6 +154,13 @@ namespace SSASDiag
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new frmSSASDiag());
+        }
+
+        private static bool ServerFileIsNewer(string clientFileVersion, string serverFile)
+        {
+            Version client = new Version(clientFileVersion);
+            Version server = new Version(serverFile);
+            return server > client;
         }
     }
 }
