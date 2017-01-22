@@ -166,7 +166,7 @@ namespace SSASDiag
 
                 if (bGetProfiler)
                 {
-                    string XMLABatch = Properties.Resources.ProfilerTraceStartXMLA
+                    string XMLABatch = (bPerfEvents ? Properties.Resources.ProfilerTraceStartWithQuerySubcubeEventsXMLA : Properties.Resources.ProfilerTraceStartXMLA)
                         .Replace("<LogFileName/>", "<LogFileName>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\" + TraceID + ".trc</LogFileName>")
                         .Replace("<LogFileSize/>", bRollover ? "<LogFileSize>" + iRollover + "</LogFileSize>" : "")
                         .Replace("<LogFileRollover/>", bRollover ? "<LogFileRollover>" + bRollover.ToString().ToLower() + "</LogFileRollover>" : "")
@@ -181,7 +181,7 @@ namespace SSASDiag
                     if (ret.Substring(0, "Success".Length) != "Success")
                         AddItemToStatus("Error starting profiler trace: " + ret);
                     else
-                        AddItemToStatus("Profiler tracing started to file: " + TraceID + ".trc.");
+                        AddItemToStatus("Profiler tracing " + (bPerfEvents ? "(including detailed performance relevant events) " : "") + "started to file: " + TraceID + ".trc.");
                 }
 
                 if (bGetNetwork)
@@ -267,7 +267,7 @@ namespace SSASDiag
             if (bRollover) AddItemToStatus("Log and trace files rollover after " + iRollover + "MB.");
             if (bUseEnd) AddItemToStatus("Diagnostic collection stops automatically at " + dtEnd.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             m_StartTime = DateTime.Now.AddSeconds(-1);
-            AddItemToStatus("Diagnostics captured for 00:00:00...");
+            AddItemToStatus("Diagnostics captured for 00:00:00");
             CompletionCallback.Invoke();
         }
         #endregion StartCapture
@@ -293,7 +293,7 @@ namespace SSASDiag
                 if (bRunning)
                 {
                     // Update elapsed time.
-                    AddItemToStatus("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss") + ".", false, "Diagnostics captured for ");
+                    AddItemToStatus("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss"), false, "Diagnostics captured for ");
 
                     if (iCurrentTimerTicksSinceLastInterval >= iInterval && bPerfMonRunning)
                     {

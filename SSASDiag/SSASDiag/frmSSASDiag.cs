@@ -177,6 +177,7 @@ namespace SSASDiag
         }
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
+            btnCapture.Enabled = false;
             new Thread(new ThreadStart(() =>
             {
                 try
@@ -197,7 +198,6 @@ namespace SSASDiag
                 catch (Exception ex)
                 {
                     lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance details could not be obtained due to failure connecting:\r\n" + ex.Message));
-                    btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = false));
                 }
             })).Start();
         }
