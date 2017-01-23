@@ -440,7 +440,7 @@ namespace SSASDiag
             try
             {
                 Server s = new Server();
-                s.Connect("Data source=." + sInstanceName);
+                s.Connect("Data source=." + (sInstanceName == "" ? "" : "\\" + sInstanceName));
                 try
                 {
                     XmlaResultCollection results = s.Execute(command);
