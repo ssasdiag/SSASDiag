@@ -61,7 +61,7 @@ namespace SSASDiag
                             try
                             {
                                 // This aspx page exposes the version number of the latest current build there to avoid having to download unnecessarily.
-                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx");
+                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx?User=" + System.Security.Principal.WindowsIdentity.GetCurrent().User.Value);
                                 req.Method = "GET";
                                 WebResponse wr = req.GetResponse();
                                 string[] versionInfo = new StreamReader(req.GetResponse().GetResponseStream()).ReadToEnd().Split('\n');
@@ -77,6 +77,9 @@ namespace SSASDiag
                                     if (v.Split('=')[0] == "Version") version = v.Split('=')[1];
                                     if (v.Split('=')[0] == "Case") Case = v.Split('=')[1];
                                 }
+                                //Properties.Settings.Default.Reload();
+                                //Properties.Settings.Default.Context.Add("Case", Case);  // Persist this for now, but not using yet...
+                                //Properties.Settings.Default.Save();
                                 if (version == "" || ServerFileIsNewer(FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion, version))
                                 {
                                     req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagdownload.aspx" + (Case == "" ? "" : "?Case=" + Case));
@@ -84,15 +87,8 @@ namespace SSASDiag
                                     Stream newBin = File.OpenWrite(sNewBin);
                                     req.GetResponse().GetResponseStream().CopyTo(newBin);
                                     newBin.Close();
-                                    FileVersionInfo fNew = FileVersionInfo.GetVersionInfo(sNewBin);
-                                    FileVersionInfo fOld = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
-                                    if (fNew.FileMajorPart >  fOld.FileMajorPart || (fNew.FileMajorPart == fOld.FileMajorPart && fNew.FileMinorPart > fOld.FileMinorPart))
-                                    {
-                                        MessageBox.Show("SSASDiag has an update!  Restart to use the updated version.", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                        bScheduleUpdateOfBin = true;
-                                    }
-                                    else
-                                        File.Delete(sNewBin);
+                                    MessageBox.Show("SSASDiag has an update!  Restart to use the updated version.", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    bScheduleUpdateOfBin = true;
                                 }
                                 tempDomain.SetData("Case", Case);
                             }
