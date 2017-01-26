@@ -290,7 +290,7 @@ namespace SSASDiag
         }
         private void lkBugs_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("mailto:jon.burchel@microsoft.com?subject=Issue with SSASDiag");
+            Process.Start("https://asprofilertraceimporter.codeplex.com/workitem/list/basic");
         }
         private void lkDiscussion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
