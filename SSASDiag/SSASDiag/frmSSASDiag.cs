@@ -309,6 +309,7 @@ namespace SSASDiag
         {
             lblInterval.Enabled = udInterval.Enabled = lblInterval2.Enabled = chkGetPerfMon.Checked;
             SetRolloverAndStartStopEnabledStates();
+            EnsureSomethingToCapture();
         }
 
         private void chkPerfCtrs_CheckedChanged(object sender, EventArgs e)
@@ -334,12 +335,24 @@ namespace SSASDiag
             }
         }
 
+        private void EnsureSomethingToCapture()
+        {
+            if (!chkGetConfigDetails.Checked && !chkGetNetwork.Checked && !chkGetPerfMon.Checked && !chkGetProfiler.Checked)
+                btnCapture.Enabled = false;
+            else
+                cbInstances_SelectedIndexChanged(null, null);
+        }
+        private void chkGetConfigDetails_CheckedChanged(object sender, EventArgs e)
+        {
+            EnsureSomethingToCapture();
+        }
         private void chkGetProfiler_CheckedChanged(object sender, EventArgs e)
         {
             chkAutoRestart.Enabled = chkGetProfiler.Checked;
             SetRolloverAndStartStopEnabledStates();
             if (!chkGetProfiler.Checked)
                 chkPerfCtrs.Checked = false;
+            EnsureSomethingToCapture();
         }
         private void chkGetNetwork_CheckedChanged(object sender, EventArgs e)
         {
@@ -347,6 +360,7 @@ namespace SSASDiag
             if (chkGetNetwork.Checked && chkRollover.Checked)
             ttStatus.Show("NOTE: Network traces rollover circularly,\n"
                         + "always deleting older data automatically.", chkGetNetwork, 2000);
+            EnsureSomethingToCapture();
         }
 
         private void chkZip_CheckedChanged(object sender, EventArgs e)

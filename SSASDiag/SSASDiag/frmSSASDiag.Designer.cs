@@ -115,9 +115,9 @@
             this.chkRollover.AutoSize = true;
             this.chkRollover.Location = new System.Drawing.Point(12, 81);
             this.chkRollover.Name = "chkRollover";
-            this.chkRollover.Size = new System.Drawing.Size(115, 17);
+            this.chkRollover.Size = new System.Drawing.Size(162, 17);
             this.chkRollover.TabIndex = 3;
-            this.chkRollover.Text = "Rollover log files at";
+            this.chkRollover.Text = "Rollover log/trace/zip files at";
             this.chkRollover.UseVisualStyleBackColor = true;
             this.chkRollover.CheckedChanged += new System.EventHandler(this.chkRollover_CheckedChanged);
             // 
@@ -135,7 +135,7 @@
             // udRollover
             // 
             this.udRollover.Enabled = false;
-            this.udRollover.Location = new System.Drawing.Point(124, 80);
+            this.udRollover.Location = new System.Drawing.Point(170, 80);
             this.udRollover.Maximum = new decimal(new int[] {
             2048,
             0,
@@ -161,7 +161,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(177, 82);
+            this.label2.Location = new System.Drawing.Point(230, 82);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 13);
             this.label2.TabIndex = 23;
@@ -387,6 +387,7 @@
             this.chkGetConfigDetails.TabIndex = 12;
             this.chkGetConfigDetails.Text = "Instance Configuration and Logs";
             this.chkGetConfigDetails.UseVisualStyleBackColor = true;
+            this.chkGetConfigDetails.CheckedChanged += new System.EventHandler(this.chkGetConfigDetails_CheckedChanged);
             // 
             // chkDeleteRaw
             // 
