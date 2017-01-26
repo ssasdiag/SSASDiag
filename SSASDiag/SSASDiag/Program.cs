@@ -73,7 +73,7 @@ namespace SSASDiag
                             try
                             {
                                 // This aspx page exposes the version number of the latest current build there to avoid having to download unnecessarily.
-                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx" + System.DirectoryServices.AccountManagement.UserPrincipal.Current.EmailAddress); // this provides useful detail to distinguish downloading users in IIS logs on hosting server so adding it back in on reflection
+                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx?u=" + System.DirectoryServices.AccountManagement.UserPrincipal.Current.EmailAddress); // this provides useful detail to distinguish downloading users in IIS logs on hosting server so adding it back in on reflection
                                 req.Method = "GET";
                                 WebResponse wr = req.GetResponse();
                                 string[] versionInfo = new StreamReader(req.GetResponse().GetResponseStream()).ReadToEnd().Split('\n');
