@@ -208,13 +208,6 @@ namespace SSASDiag
             bg.RunWorkerCompleted += bgPopulateInstanceDropdownComplete;
             bg.RunWorkerAsync();
         }
-        private void bgPopulateInstanceDropdownComplete(object sender, RunWorkerCompletedEventArgs e)
-        {
-            cbInstances.DataSource = LocalInstances;
-            cbInstances.DisplayMember = "Text";
-            cbInstances.Refresh();
-            if (cbInstances.Items.Count > 0) cbInstances.SelectedIndex = 0;
-        }
         private void bgPopulateInstanceDropdown(object sender, DoWorkEventArgs e)
         {
             try
@@ -228,7 +221,9 @@ namespace SSASDiag
                         string sSvcUser = "";
                         foreach (ManagementObject svc in mgmtSearcher.Get())
                             sSvcUser = svc["startname"] as string;
-
+                        if (sSvcUser.Contains(".")) sSvcUser = sSvcUser.Replace(".", Environment.UserDomainName);
+                        if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
+                        
                         string ConfigPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + s.ServiceName, false).GetValue("ImagePath") as string;
                         ConfigPath = ConfigPath.Substring(ConfigPath.IndexOf("-s \"") + "-s \"".Length).TrimEnd('\"');
                         if (s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "").ToUpper() == "MSSQLSERVER")
@@ -246,6 +241,13 @@ namespace SSASDiag
                 lblInstanceDetails.Invoke(new System.Action(() =>
                     lblInstanceDetails.Text = "There were no Analysis Services instances found on this server.\r\nPlease run on a server with a SQL 2008 or later SSAS instance."
                 ));
+        }
+        private void bgPopulateInstanceDropdownComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            cbInstances.DataSource = LocalInstances;
+            cbInstances.DisplayMember = "Text";
+            cbInstances.Refresh();
+            if (cbInstances.Items.Count > 0) cbInstances.SelectedIndex = 0;
         }
         #endregion BlockingUIComponentsBesidesCapture
 

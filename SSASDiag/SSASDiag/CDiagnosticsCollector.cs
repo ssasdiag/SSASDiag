@@ -130,13 +130,22 @@ namespace SSASDiag
                         Directory.CreateDirectory(TraceID + "Output");
                     }
                 }
-                // Add explicit full control access for AS service account to our temp output location since server trace is written under that identity.  Genius!
-                DirectoryInfo dirInfo = new DirectoryInfo(Environment.CurrentDirectory + "\\" + TraceID + "Output");
-                DirectorySecurity dirSec = dirInfo.GetAccessControl();
-                dirSec.AddAccessRule(new FileSystemAccessRule(sServiceAccount, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
-                dirInfo.SetAccessControl(dirSec);
-
                 AddItemToStatus("Created temporary folder " + TraceID + "Output to collect diagnostic files.");
+
+                // Add explicit full control access for AS service account to our temp output location since server trace is written under that identity.  Genius!
+                try
+                {
+                    DirectoryInfo dirInfo = new DirectoryInfo(Environment.CurrentDirectory + "\\" + TraceID + "Output");
+                    DirectorySecurity dirSec = dirInfo.GetAccessControl();
+                    dirSec.AddAccessRule(new FileSystemAccessRule(sServiceAccount, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
+                    dirInfo.SetAccessControl(dirSec);
+                    AddItemToStatus("Added full control for SSAS service account " + sServiceAccount + " to the output directory.");
+                }
+                catch(Exception ex)
+                {
+                    AddItemToStatus("Adding access permissions for SSAS service account " + sServiceAccount + " to output folder failed:\n\t" + ex.Message);
+                }
+
 
                 if (bGetConfigDetails)
                 {
