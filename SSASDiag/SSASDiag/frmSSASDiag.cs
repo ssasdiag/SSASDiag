@@ -294,7 +294,7 @@ namespace SSASDiag
         }
         private void lkDiscussion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("mailto:SSASDiagChamps@microsoft.com");
+            Process.Start("https://asprofilertraceimporter.codeplex.com/discussions");
         }
 
         private void SetRolloverAndStartStopEnabledStates()
