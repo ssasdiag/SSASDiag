@@ -277,7 +277,7 @@ namespace SSASDiag
         }
         private void chkAutoRestart_CheckedChanged(object sender, EventArgs e)
         {
-            if (chkAutoRestart.Checked && chkAutoRestart.Checked == false)
+            if (chkAutoRestart.Checked && !chkStopTime.Checked)
             {
                 ttStatus.Show("Stop time required for your protection with AutoRestart=true.", dtStopTime, 1750);
                 chkStopTime.Checked = true;
