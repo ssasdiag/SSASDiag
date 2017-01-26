@@ -71,62 +71,12 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Ionic_Zip {
-            get {
-                object obj = ResourceManager.GetObject("Ionic_Zip", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         internal static System.Drawing.Icon Microsoft_107 {
             get {
                 object obj = ResourceManager.GetObject("Microsoft_107", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Microsoft_AnalysisServices {
-            get {
-                object obj = ResourceManager.GetObject("Microsoft_AnalysisServices", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Microsoft_AnalysisServices_Core {
-            get {
-                object obj = ResourceManager.GetObject("Microsoft_AnalysisServices_Core", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Microsoft_SqlServer_ConnectionInfo {
-            get {
-                object obj = ResourceManager.GetObject("Microsoft_SqlServer_ConnectionInfo", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Microsoft_SqlServer_ConnectionInfoExtended {
-            get {
-                object obj = ResourceManager.GetObject("Microsoft_SqlServer_ConnectionInfoExtended", resourceCulture);
-                return ((byte[])(obj));
             }
         }
         
@@ -226,6 +176,16 @@ namespace SSASDiag.Properties {
         internal static string ProfilerTraceStopXMLA {
             get {
                 return ResourceManager.GetString("ProfilerTraceStopXMLA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ResourcesZip {
+            get {
+                object obj = ResourceManager.GetObject("ResourcesZip", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         

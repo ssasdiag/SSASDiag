@@ -41,8 +41,20 @@ namespace SSASDiag
                 Directory.CreateDirectory(m_strPrivateTempBinPath);
                 while (de.MoveNext() == true)
                     if (de.Entry.Value is byte[])
-                        try { File.WriteAllBytes(m_strPrivateTempBinPath + de.Key.ToString().Replace('_', '.') + ".dll", de.Entry.Value as byte[]); } catch { } // may fail if file is in use, fine...
+                        try { File.WriteAllBytes(m_strPrivateTempBinPath 
+                                            + de.Key.ToString().Replace('_', '.') + (de.Key.ToString() == "ResourcesZip" ? ".zip" : ".dll"), 
+                                            de.Entry.Value as byte[]); } catch { } // may fail if file is in use, fine...
                 try { File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true); } catch { } // may fail if file is in use, fine...
+                // Now decompress any compressed files we include.  This lets us cram more dependencies in as we add features and still not excessively bloat!  :D
+                // Although in our real compression work in assembling files for upload we will use the more flexible open source Ionic.Zip library included in our depenencies,
+                // these may not be loaded initially when are launching the first time outside the sandbox.  So here we will use .NET built in compression, at least always there.
+                foreach (string f in Directory.GetFiles(m_strPrivateTempBinPath))
+                    if (f.EndsWith(".zip"))
+                        try
+                        {
+                            System.IO.Compression.ZipFile.ExtractToDirectory(f, m_strPrivateTempBinPath);
+                        }
+                        catch { } // I deliberately ignore this exception.  I may occasionally fail to extract if files are already there due to some prior crashed run or something.  Just move on from it.  If it is truly unrecoverable we will blow up later then.  :)           
 
                 try
                 {
@@ -61,7 +73,7 @@ namespace SSASDiag
                             try
                             {
                                 // This aspx page exposes the version number of the latest current build there to avoid having to download unnecessarily.
-                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx");
+                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx" + System.DirectoryServices.AccountManagement.UserPrincipal.Current.EmailAddress); // this provides useful detail to distinguish downloading users in IIS logs on hosting server so adding it back in on reflection
                                 req.Method = "GET";
                                 WebResponse wr = req.GetResponse();
                                 string[] versionInfo = new StreamReader(req.GetResponse().GetResponseStream()).ReadToEnd().Split('\n');

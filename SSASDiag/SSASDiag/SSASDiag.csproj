@@ -167,6 +167,7 @@
     <None Include="Resources\ntshrui_3029.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Resources.zip" />
     <None Include="Resources\SHELL32_324.ico" />
   </ItemGroup>
   <ItemGroup>

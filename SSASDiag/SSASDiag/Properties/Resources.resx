@@ -118,12 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="Microsoft_AnalysisServices_Core" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Microsoft.AnalysisServices.Core.DLL;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="Microsoft_SqlServer_ConnectionInfo" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Microsoft.SqlServer.ConnectionInfo.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="Microsoft_107" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Microsoft_107.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -542,20 +536,11 @@
 	&lt;/Create&gt;
 &lt;/Batch&gt;</value>
   </data>
-  <data name="Ionic_Zip" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Ionic.Zip.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="Microsoft_AnalysisServices" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Microsoft.AnalysisServices.DLL;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="ntshrui_3029" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ntshrui_3029.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="heart" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\heart.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Microsoft_SqlServer_ConnectionInfoExtended" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Microsoft.SqlServer.ConnectionInfoExtended.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="play" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\play.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -979,5 +964,8 @@
 		&lt;/ObjectDefinition&gt;
 	&lt;/Create&gt;
 &lt;/Batch&gt;</value>
+  </data>
+  <data name="ResourcesZip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Resources.zip;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>
