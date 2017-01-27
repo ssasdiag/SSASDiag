@@ -52,26 +52,28 @@ namespace SSASDiag
             dtStartTime.CustomFormat = dtStopTime.CustomFormat;
             dtStartTime.MinDate = DateTime.Now;
             dtStartTime.MaxDate = DateTime.Now.AddDays(30);
-            if (!(Environment.OSVersion.Version.Major > 7  || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)))
-            {
-                MessageBox.Show("Network tracing with this tool requires\nWindows 7 or Server 2008 R2 or greater.\nPlease upgrade your OS to use that feature.", "Network Capture Not Supported on Legacy OS", MessageBoxButtons.OK, MessageBoxIcon.Hand);
-                chkGetNetwork.Enabled = false;
-            }
         }
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
+            try
             {
-                if (MessageBox.Show("Capture in progress, exiting will stop.\r\nExit anyway?", "Capture in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+                if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
                 {
-                    bClosing = true;
-                    btnCapture_Click(sender, e);
-                }
-                e.Cancel = true;
-            }
-            else if (((string)btnCapture.Image.Tag as string).Contains("Half Lit"))
-                if (MessageBox.Show("Diagnostic Capture is in a blocking state.\nForcing exit now may leave locked files and traces in progress.\n\nExit anyway?", "Capture in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
+                    if (MessageBox.Show("Capture in progress, exiting will stop.\r\nExit anyway?", "Capture in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+                    {
+                        bClosing = true;
+                        btnCapture_Click(sender, e);
+                    }
                     e.Cancel = true;
+                }
+                else if (((string)btnCapture.Image.Tag as string).Contains("Half Lit"))
+                    if (MessageBox.Show("Diagnostic Capture is in a blocking state.\nForcing exit now may leave locked files and traces in progress.\n\nExit anyway?", "Capture in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
+                        e.Cancel = true;
+            }
+            catch
+            {
+                // This should never happen but might if we are summarily killing midway through something.  Don't get hung up just close.
+            }
         }
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
@@ -186,14 +188,14 @@ namespace SSASDiag
                     ComboBoxServiceDetailsItem SelItem = cbInstances.Invoke(new Func<ComboBoxServiceDetailsItem>(() => { return (cbInstances.SelectedItem as ComboBoxServiceDetailsItem); })) as ComboBoxServiceDetailsItem;
 
                     srv.Connect("Data source=." + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text));
-                    lblInstanceDetails.Invoke(new System.Action(()=> lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
+                    lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
                     m_instanceType = srv.ServerMode.ToString();
                     m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
                     m_instanceEdition = srv.Edition.ToString();
                     m_LogDir = srv.ServerProperties["LogDir"].Value;
                     m_ConfigDir = SelItem.ConfigPath;
                     srv.Disconnect();
-                    btnCapture.Invoke(new System.Action(()=> btnCapture.Enabled = true));
+                    btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = true));
                 }
                 catch (Exception ex)
                 {
@@ -305,19 +307,7 @@ namespace SSASDiag
             dtStartTime.Enabled = chkStartTime.Enabled & chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Enabled & chkStopTime.Checked;
         }
-        private void chkGetPerfMon_CheckedChanged(object sender, EventArgs e)
-        {
-            lblInterval.Enabled = udInterval.Enabled = lblInterval2.Enabled = chkGetPerfMon.Checked;
-            SetRolloverAndStartStopEnabledStates();
-            EnsureSomethingToCapture();
-        }
-
-        private void chkPerfCtrs_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkPerfCtrs.Checked)
-                chkGetProfiler.Checked = true;
-        }
-
+      
         private void txtStatus_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
@@ -345,6 +335,17 @@ namespace SSASDiag
         private void chkGetConfigDetails_CheckedChanged(object sender, EventArgs e)
         {
             EnsureSomethingToCapture();
+        }
+        private void chkGetPerfMon_CheckedChanged(object sender, EventArgs e)
+        {
+            lblInterval.Enabled = udInterval.Enabled = lblInterval2.Enabled = chkGetPerfMon.Checked;
+            SetRolloverAndStartStopEnabledStates();
+            EnsureSomethingToCapture();
+        }
+        private void chkPerfCtrs_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkPerfCtrs.Checked)
+                chkGetProfiler.Checked = true;
         }
         private void chkGetProfiler_CheckedChanged(object sender, EventArgs e)
         {

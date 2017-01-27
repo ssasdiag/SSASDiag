@@ -19,6 +19,12 @@ namespace SSASDiag
         [STAThread]
         public static void Main()
         {
+            if (!(Environment.OSVersion.Version.Major >= 7 || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)))
+            {
+                MessageBox.Show("The SSAS Diagnostics Collector requires\nWindows 7 or Server 2008 R2 or greater.\nPlease upgrade your OS to use the tool.", "Unsupported Legacy OS", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+                return;
+            }
+
             string m_strPrivateTempBinPath = "";
 
             if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
@@ -165,7 +171,14 @@ namespace SSASDiag
             // Launch application normally then...
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmSSASDiag());
+            try
+            {
+                Application.Run(new frmSSASDiag());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("There was an unexpected exception in the tool:\n\t" + ex.Message);
+            }
         }
 
         private static bool ServerFileIsNewer(string clientFileVersion, string serverFile)
