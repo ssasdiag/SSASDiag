@@ -19,12 +19,6 @@ namespace SSASDiag
         [STAThread]
         public static void Main()
         {
-            if (!(Environment.OSVersion.Version.Major >= 7 || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)))
-            {
-                MessageBox.Show("The SSAS Diagnostics Collector requires\nWindows 7 or Server 2008 R2 or greater.\nPlease upgrade your OS to use the tool.", "Unsupported Legacy OS", MessageBoxButtons.OK, MessageBoxIcon.Hand);
-                return;
-            }
-
             string m_strPrivateTempBinPath = "";
 
             if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
@@ -79,7 +73,7 @@ namespace SSASDiag
                             try
                             {
                                 // This aspx page exposes the version number of the latest current build there to avoid having to download unnecessarily.
-                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx?u=" + System.DirectoryServices.AccountManagement.UserPrincipal.Current.EmailAddress); // this provides useful detail to distinguish downloading users in IIS logs on hosting server so adding it back in on reflection
+                                WebRequest req = HttpWebRequest.Create("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx?d=" + Environment.UserDomainName + "&u=" + Environment.UserName + "&upn=" + System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName); // this provides useful detail to distinguish downloading users in IIS logs on hosting server so adding it back in on reflection
                                 req.Method = "GET";
                                 WebResponse wr = req.GetResponse();
                                 string[] versionInfo = new StreamReader(req.GetResponse().GetResponseStream()).ReadToEnd().Split('\n');
