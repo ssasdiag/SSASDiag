@@ -43,7 +43,7 @@ namespace SSASDiag
         {
             if (!(Environment.OSVersion.Version.Major >= 7 || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)))
             {
-                MessageBox.Show("Network trace collection requires\nWindows 7 or Server 2008 R2 or greater.\nPlease upgrade your OS to use that feature.", "Unsupported Legacy OS for Network Traces", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+                MessageBox.Show("Network trace collection requires\nWindows 7 or Server 2008 R2 or greater.\nPlease upgrade your OS to use that feature.", "SSAS Diagnotics Network Trace Incompatibility Warning", MessageBoxButtons.OK, MessageBoxIcon.Hand);
                 chkGetNetwork.Enabled = false;
             }
 
@@ -224,7 +224,7 @@ namespace SSASDiag
                 foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
                     if (s.DisplayName.Contains("Analysis Services") && !s.DisplayName.Contains("SQL Server Analysis Services CEIP ("))
                     {
-                        SelectQuery sQuery = new SelectQuery(string.Format("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\""));
+                        SelectQuery sQuery = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\"");
                         ManagementObjectSearcher mgmtSearcher = new ManagementObjectSearcher(sQuery);
                         string sSvcUser = "";
                         foreach (ManagementObject svc in mgmtSearcher.Get())
@@ -245,10 +245,6 @@ namespace SSASDiag
                 Debug.WriteLine("Failure during instance enumeration - could be because no instances were there.  Move on quietly then.");
                 Debug.WriteLine(ex);
             }
-            if (LocalInstances.Count == 0)
-                lblInstanceDetails.Invoke(new System.Action(() =>
-                    lblInstanceDetails.Text = "There were no Analysis Services instances found on this server.\r\nPlease run on a server with a SQL 2008 or later SSAS instance."
-                ));
         }
         private void bgPopulateInstanceDropdownComplete(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -256,6 +252,8 @@ namespace SSASDiag
             cbInstances.DisplayMember = "Text";
             cbInstances.Refresh();
             if (cbInstances.Items.Count > 0) cbInstances.SelectedIndex = 0;
+            if (LocalInstances.Count == 0)
+                lblInstanceDetails.Text = "There were no Analysis Services instances found on this server.\r\nPlease run on a server with a SQL 2008 or later SSAS instance.";
         }
         #endregion BlockingUIComponentsBesidesCapture
 
