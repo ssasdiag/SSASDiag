@@ -113,11 +113,9 @@ namespace SSASDiag
                             catch (Exception ex) { Debug.WriteLine(ex); }
                         })).Start();
                     
-                    
-                    
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
                     // Execute the domain.
-                    ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName, new string[] { "", "/templocation=" + m_strPrivateTempBinPath });
+                    ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName);
 
                     //  Finally unload our actual executing AppDomain after finished from temp directory, to delete the files there...
                     AppDomain.Unload(tempDomain);
