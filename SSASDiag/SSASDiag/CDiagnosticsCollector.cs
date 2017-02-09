@@ -359,7 +359,7 @@ namespace SSASDiag
                         // Workaround here, costs a few extra seconds to invoke at stop time but worth it
                         // Call the simple X86 ExtractDbNamesFromTrace process from SSASDiag.  
 
-                        AddItemToStatus("Extracting all AS databases from the captured trace...");
+                        AddItemToStatus("Finding databases with queries or commands started or completed during tracing...");
                         ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
                         Process p = new Process();
                         p.StartInfo.UseShellExecute = false;

@@ -382,7 +382,7 @@ namespace SSASDiag
             if (chkXMLA.Checked && chkABF.Checked)
             {
                 MessageBox.Show("AS backups include database definitions redundantly, so AS backups will be unchecked after you click OK.\n\n"
-                              + "AS database definitions allow review of data structures and calculations, but not execution of queries, since no data is included."
+                              + "AS database definitions allow review of data structures and calculations, but not execution of queries, since no data is included.\n\n"
                               + "AS backups allow experimentation by direct query execution on the restored state of the database, "
                               + "and allow editing calculation defintions stored there for further experimentation.\n\n"
                               + "AS backups alone will not allow reprocessing of experimental changes to data structures, which can sometimes be necessary to fully investigate and resolve some issues.\n\n"
