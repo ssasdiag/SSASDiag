@@ -359,12 +359,11 @@ namespace SSASDiag
                         // Workaround here, costs a few extra seconds to invoke at stop time but worth it
                         // Call the simple X86 ExtractDbNamesFromTrace process from SSASDiag.  
 
-                        AddItemToStatus("Finding databases with queries or commands started or completed during tracing...");
+                        AddItemToStatus("Finding databases with queries/commands started/completed during tracing ..");
                         ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
                         Process p = new Process();
                         p.StartInfo.UseShellExecute = false;
                         p.StartInfo.CreateNoWindow = true;
-                        p.StartInfo.RedirectStandardOutput = true;
                         p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ExtractDbNamesFromTrace.exe";
                         p.StartInfo.Arguments = 
                             AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.trc " 
@@ -372,9 +371,12 @@ namespace SSASDiag
                         p.Start();
                         p.WaitForExit();
                         if (File.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt"))
+                        {
                             dbs = File.ReadAllLines(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt");
-                        File.Delete(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt");
-                        File.Delete(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.trc");
+                            File.Delete(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt");
+                        }
+                        if (File.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.trc"))
+                            File.Delete(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.trc");
                         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                         #endregion X86 TraceFile reader workaround
 

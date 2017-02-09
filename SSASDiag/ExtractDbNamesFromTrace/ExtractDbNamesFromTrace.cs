@@ -28,7 +28,8 @@ namespace ExtractDbNamesFromTrace
                     if (dbs["DatabaseName"] != null && (dbs["DatabaseName"] as string).Trim() != "")
                         r.Add(dbs["DatabaseName"] as string);
                 dbs.Close();
-                File.WriteAllLines(Environment.GetCommandLineArgs()[2], r.Distinct());
+                if (r.Count > 0)
+                    File.WriteAllLines(Environment.GetCommandLineArgs()[2], r.Distinct());
             }
         }
     }
