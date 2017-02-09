@@ -375,6 +375,8 @@ namespace SSASDiag
                               "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 chkXMLA.Checked = false;
             }
+            if (chkABF.Checked)
+                chkGetProfiler.Checked = true;
         }
 
         private void chkXMLA_CheckedChanged_1(object sender, EventArgs e)
@@ -390,6 +392,20 @@ namespace SSASDiag
                               "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 chkABF.Checked = false;
             }
+            if (chkXMLA.Checked)
+                chkGetProfiler.Checked = true;
+        }
+
+        private void chkGetProfiler_CheckedChanged_1(object sender, EventArgs e)
+        {
+            if (!chkGetProfiler.Checked)
+                chkXMLA.Checked = chkABF.Checked = chkPerfCtrs.Checked = false;
+
+        }
+
+        private void chkPerfCtrs_CheckedChanged_1(object sender, EventArgs e)
+        {
+            if (chkPerfCtrs.Checked) chkGetProfiler.Checked = true;
         }
 
         private void chkGetProfiler_CheckedChanged(object sender, EventArgs e)

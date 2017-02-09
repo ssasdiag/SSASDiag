@@ -91,6 +91,8 @@ namespace SSASDiag
             // Start the timer ticking...
             PerfMonAndUIPumpTimer.Start();
 
+            AddItemToStatus("____________________________________________________________________________________________");
+
             if (bUseStart && DateTime.Now < dtStart)
             {
                 AddItemToStatus("Scheduled Diagnostic collection starts automatically at " + dtStart.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
@@ -259,7 +261,7 @@ namespace SSASDiag
         }
         private void bgGetNetworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Starting network trace. ");
+            AddItemToStatus("Starting network trace. ..");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -359,7 +361,7 @@ namespace SSASDiag
                         // Workaround here, costs a few extra seconds to invoke at stop time but worth it
                         // Call the simple X86 ExtractDbNamesFromTrace process from SSASDiag.  
 
-                        AddItemToStatus("Finding databases with queries/commands started/completed during tracing ..");
+                        AddItemToStatus("Finding databases with queries/commands started/completed during tracing. ..");
                         ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
                         Process p = new Process();
                         p.StartInfo.UseShellExecute = false;
@@ -394,7 +396,7 @@ namespace SSASDiag
                             {
                                 if (bGetXMLA)
                                 {
-                                    AddItemToStatus("Extracting database definition XMLA script for " + db + ".");
+                                    AddItemToStatus("Extracting database definition XMLA script for " + db + " ..");
                                     MajorObject[] mo = { s.Databases.FindByName(db) };
 
                                     XmlWriter output = XmlWriter.Create(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
@@ -405,7 +407,7 @@ namespace SSASDiag
                                 }
                                 if (bGetABF)
                                 {
-                                    AddItemToStatus("Backing up AS database .abf for " + db + ".");
+                                    AddItemToStatus("Backing up AS database .abf for " + db + " ..");
                                     string batch = Properties.Resources.BackupDbXMLA
                                         .Replace("<DatabaseID/>", "<DatabaseID>" + s.Databases.FindByName(db).ID  + "</DatabaseID>")
                                         .Replace("<File/>", "<File>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".abf</File>")
@@ -440,7 +442,7 @@ namespace SSASDiag
         }
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Stopping network trace.  This may take a while. ");
+            AddItemToStatus("Stopping network trace.  This may take a while. ..");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -477,7 +479,7 @@ namespace SSASDiag
 
             if (bCompress)
             {
-                AddItemToStatus("Creating zip file of output: " + Environment.CurrentDirectory + "\\" + TraceID + ".zip. ");
+                AddItemToStatus("Creating zip file of output: " + Environment.CurrentDirectory + "\\" + TraceID + ".zip. ..");
 
                 // Zip up all output into a single zip file.
                 ZipFile z = new ZipFile();
@@ -506,7 +508,6 @@ namespace SSASDiag
                         + "\tPlease review the contents of the folder " + TraceID + "Output\n."
                         + "\tIt was created in the same location where you ran this utility.");
                 } 
-                
             }
         }
         private void bgZipData_Completion(object sender, RunWorkerCompletedEventArgs e)
@@ -514,7 +515,9 @@ namespace SSASDiag
             FinalizeStop();
         }
         private void FinalizeStop()
-        {           
+        {
+            AddItemToStatus("SSASDiag capture " + TraceID + " completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+            AddItemToStatus("____________________________________________________________________________________________");
             PerfMonAndUIPumpTimer.Stop();
             bScheduledStartPending = false;
             txtStatus.Invoke(new System.Action(() => CompletionCallback()));

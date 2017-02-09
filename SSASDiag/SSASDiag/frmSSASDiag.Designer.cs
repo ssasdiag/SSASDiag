@@ -390,6 +390,7 @@
             this.chkPerfCtrs.TabIndex = 22;
             this.chkPerfCtrs.Text = "Performance relevant details";
             this.chkPerfCtrs.UseVisualStyleBackColor = true;
+            this.chkPerfCtrs.CheckedChanged += new System.EventHandler(this.chkPerfCtrs_CheckedChanged_1);
             // 
             // chkGetNetwork
             // 
@@ -414,6 +415,7 @@
             this.chkGetProfiler.TabIndex = 21;
             this.chkGetProfiler.Text = "SQL Profiler Traces";
             this.chkGetProfiler.UseVisualStyleBackColor = true;
+            this.chkGetProfiler.CheckedChanged += new System.EventHandler(this.chkGetProfiler_CheckedChanged_1);
             // 
             // chkGetPerfMon
             // 
