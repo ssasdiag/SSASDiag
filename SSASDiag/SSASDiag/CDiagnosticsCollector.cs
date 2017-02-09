@@ -371,7 +371,8 @@ namespace SSASDiag
                             + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt";
                         p.Start();
                         p.WaitForExit();
-                        dbs = File.ReadAllLines(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt");
+                        if (File.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt"))
+                            dbs = File.ReadAllLines(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt");
                         File.Delete(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt");
                         File.Delete(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.trc");
                         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
