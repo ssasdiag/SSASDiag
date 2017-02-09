@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSASDiag", "SSASDiag\SSASDiag.csproj", "{1E7BBA10-01A8-447C-8F6B-215C65EC75CD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E72E182-4640-419F-9EAD-CBE00B76DDA3} = {9E72E182-4640-419F-9EAD-CBE00B76DDA3}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractDbNamesFromTrace", "ExtractDbNamesFromTrace\ExtractDbNamesFromTrace.csproj", "{9E72E182-4640-419F-9EAD-CBE00B76DDA3}"
 EndProject

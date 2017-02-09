@@ -115,7 +115,6 @@
     </Compile>
     <None Include="app.config" />
     <None Include="app.manifest" />
-    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -156,9 +155,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\ExtractDbNamesFromTrace.exe" />
-    <Content Include="SSASDiagLatest.aspx">
-      <SubType>ASPXCodeBehind</SubType>
-    </Content>
     <None Include="Resources\play-lit.png" />
     <None Include="Resources\stop-button-lit.png" />
     <None Include="Resources\play-half-lit.png" />
