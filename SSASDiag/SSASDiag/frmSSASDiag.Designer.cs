@@ -47,20 +47,25 @@
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
             this.lkDiscussion = new System.Windows.Forms.LinkLabel();
-            this.chkGetNetwork = new System.Windows.Forms.CheckBox();
+            this.chkBAK = new System.Windows.Forms.CheckBox();
             this.dtStopTime = new System.Windows.Forms.DateTimePicker();
             this.chkStopTime = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.pnlDiagnosticsToCollect = new System.Windows.Forms.Panel();
+            this.chkGetConfigDetails = new System.Windows.Forms.CheckBox();
+            this.chkABF = new System.Windows.Forms.CheckBox();
             this.chkPerfCtrs = new System.Windows.Forms.CheckBox();
+            this.chkGetNetwork = new System.Windows.Forms.CheckBox();
             this.chkGetProfiler = new System.Windows.Forms.CheckBox();
             this.chkGetPerfMon = new System.Windows.Forms.CheckBox();
-            this.chkGetConfigDetails = new System.Windows.Forms.CheckBox();
+            this.chkXMLA = new System.Windows.Forms.CheckBox();
             this.chkDeleteRaw = new System.Windows.Forms.CheckBox();
             this.chkZip = new System.Windows.Forms.CheckBox();
             this.txtStatus = new System.Windows.Forms.RichTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).BeginInit();
             this.groupBox1.SuspendLayout();
+            this.pnlDiagnosticsToCollect.SuspendLayout();
             this.SuspendLayout();
             // 
             // cbInstances
@@ -101,7 +106,7 @@
             this.btnCapture.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
             this.btnCapture.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCapture.Image = global::SSASDiag.Properties.Resources.play;
-            this.btnCapture.Location = new System.Drawing.Point(296, 82);
+            this.btnCapture.Location = new System.Drawing.Point(280, 80);
             this.btnCapture.Name = "btnCapture";
             this.btnCapture.Size = new System.Drawing.Size(68, 68);
             this.btnCapture.TabIndex = 17;
@@ -239,7 +244,7 @@
             this.lkFeedback.Image = ((System.Drawing.Image)(resources.GetObject("lkFeedback.Image")));
             this.lkFeedback.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkFeedback.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkFeedback.Location = new System.Drawing.Point(11, 373);
+            this.lkFeedback.Location = new System.Drawing.Point(12, 424);
             this.lkFeedback.Name = "lkFeedback";
             this.lkFeedback.Padding = new System.Windows.Forms.Padding(2);
             this.lkFeedback.Size = new System.Drawing.Size(77, 17);
@@ -257,7 +262,7 @@
             this.lkBugs.Image = ((System.Drawing.Image)(resources.GetObject("lkBugs.Image")));
             this.lkBugs.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkBugs.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkBugs.Location = new System.Drawing.Point(94, 373);
+            this.lkBugs.Location = new System.Drawing.Point(95, 424);
             this.lkBugs.Name = "lkBugs";
             this.lkBugs.Padding = new System.Windows.Forms.Padding(2);
             this.lkBugs.Size = new System.Drawing.Size(53, 17);
@@ -275,7 +280,7 @@
             this.lkDiscussion.Image = ((System.Drawing.Image)(resources.GetObject("lkDiscussion.Image")));
             this.lkDiscussion.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkDiscussion.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkDiscussion.Location = new System.Drawing.Point(153, 373);
+            this.lkDiscussion.Location = new System.Drawing.Point(154, 424);
             this.lkDiscussion.Name = "lkDiscussion";
             this.lkDiscussion.Padding = new System.Windows.Forms.Padding(2);
             this.lkDiscussion.Size = new System.Drawing.Size(111, 17);
@@ -285,17 +290,19 @@
             this.ttStatus.SetToolTip(this.lkDiscussion, "Make it better!");
             this.lkDiscussion.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkDiscussion_LinkClicked);
             // 
-            // chkGetNetwork
+            // chkBAK
             // 
-            this.chkGetNetwork.AutoSize = true;
-            this.chkGetNetwork.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkGetNetwork.Location = new System.Drawing.Point(14, 113);
-            this.chkGetNetwork.Name = "chkGetNetwork";
-            this.chkGetNetwork.Size = new System.Drawing.Size(102, 17);
-            this.chkGetNetwork.TabIndex = 16;
-            this.chkGetNetwork.Text = "Network Traces";
-            this.chkGetNetwork.UseVisualStyleBackColor = true;
-            this.chkGetNetwork.CheckedChanged += new System.EventHandler(this.chkGetNetwork_CheckedChanged);
+            this.chkBAK.AutoCheck = false;
+            this.chkBAK.AutoSize = true;
+            this.chkBAK.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkBAK.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.chkBAK.Location = new System.Drawing.Point(41, 117);
+            this.chkBAK.Name = "chkBAK";
+            this.chkBAK.Size = new System.Drawing.Size(150, 17);
+            this.chkBAK.TabIndex = 27;
+            this.chkBAK.Text = "SQL data source backups";
+            this.ttStatus.SetToolTip(this.chkBAK, "This feature coming soon!");
+            this.chkBAK.UseVisualStyleBackColor = true;
             // 
             // dtStopTime
             // 
@@ -320,60 +327,31 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.chkPerfCtrs);
-            this.groupBox1.Controls.Add(this.chkGetNetwork);
-            this.groupBox1.Controls.Add(this.chkGetProfiler);
-            this.groupBox1.Controls.Add(this.chkGetPerfMon);
-            this.groupBox1.Controls.Add(this.chkGetConfigDetails);
+            this.groupBox1.Controls.Add(this.pnlDiagnosticsToCollect);
             this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox1.Location = new System.Drawing.Point(392, 55);
+            this.groupBox1.Location = new System.Drawing.Point(370, 60);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(196, 138);
+            this.groupBox1.Size = new System.Drawing.Size(220, 131);
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Diagnostics to Capture:";
             // 
-            // chkPerfCtrs
+            // pnlDiagnosticsToCollect
             // 
-            this.chkPerfCtrs.AutoSize = true;
-            this.chkPerfCtrs.Checked = true;
-            this.chkPerfCtrs.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPerfCtrs.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkPerfCtrs.Location = new System.Drawing.Point(34, 90);
-            this.chkPerfCtrs.Name = "chkPerfCtrs";
-            this.chkPerfCtrs.Size = new System.Drawing.Size(160, 17);
-            this.chkPerfCtrs.TabIndex = 15;
-            this.chkPerfCtrs.Text = "Performance relevant details";
-            this.chkPerfCtrs.UseVisualStyleBackColor = true;
-            this.chkPerfCtrs.CheckedChanged += new System.EventHandler(this.chkPerfCtrs_CheckedChanged);
-            // 
-            // chkGetProfiler
-            // 
-            this.chkGetProfiler.AutoSize = true;
-            this.chkGetProfiler.Checked = true;
-            this.chkGetProfiler.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkGetProfiler.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkGetProfiler.Location = new System.Drawing.Point(14, 67);
-            this.chkGetProfiler.Name = "chkGetProfiler";
-            this.chkGetProfiler.Size = new System.Drawing.Size(118, 17);
-            this.chkGetProfiler.TabIndex = 14;
-            this.chkGetProfiler.Text = "SQL Profiler Traces";
-            this.chkGetProfiler.UseVisualStyleBackColor = true;
-            this.chkGetProfiler.CheckedChanged += new System.EventHandler(this.chkGetProfiler_CheckedChanged);
-            // 
-            // chkGetPerfMon
-            // 
-            this.chkGetPerfMon.AutoSize = true;
-            this.chkGetPerfMon.Checked = true;
-            this.chkGetPerfMon.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkGetPerfMon.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkGetPerfMon.Location = new System.Drawing.Point(14, 44);
-            this.chkGetPerfMon.Name = "chkGetPerfMon";
-            this.chkGetPerfMon.Size = new System.Drawing.Size(150, 17);
-            this.chkGetPerfMon.TabIndex = 13;
-            this.chkGetPerfMon.Text = "Performance Monitor Logs";
-            this.chkGetPerfMon.UseVisualStyleBackColor = true;
-            this.chkGetPerfMon.CheckedChanged += new System.EventHandler(this.chkGetPerfMon_CheckedChanged);
+            this.pnlDiagnosticsToCollect.AutoScroll = true;
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkBAK);
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetConfigDetails);
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkABF);
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkPerfCtrs);
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetNetwork);
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetProfiler);
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetPerfMon);
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkXMLA);
+            this.pnlDiagnosticsToCollect.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlDiagnosticsToCollect.Location = new System.Drawing.Point(3, 16);
+            this.pnlDiagnosticsToCollect.Name = "pnlDiagnosticsToCollect";
+            this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(214, 112);
+            this.pnlDiagnosticsToCollect.TabIndex = 36;
             // 
             // chkGetConfigDetails
             // 
@@ -381,13 +359,88 @@
             this.chkGetConfigDetails.Checked = true;
             this.chkGetConfigDetails.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkGetConfigDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkGetConfigDetails.Location = new System.Drawing.Point(14, 22);
+            this.chkGetConfigDetails.Location = new System.Drawing.Point(3, 3);
             this.chkGetConfigDetails.Name = "chkGetConfigDetails";
             this.chkGetConfigDetails.Size = new System.Drawing.Size(179, 17);
-            this.chkGetConfigDetails.TabIndex = 12;
+            this.chkGetConfigDetails.TabIndex = 26;
             this.chkGetConfigDetails.Text = "Instance Configuration and Logs";
             this.chkGetConfigDetails.UseVisualStyleBackColor = true;
-            this.chkGetConfigDetails.CheckedChanged += new System.EventHandler(this.chkGetConfigDetails_CheckedChanged);
+            // 
+            // chkABF
+            // 
+            this.chkABF.AutoSize = true;
+            this.chkABF.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkABF.Location = new System.Drawing.Point(23, 140);
+            this.chkABF.Name = "chkABF";
+            this.chkABF.Size = new System.Drawing.Size(168, 17);
+            this.chkABF.TabIndex = 25;
+            this.chkABF.Text = "Traced AS database backups";
+            this.chkABF.UseVisualStyleBackColor = true;
+            this.chkABF.CheckedChanged += new System.EventHandler(this.chkABF_CheckedChanged);
+            // 
+            // chkPerfCtrs
+            // 
+            this.chkPerfCtrs.AutoSize = true;
+            this.chkPerfCtrs.Checked = true;
+            this.chkPerfCtrs.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkPerfCtrs.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkPerfCtrs.Location = new System.Drawing.Point(23, 71);
+            this.chkPerfCtrs.Name = "chkPerfCtrs";
+            this.chkPerfCtrs.Size = new System.Drawing.Size(160, 17);
+            this.chkPerfCtrs.TabIndex = 22;
+            this.chkPerfCtrs.Text = "Performance relevant details";
+            this.chkPerfCtrs.UseVisualStyleBackColor = true;
+            // 
+            // chkGetNetwork
+            // 
+            this.chkGetNetwork.AutoSize = true;
+            this.chkGetNetwork.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkGetNetwork.Location = new System.Drawing.Point(3, 163);
+            this.chkGetNetwork.Name = "chkGetNetwork";
+            this.chkGetNetwork.Size = new System.Drawing.Size(102, 17);
+            this.chkGetNetwork.TabIndex = 23;
+            this.chkGetNetwork.Text = "Network Traces";
+            this.chkGetNetwork.UseVisualStyleBackColor = true;
+            // 
+            // chkGetProfiler
+            // 
+            this.chkGetProfiler.AutoSize = true;
+            this.chkGetProfiler.Checked = true;
+            this.chkGetProfiler.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkGetProfiler.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkGetProfiler.Location = new System.Drawing.Point(3, 48);
+            this.chkGetProfiler.Name = "chkGetProfiler";
+            this.chkGetProfiler.Size = new System.Drawing.Size(118, 17);
+            this.chkGetProfiler.TabIndex = 21;
+            this.chkGetProfiler.Text = "SQL Profiler Traces";
+            this.chkGetProfiler.UseVisualStyleBackColor = true;
+            // 
+            // chkGetPerfMon
+            // 
+            this.chkGetPerfMon.AutoSize = true;
+            this.chkGetPerfMon.Checked = true;
+            this.chkGetPerfMon.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkGetPerfMon.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkGetPerfMon.Location = new System.Drawing.Point(3, 25);
+            this.chkGetPerfMon.Name = "chkGetPerfMon";
+            this.chkGetPerfMon.Size = new System.Drawing.Size(150, 17);
+            this.chkGetPerfMon.TabIndex = 20;
+            this.chkGetPerfMon.Text = "Performance Monitor Logs";
+            this.chkGetPerfMon.UseVisualStyleBackColor = true;
+            // 
+            // chkXMLA
+            // 
+            this.chkXMLA.AutoSize = true;
+            this.chkXMLA.Checked = true;
+            this.chkXMLA.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkXMLA.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkXMLA.Location = new System.Drawing.Point(23, 94);
+            this.chkXMLA.Name = "chkXMLA";
+            this.chkXMLA.Size = new System.Drawing.Size(174, 17);
+            this.chkXMLA.TabIndex = 24;
+            this.chkXMLA.Text = "Traced AS database definitions";
+            this.chkXMLA.UseVisualStyleBackColor = true;
+            this.chkXMLA.CheckedChanged += new System.EventHandler(this.chkXMLA_CheckedChanged_1);
             // 
             // chkDeleteRaw
             // 
@@ -424,7 +477,7 @@
             this.txtStatus.Location = new System.Drawing.Point(12, 197);
             this.txtStatus.Name = "txtStatus";
             this.txtStatus.ReadOnly = true;
-            this.txtStatus.Size = new System.Drawing.Size(578, 173);
+            this.txtStatus.Size = new System.Drawing.Size(578, 225);
             this.txtStatus.TabIndex = 17;
             this.txtStatus.Text = "";
             this.txtStatus.MouseDown += new System.Windows.Forms.MouseEventHandler(this.txtStatus_MouseDown);
@@ -433,7 +486,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(604, 393);
+            this.ClientSize = new System.Drawing.Size(601, 444);
             this.Controls.Add(this.chkDeleteRaw);
             this.Controls.Add(this.chkZip);
             this.Controls.Add(this.groupBox1);
@@ -467,7 +520,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).EndInit();
             this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.pnlDiagnosticsToCollect.ResumeLayout(false);
+            this.pnlDiagnosticsToCollect.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -495,14 +549,18 @@
         private System.Windows.Forms.LinkLabel lkBugs;
         private System.Windows.Forms.LinkLabel lkDiscussion;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.CheckBox chkGetNetwork;
-        private System.Windows.Forms.CheckBox chkGetProfiler;
-        private System.Windows.Forms.CheckBox chkGetPerfMon;
-        private System.Windows.Forms.CheckBox chkGetConfigDetails;
-        private System.Windows.Forms.CheckBox chkPerfCtrs;
         private System.Windows.Forms.CheckBox chkDeleteRaw;
         private System.Windows.Forms.CheckBox chkZip;
         private System.Windows.Forms.RichTextBox txtStatus;
+        private System.Windows.Forms.Panel pnlDiagnosticsToCollect;
+        private System.Windows.Forms.CheckBox chkGetConfigDetails;
+        private System.Windows.Forms.CheckBox chkABF;
+        private System.Windows.Forms.CheckBox chkPerfCtrs;
+        private System.Windows.Forms.CheckBox chkGetNetwork;
+        private System.Windows.Forms.CheckBox chkGetProfiler;
+        private System.Windows.Forms.CheckBox chkGetPerfMon;
+        private System.Windows.Forms.CheckBox chkXMLA;
+        private System.Windows.Forms.CheckBox chkBAK;
     }
 }
 

@@ -954,12 +954,6 @@
 						&lt;/Columns&gt;
 					&lt;/Event&gt;
 				&lt;/Events&gt;
-				&lt;Filter&gt;
-					&lt;NotLike&gt;
-						&lt;ColumnID&gt;37&lt;/ColumnID&gt;
-						&lt;Value&gt;SQL Server Profiler - 884fe355-4a14-4743-ac49-f82f0b66e99e&lt;/Value&gt;
-					&lt;/NotLike&gt;
-				&lt;/Filter&gt;
 			&lt;/Trace&gt;
 		&lt;/ObjectDefinition&gt;
 	&lt;/Create&gt;
@@ -967,5 +961,66 @@
   </data>
   <data name="ResourcesZip" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Resources.zip;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="DbsCapturedTraceStartXMLA" xml:space="preserve">
+    <value>&lt;Batch xmlns="http://schemas.microsoft.com/analysisservices/2003/engine" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"&gt;
+	&lt;Create xmlns="http://schemas.microsoft.com/analysisservices/2003/engine"&gt;
+		&lt;ObjectDefinition&gt;
+			&lt;Trace&gt;
+				&lt;LogFileName/&gt;
+				&lt;ID/&gt;
+				&lt;LogFileSize/&gt;
+				&lt;LogFileRollover/&gt;
+				&lt;Name/&gt;
+				&lt;AutoRestart/&gt;
+				&lt;StartTime/&gt;
+				&lt;StopTime/&gt;
+				&lt;LogFileAppend&gt;false&lt;/LogFileAppend&gt;
+				&lt;Events&gt;
+					&lt;Event&gt;
+						&lt;EventID&gt;15&lt;/EventID&gt;
+						&lt;Columns&gt;
+							&lt;ColumnID&gt;28&lt;/ColumnID&gt;
+							&lt;ColumnID&gt;41&lt;/ColumnID&gt;
+						&lt;/Columns&gt;
+					&lt;/Event&gt;
+					&lt;Event&gt;
+						&lt;EventID&gt;16&lt;/EventID&gt;
+						&lt;Columns&gt;
+							&lt;ColumnID&gt;28&lt;/ColumnID&gt;
+							&lt;ColumnID&gt;41&lt;/ColumnID&gt;
+						&lt;/Columns&gt;
+					&lt;/Event&gt;
+					&lt;Event&gt;
+						&lt;EventID&gt;9&lt;/EventID&gt;
+						&lt;Columns&gt;
+							&lt;ColumnID&gt;28&lt;/ColumnID&gt;
+							&lt;ColumnID&gt;41&lt;/ColumnID&gt;
+						&lt;/Columns&gt;
+					&lt;/Event&gt;
+					&lt;Event&gt;
+						&lt;EventID&gt;10&lt;/EventID&gt;
+						&lt;Columns&gt;
+							&lt;ColumnID&gt;28&lt;/ColumnID&gt;
+							&lt;ColumnID&gt;41&lt;/ColumnID&gt;
+						&lt;/Columns&gt;
+					&lt;/Event&gt;
+				&lt;/Events&gt;
+			&lt;/Trace&gt;
+		&lt;/ObjectDefinition&gt;
+	&lt;/Create&gt;
+&lt;/Batch&gt;</value>
+  </data>
+  <data name="BackupDbXMLA" xml:space="preserve">
+    <value>&lt;Backup xmlns="http://schemas.microsoft.com/analysisservices/2003/engine"&gt;
+  &lt;Object&gt;
+    &lt;DatabaseID/&gt;
+  &lt;/Object&gt;
+  &lt;File/&gt;
+  &lt;AllowOverwrite/&gt;
+&lt;/Backup&gt;</value>
+  </data>
+  <data name="ExtractDbNamesFromTrace" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ExtractDbNamesFromTrace.exe;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

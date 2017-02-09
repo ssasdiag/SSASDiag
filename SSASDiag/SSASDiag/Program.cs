@@ -42,7 +42,7 @@ namespace SSASDiag
                 while (de.MoveNext() == true)
                     if (de.Entry.Value is byte[])
                         try { File.WriteAllBytes(m_strPrivateTempBinPath 
-                                            + de.Key.ToString().Replace('_', '.') + (de.Key.ToString() == "ResourcesZip" ? ".zip" : ".dll"), 
+                                            + de.Key.ToString().Replace('_', '.') + (de.Key.ToString() == "ResourcesZip" ? ".zip" : ".exe"), 
                                             de.Entry.Value as byte[]); } catch { } // may fail if file is in use, fine...
                 try { File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true); } catch { } // may fail if file is in use, fine...
                 // Now decompress any compressed files we include.  This lets us cram more dependencies in as we add features and still not excessively bloat!  :D
