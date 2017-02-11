@@ -366,11 +366,11 @@ namespace SSASDiag
                                 + "to data definitions requiring reprocessing.  They are the second most optimal dataset to reproduce and investigate issues.\r\n\r\n"
                                 + "However, please note that including database or data source backups may siginificantly increase size of data collected and time required to stop collection.";
                 if (chkXMLA.Checked)
-                    MessageBox.Show(tbLevelOfData, "AS backups include database definitions.\nDatabase definitions will be unchecked after you click OK.\r\n\r\n"
+                    MessageBox.Show("AS backups include database definitions.\nDatabase definitions will be unchecked after you click OK.\r\n\r\n"
                                     + baseMsg,
                                   "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 else
-                    MessageBox.Show(tbLevelOfData, baseMsg, "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(baseMsg, "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 chkXMLA.Checked = false;
             }
         }
@@ -442,7 +442,7 @@ namespace SSASDiag
                     ttStatus.Show("Including SQL data source backups can increase data collection size and time required to stop collection.", tbLevelOfData, 1500);
                     break;
                 case "Data Corruption":
-                    rtbProblemDescription.Height = 200;
+                    rtbProblemDescription.Height = 210;
                     rtbProblemDescription.Text = "Data corruption issues require minimal collection of config details (including Application and System Event logs), performance monitor logs, basic profiler traces, and AS backups.\r\n\r\n"
                                            + "Including AS backups allows investigation to review corrupt data, in some cases allowing partial or full recovery.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
