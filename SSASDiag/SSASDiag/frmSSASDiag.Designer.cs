@@ -49,38 +49,39 @@
             this.lkDiscussion = new System.Windows.Forms.LinkLabel();
             this.chkBAK = new System.Windows.Forms.CheckBox();
             this.chkABF = new System.Windows.Forms.CheckBox();
-            this.chkPerfCtrs = new System.Windows.Forms.CheckBox();
+            this.chkProfilerPerfDetails = new System.Windows.Forms.CheckBox();
             this.chkGetNetwork = new System.Windows.Forms.CheckBox();
             this.chkXMLA = new System.Windows.Forms.CheckBox();
+            this.chkGetConfigDetails = new System.Windows.Forms.CheckBox();
             this.dtStopTime = new System.Windows.Forms.DateTimePicker();
             this.chkStopTime = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabSimple = new System.Windows.Forms.TabPage();
-            this.pnlSimple = new System.Windows.Forms.Panel();
             this.tabAdvanced = new System.Windows.Forms.TabPage();
             this.pnlDiagnosticsToCollect = new System.Windows.Forms.Panel();
-            this.chkGetConfigDetails = new System.Windows.Forms.CheckBox();
             this.chkGetProfiler = new System.Windows.Forms.CheckBox();
             this.chkGetPerfMon = new System.Windows.Forms.CheckBox();
             this.chkDeleteRaw = new System.Windows.Forms.CheckBox();
             this.chkZip = new System.Windows.Forms.CheckBox();
             this.txtStatus = new System.Windows.Forms.RichTextBox();
-            this.tbLevelOfData = new System.Windows.Forms.TrackBar();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
+            this.pnlSimple = new System.Windows.Forms.Panel();
+            this.rtbProblemDescription = new System.Windows.Forms.RichTextBox();
             this.cmbProblemType = new System.Windows.Forms.ComboBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.lblBAK = new System.Windows.Forms.Label();
+            this.lblABF = new System.Windows.Forms.Label();
+            this.lblXMLA = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.tbLevelOfData = new System.Windows.Forms.TrackBar();
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabSimple.SuspendLayout();
-            this.pnlSimple.SuspendLayout();
             this.tabAdvanced.SuspendLayout();
             this.pnlDiagnosticsToCollect.SuspendLayout();
+            this.pnlSimple.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbLevelOfData)).BeginInit();
             this.SuspendLayout();
             // 
@@ -319,6 +320,7 @@
             this.ttStatus.SetToolTip(this.chkBAK, "Optimal dataset allowing any degree of experimentation including changes to data " +
         "structures requiring reprocessing.");
             this.chkBAK.UseVisualStyleBackColor = true;
+            this.chkBAK.CheckedChanged += new System.EventHandler(this.chkBAK_CheckedChanged);
             // 
             // chkABF
             // 
@@ -333,20 +335,21 @@
         "data structures requiring reprocessing.");
             this.chkABF.UseVisualStyleBackColor = true;
             // 
-            // chkPerfCtrs
+            // chkProfilerPerfDetails
             // 
-            this.chkPerfCtrs.AutoSize = true;
-            this.chkPerfCtrs.Checked = true;
-            this.chkPerfCtrs.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPerfCtrs.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkPerfCtrs.Location = new System.Drawing.Point(23, 71);
-            this.chkPerfCtrs.Name = "chkPerfCtrs";
-            this.chkPerfCtrs.Size = new System.Drawing.Size(160, 17);
-            this.chkPerfCtrs.TabIndex = 22;
-            this.chkPerfCtrs.Text = "Performance relevant details";
-            this.ttStatus.SetToolTip(this.chkPerfCtrs, "Additional Profiler trace details increase size and weight of trace but allow dee" +
+            this.chkProfilerPerfDetails.AutoSize = true;
+            this.chkProfilerPerfDetails.Checked = true;
+            this.chkProfilerPerfDetails.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkProfilerPerfDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkProfilerPerfDetails.Location = new System.Drawing.Point(23, 71);
+            this.chkProfilerPerfDetails.Name = "chkProfilerPerfDetails";
+            this.chkProfilerPerfDetails.Size = new System.Drawing.Size(160, 17);
+            this.chkProfilerPerfDetails.TabIndex = 22;
+            this.chkProfilerPerfDetails.Text = "Performance relevant details";
+            this.ttStatus.SetToolTip(this.chkProfilerPerfDetails, "Additional Profiler trace details increase size and weight of trace but allow dee" +
         "per investigation of performance bottlenecks.");
-            this.chkPerfCtrs.UseVisualStyleBackColor = true;
+            this.chkProfilerPerfDetails.UseVisualStyleBackColor = true;
+            this.chkProfilerPerfDetails.CheckedChanged += new System.EventHandler(this.chkProfilerPerfDetails_CheckedChanged);
             // 
             // chkGetNetwork
             // 
@@ -359,6 +362,7 @@
             this.chkGetNetwork.Text = "Network Traces";
             this.ttStatus.SetToolTip(this.chkGetNetwork, "Network traces are useful for connectivity investigations most often.");
             this.chkGetNetwork.UseVisualStyleBackColor = true;
+            this.chkGetNetwork.CheckedChanged += new System.EventHandler(this.chkGetNetwork_CheckedChanged);
             // 
             // chkXMLA
             // 
@@ -374,6 +378,22 @@
             this.ttStatus.SetToolTip(this.chkXMLA, "Allows review of data structures and calculations but no actual data is included." +
         "");
             this.chkXMLA.UseVisualStyleBackColor = true;
+            this.chkXMLA.CheckedChanged += new System.EventHandler(this.chkXMLA_CheckedChanged);
+            // 
+            // chkGetConfigDetails
+            // 
+            this.chkGetConfigDetails.AutoSize = true;
+            this.chkGetConfigDetails.Checked = true;
+            this.chkGetConfigDetails.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkGetConfigDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkGetConfigDetails.Location = new System.Drawing.Point(3, 3);
+            this.chkGetConfigDetails.Name = "chkGetConfigDetails";
+            this.chkGetConfigDetails.Size = new System.Drawing.Size(179, 17);
+            this.chkGetConfigDetails.TabIndex = 26;
+            this.chkGetConfigDetails.Text = "Instance Configuration and Logs";
+            this.ttStatus.SetToolTip(this.chkGetConfigDetails, "*Includes event logs and service account SPNs if available.");
+            this.chkGetConfigDetails.UseVisualStyleBackColor = true;
+            this.chkGetConfigDetails.CheckedChanged += new System.EventHandler(this.chkGetConfigDetails_CheckedChanged);
             // 
             // dtStopTime
             // 
@@ -435,21 +455,6 @@
             this.tabSimple.TabIndex = 0;
             this.tabSimple.Text = "Simple";
             // 
-            // pnlSimple
-            // 
-            this.pnlSimple.Controls.Add(this.cmbProblemType);
-            this.pnlSimple.Controls.Add(this.label7);
-            this.pnlSimple.Controls.Add(this.label6);
-            this.pnlSimple.Controls.Add(this.label5);
-            this.pnlSimple.Controls.Add(this.label4);
-            this.pnlSimple.Controls.Add(this.label3);
-            this.pnlSimple.Controls.Add(this.tbLevelOfData);
-            this.pnlSimple.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlSimple.Location = new System.Drawing.Point(0, 0);
-            this.pnlSimple.Name = "pnlSimple";
-            this.pnlSimple.Size = new System.Drawing.Size(221, 108);
-            this.pnlSimple.TabIndex = 1;
-            // 
             // tabAdvanced
             // 
             this.tabAdvanced.BackColor = System.Drawing.SystemColors.Control;
@@ -468,7 +473,7 @@
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkBAK);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetConfigDetails);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkABF);
-            this.pnlDiagnosticsToCollect.Controls.Add(this.chkPerfCtrs);
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkProfilerPerfDetails);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetNetwork);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetProfiler);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetPerfMon);
@@ -479,19 +484,6 @@
             this.pnlDiagnosticsToCollect.Name = "pnlDiagnosticsToCollect";
             this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(221, 108);
             this.pnlDiagnosticsToCollect.TabIndex = 38;
-            // 
-            // chkGetConfigDetails
-            // 
-            this.chkGetConfigDetails.AutoSize = true;
-            this.chkGetConfigDetails.Checked = true;
-            this.chkGetConfigDetails.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkGetConfigDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkGetConfigDetails.Location = new System.Drawing.Point(3, 3);
-            this.chkGetConfigDetails.Name = "chkGetConfigDetails";
-            this.chkGetConfigDetails.Size = new System.Drawing.Size(179, 17);
-            this.chkGetConfigDetails.TabIndex = 26;
-            this.chkGetConfigDetails.Text = "Instance Configuration and Logs";
-            this.chkGetConfigDetails.UseVisualStyleBackColor = true;
             // 
             // chkGetProfiler
             // 
@@ -505,6 +497,7 @@
             this.chkGetProfiler.TabIndex = 21;
             this.chkGetProfiler.Text = "SQL Profiler Traces";
             this.chkGetProfiler.UseVisualStyleBackColor = true;
+            this.chkGetProfiler.CheckedChanged += new System.EventHandler(this.chkGetProfiler_CheckedChanged);
             // 
             // chkGetPerfMon
             // 
@@ -518,6 +511,7 @@
             this.chkGetPerfMon.TabIndex = 20;
             this.chkGetPerfMon.Text = "Performance Monitor Logs";
             this.chkGetPerfMon.UseVisualStyleBackColor = true;
+            this.chkGetPerfMon.CheckedChanged += new System.EventHandler(this.chkGetPerfMon_CheckedChanged);
             // 
             // chkDeleteRaw
             // 
@@ -560,67 +554,32 @@
             this.txtStatus.Text = "";
             this.txtStatus.MouseDown += new System.Windows.Forms.MouseEventHandler(this.txtStatus_MouseDown);
             // 
-            // tbLevelOfData
+            // pnlSimple
             // 
-            this.tbLevelOfData.Location = new System.Drawing.Point(29, 16);
-            this.tbLevelOfData.Maximum = 2;
-            this.tbLevelOfData.Name = "tbLevelOfData";
-            this.tbLevelOfData.Size = new System.Drawing.Size(163, 45);
-            this.tbLevelOfData.TabIndex = 1;
-            this.tbLevelOfData.Scroll += new System.EventHandler(this.tbLevelOfData_Scroll);
+            this.pnlSimple.AutoScroll = true;
+            this.pnlSimple.Controls.Add(this.rtbProblemDescription);
+            this.pnlSimple.Controls.Add(this.cmbProblemType);
+            this.pnlSimple.Controls.Add(this.label7);
+            this.pnlSimple.Controls.Add(this.lblBAK);
+            this.pnlSimple.Controls.Add(this.lblABF);
+            this.pnlSimple.Controls.Add(this.lblXMLA);
+            this.pnlSimple.Controls.Add(this.label3);
+            this.pnlSimple.Controls.Add(this.tbLevelOfData);
+            this.pnlSimple.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlSimple.Location = new System.Drawing.Point(0, 0);
+            this.pnlSimple.Name = "pnlSimple";
+            this.pnlSimple.Size = new System.Drawing.Size(221, 108);
+            this.pnlSimple.TabIndex = 33;
             // 
-            // label3
+            // rtbProblemDescription
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(49, 5);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(122, 13);
-            this.label3.TabIndex = 3;
-            this.label3.Text = "Level of Data to Provide";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(3, 45);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(68, 12);
-            this.label4.TabIndex = 4;
-            this.label4.Text = "Only definitions";
-            this.ttStatus.SetToolTip(this.label4, "Allows only review of data structures and calculations.  Queries cannot be execut" +
-        "ed.");
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(83, 45);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(55, 12);
-            this.label5.TabIndex = 5;
-            this.label5.Text = "AS backups";
-            this.ttStatus.SetToolTip(this.label5, "Allows review of data structures and calculations, and execution of queries, but " +
-        "not processing.");
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(146, 45);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(75, 12);
-            this.label6.TabIndex = 6;
-            this.label6.Text = "Full data sources";
-            this.ttStatus.SetToolTip(this.label6, "Allows all experimentation including processing.");
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(74, 64);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(72, 13);
-            this.label7.TabIndex = 7;
-            this.label7.Text = "Problem Type";
+            this.rtbProblemDescription.BackColor = System.Drawing.SystemColors.Control;
+            this.rtbProblemDescription.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbProblemDescription.Location = new System.Drawing.Point(5, 112);
+            this.rtbProblemDescription.Name = "rtbProblemDescription";
+            this.rtbProblemDescription.Size = new System.Drawing.Size(196, 240);
+            this.rtbProblemDescription.TabIndex = 120;
+            this.rtbProblemDescription.Text = "";
             // 
             // cmbProblemType
             // 
@@ -633,9 +592,78 @@
             "Data Corruption"});
             this.cmbProblemType.Location = new System.Drawing.Point(5, 81);
             this.cmbProblemType.Name = "cmbProblemType";
-            this.cmbProblemType.Size = new System.Drawing.Size(213, 21);
+            this.cmbProblemType.Size = new System.Drawing.Size(196, 21);
             this.cmbProblemType.TabIndex = 8;
             this.cmbProblemType.SelectedIndexChanged += new System.EventHandler(this.cmbProblemType_SelectedIndexChanged);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Location = new System.Drawing.Point(61, 64);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(82, 13);
+            this.label7.TabIndex = 7;
+            this.label7.Text = "Problem Type";
+            // 
+            // lblBAK
+            // 
+            this.lblBAK.AutoSize = true;
+            this.lblBAK.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblBAK.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.lblBAK.Location = new System.Drawing.Point(129, 45);
+            this.lblBAK.Name = "lblBAK";
+            this.lblBAK.Size = new System.Drawing.Size(75, 12);
+            this.lblBAK.TabIndex = 6;
+            this.lblBAK.Text = "Full data sources";
+            this.ttStatus.SetToolTip(this.lblBAK, "Allows all experimentation including processing.");
+            // 
+            // lblABF
+            // 
+            this.lblABF.AutoSize = true;
+            this.lblABF.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblABF.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.lblABF.Location = new System.Drawing.Point(72, 45);
+            this.lblABF.Name = "lblABF";
+            this.lblABF.Size = new System.Drawing.Size(55, 12);
+            this.lblABF.TabIndex = 5;
+            this.lblABF.Text = "AS backups";
+            this.ttStatus.SetToolTip(this.lblABF, "Allows review of data structures and calculations, and execution of queries, but " +
+        "not processing.");
+            // 
+            // lblXMLA
+            // 
+            this.lblXMLA.AutoSize = true;
+            this.lblXMLA.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblXMLA.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.lblXMLA.Location = new System.Drawing.Point(1, 45);
+            this.lblXMLA.Name = "lblXMLA";
+            this.lblXMLA.Size = new System.Drawing.Size(68, 12);
+            this.lblXMLA.TabIndex = 4;
+            this.lblXMLA.Text = "Only definitions";
+            this.ttStatus.SetToolTip(this.lblXMLA, "Allows only review of data structures and calculations.  Queries cannot be execut" +
+        "ed.");
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(29, 5);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(146, 13);
+            this.label3.TabIndex = 3;
+            this.label3.Text = "Level of Data to Provide";
+            // 
+            // tbLevelOfData
+            // 
+            this.tbLevelOfData.LargeChange = 1;
+            this.tbLevelOfData.Location = new System.Drawing.Point(21, 16);
+            this.tbLevelOfData.Maximum = 2;
+            this.tbLevelOfData.Name = "tbLevelOfData";
+            this.tbLevelOfData.Size = new System.Drawing.Size(163, 45);
+            this.tbLevelOfData.TabIndex = 1;
+            this.tbLevelOfData.Scroll += new System.EventHandler(this.tbLevelOfData_Scroll);
+            this.tbLevelOfData.ValueChanged += new System.EventHandler(this.tbLevelOfData_ValueChanged);
             // 
             // frmSSASDiag
             // 
@@ -677,11 +705,11 @@
             this.groupBox1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabSimple.ResumeLayout(false);
-            this.pnlSimple.ResumeLayout(false);
-            this.pnlSimple.PerformLayout();
             this.tabAdvanced.ResumeLayout(false);
             this.pnlDiagnosticsToCollect.ResumeLayout(false);
             this.pnlDiagnosticsToCollect.PerformLayout();
+            this.pnlSimple.ResumeLayout(false);
+            this.pnlSimple.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbLevelOfData)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -720,19 +748,20 @@
         private System.Windows.Forms.CheckBox chkBAK;
         private System.Windows.Forms.CheckBox chkGetConfigDetails;
         private System.Windows.Forms.CheckBox chkABF;
-        private System.Windows.Forms.CheckBox chkPerfCtrs;
+        private System.Windows.Forms.CheckBox chkProfilerPerfDetails;
         private System.Windows.Forms.CheckBox chkGetNetwork;
         private System.Windows.Forms.CheckBox chkGetProfiler;
         private System.Windows.Forms.CheckBox chkGetPerfMon;
         private System.Windows.Forms.CheckBox chkXMLA;
         private System.Windows.Forms.Panel pnlSimple;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TrackBar tbLevelOfData;
+        private System.Windows.Forms.RichTextBox rtbProblemDescription;
         private System.Windows.Forms.ComboBox cmbProblemType;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label lblBAK;
+        private System.Windows.Forms.Label lblABF;
+        private System.Windows.Forms.Label lblXMLA;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TrackBar tbLevelOfData;
     }
 }
 
