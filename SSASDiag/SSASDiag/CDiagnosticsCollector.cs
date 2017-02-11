@@ -4,11 +4,21 @@ using PdhNative;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.OleDb;
 using System.Diagnostics;
 using System.IO;
 using System.Security.AccessControl;
 using System.Windows.Forms;
 using System.Xml;
+using System.Runtime.InteropServices;
+using System.Security.Principal;
+using System.Security.Permissions;
+using Microsoft.Win32.SafeHandles;
+using System.Runtime.ConstrainedExecution;
+using System.Security;
+using System.Net;
+using System.Net.NetworkInformation;
+
 
 namespace SSASDiag
 {
@@ -26,15 +36,24 @@ namespace SSASDiag
         DateTime m_StartTime = DateTime.Now;
         string sTracePrefix = "", sInstanceName, sInstanceVersion, sInstanceMode, sInstanceEdition, TraceID, sLogDir, sConfigDir, sServiceAccount;
         int iInterval = 0, iRollover = 0, iCurrentTimerTicksSinceLastInterval = 0;
-        bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true;
+        bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetBAK, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true;
         DateTime dtStart, dtEnd;
         #endregion toomanylocals
+
+        #region Win32
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool LogonUser(String lpszUsername, String lpszDomain, String lpszPassword,
+        int dwLogonType, int dwLogonProvider, out SafeTokenHandle phToken);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+        public extern static bool CloseHandle(IntPtr handle);
+        #endregion Win32
 
         public CDiagnosticsCollector(
                 string TraceFilesPrefix, string InstanceName, string InstanceVersion, string InstanceMode, string InstanceEdition, string ConfigDir, string LogDir, string ServiceAccount,
                 RichTextBox StatusTextBox,
                 int Interval, 
-                bool AutoRestart, bool Compress, bool DeleteRaw, bool IncludePerfEventsInProfiler, bool IncludeXMLA, bool IncludeABF,
+                bool AutoRestart, bool Compress, bool DeleteRaw, bool IncludePerfEventsInProfiler, bool IncludeXMLA, bool IncludeABF, bool IncludeBAK,
                 int RolloverMaxMB, bool Rollover, 
                 DateTime Start, bool UseStart, 
                 DateTime End, bool UseEnd, 
@@ -44,8 +63,7 @@ namespace SSASDiag
             PerfMonAndUIPumpTimer.Elapsed += CollectorPumpTick;
             sTracePrefix = TraceFilesPrefix; sInstanceName = InstanceName; sInstanceVersion = InstanceVersion; sInstanceMode = InstanceMode; sInstanceEdition = InstanceEdition; sConfigDir = ConfigDir; sLogDir = LogDir; sServiceAccount = ServiceAccount;
             txtStatus = StatusTextBox;
-            bGetXMLA = IncludeXMLA;
-            bGetABF = IncludeABF;
+            bGetXMLA = IncludeXMLA; bGetABF = IncludeABF; bGetBAK = IncludeBAK;
             iInterval = Interval;
             bAutoRestart = AutoRestart; bCompress = Compress; bDeleteRaw = DeleteRaw; bPerfEvents = IncludePerfEventsInProfiler;
             iRollover = RolloverMaxMB; bRollover = Rollover;
@@ -90,8 +108,6 @@ namespace SSASDiag
 
             // Start the timer ticking...
             PerfMonAndUIPumpTimer.Start();
-
-            AddItemToStatus("____________________________________________________________________________________________");
 
             if (bUseStart && DateTime.Now < dtStart)
             {
@@ -261,7 +277,7 @@ namespace SSASDiag
         }
         private void bgGetNetworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Starting network trace. ..");
+            AddItemToStatus("Starting network trace...");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -361,7 +377,7 @@ namespace SSASDiag
                         // Workaround here, costs a few extra seconds to invoke at stop time but worth it
                         // Call the simple X86 ExtractDbNamesFromTrace process from SSASDiag.  
 
-                        AddItemToStatus("Finding databases with queries/commands started/completed during tracing. ..");
+                        AddItemToStatus("Finding databases with queries/commands started/completed during tracing...");
                         ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
                         Process p = new Process();
                         p.StartInfo.UseShellExecute = false;
@@ -386,7 +402,7 @@ namespace SSASDiag
                             AddItemToStatus("There were no databases captured in the trace.  No AS database definitions or backups will be captured.");
                         else
                         {
-                            Server s = new Server();
+                            Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
                             s.Connect("." + (sInstanceName == "" ? "" : "\\" + sInstanceName));
 
                             if (!Directory.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases"))
@@ -396,18 +412,21 @@ namespace SSASDiag
                             {
                                 if (bGetXMLA)
                                 {
-                                    AddItemToStatus("Extracting database definition XMLA script for " + db + " ..");
+                                    AddItemToStatus("Extracting database definition XMLA script for " + db + "...");
                                     MajorObject[] mo = { s.Databases.FindByName(db) };
 
                                     XmlWriter output = XmlWriter.Create(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
-                                    Scripter sc = new Scripter();
+                                    Microsoft.AnalysisServices.Scripter sc = new Microsoft.AnalysisServices.Scripter();
                                     sc.ScriptCreate(mo, output, true);
                                     output.Flush();
                                     output.Close();
+
+                                    if (bGetBAK)
+                                        GetBAK(db, s);
                                 }
                                 if (bGetABF)
                                 {
-                                    AddItemToStatus("Backing up AS database .abf for " + db + " ..");
+                                    AddItemToStatus("Backing up AS database .abf for " + db + "...");
                                     string batch = Properties.Resources.BackupDbXMLA
                                         .Replace("<DatabaseID/>", "<DatabaseID>" + s.Databases.FindByName(db).ID  + "</DatabaseID>")
                                         .Replace("<File/>", "<File>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".abf</File>")
@@ -440,9 +459,146 @@ namespace SSASDiag
                 }
             }
         }
+
+        private void GetBAK(string db, Server s)
+        {
+            foreach (DataSource ds in s.Databases.FindByName(db).DataSources)
+            {
+                string cs = ds.ConnectionString.TrimEnd(';') + ";";
+                string srvName = "";
+                string sqlDbName = "";
+                if (cs.Contains("Data Source="))
+                    srvName = cs.Substring(cs.IndexOf("Data Source=") + "Data Source=".Length) + ";";
+                if (cs.Contains("Server="))
+                    srvName = cs.Substring(cs.IndexOf("Server=") + "Server=".Length) + ";";
+                if (cs.Contains("Initial Catalog="))
+                    sqlDbName = cs.Substring(cs.IndexOf("Initial Catalog=") + "Initial Catalog=".Length) + ";";
+                if (cs.Contains("Database="))
+                    sqlDbName = cs.Substring(cs.IndexOf("Database=") + "Database=".Length) + ";";
+                srvName = srvName.Substring(0, srvName.IndexOf(";"));
+                sqlDbName = sqlDbName.Substring(0, sqlDbName.IndexOf(";"));
+                if (cs.Contains("User ID"))
+                {
+                    cs = cs.Remove(cs.IndexOf("User ID="), cs.IndexOf(";", cs.IndexOf("User ID=")) - cs.IndexOf("User ID=") + 1);
+                    cs += "Integrated Security=SSPI;";
+                }
+                if (cs.Contains("Password"))
+                cs = cs.Remove(cs.IndexOf("Password="), cs.IndexOf(";", cs.IndexOf("Password=")));
+
+                AddItemToStatus("Starting SQL datasource backup for AS database " + db + ", data source name " + ds.Name + ", SQL database " + sqlDbName + " on server " + (srvName == "." ? Environment.MachineName : srvName) + ".");
+
+                OleDbConnection conn = new OleDbConnection(cs);
+                bool bAuthenticated = false;
+
+                try
+                {
+                    // Try first just with our current credentials as local administrator.
+                    // This will work of course with local dbs, and with remote if we are admins there too.
+                    conn.Open();
+                    PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, null);
+                }
+                catch (OleDbException)
+                {
+                    // If it fails the first try, prompt for remote admin
+                    PasswordPrompt pp = new PasswordPrompt();
+                    pp.UserMessage = "Windows Administrator required for remote server:\r\n" + srvName
+                        + "\r\n\r\nFor data source name:\r\n" + ds.Name
+                        + "\r\n\r\nIn AS database:\r\n" + db;
+
+                    int iTries = 0;
+                    while (!bAuthenticated && iTries < 3)
+                    {
+                        Form f = Application.OpenForms["frmSSASDiag"];  // need a better way to center in this parent cross-thread but for now this will achieve it...
+                        txtStatus.Invoke(new System.Action(() =>
+                        {
+                            pp.Top = f.Top + f.Height / 2 - pp.Height / 2;
+                            pp.Left = f.Left + f.Width / 2 - pp.Width / 2;
+                        }));
+                        pp.ShowDialog();
+                        if (pp.DialogResult == DialogResult.OK)
+                        {
+                            // Impersonate user remotely
+                            SafeTokenHandle safeTokenHandle;
+                            const int LOGON32_PROVIDER_DEFAULT = 0;
+                            const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
+                            bAuthenticated = LogonUser(pp.User, pp.Domain, pp.Password, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, out safeTokenHandle);
+                            if (!bAuthenticated)
+                            {
+                                pp.lblUserPasswordError.Visible = true;
+                                iTries++;
+                            }
+                            else
+                            {
+                                using (WindowsImpersonationContext impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle()))
+                                {
+                                    try
+                                    {
+                                        conn.Open();
+                                        bAuthenticated = true;
+                                        PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser);
+                                        break;
+                                    }
+                                    catch (OleDbException)
+                                    {
+                                        pp.lblUserPasswordError.Visible = true;
+                                        bAuthenticated = false;
+                                        iTries++;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                            break;
+                    }
+                }
+                if (!bAuthenticated)
+                    AddItemToStatus("Unable to login to backup SQL data source " + ds.Name + " in database " + db + ".");
+            }
+        }
+        private bool PerformBAKBackupAndMoveLocal(OleDbConnection conn, string srvName, string dsName, string ASdbName, string SQLDBName, WindowsImpersonationContext impersonatedUser)
+        {
+            try
+            {
+                string BackupDir = "";
+                OleDbCommand cmd = new OleDbCommand(@"EXEC  master.dbo.xp_instance_regread  N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\MSSQLServer', N'BackupDirectory'", conn);
+                OleDbDataReader rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                    BackupDir = rdr["Data"] as string;
+                AddItemToStatus("Initiating backup of relational database " + SQLDBName + ".bak on SQL server " + srvName + "...");
+                cmd = new OleDbCommand(@"BACKUP DATABASE [" + SQLDBName + "] TO  DISK = N'" + BackupDir + "\\SSASDiag_" + SQLDBName + ".bak' WITH NOFORMAT, INIT, NAME = N'SSASDag_" + SQLDBName + "-Full Database Backup', SKIP, NOREWIND, NOUNLOAD, COMPRESSION, STATS = 10", conn);
+                int ret = cmd.ExecuteNonQuery();
+                AddItemToStatus("Database backup completed.");
+                AddItemToStatus("Moving SQL backup to local capture directory...");
+                try
+                {
+                    if (srvName != "." && srvName.ToUpper() != Environment.MachineName.ToUpper() && srvName.ToUpper() != GetFQDN())
+                        File.Move("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$") + "\\SSASDiag_" + SQLDBName + ".bak", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + SQLDBName + ".bak");
+                    else
+                        File.Move(BackupDir + "\\SSASDiag_" + SQLDBName + ".bak", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + SQLDBName + ".bak");
+                }
+                catch(Exception ex)
+                {
+                    Debug.WriteLine("File copy failure: " + ex.Message);
+                    if (impersonatedUser != null)
+                    {
+                        impersonatedUser.Undo();
+                        // If we fail with file copy after backup, just give a try as the original user...  This may happen if a local account on the remote machine was provided as administrator account there.
+                        File.Move("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$") + "\\SSASDiag_" + SQLDBName + ".bak", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + SQLDBName + ".bak");
+                    }
+                }
+                AddItemToStatus("Collected SQL data source .bak backup for data source " + dsName + " in database " + ASdbName + ".");
+            }
+            catch(Exception e)
+            {
+                AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + e.Message);
+                return false;
+            }
+            return true;
+        }
+
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Stopping network trace.  This may take a while. ..");
+            AddItemToStatus("Stopping network trace.  This may take a while...");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -479,7 +635,7 @@ namespace SSASDiag
 
             if (bCompress)
             {
-                AddItemToStatus("Creating zip file of output: " + Environment.CurrentDirectory + "\\" + TraceID + ".zip. ..");
+                AddItemToStatus("Creating zip file of output: " + Environment.CurrentDirectory + "\\" + TraceID + ".zip...");
 
                 // Zip up all output into a single zip file.
                 ZipFile z = new ZipFile();
@@ -516,8 +672,7 @@ namespace SSASDiag
         }
         private void FinalizeStop()
         {
-            AddItemToStatus("SSASDiag capture " + TraceID + " completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-            AddItemToStatus("____________________________________________________________________________________________");
+            AddItemToStatus("SSASDiag completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             PerfMonAndUIPumpTimer.Stop();
             bScheduledStartPending = false;
             txtStatus.Invoke(new System.Action(() => CompletionCallback()));
@@ -525,12 +680,25 @@ namespace SSASDiag
         #endregion EndCapture
 
         #region UtilityFunctions
+        public static string GetFQDN()
+        {
+            string domainName = IPGlobalProperties.GetIPGlobalProperties().DomainName;
+            string hostName = Dns.GetHostName();
+
+            domainName = "." + domainName;
+            if (!hostName.EndsWith(domainName))  // if hostname does not already include domain name
+            {
+                hostName += domainName;   // add the domain name part
+            }
+
+            return hostName;                    // return the fully qualified name
+        }
         private string ServerExecute(string command)
         {
             string ret = "Success!";
             try
             {
-                Server s = new Server();
+                Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
                 s.Connect("Data source=." + (sInstanceName == "" ? "" : "\\" + sInstanceName));
                 try
                 {
@@ -569,6 +737,26 @@ namespace SSASDiag
             txtStatus.Invoke(new System.Action(() => RaisePropertyChanged("Status")));
             return;
         }
+
         #endregion UtilityFunctions
+    }
+
+    public sealed class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        private SafeTokenHandle()
+            : base(true)
+        {
+        }
+
+        [DllImport("kernel32.dll")]
+        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+        [SuppressUnmanagedCodeSecurity]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool CloseHandle(IntPtr handle);
+
+        protected override bool ReleaseHandle()
+        {
+            return CloseHandle(handle);
+        }
     }
 }

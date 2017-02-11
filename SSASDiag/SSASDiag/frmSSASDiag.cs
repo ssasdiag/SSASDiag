@@ -113,7 +113,7 @@ namespace SSASDiag
                     
                     dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 ? "" : cbsdi.Text, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, cbsdi.ServiceAccount,
                         txtStatus,
-                        (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkPerfCtrs.Checked, chkXMLA.Checked, chkABF.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked, 
+                        (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkPerfCtrs.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked, 
                         chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked);
 
                     txtStatus.DataBindings.Clear();
@@ -351,49 +351,36 @@ namespace SSASDiag
             if (chkPerfCtrs.Checked)
                 chkGetProfiler.Checked = true;
         }
-
-        private void chkXMLA_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void chkABFs_CheckedChanged(object sender, EventArgs e)
-        {
-            MessageBox.Show("Full .abf backups of all databases captured during the trace will be created and collected after the traces are stopped, then moved to the data collection location from where the tool was run.  This could be a large amount of data depending on your database sizes.  Be sure the location where you ran SSASDiag has sufficient free space.", "Database Backup Capture Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
+        
 
         private void chkABF_CheckedChanged(object sender, EventArgs e)
         {
-            if (chkXMLA.Checked && chkABF.Checked)
-            {
-                MessageBox.Show("AS backups include database definitions already, so database definitions will be unchecked after you click OK.\n\n"
-                              + "AS backups allow experimentation by direct query execution on the restored state of the database, "
-                              + "and allow editing calculation defintions stored there for further experimentation.\n\n"
-                              + "AS backups alone will not allow reprocessing of experimental changes to data structures, which can sometimes be necessary to fully investigate and resolve some issues.\n\n"
-                              + "To allow reprocessing, include both database definition and SQL data source backups instead of AS backups.\n\n"
-                              + "Also, please note that including database or data source backups may significantly increase size of data collected and time to stop collection.",
-                              "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                chkXMLA.Checked = false;
-            }
             if (chkABF.Checked)
+            {
                 chkGetProfiler.Checked = true;
+                string baseMsg = "AS .abf backups provide data to execute queries and obtain results, and allow modification of calculation definitions, but not changes "
+                                + "to data definitions requiring reprocessing.  They are the second most optimal dataset to reproduce and investigate issues.\r\n\r\n"
+                                + "However, please note that including database or data source backups may siginificantly increase size of data collected and time required to stop collection.";
+                if (chkXMLA.Checked)
+                MessageBox.Show("AS backups include database definitions.\nDatabase definitions will be unchecked after you click OK.\r\n\r\n"
+                                + baseMsg,
+                              "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                else
+                    MessageBox.Show(baseMsg, "Backup Collection Notice");
+                chkXMLA.Checked = false;
+            }                
         }
 
         private void chkXMLA_CheckedChanged_1(object sender, EventArgs e)
         {
-            if (chkXMLA.Checked && chkABF.Checked)
-            {
-                MessageBox.Show("AS backups include database definitions redundantly, so AS backups will be unchecked after you click OK.\n\n"
-                              + "AS database definitions allow review of data structures and calculations, but not execution of queries, since no data is included.\n\n"
-                              + "AS backups allow experimentation by direct query execution on the restored state of the database, "
-                              + "and allow editing calculation defintions stored there for further experimentation.\n\n"
-                              + "AS backups alone will not allow reprocessing of experimental changes to data structures, which can sometimes be necessary to fully investigate and resolve some issues.\n\n"
-                              + "To allow reprocessing, include both database definition and SQL data source backups instead of AS backups.",
-                              "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                chkABF.Checked = false;
-            }
             if (chkXMLA.Checked)
+            {
+                if (chkABF.Checked)
+                    chkABF.Checked = false;
                 chkGetProfiler.Checked = true;
+            }
+            else
+                chkBAK.Checked = false;
         }
 
         private void chkGetProfiler_CheckedChanged_1(object sender, EventArgs e)
@@ -406,6 +393,17 @@ namespace SSASDiag
         private void chkPerfCtrs_CheckedChanged_1(object sender, EventArgs e)
         {
             if (chkPerfCtrs.Checked) chkGetProfiler.Checked = true;
+        }
+
+        private void chkBAK_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkBAK.Checked)
+            {
+                chkXMLA.Checked = true;
+                MessageBox.Show("AS database definitions with SQL data source backups provide the optimal dataset to reproduce and investigate any issue.\r\n"
+                    + "\r\nHowever, please note that including database or data source backups may significantly increase size of data collected and time required to stop collection.",
+                    "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void chkGetProfiler_CheckedChanged(object sender, EventArgs e)

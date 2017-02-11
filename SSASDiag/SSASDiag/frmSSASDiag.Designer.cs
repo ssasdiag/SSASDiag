@@ -292,17 +292,18 @@
             // 
             // chkBAK
             // 
-            this.chkBAK.AutoCheck = false;
             this.chkBAK.AutoSize = true;
             this.chkBAK.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkBAK.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.chkBAK.ForeColor = System.Drawing.SystemColors.ControlText;
             this.chkBAK.Location = new System.Drawing.Point(41, 117);
             this.chkBAK.Name = "chkBAK";
             this.chkBAK.Size = new System.Drawing.Size(150, 17);
             this.chkBAK.TabIndex = 27;
             this.chkBAK.Text = "SQL data source backups";
-            this.ttStatus.SetToolTip(this.chkBAK, "This feature coming soon!");
+            this.ttStatus.SetToolTip(this.chkBAK, "Optimal dataset allowing any degree of experimentation including changes to data " +
+        "structures requiring reprocessing.");
             this.chkBAK.UseVisualStyleBackColor = true;
+            this.chkBAK.CheckedChanged += new System.EventHandler(this.chkBAK_CheckedChanged);
             // 
             // dtStopTime
             // 
@@ -375,6 +376,8 @@
             this.chkABF.Size = new System.Drawing.Size(168, 17);
             this.chkABF.TabIndex = 25;
             this.chkABF.Text = "Traced AS database backups";
+            this.ttStatus.SetToolTip(this.chkABF, "Allows execution of queries and modification of calculations, but not changes to " +
+        "data structures requiring reprocessing.");
             this.chkABF.UseVisualStyleBackColor = true;
             this.chkABF.CheckedChanged += new System.EventHandler(this.chkABF_CheckedChanged);
             // 
@@ -389,6 +392,8 @@
             this.chkPerfCtrs.Size = new System.Drawing.Size(160, 17);
             this.chkPerfCtrs.TabIndex = 22;
             this.chkPerfCtrs.Text = "Performance relevant details";
+            this.ttStatus.SetToolTip(this.chkPerfCtrs, "Additional Profiler trace details increase size and weight of trace but allow dee" +
+        "per investigation of performance bottlenecks.");
             this.chkPerfCtrs.UseVisualStyleBackColor = true;
             this.chkPerfCtrs.CheckedChanged += new System.EventHandler(this.chkPerfCtrs_CheckedChanged_1);
             // 
@@ -401,6 +406,7 @@
             this.chkGetNetwork.Size = new System.Drawing.Size(102, 17);
             this.chkGetNetwork.TabIndex = 23;
             this.chkGetNetwork.Text = "Network Traces";
+            this.ttStatus.SetToolTip(this.chkGetNetwork, "Network traces are useful for connectivity investigations most often.");
             this.chkGetNetwork.UseVisualStyleBackColor = true;
             // 
             // chkGetProfiler
@@ -441,6 +447,8 @@
             this.chkXMLA.Size = new System.Drawing.Size(174, 17);
             this.chkXMLA.TabIndex = 24;
             this.chkXMLA.Text = "Traced AS database definitions";
+            this.ttStatus.SetToolTip(this.chkXMLA, "Allows review of data structures and calculations but no actual data is included." +
+        "");
             this.chkXMLA.UseVisualStyleBackColor = true;
             this.chkXMLA.CheckedChanged += new System.EventHandler(this.chkXMLA_CheckedChanged_1);
             // 
@@ -474,6 +482,7 @@
             // 
             this.txtStatus.BackColor = System.Drawing.Color.Black;
             this.txtStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtStatus.DetectUrls = false;
             this.txtStatus.Font = new System.Drawing.Font("Consolas", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtStatus.ForeColor = System.Drawing.Color.LightSkyBlue;
             this.txtStatus.Location = new System.Drawing.Point(12, 197);
