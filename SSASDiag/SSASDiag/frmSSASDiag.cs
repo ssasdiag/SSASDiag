@@ -1,21 +1,17 @@
-﻿using System.Runtime.InteropServices;
-using System.Drawing; 
-using Microsoft.AnalysisServices;
-using PdhNative;
-using System;
-using System.Data;
-using System.Linq;
-using System.Linq.Expressions;
-using System.ComponentModel;
-using System.ServiceProcess;
-using System.Windows.Forms;
-using System.Diagnostics;
-using System.IO;
+﻿using Microsoft.AnalysisServices;
 using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
-using Ionic.Zip;
-using System.Threading;
+using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
 using System.Management;
+using System.Runtime.InteropServices;
+using System.ServiceProcess;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace SSASDiag
 {

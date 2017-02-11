@@ -115,11 +115,12 @@
             // 
             this.lblUserPasswordError.AutoSize = true;
             this.lblUserPasswordError.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblUserPasswordError.Location = new System.Drawing.Point(61, 219);
+            this.lblUserPasswordError.ForeColor = System.Drawing.Color.DarkRed;
+            this.lblUserPasswordError.Location = new System.Drawing.Point(71, 219);
             this.lblUserPasswordError.Name = "lblUserPasswordError";
-            this.lblUserPasswordError.Size = new System.Drawing.Size(163, 12);
+            this.lblUserPasswordError.Size = new System.Drawing.Size(143, 12);
             this.lblUserPasswordError.TabIndex = 7;
-            this.lblUserPasswordError.Text = "Unrecognized user name or password.";
+            this.lblUserPasswordError.Text = "Incorrect user name or password.";
             this.lblUserPasswordError.Visible = false;
             // 
             // PasswordPrompt

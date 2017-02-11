@@ -1,5 +1,6 @@
 ﻿using Ionic.Zip;
 using Microsoft.AnalysisServices;
+using Microsoft.Win32.SafeHandles;
 using PdhNative;
 using System;
 using System.Collections.Generic;
@@ -7,17 +8,15 @@ using System.ComponentModel;
 using System.Data.OleDb;
 using System.Diagnostics;
 using System.IO;
-using System.Security.AccessControl;
-using System.Windows.Forms;
-using System.Xml;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
-using System.Security.Permissions;
-using Microsoft.Win32.SafeHandles;
-using System.Runtime.ConstrainedExecution;
-using System.Security;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Security.AccessControl;
+using System.Security.Principal;
+using System.Windows.Forms;
+using System.Xml;
 
 
 namespace SSASDiag
@@ -497,62 +496,69 @@ namespace SSASDiag
                     conn.Open();
                     PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, null);
                 }
-                catch (OleDbException)
+                catch (OleDbException ex)
                 {
-                    // If it fails the first try, prompt for remote admin
-                    PasswordPrompt pp = new PasswordPrompt();
-                    pp.UserMessage = "Windows Administrator required for remote server:\r\n" + srvName
-                        + "\r\n\r\nFor data source name:\r\n" + ds.Name
-                        + "\r\n\r\nIn AS database:\r\n" + db;
-
-                    int iTries = 0;
-                    while (!bAuthenticated && iTries < 3)
+                    if (ex.Message.StartsWith("Login failed"))
                     {
-                        Form f = Application.OpenForms["frmSSASDiag"];  // need a better way to center in this parent cross-thread but for now this will achieve it...
-                        txtStatus.Invoke(new System.Action(() =>
+                        // If it fails the first try, prompt for remote admin
+                        PasswordPrompt pp = new PasswordPrompt();
+                        pp.UserMessage = "Windows Administrator required for remote server:\r\n" + srvName
+                            + "\r\n\r\nFor data source name:\r\n" + ds.Name
+                            + "\r\n\r\nIn AS database:\r\n" + db;
+
+                        int iTries = 0;
+                        while (!bAuthenticated && iTries < 3)
                         {
-                            pp.Top = f.Top + f.Height / 2 - pp.Height / 2;
-                            pp.Left = f.Left + f.Width / 2 - pp.Width / 2;
-                        }));
-                        pp.ShowDialog();
-                        if (pp.DialogResult == DialogResult.OK)
-                        {
-                            // Impersonate user remotely
-                            SafeTokenHandle safeTokenHandle;
-                            const int LOGON32_PROVIDER_DEFAULT = 0;
-                            const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
-                            bAuthenticated = LogonUser(pp.User, pp.Domain, pp.Password, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, out safeTokenHandle);
-                            if (!bAuthenticated)
+                            Form f = Application.OpenForms["frmSSASDiag"];  // need a better way to center in this parent cross-thread but for now this will achieve it...
+                            txtStatus.Invoke(new System.Action(() =>
                             {
-                                pp.lblUserPasswordError.Visible = true;
-                                iTries++;
-                            }
-                            else
+                                pp.Top = f.Top + f.Height / 2 - pp.Height / 2;
+                                pp.Left = f.Left + f.Width / 2 - pp.Width / 2;
+                            }));
+                            pp.ShowDialog();
+                            if (pp.DialogResult == DialogResult.OK)
                             {
-                                using (WindowsImpersonationContext impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle()))
+                                // Impersonate user remotely
+                                SafeTokenHandle safeTokenHandle;
+                                const int LOGON32_PROVIDER_DEFAULT = 0;
+                                const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
+                                bAuthenticated = LogonUser(pp.User, pp.Domain, pp.Password, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, out safeTokenHandle);
+                                if (!bAuthenticated)
                                 {
-                                    try
+                                    pp.lblUserPasswordError.Visible = true;
+                                    iTries++;
+                                }
+                                else
+                                {
+                                    using (WindowsImpersonationContext impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle()))
                                     {
-                                        conn.Open();
-                                        bAuthenticated = true;
-                                        PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser);
-                                        break;
-                                    }
-                                    catch (OleDbException)
-                                    {
-                                        pp.lblUserPasswordError.Visible = true;
-                                        bAuthenticated = false;
-                                        iTries++;
+                                        try
+                                        {
+                                            conn.Open();
+                                            bAuthenticated = true;
+                                            PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser);
+                                            break;
+                                        }
+                                        catch (OleDbException)
+                                        {
+                                            pp.lblUserPasswordError.Visible = true;
+                                            bAuthenticated = false;
+                                            iTries++;
+                                        }
                                     }
                                 }
                             }
+                            else
+                                break;
                         }
-                        else
-                            break;
                     }
+                    else
+                        AddItemToStatus("Error during backup: " + ex.Message);
                 }
                 if (!bAuthenticated)
+                {
                     AddItemToStatus("Unable to login to backup SQL data source " + ds.Name + " in database " + db + ".");
+                }
             }
         }
         private bool PerformBAKBackupAndMoveLocal(OleDbConnection conn, string srvName, string dsName, string ASdbName, string SQLDBName, WindowsImpersonationContext impersonatedUser)
