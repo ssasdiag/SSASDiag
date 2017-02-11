@@ -551,7 +551,7 @@ namespace SSASDiag
                     // Try first just with our current credentials as local administrator.
                     // This will work of course with local dbs, and with remote if we are admins there too.
                     conn.Open();
-                    PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, null);
+                    PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName);
                 }
                 catch (OleDbException ex)
                 {
@@ -593,7 +593,7 @@ namespace SSASDiag
                                         {
                                             conn.Open();
                                             bAuthenticated = true;
-                                            PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser);
+                                            PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, pp.Domain, pp.User);
                                             break;
                                         }
                                         catch (OleDbException)
@@ -618,7 +618,7 @@ namespace SSASDiag
                 }
             }
         }
-        private bool PerformBAKBackupAndMoveLocal(OleDbConnection conn, string srvName, string dsName, string ASdbName, string SQLDBName, WindowsImpersonationContext impersonatedUser)
+        private bool PerformBAKBackupAndMoveLocal(OleDbConnection conn, string srvName, string dsName, string ASdbName, string SQLDBName, WindowsImpersonationContext impersonatedUser = null, string Domain = "", string User = "")
         {
             string BackupDir = "";
             try
@@ -634,30 +634,57 @@ namespace SSASDiag
                 AddItemToStatus("Moving SQL backup to local capture directory...");
                 try
                 {
-                    if (srvName != "." && srvName.ToUpper() != Environment.MachineName.ToUpper() && srvName.ToUpper() != GetFQDN())
-                        File.Move("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$") + "\\SSASDiag_" + SQLDBName + ".bak", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + SQLDBName + ".bak");
-                    else
-                        File.Move(BackupDir + "\\SSASDiag_" + SQLDBName + ".bak", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + SQLDBName + ".bak");
+                    CopyBAKLocal(srvName, BackupDir, SQLDBName);
                 }
                 catch(Exception ex)
                 {
-                    Debug.WriteLine("File copy failure: " + ex.Message);
-                    if (impersonatedUser != null)
+                    if (ex.Message.Contains("Could not find file") && (Domain == srvName || Domain == srvName.Substring(0, srvName.IndexOf(".")) || Domain == "."))
                     {
-                        impersonatedUser.Undo();
-                        // If we fail with file copy after backup, just give a try as the original user...  This may happen if a local account on the remote machine was provided as administrator account there.
-                        File.Move("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$") + "\\SSASDiag_" + SQLDBName + ".bak", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + SQLDBName + ".bak");
+                        try
+                        {
+                            cmd.CommandText = @"EXEC xp_regwrite @rootkey='HKEY_LOCAL_MACHINE', @key='Software\Microsoft\Windows\CurrentVersion\Policies\System', @value_name='LocalAccountTokenFilterPolicy', @type='REG_DWORD', @value=1";
+                            if (cmd.ExecuteNonQuery() != 0)
+                            {
+                                AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ".");
+                                AddItemToStatus("\r\nFor local administrator accounts except Administrator to access the remote SQL backup, create a DWORD32 value LocalAccountTokenFilterPolicy=1 in HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Policies\\System on the local server " + srvName + ".\r\n");
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    CopyBAKLocal(srvName, BackupDir, SQLDBName);
+                                }
+                                catch (Exception ex2)
+                                {
+                                    AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex2.Message);
+                                }
+                            }
+                        }
+                        catch(Exception ex2)
+                        {
+                            AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ".");
+                            AddItemToStatus("\r\nFor local administrator accounts except Administrator to access the remote SQL backup, create a DWORD32 value LocalAccountTokenFilterPolicy=1 in HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Policies\\System on the local server " + srvName + ".\r\n");
+                        }
                     }
+                    else
+                        AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message);
+                    AddItemToStatus("Please collect .bak manually from " + BackupDir + " on server " + srvName + ".");
+                    return false;
                 }
                 AddItemToStatus("Collected SQL data source .bak backup for data source " + dsName + " in database " + ASdbName + ".");
             }
-            catch(Exception e)
+            catch (Exception ex)
             {
-                AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + e.Message);
-                AddItemToStatus("Please collect .bak manually from " + BackupDir + " on server " + srvName + ".");
-                return false;
+                AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message);
             }
             return true;
+        }
+        void CopyBAKLocal(string srvName, string BackupDir, string SQLDBName)
+        {
+            if (srvName != "." && srvName.ToUpper() != Environment.MachineName.ToUpper() && srvName.ToUpper() != GetFQDN())
+                File.Move("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$") + "\\SSASDiag_" + SQLDBName + ".bak", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + SQLDBName + ".bak");
+            else
+                File.Move(BackupDir + "\\SSASDiag_" + SQLDBName + ".bak", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + SQLDBName + ".bak");
         }
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
