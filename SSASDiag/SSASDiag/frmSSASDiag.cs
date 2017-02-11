@@ -54,6 +54,7 @@ namespace SSASDiag
             dtStartTime.CustomFormat = dtStopTime.CustomFormat;
             dtStartTime.MinDate = DateTime.Now;
             dtStartTime.MaxDate = DateTime.Now.AddDays(30);
+            cmbProblemType.SelectedIndex = 0;
         }
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -399,6 +400,62 @@ namespace SSASDiag
                 MessageBox.Show("AS database definitions with SQL data source backups provide the optimal dataset to reproduce and investigate any issue.\r\n"
                     + "\r\nHowever, please note that including database or data source backups may significantly increase size of data collected and time required to stop collection.",
                     "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void cmbProblemType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            chkGetConfigDetails.Checked = chkGetNetwork.Checked = chkGetPerfMon.Checked = chkGetProfiler.Checked = chkPerfCtrs.Checked = false;
+            
+            switch (cmbProblemType.SelectedItem as string)
+            {
+                case "Performance":
+                    chkGetConfigDetails.Checked = true;
+                    chkGetPerfMon.Checked = true;
+                    chkGetProfiler.Checked = true;
+                    chkPerfCtrs.Checked = true;
+                    break;
+                case "Errors (non-connectivity)":
+                    chkGetConfigDetails.Checked = true;
+                    chkGetProfiler.Checked = true;
+                    chkGetPerfMon.Checked = true;
+                    break;
+                case "Connectivity Failures":
+                    chkGetConfigDetails.Checked = true;
+                    chkGetProfiler.Checked = true;
+                    chkGetPerfMon.Checked = true;
+                    chkGetNetwork.Checked = true;
+                    break;
+                case "Incorrect Query Results":
+                    chkGetConfigDetails.Checked = true;
+                    chkGetProfiler.Checked = true;
+                    tbLevelOfData.Value = 2;
+                    break;
+                case "Data Corruption":
+                    chkGetConfigDetails.Checked = true;
+                    chkGetProfiler.Checked = true;
+                    chkGetPerfMon.Checked = true;
+                    tbLevelOfData.Value = 1;
+                    break;
+            }
+            tbLevelOfData_Scroll(sender, e);
+        }
+
+        private void tbLevelOfData_Scroll(object sender, EventArgs e)
+        {
+            chkABF.Checked = chkBAK.Checked = chkXMLA.Checked = false;
+            switch (tbLevelOfData.Value)
+            {
+                case 0:
+                    chkXMLA.Checked = true;
+                    break;
+                case 1:
+                    chkABF.Checked = true;
+                    break;
+                case 2:
+                    chkXMLA.Checked = true;
+                    chkBAK.Checked = true;
+                    break;
             }
         }
 
