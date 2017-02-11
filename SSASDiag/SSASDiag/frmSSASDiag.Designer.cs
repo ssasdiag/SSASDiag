@@ -53,11 +53,20 @@
             this.chkGetNetwork = new System.Windows.Forms.CheckBox();
             this.chkXMLA = new System.Windows.Forms.CheckBox();
             this.chkGetConfigDetails = new System.Windows.Forms.CheckBox();
+            this.lblBAK = new System.Windows.Forms.Label();
+            this.lblABF = new System.Windows.Forms.Label();
+            this.lblXMLA = new System.Windows.Forms.Label();
             this.dtStopTime = new System.Windows.Forms.DateTimePicker();
             this.chkStopTime = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabSimple = new System.Windows.Forms.TabPage();
+            this.pnlSimple = new System.Windows.Forms.Panel();
+            this.rtbProblemDescription = new System.Windows.Forms.RichTextBox();
+            this.cmbProblemType = new System.Windows.Forms.ComboBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.tbLevelOfData = new System.Windows.Forms.TrackBar();
             this.tabAdvanced = new System.Windows.Forms.TabPage();
             this.pnlDiagnosticsToCollect = new System.Windows.Forms.Panel();
             this.chkGetProfiler = new System.Windows.Forms.CheckBox();
@@ -65,24 +74,15 @@
             this.chkDeleteRaw = new System.Windows.Forms.CheckBox();
             this.chkZip = new System.Windows.Forms.CheckBox();
             this.txtStatus = new System.Windows.Forms.RichTextBox();
-            this.pnlSimple = new System.Windows.Forms.Panel();
-            this.rtbProblemDescription = new System.Windows.Forms.RichTextBox();
-            this.cmbProblemType = new System.Windows.Forms.ComboBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.lblBAK = new System.Windows.Forms.Label();
-            this.lblABF = new System.Windows.Forms.Label();
-            this.lblXMLA = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.tbLevelOfData = new System.Windows.Forms.TrackBar();
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabSimple.SuspendLayout();
-            this.tabAdvanced.SuspendLayout();
-            this.pnlDiagnosticsToCollect.SuspendLayout();
             this.pnlSimple.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbLevelOfData)).BeginInit();
+            this.tabAdvanced.SuspendLayout();
+            this.pnlDiagnosticsToCollect.SuspendLayout();
             this.SuspendLayout();
             // 
             // cbInstances
@@ -395,6 +395,44 @@
             this.chkGetConfigDetails.UseVisualStyleBackColor = true;
             this.chkGetConfigDetails.CheckedChanged += new System.EventHandler(this.chkGetConfigDetails_CheckedChanged);
             // 
+            // lblBAK
+            // 
+            this.lblBAK.AutoSize = true;
+            this.lblBAK.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblBAK.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.lblBAK.Location = new System.Drawing.Point(129, 45);
+            this.lblBAK.Name = "lblBAK";
+            this.lblBAK.Size = new System.Drawing.Size(75, 12);
+            this.lblBAK.TabIndex = 6;
+            this.lblBAK.Text = "Full data sources";
+            this.ttStatus.SetToolTip(this.lblBAK, "Allows all experimentation including processing.");
+            // 
+            // lblABF
+            // 
+            this.lblABF.AutoSize = true;
+            this.lblABF.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblABF.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.lblABF.Location = new System.Drawing.Point(72, 45);
+            this.lblABF.Name = "lblABF";
+            this.lblABF.Size = new System.Drawing.Size(55, 12);
+            this.lblABF.TabIndex = 5;
+            this.lblABF.Text = "AS backups";
+            this.ttStatus.SetToolTip(this.lblABF, "Allows review of data structures and calculations, and execution of queries, but " +
+        "not processing.");
+            // 
+            // lblXMLA
+            // 
+            this.lblXMLA.AutoSize = true;
+            this.lblXMLA.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblXMLA.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.lblXMLA.Location = new System.Drawing.Point(1, 45);
+            this.lblXMLA.Name = "lblXMLA";
+            this.lblXMLA.Size = new System.Drawing.Size(68, 12);
+            this.lblXMLA.TabIndex = 4;
+            this.lblXMLA.Text = "Only definitions";
+            this.ttStatus.SetToolTip(this.lblXMLA, "Allows only review of data structures and calculations.  Queries cannot be execut" +
+        "ed.");
+            // 
             // dtStopTime
             // 
             this.dtStopTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
@@ -454,6 +492,79 @@
             this.tabSimple.Size = new System.Drawing.Size(221, 108);
             this.tabSimple.TabIndex = 0;
             this.tabSimple.Text = "Simple";
+            // 
+            // pnlSimple
+            // 
+            this.pnlSimple.AutoScroll = true;
+            this.pnlSimple.Controls.Add(this.rtbProblemDescription);
+            this.pnlSimple.Controls.Add(this.cmbProblemType);
+            this.pnlSimple.Controls.Add(this.label7);
+            this.pnlSimple.Controls.Add(this.lblBAK);
+            this.pnlSimple.Controls.Add(this.lblABF);
+            this.pnlSimple.Controls.Add(this.lblXMLA);
+            this.pnlSimple.Controls.Add(this.label3);
+            this.pnlSimple.Controls.Add(this.tbLevelOfData);
+            this.pnlSimple.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlSimple.Location = new System.Drawing.Point(0, 0);
+            this.pnlSimple.Name = "pnlSimple";
+            this.pnlSimple.Size = new System.Drawing.Size(221, 108);
+            this.pnlSimple.TabIndex = 33;
+            // 
+            // rtbProblemDescription
+            // 
+            this.rtbProblemDescription.BackColor = System.Drawing.SystemColors.Control;
+            this.rtbProblemDescription.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbProblemDescription.Location = new System.Drawing.Point(5, 112);
+            this.rtbProblemDescription.Name = "rtbProblemDescription";
+            this.rtbProblemDescription.Size = new System.Drawing.Size(196, 240);
+            this.rtbProblemDescription.TabIndex = 120;
+            this.rtbProblemDescription.Text = "";
+            // 
+            // cmbProblemType
+            // 
+            this.cmbProblemType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbProblemType.Items.AddRange(new object[] {
+            "Performance",
+            "Errors (non-connectivity)",
+            "Connectivity Failures",
+            "Incorrect Query Results",
+            "Data Corruption"});
+            this.cmbProblemType.Location = new System.Drawing.Point(5, 81);
+            this.cmbProblemType.Name = "cmbProblemType";
+            this.cmbProblemType.Size = new System.Drawing.Size(196, 21);
+            this.cmbProblemType.TabIndex = 8;
+            this.cmbProblemType.SelectedIndexChanged += new System.EventHandler(this.cmbProblemType_SelectedIndexChanged);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Location = new System.Drawing.Point(61, 64);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(82, 13);
+            this.label7.TabIndex = 7;
+            this.label7.Text = "Problem Type";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(29, 5);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(146, 13);
+            this.label3.TabIndex = 3;
+            this.label3.Text = "Level of Data to Provide";
+            // 
+            // tbLevelOfData
+            // 
+            this.tbLevelOfData.LargeChange = 1;
+            this.tbLevelOfData.Location = new System.Drawing.Point(21, 16);
+            this.tbLevelOfData.Maximum = 2;
+            this.tbLevelOfData.Name = "tbLevelOfData";
+            this.tbLevelOfData.Size = new System.Drawing.Size(163, 45);
+            this.tbLevelOfData.TabIndex = 1;
+            this.tbLevelOfData.Scroll += new System.EventHandler(this.tbLevelOfData_Scroll);
+            this.tbLevelOfData.ValueChanged += new System.EventHandler(this.tbLevelOfData_ValueChanged);
             // 
             // tabAdvanced
             // 
@@ -554,117 +665,6 @@
             this.txtStatus.Text = "";
             this.txtStatus.MouseDown += new System.Windows.Forms.MouseEventHandler(this.txtStatus_MouseDown);
             // 
-            // pnlSimple
-            // 
-            this.pnlSimple.AutoScroll = true;
-            this.pnlSimple.Controls.Add(this.rtbProblemDescription);
-            this.pnlSimple.Controls.Add(this.cmbProblemType);
-            this.pnlSimple.Controls.Add(this.label7);
-            this.pnlSimple.Controls.Add(this.lblBAK);
-            this.pnlSimple.Controls.Add(this.lblABF);
-            this.pnlSimple.Controls.Add(this.lblXMLA);
-            this.pnlSimple.Controls.Add(this.label3);
-            this.pnlSimple.Controls.Add(this.tbLevelOfData);
-            this.pnlSimple.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlSimple.Location = new System.Drawing.Point(0, 0);
-            this.pnlSimple.Name = "pnlSimple";
-            this.pnlSimple.Size = new System.Drawing.Size(221, 108);
-            this.pnlSimple.TabIndex = 33;
-            // 
-            // rtbProblemDescription
-            // 
-            this.rtbProblemDescription.BackColor = System.Drawing.SystemColors.Control;
-            this.rtbProblemDescription.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbProblemDescription.Location = new System.Drawing.Point(5, 112);
-            this.rtbProblemDescription.Name = "rtbProblemDescription";
-            this.rtbProblemDescription.Size = new System.Drawing.Size(196, 240);
-            this.rtbProblemDescription.TabIndex = 120;
-            this.rtbProblemDescription.Text = "";
-            // 
-            // cmbProblemType
-            // 
-            this.cmbProblemType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbProblemType.Items.AddRange(new object[] {
-            "Performance",
-            "Errors (non-connectivity)",
-            "Connectivity Failures",
-            "Incorrect Query Results",
-            "Data Corruption"});
-            this.cmbProblemType.Location = new System.Drawing.Point(5, 81);
-            this.cmbProblemType.Name = "cmbProblemType";
-            this.cmbProblemType.Size = new System.Drawing.Size(196, 21);
-            this.cmbProblemType.TabIndex = 8;
-            this.cmbProblemType.SelectedIndexChanged += new System.EventHandler(this.cmbProblemType_SelectedIndexChanged);
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(61, 64);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(82, 13);
-            this.label7.TabIndex = 7;
-            this.label7.Text = "Problem Type";
-            // 
-            // lblBAK
-            // 
-            this.lblBAK.AutoSize = true;
-            this.lblBAK.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblBAK.ForeColor = System.Drawing.SystemColors.ControlDark;
-            this.lblBAK.Location = new System.Drawing.Point(129, 45);
-            this.lblBAK.Name = "lblBAK";
-            this.lblBAK.Size = new System.Drawing.Size(75, 12);
-            this.lblBAK.TabIndex = 6;
-            this.lblBAK.Text = "Full data sources";
-            this.ttStatus.SetToolTip(this.lblBAK, "Allows all experimentation including processing.");
-            // 
-            // lblABF
-            // 
-            this.lblABF.AutoSize = true;
-            this.lblABF.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblABF.ForeColor = System.Drawing.SystemColors.ControlDark;
-            this.lblABF.Location = new System.Drawing.Point(72, 45);
-            this.lblABF.Name = "lblABF";
-            this.lblABF.Size = new System.Drawing.Size(55, 12);
-            this.lblABF.TabIndex = 5;
-            this.lblABF.Text = "AS backups";
-            this.ttStatus.SetToolTip(this.lblABF, "Allows review of data structures and calculations, and execution of queries, but " +
-        "not processing.");
-            // 
-            // lblXMLA
-            // 
-            this.lblXMLA.AutoSize = true;
-            this.lblXMLA.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblXMLA.ForeColor = System.Drawing.SystemColors.ControlDark;
-            this.lblXMLA.Location = new System.Drawing.Point(1, 45);
-            this.lblXMLA.Name = "lblXMLA";
-            this.lblXMLA.Size = new System.Drawing.Size(68, 12);
-            this.lblXMLA.TabIndex = 4;
-            this.lblXMLA.Text = "Only definitions";
-            this.ttStatus.SetToolTip(this.lblXMLA, "Allows only review of data structures and calculations.  Queries cannot be execut" +
-        "ed.");
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(29, 5);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(146, 13);
-            this.label3.TabIndex = 3;
-            this.label3.Text = "Level of Data to Provide";
-            // 
-            // tbLevelOfData
-            // 
-            this.tbLevelOfData.LargeChange = 1;
-            this.tbLevelOfData.Location = new System.Drawing.Point(21, 16);
-            this.tbLevelOfData.Maximum = 2;
-            this.tbLevelOfData.Name = "tbLevelOfData";
-            this.tbLevelOfData.Size = new System.Drawing.Size(163, 45);
-            this.tbLevelOfData.TabIndex = 1;
-            this.tbLevelOfData.Scroll += new System.EventHandler(this.tbLevelOfData_Scroll);
-            this.tbLevelOfData.ValueChanged += new System.EventHandler(this.tbLevelOfData_ValueChanged);
-            // 
             // frmSSASDiag
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -705,12 +705,12 @@
             this.groupBox1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabSimple.ResumeLayout(false);
-            this.tabAdvanced.ResumeLayout(false);
-            this.pnlDiagnosticsToCollect.ResumeLayout(false);
-            this.pnlDiagnosticsToCollect.PerformLayout();
             this.pnlSimple.ResumeLayout(false);
             this.pnlSimple.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbLevelOfData)).EndInit();
+            this.tabAdvanced.ResumeLayout(false);
+            this.pnlDiagnosticsToCollect.ResumeLayout(false);
+            this.pnlDiagnosticsToCollect.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
