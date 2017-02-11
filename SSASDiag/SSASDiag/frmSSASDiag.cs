@@ -429,7 +429,7 @@ namespace SSASDiag
                                            + "Network traces should be captured on a failing client, and any middle tier server, for multi-tier scenarios.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
-                    rtbProblemDescription.Height = 230;
+                    rtbProblemDescription.Height = 240;
                     break;
                 case "Incorrect Query Results":
                     chkGetConfigDetails.Checked = true;
