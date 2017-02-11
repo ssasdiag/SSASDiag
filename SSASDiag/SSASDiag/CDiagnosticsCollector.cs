@@ -43,7 +43,24 @@ namespace SSASDiag
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool LogonUser(String lpszUsername, String lpszDomain, String lpszPassword,
         int dwLogonType, int dwLogonProvider, out SafeTokenHandle phToken);
+        [Flags]
+        private enum EventExportLogFlags
+        {
+            ChannelPath = 1,
+            LogFilePath = 2,
+            TolerateQueryErrors = 0x1000
+        };
 
+        [DllImport(@"wevtapi.dll",
+            CallingConvention = CallingConvention.Winapi,
+            CharSet = CharSet.Auto,
+            SetLastError = true)]
+        private static extern bool EvtExportLog(
+            IntPtr sessionHandle,
+            string path,
+            string query,
+            string targetPath,
+            [MarshalAs(UnmanagedType.I4)] EventExportLogFlags flags);
         [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
         public extern static bool CloseHandle(IntPtr handle);
         #endregion Win32
@@ -153,7 +170,7 @@ namespace SSASDiag
                     dirInfo.SetAccessControl(dirSec);
                     AddItemToStatus("Added full control for SSAS service account " + sServiceAccount + " to the output directory.");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     AddItemToStatus("Adding access permissions for SSAS service account " + sServiceAccount + " to output folder failed:\n\t" + ex.Message);
                 }
@@ -167,69 +184,102 @@ namespace SSASDiag
                         File.Copy(f, TraceID + "Output\\Log\\" + f.Substring(f.LastIndexOf("\\") + 1));
                     File.Copy(sConfigDir + "\\msmdsrv.ini", TraceID + "Output\\msmdsrv.ini");
                     AddItemToStatus("Captured OLAP\\Log contents and msmdsrv.ini config for the instance.");
-                }
-                
-                if (bGetPerfMon)
-                {
-                    uint r = InitializePerfLog(TraceID + "Output\\" + TraceID + ".blg");
 
-                    if (r != 0)
-                    {
-                        AddItemToStatus("Error starting PerfMon logging: " + r.ToString("X"));
-                        AddItemToStatus("Other diagnostic collection will still be attempted.");
-                    }
-                    else
-                    {
-                        bPerfMonRunning = true;
-                        AddItemToStatus("Performance logging every " + iInterval + " seconds.");
-                        AddItemToStatus("Performance logging started to file: " + TraceID + ".blg.");
-                    }
+                    BackgroundWorker bg = new BackgroundWorker();
+                    bg.DoWork += bgGetSPNs;
+                    bg.RunWorkerCompleted += bgGetSPNsCompleted;
+                    bg.RunWorkerAsync();
                 }
+            }                   
+        }
+        private void bgGetSPNs(object sender, DoWorkEventArgs e)
+        {
+            AddItemToStatus("Attempting to capture SPNs for the AS service account " + sServiceAccount + ".");
+            Process p = new Process();
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardError = true;
+            p.StartInfo.FileName = "setspn";
+            p.StartInfo.Arguments = "-l \"" + sServiceAccount + "\"";
+            p.Start();
+            string sOut = p.StandardOutput.ReadToEnd();
+            string sErr = p.StandardError.ReadToEnd();
+            p.WaitForExit();
+            if (sErr == "")
+            {
+                File.WriteAllText(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\ServiceAccountSPNs.txt", sOut);
+                AddItemToStatus("Captured SPNs defined for service account " + sServiceAccount + ".");
+            }
+            else
+            {
+                AddItemToStatus("Failed to capture SPNs.  Rerun as a domain administrator if this configuration detail is required.");
+                AddItemToStatus("Error capturing SPNs: " + sErr.TrimEnd(new char[] {'\r', '\n'}));
+            }
 
-                if (bGetProfiler)
+        }
+        private void bgGetSPNsCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (bGetPerfMon)
+            {
+                uint r = InitializePerfLog(TraceID + "Output\\" + TraceID + ".blg");
+
+                if (r != 0)
                 {
-                    string XMLABatch = (bPerfEvents ? Properties.Resources.ProfilerTraceStartWithQuerySubcubeEventsXMLA : Properties.Resources.ProfilerTraceStartXMLA)
-                        .Replace("<LogFileName/>", "<LogFileName>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\" + TraceID + ".trc</LogFileName>")
-                        .Replace("<LogFileSize/>", bRollover ? "<LogFileSize>" + iRollover + "</LogFileSize>" : "")
-                        .Replace("<LogFileRollover/>", bRollover ? "<LogFileRollover>" + bRollover.ToString().ToLower() + "</LogFileRollover>" : "")
+                    AddItemToStatus("Error starting PerfMon logging: " + r.ToString("X"));
+                    AddItemToStatus("Other diagnostic collection will still be attempted.");
+                }
+                else
+                {
+                    bPerfMonRunning = true;
+                    AddItemToStatus("Performance logging every " + iInterval + " seconds.");
+                    AddItemToStatus("Performance logging started to file: " + TraceID + ".blg.");
+                }
+            }
+
+            if (bGetProfiler)
+            {
+                string XMLABatch = (bPerfEvents ? Properties.Resources.ProfilerTraceStartWithQuerySubcubeEventsXMLA : Properties.Resources.ProfilerTraceStartXMLA)
+                    .Replace("<LogFileName/>", "<LogFileName>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\" + TraceID + ".trc</LogFileName>")
+                    .Replace("<LogFileSize/>", bRollover ? "<LogFileSize>" + iRollover + "</LogFileSize>" : "")
+                    .Replace("<LogFileRollover/>", bRollover ? "<LogFileRollover>" + bRollover.ToString().ToLower() + "</LogFileRollover>" : "")
+                    .Replace("<AutoRestart/>", "<AutoRestart>" + bAutoRestart.ToString().ToLower() + "</AutoRestart>")
+                    .Replace("<StartTime/>", "")
+                    .Replace("<StopTime/>", bUseEnd ? "<StopTime>" + dtEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") + "</StopTime>" : "")
+                    .Replace("<ID/>", "<ID>" + TraceID + "</ID>")
+                    .Replace("<Name/>", "<Name>" + TraceID + "</Name>");
+
+                string ret = ServerExecute(XMLABatch);
+
+                if (ret.Substring(0, "Success".Length) != "Success")
+                    AddItemToStatus("Error starting profiler trace: " + ret);
+                else
+                    AddItemToStatus("Profiler tracing " + (bPerfEvents ? "(including detailed performance relevant events) " : "") + "started to file: " + TraceID + ".trc.");
+
+                if (bGetXMLA || bGetABF)
+                {
+                    XMLABatch = Properties.Resources.DbsCapturedTraceStartXMLA
+                        .Replace("<LogFileName/>", "<LogFileName>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".trc</LogFileName>")
+                        .Replace("<LogFileSize/>", "")
+                        .Replace("<LogFileRollover/>", "")
                         .Replace("<AutoRestart/>", "<AutoRestart>" + bAutoRestart.ToString().ToLower() + "</AutoRestart>")
                         .Replace("<StartTime/>", "")
                         .Replace("<StopTime/>", bUseEnd ? "<StopTime>" + dtEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") + "</StopTime>" : "")
-                        .Replace("<ID/>", "<ID>" + TraceID + "</ID>")
-                        .Replace("<Name/>", "<Name>" + TraceID + "</Name>");
-
-                    string ret = ServerExecute(XMLABatch);
-
-                    if (ret.Substring(0, "Success".Length) != "Success")
-                        AddItemToStatus("Error starting profiler trace: " + ret);
-                    else
-                        AddItemToStatus("Profiler tracing " + (bPerfEvents ? "(including detailed performance relevant events) " : "") + "started to file: " + TraceID + ".trc.");
-
-                    if (bGetXMLA || bGetABF)
-                    {
-                        XMLABatch = Properties.Resources.DbsCapturedTraceStartXMLA
-                            .Replace("<LogFileName/>", "<LogFileName>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".trc</LogFileName>")
-                            .Replace("<LogFileSize/>", "")
-                            .Replace("<LogFileRollover/>", "")
-                            .Replace("<AutoRestart/>", "<AutoRestart>" + bAutoRestart.ToString().ToLower() + "</AutoRestart>")
-                            .Replace("<StartTime/>", "")
-                            .Replace("<StopTime/>", bUseEnd ? "<StopTime>" + dtEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") + "</StopTime>" : "")
-                            .Replace("<ID/>", "<ID>dbsOnly" + TraceID + "</ID>")
-                            .Replace("<Name/>", "<Name>dbsOnly" + TraceID + "</Name>");
-                        ret = ServerExecute(XMLABatch);
-                    }
+                        .Replace("<ID/>", "<ID>dbsOnly" + TraceID + "</ID>")
+                        .Replace("<Name/>", "<Name>dbsOnly" + TraceID + "</Name>");
+                    ret = ServerExecute(XMLABatch);
                 }
-
-                if (bGetNetwork)
-                {
-                    BackgroundWorker bg = new BackgroundWorker();
-                    bg.DoWork += bgGetNetworkWorker;
-                    bg.RunWorkerCompleted += bgGetNetworkCompletion;
-                    bg.RunWorkerAsync();
-                }
-                else
-                    FinalizeStart();
             }
+
+            if (bGetNetwork)
+            {
+                BackgroundWorker bg = new BackgroundWorker();
+                bg.DoWork += bgGetNetworkWorker;
+                bg.RunWorkerCompleted += bgGetNetworkCompletion;
+                bg.RunWorkerAsync();
+            }
+            else
+                FinalizeStart();
         }
         private uint InitializePerfLog(string strSaveAs)
         {
@@ -360,6 +410,14 @@ namespace SSASDiag
                     AddItemToStatus("Stopped performance monitor logging.");
                 }
 
+                if (bGetConfigDetails)
+                {
+                    // Grab those event logs post repro!
+                    EvtExportLog(IntPtr.Zero, "Application", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Application.evtx", EventExportLogFlags.ChannelPath);
+                    EvtExportLog(IntPtr.Zero, "System", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\System.evtx", EventExportLogFlags.ChannelPath);
+                    AddItemToStatus("Collected Application and System event logs.");
+                }
+
                 if (bGetProfiler)
                 {
                     ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
@@ -458,7 +516,6 @@ namespace SSASDiag
                 }
             }
         }
-
         private void GetBAK(string db, Server s)
         {
             foreach (DataSource ds in s.Databases.FindByName(db).DataSources)
@@ -563,9 +620,9 @@ namespace SSASDiag
         }
         private bool PerformBAKBackupAndMoveLocal(OleDbConnection conn, string srvName, string dsName, string ASdbName, string SQLDBName, WindowsImpersonationContext impersonatedUser)
         {
+            string BackupDir = "";
             try
             {
-                string BackupDir = "";
                 OleDbCommand cmd = new OleDbCommand(@"EXEC  master.dbo.xp_instance_regread  N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\MSSQLServer', N'BackupDirectory'", conn);
                 OleDbDataReader rdr = cmd.ExecuteReader();
                 while (rdr.Read())
@@ -597,11 +654,11 @@ namespace SSASDiag
             catch(Exception e)
             {
                 AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + e.Message);
+                AddItemToStatus("Please collect .bak manually from " + BackupDir + " on server " + srvName + ".");
                 return false;
             }
             return true;
         }
-
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
             AddItemToStatus("Stopping network trace.  This may take a while...");
