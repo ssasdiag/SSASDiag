@@ -221,7 +221,6 @@ namespace SSASDiag
             else
             {
                 AddItemToStatus("Failed to capture SPNs.  Rerun as a domain administrator if this configuration detail is required.");
-                AddItemToStatus("Error capturing SPNs: " + sErr.TrimEnd(new char[] {'\r', '\n'}));
             }
 
         }
