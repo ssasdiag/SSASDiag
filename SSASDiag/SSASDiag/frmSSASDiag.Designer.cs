@@ -59,7 +59,7 @@
             this.dtStopTime = new System.Windows.Forms.DateTimePicker();
             this.chkStopTime = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tcSimpleAdvanced = new System.Windows.Forms.TabControl();
             this.tabSimple = new System.Windows.Forms.TabPage();
             this.pnlSimple = new System.Windows.Forms.Panel();
             this.rtbProblemDescription = new System.Windows.Forms.RichTextBox();
@@ -77,7 +77,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).BeginInit();
             this.groupBox1.SuspendLayout();
-            this.tabControl1.SuspendLayout();
+            this.tcSimpleAdvanced.SuspendLayout();
             this.tabSimple.SuspendLayout();
             this.pnlSimple.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tbLevelOfData)).BeginInit();
@@ -457,7 +457,7 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.tabControl1);
+            this.groupBox1.Controls.Add(this.tcSimpleAdvanced);
             this.groupBox1.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox1.Location = new System.Drawing.Point(363, 55);
@@ -469,19 +469,19 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Diagnostics to Capture:";
             // 
-            // tabControl1
+            // tcSimpleAdvanced
             // 
-            this.tabControl1.Controls.Add(this.tabSimple);
-            this.tabControl1.Controls.Add(this.tabAdvanced);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tabControl1.Location = new System.Drawing.Point(0, 13);
-            this.tabControl1.Margin = new System.Windows.Forms.Padding(0);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.Padding = new System.Drawing.Point(0, 0);
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(229, 134);
-            this.tabControl1.TabIndex = 1;
+            this.tcSimpleAdvanced.Controls.Add(this.tabSimple);
+            this.tcSimpleAdvanced.Controls.Add(this.tabAdvanced);
+            this.tcSimpleAdvanced.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tcSimpleAdvanced.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tcSimpleAdvanced.Location = new System.Drawing.Point(0, 13);
+            this.tcSimpleAdvanced.Margin = new System.Windows.Forms.Padding(0);
+            this.tcSimpleAdvanced.Name = "tcSimpleAdvanced";
+            this.tcSimpleAdvanced.Padding = new System.Drawing.Point(0, 0);
+            this.tcSimpleAdvanced.SelectedIndex = 0;
+            this.tcSimpleAdvanced.Size = new System.Drawing.Size(229, 134);
+            this.tcSimpleAdvanced.TabIndex = 1;
             // 
             // tabSimple
             // 
@@ -705,7 +705,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).EndInit();
             this.groupBox1.ResumeLayout(false);
-            this.tabControl1.ResumeLayout(false);
+            this.tcSimpleAdvanced.ResumeLayout(false);
             this.tabSimple.ResumeLayout(false);
             this.pnlSimple.ResumeLayout(false);
             this.pnlSimple.PerformLayout();
@@ -743,7 +743,7 @@
         private System.Windows.Forms.CheckBox chkDeleteRaw;
         private System.Windows.Forms.CheckBox chkZip;
         private System.Windows.Forms.RichTextBox txtStatus;
-        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabControl tcSimpleAdvanced;
         private System.Windows.Forms.TabPage tabSimple;
         private System.Windows.Forms.TabPage tabAdvanced;
         private System.Windows.Forms.Panel pnlDiagnosticsToCollect;

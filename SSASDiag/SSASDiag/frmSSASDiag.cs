@@ -58,7 +58,7 @@ namespace SSASDiag
             dtStartTime.MaxDate = DateTime.Now.AddDays(30);
             cmbProblemType.SelectedIndex = 0;
             tmScrollStart.Interval = 250;
-            tmScrollStart.Tick += TimerScrollStart_Tick;
+            tmScrollStart.Tick += tmLevelOfDataScroll_Tick;
         }
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -253,6 +253,39 @@ namespace SSASDiag
         #endregion BlockingUIComponentsBesidesCapture
 
         #region VariousNonBlockingUIElements
+
+        private void txtStatus_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                string sOut = "";
+                foreach (string s in txtStatus.Lines)
+                    sOut += s + "\r\n";
+                Clipboard.SetData(DataFormats.StringFormat, sOut);
+                ttStatus.Show("Output window text copied to clipboard.", txtStatus, 2500);
+                new Thread(new ThreadStart(new System.Action(() =>
+                {
+                    Thread.Sleep(2500);
+                    txtStatus.Invoke(new System.Action(() => ttStatus.SetToolTip(txtStatus, "")));
+                }))).Start();
+            }
+        }
+        private void btnCapture_MouseEnter(object sender, EventArgs e)
+        {
+            if (btnCapture.Image.Tag as string == "Play")
+                btnCapture.Image = imgPlayLit;
+            else if (btnCapture.Image.Tag as string == "Stop")
+                btnCapture.Image = imgStopLit;
+        }
+        private void btnCapture_MouseLeave(object sender, EventArgs e)
+        {
+            if (btnCapture.Image.Tag as string == "Play Lit")
+                btnCapture.Image = imgPlay;
+            else if (btnCapture.Image.Tag as string == "Stop Lit")
+                btnCapture.Image = imgStop;
+        }
+
+        #region CaptureDetailsUI
         private void chkRollover_CheckedChanged(object sender, EventArgs e)
         {
             if (chkRollover.Checked) udRollover.Enabled = true; else udRollover.Enabled = false;
@@ -284,35 +317,15 @@ namespace SSASDiag
                 chkStopTime.Checked = true;
             }
         }
-        private void chkGetConfigDetails_CheckedChanged(object sender, EventArgs e)
+        private void chkZip_CheckedChanged(object sender, EventArgs e)
         {
-            EnsureSomethingToCapture();
-            UpdateUIIfOnlyNetworkingEnabled();
+            if (!chkZip.Checked)
+                chkDeleteRaw.Checked = false;
         }
-        private void chkGetPerfMon_CheckedChanged(object sender, EventArgs e)
+        private void chkDeleteRaw_CheckedChanged(object sender, EventArgs e)
         {
-            lblInterval.Enabled = udInterval.Enabled = lblInterval2.Enabled = chkGetPerfMon.Checked;
-            SetRolloverAndStartStopEnabledStates();
-            EnsureSomethingToCapture();
-            UpdateUIIfOnlyNetworkingEnabled();
-        }
-        private void chkProfilerPerfDetails_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkProfilerPerfDetails.Checked)
-                chkGetProfiler.Checked = true;
-            UpdateUIIfOnlyNetworkingEnabled();
-        }
-        private void lkFeedback_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start("mailto:SSASDiagChamps@microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
-        }
-        private void lkBugs_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start("https://asprofilertraceimporter.codeplex.com/workitem/list/basic");
-        }
-        private void lkDiscussion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start("https://asprofilertraceimporter.codeplex.com/discussions");
+            if (chkDeleteRaw.Checked)
+                chkZip.Checked = true;
         }
         private void SetRolloverAndStartStopEnabledStates()
         {
@@ -322,89 +335,11 @@ namespace SSASDiag
             dtStartTime.Enabled = chkStartTime.Enabled & chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Enabled & chkStopTime.Checked;
         }
-        private void txtStatus_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                string sOut = "";
-                foreach (string s in txtStatus.Lines)
-                    sOut += s + "\r\n";
-                Clipboard.SetData(DataFormats.StringFormat, sOut);
-                ttStatus.Show("Output window text copied to clipboard.", txtStatus, 2500);
-                new Thread(new ThreadStart(new System.Action(() =>
-                    {
-                        Thread.Sleep(2500);
-                        txtStatus.Invoke(new System.Action(()=>ttStatus.SetToolTip(txtStatus, "")));
-                    }))).Start();
-            }
-        }
-        private void EnsureSomethingToCapture()
-        {
-            btnCapture.Enabled = false;
-            if (chkGetConfigDetails.Checked || chkGetPerfMon.Checked || chkGetProfiler.Checked)
-            {
-                btnCapture.Enabled = true;
-                cbInstances_SelectedIndexChanged(null, null);
-            }
-            else
-                if (chkGetNetwork.Checked)
-                    btnCapture.Enabled = true;
-        }
-        private void TimerScrollStart_Tick(object sender, EventArgs e)
-        {
-            TimeSpan ts = DateTime.Now - dtLastScrollTime;
-            if (ts.TotalMilliseconds > 250 && tbLevelOfData.Value == 1)
-            {
-                tmScrollStart.Stop();
-                ProcessSliderMiddlePosition();
-            }
-        }
-        private void ProcessSliderMiddlePosition()
-        {
-            if (chkABF.Checked)
-            {
-                chkGetProfiler.Checked = true;
-                string baseMsg = "AS .abf backups provide data to execute queries and obtain results, and allow modification of calculation definitions, but not changes "
-                                + "to data definitions requiring reprocessing.  They are the second most optimal dataset to reproduce and investigate issues.\r\n\r\n"
-                                + "However, please note that including database or data source backups may siginificantly increase size of data collected and time required to stop collection.";
-                if (chkXMLA.Checked)
-                    MessageBox.Show("AS backups include database definitions.\nDatabase definitions will be unchecked after you click OK.\r\n\r\n"
-                                    + baseMsg,
-                                  "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                else
-                    MessageBox.Show(baseMsg, "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                chkXMLA.Checked = false;
-            }
-        }
-        private void chkXMLA_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkXMLA.Checked)
-            {
-                if (chkABF.Checked)
-                    chkABF.Checked = false;
-                chkGetProfiler.Checked = true;
-            }
-            else
-                chkBAK.Checked = false;
-            UpdateUIIfOnlyNetworkingEnabled();
-        }
-        private void chkABF_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkABF.Checked)
-                chkGetProfiler.Checked = true;
-            UpdateUIIfOnlyNetworkingEnabled();
-        }
-        private void chkBAK_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkBAK.Checked)
-            {
-                chkGetProfiler.Checked  = chkXMLA.Checked = true;
-                MessageBox.Show("AS database definitions with SQL data source backups provide the optimal dataset to reproduce and investigate any issue.\r\n"
-                    + "\r\nHowever, please note that including database or data source backups may significantly increase size of data collected and time required to stop collection.",
-                    "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            UpdateUIIfOnlyNetworkingEnabled();
-        }
+        #endregion CaptureDetailsUI
+
+        #region DiagnosticsToCaptureUI
+
+        #region SimpleDiagnosticsUI
         private void cmbProblemType_SelectedIndexChanged(object sender, EventArgs e)
         {
             chkGetConfigDetails.Checked = chkGetNetwork.Checked = chkGetPerfMon.Checked = chkGetProfiler.Checked = chkProfilerPerfDetails.Checked = false;
@@ -503,6 +438,98 @@ namespace SSASDiag
             dtLastScrollTime = DateTime.Now;
             tmScrollStart.Start();
         }
+        private void tmLevelOfDataScroll_Tick(object sender, EventArgs e)
+        {
+            TimeSpan ts = DateTime.Now - dtLastScrollTime;
+            if (ts.TotalMilliseconds > 250 && tbLevelOfData.Value == 1)
+            {
+                tmScrollStart.Stop();
+                ProcessSliderMiddlePosition();
+            }
+        }
+        private void ProcessSliderMiddlePosition()
+        {
+            if (chkABF.Checked)
+            {
+                chkGetProfiler.Checked = true;
+                string baseMsg = "AS .abf backups provide data to execute queries and obtain results, and allow modification of calculation definitions, but not changes "
+                                + "to data definitions requiring reprocessing.  They are the second most optimal dataset to reproduce and investigate issues.\r\n\r\n"
+                                + "However, please note that including database or data source backups may siginificantly increase size of data collected and time required to stop collection.";
+                if (chkXMLA.Checked)
+                    MessageBox.Show("AS backups include database definitions.\nDatabase definitions will be unchecked after you click OK.\r\n\r\n"
+                                    + baseMsg,
+                                  "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                else
+                    MessageBox.Show(baseMsg, "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                chkXMLA.Checked = false;
+            }
+        }
+        #endregion SimpleDiagnosticsUI
+
+        #region AdvandedDiagnosticsUI
+        private void chkGetConfigDetails_CheckedChanged(object sender, EventArgs e)
+        {
+            EnsureSomethingToCapture();
+            UpdateUIIfOnlyNetworkingEnabled();
+        }
+        private void chkGetPerfMon_CheckedChanged(object sender, EventArgs e)
+        {
+            lblInterval.Enabled = udInterval.Enabled = lblInterval2.Enabled = chkGetPerfMon.Checked;
+            SetRolloverAndStartStopEnabledStates();
+            EnsureSomethingToCapture();
+            UpdateUIIfOnlyNetworkingEnabled();
+        }
+        private void chkProfilerPerfDetails_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkProfilerPerfDetails.Checked)
+                chkGetProfiler.Checked = true;
+            UpdateUIIfOnlyNetworkingEnabled();
+        }
+        private void chkXMLA_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkXMLA.Checked)
+            {
+                if (chkABF.Checked)
+                    chkABF.Checked = false;
+                chkGetProfiler.Checked = true;
+            }
+            else
+                chkBAK.Checked = false;
+            UpdateUIIfOnlyNetworkingEnabled();
+        }
+        private void chkABF_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkABF.Checked)
+            {
+                chkGetProfiler.Checked = true;
+                if (tcSimpleAdvanced.SelectedIndex == 1)
+                {
+                    string baseMsg = "AS .abf backups provide data to execute queries and obtain results, and allow modification of calculation definitions, but not changes "
+                                + "to data definitions requiring reprocessing.  They are the second most optimal dataset to reproduce and investigate issues.\r\n\r\n"
+                                + "However, please note that including database or data source backups may siginificantly increase size of data collected and time required to stop collection.";
+                    if (chkXMLA.Checked)
+                        MessageBox.Show("AS backups include database definitions.\nDatabase definitions will be unchecked after you click OK.\r\n\r\n"
+                                        + baseMsg,
+                                      "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    else
+                        MessageBox.Show(baseMsg, "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                chkXMLA.Checked = false;
+                chkBAK.Checked = false;
+            }
+            UpdateUIIfOnlyNetworkingEnabled();
+        }
+        private void chkBAK_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkBAK.Checked)
+            {
+                chkGetProfiler.Checked = chkXMLA.Checked = true;
+                MessageBox.Show("AS database definitions with SQL data source backups provide the optimal dataset to reproduce and investigate any issue.\r\n"
+                    + "\r\nHowever, please note that including database or data source backups may significantly increase size of data collected and time required to stop collection.",
+                    "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            UpdateUIIfOnlyNetworkingEnabled();
+        }
         private void chkGetProfiler_CheckedChanged(object sender, EventArgs e)
         {
             chkAutoRestart.Enabled = chkGetProfiler.Checked;
@@ -521,8 +548,8 @@ namespace SSASDiag
         {
             SetRolloverAndStartStopEnabledStates();
             if (chkGetNetwork.Checked && chkRollover.Checked)
-            ttStatus.Show("NOTE: Network traces rollover circularly,\n"
-                        + "always deleting older data automatically.", chkGetNetwork, 2000);
+                ttStatus.Show("NOTE: Network traces rollover circularly,\n"
+                            + "always deleting older data automatically.", chkGetNetwork, 2000);
             if (chkGetNetwork.Checked)
                 MessageBox.Show("Please note that including network traces may significantly increase size of data collected and time required to stop collection.",
                     "Network Trace Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -546,30 +573,36 @@ namespace SSASDiag
                 if (cbInstances.Items.Count > 0) cbInstances.Enabled = true;
             }
         }
-        private void chkZip_CheckedChanged(object sender, EventArgs e)
+        private void EnsureSomethingToCapture()
         {
-            if (!chkZip.Checked)
-                chkDeleteRaw.Checked = false;
+            btnCapture.Enabled = false;
+            if (chkGetConfigDetails.Checked || chkGetPerfMon.Checked || chkGetProfiler.Checked)
+            {
+                btnCapture.Enabled = true;
+                cbInstances_SelectedIndexChanged(null, null);
+            }
+            else
+                if (chkGetNetwork.Checked)
+                btnCapture.Enabled = true;
         }
-        private void chkDeleteRaw_CheckedChanged(object sender, EventArgs e)
+        #endregion AdvandedDiagnosticsUI
+
+        #endregion DiagnosticsToCaptureUI
+
+        #region FeedbackUI
+        private void lkFeedback_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            if (chkDeleteRaw.Checked)
-                chkZip.Checked = true;
+            Process.Start("mailto:SSASDiagChamps@microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
         }
-        private void btnCapture_MouseEnter(object sender, EventArgs e)
+        private void lkBugs_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            if (btnCapture.Image.Tag as string == "Play")
-                btnCapture.Image = imgPlayLit;
-            else if (btnCapture.Image.Tag as string == "Stop")
-                btnCapture.Image = imgStopLit;
+            Process.Start("https://asprofilertraceimporter.codeplex.com/workitem/list/basic");
         }
-        private void btnCapture_MouseLeave(object sender, EventArgs e)
+        private void lkDiscussion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            if (btnCapture.Image.Tag as string == "Play Lit")
-                btnCapture.Image = imgPlay;
-            else if (btnCapture.Image.Tag as string == "Stop Lit")
-                btnCapture.Image = imgStop;
+            Process.Start("https://asprofilertraceimporter.codeplex.com/discussions");
         }
+        #endregion FeedbackUI
         #endregion VariousNonBlockingUIElements
     }
 }
