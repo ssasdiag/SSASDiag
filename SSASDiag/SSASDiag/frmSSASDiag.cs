@@ -99,12 +99,6 @@ namespace SSASDiag
             {
                 if (btnCapture.Image.Tag as string == "Play" || btnCapture.Image.Tag as string == "Play Lit")
                 {
-                    if (chkGetNetwork.Checked)
-                        if (MessageBox.Show("Networking traces significantly extend start and stop time."
-                            + (chkRollover.Checked ? "\n\nAlso note that network traces do not create multiple rollover files, but only rollover in circular fashion." : "")
-                            + "\n\nContinue anyway?", "Network Trace Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1) == DialogResult.No)
-                            return;
-
                     btnCapture.Click -= btnCapture_Click;
                     btnCapture.Image = imgPlayHalfLit;
                     chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
@@ -467,7 +461,7 @@ namespace SSASDiag
                     ttStatus.Show("Including SQL data source backups can increase data collection size and time required to stop collection.", tbLevelOfData, 1500);
                     break;
                 case "Data Corruption":
-                    rtbProblemDescription.Height = 198;
+                    rtbProblemDescription.Height = 200;
                     rtbProblemDescription.Text = "Data corruption issues require minimal collection of config details (including Application and System Event logs), performance monitor logs, basic profiler traces, and AS backups.\r\n\r\n"
                                            + "Including AS backups allows investigation to review corrupt data, in some cases allowing partial or full recovery.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
