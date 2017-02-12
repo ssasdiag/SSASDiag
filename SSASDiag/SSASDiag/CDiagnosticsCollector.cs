@@ -419,8 +419,8 @@ namespace SSASDiag
                 if (bGetConfigDetails)
                 {
                     // Grab those event logs post repro!
-                    EvtExportLog(IntPtr.Zero, "Application", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Application.evtx", EventExportLogFlags.ChannelPath);
-                    EvtExportLog(IntPtr.Zero, "System", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\System.evtx", EventExportLogFlags.ChannelPath);
+                    EvtExportLog(IntPtr.Zero, TraceID + "_Application", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Application.evtx", EventExportLogFlags.ChannelPath);
+                    EvtExportLog(IntPtr.Zero, TraceID + "_System", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\System.evtx", EventExportLogFlags.ChannelPath);
                     AddItemToStatus("Collected Application and System event logs.");
                 }
 
