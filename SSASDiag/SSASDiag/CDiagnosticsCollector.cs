@@ -142,7 +142,7 @@ namespace SSASDiag
                 if (AppDomain.CurrentDomain.GetData("Case") != null && (AppDomain.CurrentDomain.GetData("Case") as string).Trim() != "")
                     AddItemToStatus("Diagnostic collection associated with case number: " + AppDomain.CurrentDomain.GetData("Case"));
                 AddItemToStatus("Collecting on computer " + Environment.MachineName + ".", true);
-                if (sInstanceVersion == "")  // This occurs when we aren't really capturing instance details with Network only capture.
+                if (sInstanceVersion != "")  // This occurs when we aren't really capturing instance details with Network only capture.
                 {
                     AddItemToStatus("Collecting for instance " + (sInstanceName == "" ? "Default instance (MSSQLServer)" : sInstanceName) + ".");
                     AddItemToStatus("The version of the instance is " + sInstanceVersion + ".");
