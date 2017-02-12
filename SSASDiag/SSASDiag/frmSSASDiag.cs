@@ -346,12 +346,15 @@ namespace SSASDiag
         }
         private void EnsureSomethingToCapture()
         {
-            if (!chkGetConfigDetails.Checked && !chkGetNetwork.Checked && !chkGetPerfMon.Checked && !chkGetProfiler.Checked)
-                btnCapture.Enabled = false;
-            else
-                cbInstances_SelectedIndexChanged(null, null);
-            if (!cbInstances.Enabled && chkGetNetwork.Enabled)
+            btnCapture.Enabled = false;
+            if (chkGetConfigDetails.Checked || chkGetPerfMon.Checked || chkGetProfiler.Checked)
+            {
                 btnCapture.Enabled = true;
+                cbInstances_SelectedIndexChanged(null, null);
+            }
+            else
+                if (chkGetNetwork.Checked)
+                    btnCapture.Enabled = true;
         }
         private void TimerScrollStart_Tick(object sender, EventArgs e)
         {
@@ -515,8 +518,8 @@ namespace SSASDiag
                 chkBAK.Checked = false;
                 chkXMLA.Checked = false;
             }
-            EnsureSomethingToCapture();
             UpdateUIIfOnlyNetworkingEnabled();
+            EnsureSomethingToCapture();
         }
         private void chkGetNetwork_CheckedChanged(object sender, EventArgs e)
         {
@@ -524,11 +527,11 @@ namespace SSASDiag
             if (chkGetNetwork.Checked && chkRollover.Checked)
             ttStatus.Show("NOTE: Network traces rollover circularly,\n"
                         + "always deleting older data automatically.", chkGetNetwork, 2000);
-            EnsureSomethingToCapture();
             if (chkGetNetwork.Checked)
                 MessageBox.Show("Please note that including network traces may significantly increase size of data collected and time required to stop collection.",
                     "Network Trace Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             UpdateUIIfOnlyNetworkingEnabled();
+            EnsureSomethingToCapture();
         }
         private void UpdateUIIfOnlyNetworkingEnabled()
         {
