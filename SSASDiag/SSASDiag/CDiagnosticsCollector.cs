@@ -141,13 +141,16 @@ namespace SSASDiag
                 AddItemToStatus("Initializing SSAS diagnostics collection at " + m_StartTime.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
                 if (AppDomain.CurrentDomain.GetData("Case") != null && (AppDomain.CurrentDomain.GetData("Case") as string).Trim() != "")
                     AddItemToStatus("Diagnostic collection associated with case number: " + AppDomain.CurrentDomain.GetData("Case"));
-                AddItemToStatus("Collecting on server " + Environment.MachineName + ".", true);
-                AddItemToStatus("Collecting for instance " + (sInstanceName == "" ? "Default instance (MSSQLServer)" : sInstanceName) + ".");
-                AddItemToStatus("The version of the instance is " + sInstanceVersion + ".");
-                AddItemToStatus("The edition of the instance is " + sInstanceEdition + ".");
-                AddItemToStatus("The instance mode is " + sInstanceMode + ".");
-                AddItemToStatus("The OLAP\\LOG folder for the instance is " + sLogDir + ".");
-                AddItemToStatus("The msmdsrv.ini configuration for the instance at " + sConfigDir + ".");
+                AddItemToStatus("Collecting on computer " + Environment.MachineName + ".", true);
+                if (sInstanceVersion == "")  // This occurs when we aren't really capturing instance details with Network only capture.
+                {
+                    AddItemToStatus("Collecting for instance " + (sInstanceName == "" ? "Default instance (MSSQLServer)" : sInstanceName) + ".");
+                    AddItemToStatus("The version of the instance is " + sInstanceVersion + ".");
+                    AddItemToStatus("The edition of the instance is " + sInstanceEdition + ".");
+                    AddItemToStatus("The instance mode is " + sInstanceMode + ".");
+                    AddItemToStatus("The OLAP\\LOG folder for the instance is " + sLogDir + ".");
+                    AddItemToStatus("The msmdsrv.ini configuration for the instance at " + sConfigDir + ".");
+                }
 
                 if (!Directory.Exists(TraceID + "Output"))
                     Directory.CreateDirectory(TraceID + "Output");
@@ -161,20 +164,22 @@ namespace SSASDiag
                 }
                 AddItemToStatus("Created temporary folder " + TraceID + "Output to collect diagnostic files.");
 
-                // Add explicit full control access for AS service account to our temp output location since server trace is written under that identity.  Genius!
-                try
+                // Add explicit full control access for AS service account to our temp output location since server trace is written under that identity.
+                if (sInstanceVersion != "")
                 {
-                    DirectoryInfo dirInfo = new DirectoryInfo(Environment.CurrentDirectory + "\\" + TraceID + "Output");
-                    DirectorySecurity dirSec = dirInfo.GetAccessControl();
-                    dirSec.AddAccessRule(new FileSystemAccessRule(sServiceAccount, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
-                    dirInfo.SetAccessControl(dirSec);
-                    AddItemToStatus("Added full control for SSAS service account " + sServiceAccount + " to the output directory.");
+                    try
+                    {
+                        DirectoryInfo dirInfo = new DirectoryInfo(Environment.CurrentDirectory + "\\" + TraceID + "Output");
+                        DirectorySecurity dirSec = dirInfo.GetAccessControl();
+                        dirSec.AddAccessRule(new FileSystemAccessRule(sServiceAccount, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
+                        dirInfo.SetAccessControl(dirSec);
+                        AddItemToStatus("Added full control for SSAS service account " + sServiceAccount + " to the output directory.");
+                    }
+                    catch (Exception ex)
+                    {
+                        AddItemToStatus("Adding access permissions for SSAS service account " + sServiceAccount + " to output folder failed:\n\t" + ex.Message);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    AddItemToStatus("Adding access permissions for SSAS service account " + sServiceAccount + " to output folder failed:\n\t" + ex.Message);
-                }
-
 
                 if (bGetConfigDetails)
                 {
@@ -190,6 +195,8 @@ namespace SSASDiag
                     bg.RunWorkerCompleted += bgGetSPNsCompleted;
                     bg.RunWorkerAsync();
                 }
+                else
+                    bgGetSPNsCompleted(null, null);
             }                   
         }
         private void bgGetSPNs(object sender, DoWorkEventArgs e)

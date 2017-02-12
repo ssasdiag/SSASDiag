@@ -65,7 +65,7 @@
             this.rtbProblemDescription = new System.Windows.Forms.RichTextBox();
             this.cmbProblemType = new System.Windows.Forms.ComboBox();
             this.label7 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
+            this.lblLevelOfReproData = new System.Windows.Forms.Label();
             this.tbLevelOfData = new System.Windows.Forms.TrackBar();
             this.tabAdvanced = new System.Windows.Forms.TabPage();
             this.pnlDiagnosticsToCollect = new System.Windows.Forms.Panel();
@@ -334,6 +334,7 @@
             this.ttStatus.SetToolTip(this.chkABF, "Allows execution of queries and modification of calculations, but not changes to " +
         "data structures requiring reprocessing.");
             this.chkABF.UseVisualStyleBackColor = true;
+            this.chkABF.CheckedChanged += new System.EventHandler(this.chkABF_CheckedChanged);
             // 
             // chkProfilerPerfDetails
             // 
@@ -502,7 +503,7 @@
             this.pnlSimple.Controls.Add(this.lblBAK);
             this.pnlSimple.Controls.Add(this.lblABF);
             this.pnlSimple.Controls.Add(this.lblXMLA);
-            this.pnlSimple.Controls.Add(this.label3);
+            this.pnlSimple.Controls.Add(this.lblLevelOfReproData);
             this.pnlSimple.Controls.Add(this.tbLevelOfData);
             this.pnlSimple.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlSimple.Location = new System.Drawing.Point(0, 0);
@@ -526,8 +527,9 @@
             this.cmbProblemType.Items.AddRange(new object[] {
             "Performance",
             "Errors (non-connectivity)",
-            "Connectivity Failures",
             "Incorrect Query Results",
+            "Connectivity Failures",
+            "Connectivity (client/middle-tier only)",
             "Data Corruption"});
             this.cmbProblemType.Location = new System.Drawing.Point(5, 81);
             this.cmbProblemType.Name = "cmbProblemType";
@@ -545,15 +547,15 @@
             this.label7.TabIndex = 7;
             this.label7.Text = "Problem Type";
             // 
-            // label3
+            // lblLevelOfReproData
             // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(29, 5);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(146, 13);
-            this.label3.TabIndex = 3;
-            this.label3.Text = "Level of Data to Provide";
+            this.lblLevelOfReproData.AutoSize = true;
+            this.lblLevelOfReproData.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblLevelOfReproData.Location = new System.Drawing.Point(29, 5);
+            this.lblLevelOfReproData.Name = "lblLevelOfReproData";
+            this.lblLevelOfReproData.Size = new System.Drawing.Size(146, 13);
+            this.lblLevelOfReproData.TabIndex = 3;
+            this.lblLevelOfReproData.Text = "Level of Data to Provide";
             // 
             // tbLevelOfData
             // 
@@ -760,7 +762,7 @@
         private System.Windows.Forms.Label lblBAK;
         private System.Windows.Forms.Label lblABF;
         private System.Windows.Forms.Label lblXMLA;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label lblLevelOfReproData;
         private System.Windows.Forms.TrackBar tbLevelOfData;
     }
 }
