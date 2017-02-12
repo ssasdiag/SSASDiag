@@ -396,6 +396,8 @@ namespace SSASDiag
         }
         private void chkABF_CheckedChanged(object sender, EventArgs e)
         {
+            if (chkABF.Checked)
+                chkGetProfiler.Checked = true;
             UpdateUIIfOnlyNetworkingEnabled();
         }
         private void chkBAK_CheckedChanged(object sender, EventArgs e)
