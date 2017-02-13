@@ -282,12 +282,15 @@
             this.tcCollectionAnalysisTabs.Controls.Add(this.tbCollection);
             this.tcCollectionAnalysisTabs.Controls.Add(this.tbAnalysis);
             this.tcCollectionAnalysisTabs.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tcCollectionAnalysisTabs.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
             this.tcCollectionAnalysisTabs.Location = new System.Drawing.Point(0, 0);
             this.tcCollectionAnalysisTabs.Name = "tcCollectionAnalysisTabs";
             this.tcCollectionAnalysisTabs.SelectedIndex = 0;
             this.tcCollectionAnalysisTabs.Size = new System.Drawing.Size(601, 465);
             this.tcCollectionAnalysisTabs.TabIndex = 21;
+            this.tcCollectionAnalysisTabs.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.tcCollectionAnalysisTabs_DrawItem);
             this.tcCollectionAnalysisTabs.SelectedIndexChanged += new System.EventHandler(this.tcCollectionAnalysisTabs_SelectedIndexChanged);
+            this.tcCollectionAnalysisTabs.Selecting += new System.Windows.Forms.TabControlCancelEventHandler(this.tcCollectionAnalysisTabs_Selecting);
             // 
             // tbCollection
             // 

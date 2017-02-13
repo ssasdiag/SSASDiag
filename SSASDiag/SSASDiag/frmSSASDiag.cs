@@ -113,6 +113,8 @@ namespace SSASDiag
                 {
                     btnCapture.Click -= btnCapture_Click;
                     btnCapture.Image = imgPlayHalfLit;
+                    tbAnalysis.ForeColor = SystemColors.ControlDark;
+                    tcCollectionAnalysisTabs.Refresh();
                     tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
                     ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
                     string TracePrefix = Environment.MachineName + (cbsdi == null ? "" :  "_"
@@ -142,7 +144,15 @@ namespace SSASDiag
                 }
             }
         }
-
+        private void tcCollectionAnalysisTabs_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            TabPage page = tcCollectionAnalysisTabs.TabPages[e.Index];
+            e.Graphics.FillRectangle(new SolidBrush(page.BackColor), e.Bounds);
+            Rectangle paddedBounds = e.Bounds;
+            int yOffset = (e.State == DrawItemState.Selected) ? -2 : 1;
+            paddedBounds.Offset(1, yOffset);
+            TextRenderer.DrawText(e.Graphics, page.Text, Font, paddedBounds, page.ForeColor);
+        }
         #region CaptureStartAndStop
         #region StatusHandlingDuringCapture
         // Minor functions used only while running diagnostic
@@ -166,7 +176,7 @@ namespace SSASDiag
         }       
         private void callback_StopAndFinalizeAllDiagnosticsComplete()
         {
-            chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+            tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
             udRollover.Enabled = chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Checked;
@@ -177,7 +187,8 @@ namespace SSASDiag
             txtStatus.Cursor = Cursors.Default;
             if (bClosing)
                 this.Close();
-            tbAnalysis.Enabled = true;
+            tbAnalysis.ForeColor = SystemColors.ControlText;
+            tcCollectionAnalysisTabs.Refresh();
             dc.CompletionCallback = null;
         }
         #endregion CaptureStartAndStop
@@ -578,6 +589,13 @@ namespace SSASDiag
             UpdateUIIfOnlyNetworkingEnabled();
             EnsureSomethingToCapture();
         }
+
+        private void tcCollectionAnalysisTabs_Selecting(object sender, TabControlCancelEventArgs e)
+        {
+            if (!tbAnalysis.Enabled)
+                e.Cancel = true;
+        }
+
         private void UpdateUIIfOnlyNetworkingEnabled()
         {
             if (chkGetNetwork.Checked && !chkGetProfiler.Checked && !chkGetPerfMon.Checked && !chkGetConfigDetails.Checked && !chkXMLA.Checked && !chkABF.Checked && !chkBAK.Checked)
