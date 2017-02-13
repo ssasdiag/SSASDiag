@@ -11,6 +11,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Threading;
+using System.IO;
 using System.Windows.Forms;
 
 namespace SSASDiag
@@ -18,9 +19,7 @@ namespace SSASDiag
     public partial class frmSSASDiag : Form
     {
         #region locals
-        string m_instanceVersion = "";
-        string m_instanceType = "";
-        string m_instanceEdition = "";
+        string m_instanceVersion, m_instanceType, m_instanceEdition, m_analysisPath = "";
         CDiagnosticsCollector dc;
         string m_LogDir = "", m_ConfigDir = "";  
         List<ComboBoxServiceDetailsItem> LocalInstances = new List<ComboBoxServiceDetailsItem>();
@@ -87,8 +86,12 @@ namespace SSASDiag
             lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 59;
             txtStatus.Width = this.Width - 42;
             txtStatus.Height = this.Height - 266;
+            tcCollectionAnalysisTabs.Height = this.Height - 59;
+            tcAnalysis.Height = this.Height - 119;
         }
         #endregion frmSSASDiagEvents
+
+        #region  CollectionUI
 
         private void btnCapture_Click(object sender, EventArgs e)
         {
@@ -101,7 +104,7 @@ namespace SSASDiag
                 {
                     btnCapture.Click -= btnCapture_Click;
                     btnCapture.Image = imgPlayHalfLit;
-                    chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+                    tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
                     ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
                     string TracePrefix = Environment.MachineName + (cbsdi == null ? "" :  "_"
                         + (cbInstances.SelectedIndex == 0 ? "" : "_" + cbsdi.Text + "_"));
@@ -165,6 +168,7 @@ namespace SSASDiag
             txtStatus.Cursor = Cursors.Default;
             if (bClosing)
                 this.Close();
+            tbAnalysis.Enabled = true;
             dc.CompletionCallback = null;
         }
         #endregion CaptureStartAndStop
@@ -396,16 +400,21 @@ namespace SSASDiag
                     ttStatus.Show("Including SQL data source backups can increase data collection size and time required to stop collection.", tbLevelOfData, 1500);
                     break;
                 case "Data Corruption":
-                    rtbProblemDescription.Height = 200;
+                    rtbProblemDescription.Height = 210;
                     rtbProblemDescription.Text = "Data corruption issues require minimal collection of config details (including Application and System Event logs), performance monitor logs, basic profiler traces, and AS backups.\r\n\r\n"
                                            + "Including AS backups allows investigation to review corrupt data, in some cases allowing partial or full recovery.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
                     chkGetConfigDetails.Checked = true;
                     chkGetProfiler.Checked = true;
                     chkGetPerfMon.Checked = true;
-                    tbLevelOfData.Value = 1;
+                    if (tbLevelOfData.Value != 1)
+                    {
+                        tbLevelOfData.Value = 1;
+                        ProcessSliderMiddlePosition();
+                    }
+                    
                     ttStatus.Show("Including AS backups can increase data collection size and time required to stop collection.", tbLevelOfData, 1500);
-                    ProcessSliderMiddlePosition();
+                    
                     break;
             }
         }
@@ -451,6 +460,7 @@ namespace SSASDiag
         {
             if (chkABF.Checked)
             {
+                tmScrollStart.Stop();
                 chkGetProfiler.Checked = true;
                 string baseMsg = "AS .abf backups provide data to execute queries and obtain results, and allow modification of calculation definitions, but not changes "
                                 + "to data definitions requiring reprocessing.  They are the second most optimal dataset to reproduce and investigate issues.\r\n\r\n"
@@ -588,7 +598,7 @@ namespace SSASDiag
         #endregion AdvandedDiagnosticsUI
 
         #endregion DiagnosticsToCaptureUI
-
+        
         #region FeedbackUI
         private void lkFeedback_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
@@ -603,6 +613,135 @@ namespace SSASDiag
             Process.Start("https://asprofilertraceimporter.codeplex.com/discussions");
         }
         #endregion FeedbackUI
+
         #endregion VariousNonBlockingUIElements
+
+        #endregion CollectionUI
+
+        #region AnalysisUI
+        private void btnAnalysisFolder_Click(object sender, EventArgs e)
+        {
+            BrowseForFolder bff = new BrowseForFolder();
+            bff.Filters.Add("zip");
+            string strPath = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
+            strPath = bff.SelectFolder(lblFolderZipPrompt.Text, txtFolderZipForAnalysis.Text == "" ? strPath : txtFolderZipForAnalysis.Text, this.Handle);
+            if (strPath != null && strPath != "")
+            {
+                txtFolderZipForAnalysis.Text = m_analysisPath = strPath;
+                PopulateAnalysisTabs();
+            }
+        }
+
+        private void PopulateAnalysisTabs()
+        {
+            tcAnalysis.TabPages.Clear();
+
+            if (m_analysisPath != null)
+            {
+                if (m_analysisPath.EndsWith(".zip"))
+                {
+                    Ionic.Zip.ZipFile z = new Ionic.Zip.ZipFile(m_analysisPath);
+                    // Always extract directly into the current running location.
+                    // This ensures we don't accidentally fill up a temp drive or something with large files.
+                    m_analysisPath = AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\")).Replace(".zip", "");
+                    z.ExtractAll(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
+                }
+            }
+            if (Directory.Exists(m_analysisPath))
+            {
+                if (!Directory.Exists(m_analysisPath + "\\Analysis"))
+                    Directory.CreateDirectory(m_analysisPath + "\\Analysis");
+
+                string AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
+
+                if (File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "1.trc"))
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Configuration") { ImageIndex = 0, Name = "Configuration" });
+                    tcAnalysis.TabPages["Configuration"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of configuration details."));
+                }
+                if (Directory.GetFiles(m_analysisPath, "*.mdmp", SearchOption.AllDirectories).Count() > 0)
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Crash Dumps") { ImageIndex = 1, Name = "Crash Dumps" });
+                    tcAnalysis.TabPages["Crash Dumps"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of crash dumps."));
+                }
+                if (File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_Application.evtx") ||
+                    File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_System.evtx"))
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Event Logs") { ImageIndex = 2, Name = "Event Logs" });
+                    tcAnalysis.TabPages["Event Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of event logs."));
+                }
+                if (File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".etl"))
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Network Traces") { ImageIndex = 3 , Name = "Network Traces"});
+                    Process p = new Process();
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.CreateNoWindow = true;
+                    p.StartInfo.RedirectStandardOutput = true;
+                    p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\sqlna.exe";
+                    p.StartInfo.Arguments = "\"" + m_analysisPath + "\\" + AnalysisTraceID + ".etl\" /output \"" + m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log\"";
+                    p.Start();
+                    string sOut = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit();
+                    List<string> sNetworkAnalysis = new List<string>(File.ReadAllLines(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log"));
+                    sNetworkAnalysis.RemoveRange(0, 6);
+                    sNetworkAnalysis.RemoveRange(sNetworkAnalysis.Count - 6, 6);
+                    for (int i = 0; i < sNetworkAnalysis.Count; i++)
+                        sNetworkAnalysis[i] = sNetworkAnalysis[i].TrimStart(' ');
+                    File.WriteAllLines(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log", sNetworkAnalysis);
+                    TextBox txtNetworkAnalysis = GetStatusTextBox();
+                    txtNetworkAnalysis.Text = string.Join("\r\n", sNetworkAnalysis.ToArray());
+                    tcAnalysis.TabPages["Network Traces"].Controls.Add(txtNetworkAnalysis);
+                }
+                if (File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".blg"))
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Performance Logs") { ImageIndex = 4, Name = "Performance Logs" });
+                    tcAnalysis.TabPages["Performance Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of performance logs."));
+                }
+                if (File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "1.trc"))
+                { 
+                    tcAnalysis.TabPages.Add(new TabPage("Profiler Traces") { ImageIndex = 5, Name = "Profiler Traces" });
+                    tcAnalysis.TabPages["Profiler Traces"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of profiler traces."));
+                }
+            }
+        }
+        private TextBox GetStatusTextBox(string Text = "")
+        {
+            TextBox txtStatus = new TextBox();
+            txtStatus.Multiline = true;
+            txtStatus.ReadOnly = true;
+            txtStatus.BackColor = SystemColors.ControlText;
+            txtStatus.ForeColor = Color.LightSkyBlue;
+            txtStatus.Font = this.txtStatus.Font;
+            txtStatus.Dock = DockStyle.Fill;
+            txtStatus.WordWrap = false;
+            txtStatus.ScrollBars = ScrollBars.Both;
+            txtStatus.Text = Text;
+            return txtStatus;
+        }
+
+        private void tcCollectionAnalysisTabs_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (tcCollectionAnalysisTabs.SelectedIndex == 1 && tbAnalysis.Enabled)
+            {
+                if (dc != null)
+                {
+                    if (Directory.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + dc.TraceID + "Output"))
+                    {
+                        m_analysisPath = txtFolderZipForAnalysis.Text = AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + dc.TraceID + "Output";
+                        PopulateAnalysisTabs();
+                    }
+                    else
+                    {
+                        if (File.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + dc.TraceID + ".zip"))
+                        {
+                            m_analysisPath = txtFolderZipForAnalysis.Text = AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + dc.TraceID + ".zip";
+                            PopulateAnalysisTabs();
+                        }
+                    }
+                }
+            }
+        }
+
+        #endregion AnalysisUI
     }
 }

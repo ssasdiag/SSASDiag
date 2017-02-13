@@ -154,10 +154,10 @@
         private System.Windows.Forms.Label lblUser;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtUser;
-        private System.Windows.Forms.TextBox txtPwd;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.TextBox txtStatus;
         private System.Windows.Forms.Button btnOK;
         public System.Windows.Forms.Label lblUserPasswordError;
+        public System.Windows.Forms.TextBox txtPwd;
     }
 }

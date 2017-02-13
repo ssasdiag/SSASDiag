@@ -28,12 +28,16 @@ namespace SSASDiag
         public System.Action CompletionCallback;
         #endregion publics
 
+        #region publics
+        public string TraceID;
+        #endregion publics
+
         #region toomanylocals
         PdhHelper m_PdhHelperInstance = new PdhHelper(false);
         System.Timers.Timer PerfMonAndUIPumpTimer = new System.Timers.Timer();
         RichTextBox txtStatus;
         DateTime m_StartTime = DateTime.Now;
-        string sTracePrefix = "", sInstanceName, sInstanceVersion, sInstanceMode, sInstanceEdition, TraceID, sLogDir, sConfigDir, sServiceAccount;
+        string sTracePrefix = "", sInstanceName, sInstanceVersion, sInstanceMode, sInstanceEdition, sLogDir, sConfigDir, sServiceAccount;
         int iInterval = 0, iRollover = 0, iCurrentTimerTicksSinceLastInterval = 0;
         bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetBAK, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true;
         DateTime dtStart, dtEnd;
@@ -332,7 +336,7 @@ namespace SSASDiag
         }
         private void bgGetNetworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Starting network trace...");
+            AddItemToStatus("Starting network trace.");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -380,7 +384,7 @@ namespace SSASDiag
             else
             {
                 if (slStatus.Count > 0)
-                    AddItemToStatus(slStatus[slStatus.Count - 1] + ".", false, slStatus[slStatus.Count - 1]);
+                    AddItemToStatus(slStatus[slStatus.Count - 1] + " .", false, slStatus[slStatus.Count - 1]);
 
                 if (bRunning)
                 {
@@ -418,9 +422,9 @@ namespace SSASDiag
 
                 if (bGetConfigDetails)
                 {
-                    // Grab those event logs post repro!
-                    EvtExportLog(IntPtr.Zero, TraceID + "_Application", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Application.evtx", EventExportLogFlags.ChannelPath);
-                    EvtExportLog(IntPtr.Zero, TraceID + "_System", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\System.evtx", EventExportLogFlags.ChannelPath);
+                    // Grab event logs post repro
+                    EvtExportLog(IntPtr.Zero, "Application", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\" + TraceID + "_Application.evtx", EventExportLogFlags.ChannelPath);
+                    EvtExportLog(IntPtr.Zero, "System", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\" + TraceID + "_System.evtx", EventExportLogFlags.ChannelPath);
                     AddItemToStatus("Collected Application and System event logs.");
                 }
 
@@ -440,7 +444,7 @@ namespace SSASDiag
                         // Workaround here, costs a few extra seconds to invoke at stop time but worth it
                         // Call the simple X86 ExtractDbNamesFromTrace process from SSASDiag.  
 
-                        AddItemToStatus("Finding databases with queries/commands started/completed during tracing...");
+                        AddItemToStatus("Finding databases with queries/commands started/completed during tracing.");
                         ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
                         Process p = new Process();
                         p.StartInfo.UseShellExecute = false;
@@ -475,7 +479,7 @@ namespace SSASDiag
                             {
                                 if (bGetXMLA)
                                 {
-                                    AddItemToStatus("Extracting database definition XMLA script for " + db + "...");
+                                    AddItemToStatus("Extracting database definition XMLA script for " + db + ".");
                                     MajorObject[] mo = { s.Databases.FindByName(db) };
 
                                     XmlWriter output = XmlWriter.Create(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
@@ -489,7 +493,7 @@ namespace SSASDiag
                                 }
                                 if (bGetABF)
                                 {
-                                    AddItemToStatus("Backing up AS database .abf for " + db + "...");
+                                    AddItemToStatus("Backing up AS database .abf for " + db + ".");
                                     string batch = Properties.Resources.BackupDbXMLA
                                         .Replace("<DatabaseID/>", "<DatabaseID>" + s.Databases.FindByName(db).ID  + "</DatabaseID>")
                                         .Replace("<File/>", "<File>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".abf</File>")
@@ -633,11 +637,11 @@ namespace SSASDiag
                 OleDbDataReader rdr = cmd.ExecuteReader();
                 while (rdr.Read())
                     BackupDir = rdr["Data"] as string;
-                AddItemToStatus("Initiating backup of relational database " + SQLDBName + ".bak on SQL server " + srvName + "...");
+                AddItemToStatus("Initiating backup of relational database " + SQLDBName + ".bak on SQL server " + srvName + ".");
                 cmd = new OleDbCommand(@"BACKUP DATABASE [" + SQLDBName + "] TO  DISK = N'" + BackupDir + "\\SSASDiag_" + SQLDBName + ".bak' WITH NOFORMAT, INIT, NAME = N'SSASDag_" + SQLDBName + "-Full Database Backup', SKIP, NOREWIND, NOUNLOAD, COMPRESSION, STATS = 10", conn);
                 int ret = cmd.ExecuteNonQuery();
                 AddItemToStatus("Database backup completed.");
-                AddItemToStatus("Moving SQL backup to local capture directory...");
+                AddItemToStatus("Moving SQL backup to local capture directory.");
                 try
                 {
                     CopyBAKLocal(srvName, BackupDir, SQLDBName);
@@ -694,7 +698,7 @@ namespace SSASDiag
         }
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Stopping network trace.  This may take a while...");
+            AddItemToStatus("Stopping network trace.  This may take a while.");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -731,7 +735,7 @@ namespace SSASDiag
 
             if (bCompress)
             {
-                AddItemToStatus("Creating zip file of output: " + Environment.CurrentDirectory + "\\" + TraceID + ".zip...");
+                AddItemToStatus("Creating zip file of output: " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
 
                 // Zip up all output into a single zip file.
                 ZipFile z = new ZipFile();
