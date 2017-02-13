@@ -320,8 +320,6 @@
             // chkDeleteRaw
             // 
             this.chkDeleteRaw.AutoSize = true;
-            this.chkDeleteRaw.Checked = true;
-            this.chkDeleteRaw.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkDeleteRaw.Location = new System.Drawing.Point(120, 58);
             this.chkDeleteRaw.Name = "chkDeleteRaw";
             this.chkDeleteRaw.Size = new System.Drawing.Size(144, 17);

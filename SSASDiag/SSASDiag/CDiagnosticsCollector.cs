@@ -582,7 +582,10 @@ namespace SSASDiag
                                 pp.Top = f.Top + f.Height / 2 - pp.Height / 2;
                                 pp.Left = f.Left + f.Width / 2 - pp.Width / 2;
                             }));
+                            txtStatus.Invoke(new System.Action(() => Application.OpenForms["frmSSASDiag"].Enabled = false));
                             pp.ShowDialog();
+                            if (Application.OpenForms["frmSSASDiag"] != null)
+                                txtStatus.Invoke(new System.Action(() => Application.OpenForms["frmSSASDiag"].Enabled = true));
                             if (pp.DialogResult == DialogResult.OK)
                             {
                                 // Impersonate user remotely

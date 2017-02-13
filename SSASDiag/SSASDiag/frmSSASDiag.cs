@@ -74,7 +74,16 @@ namespace SSASDiag
                 }
                 else if (((string)btnCapture.Image.Tag as string).Contains("Half Lit"))
                     if (MessageBox.Show("Diagnostic Capture is in a blocking state.\nForcing exit now may leave locked files and traces in progress.\n\nExit anyway?", "Capture in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
+                    {
                         e.Cancel = true;
+                    }
+                    else
+                    {
+                        if (Application.OpenForms.Count > 1)
+                            Application.OpenForms["PasswordPrompt"].Invoke(new System.Action(()=> Application.OpenForms["PasswordPrompt"].Close()));
+                    }
+
+                
             }
             catch
             {
@@ -329,7 +338,10 @@ namespace SSASDiag
         private void chkDeleteRaw_CheckedChanged(object sender, EventArgs e)
         {
             if (chkDeleteRaw.Checked)
+            {
+                ttStatus.Show("Zipped output must be unzipped for analysis.  Do not delete raw data to avoid this step.", chkDeleteRaw, 4000);
                 chkZip.Checked = true;
+            }
         }
         private void SetRolloverAndStartStopEnabledStates()
         {
