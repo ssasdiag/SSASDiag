@@ -153,6 +153,7 @@ namespace SSASDiag
             paddedBounds.Offset(1, yOffset);
             TextRenderer.DrawText(e.Graphics, page.Text, Font, paddedBounds, page.ForeColor);
         }
+
         #region CaptureStartAndStop
         #region StatusHandlingDuringCapture
         // Minor functions used only while running diagnostic
@@ -378,19 +379,14 @@ namespace SSASDiag
                     rtbProblemDescription.Text = "Performance issues require minimal collection of config details, performance monitor logs, and extended profiler traces including performance relevant details.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
-                    chkGetConfigDetails.Checked = true;
-                    chkGetPerfMon.Checked = true;
-                    chkGetProfiler.Checked = true;
-                    chkProfilerPerfDetails.Checked = true;
+                    chkProfilerPerfDetails.Checked = chkGetProfiler.Checked = chkGetPerfMon.Checked = chkXMLA.Checked = chkGetConfigDetails.Checked = true;
                     break;
                 case "Errors (non-connectivity)":
                     rtbProblemDescription.Height = 170;
                     rtbProblemDescription.Text = "Non-connectivity related errors require minimal collection of config details, performance monitor logs, and basic profiler traces.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
-                    chkGetConfigDetails.Checked = true;
-                    chkGetProfiler.Checked = true;
-                    chkGetPerfMon.Checked = true;
+                    chkGetPerfMon.Checked = chkGetProfiler.Checked = chkGetConfigDetails.Checked = true;
                     break;
                 case "Connectivity Failures":
                     rtbProblemDescription.Height = 287;
@@ -399,10 +395,7 @@ namespace SSASDiag
                                            + "Service Principle Names registered in Active Directory are captured if the tool is run as a domain administrator.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
-                    chkGetConfigDetails.Checked = true;
-                    chkGetProfiler.Checked = true;
-                    chkGetPerfMon.Checked = true;
-                    chkGetNetwork.Checked = true;
+                    chkGetConfigDetails.Checked = chkGetProfiler.Checked = chkGetPerfMon.Checked = chkGetNetwork.Checked = true;
                     break;
                 case "Connectivity (client/middle-tier only)":
                     rtbProblemDescription.Height = 130;
@@ -417,8 +410,7 @@ namespace SSASDiag
                     rtbProblemDescription.Text = "Incorrect results require minimal collection of config details and basic profiler traces, as well as full SQL data source backups.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups allows all experimental changes and full reprocessing of data structures.";
-                    chkGetConfigDetails.Checked = true;
-                    chkGetProfiler.Checked = true;
+                    chkGetConfigDetails.Checked = chkGetProfiler.Checked = true;
                     tbLevelOfData.Value = 2;
                     ttStatus.Show("Including SQL data source backups can increase data collection size and time required to stop collection.", tbLevelOfData, 1500);
                     break;
@@ -427,17 +419,13 @@ namespace SSASDiag
                     rtbProblemDescription.Text = "Data corruption issues require minimal collection of config details (including Application and System Event logs), performance monitor logs, basic profiler traces, and AS backups.\r\n\r\n"
                                            + "Including AS backups allows investigation to review corrupt data, in some cases allowing partial or full recovery.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
-                    chkGetConfigDetails.Checked = true;
-                    chkGetProfiler.Checked = true;
-                    chkGetPerfMon.Checked = true;
+                    chkGetConfigDetails.Checked = chkGetProfiler.Checked = chkGetPerfMon.Checked = true;
                     if (tbLevelOfData.Value != 1)
                     {
                         tbLevelOfData.Value = 1;
                         ProcessSliderMiddlePosition();
                     }
-                    
                     ttStatus.Show("Including AS backups can increase data collection size and time required to stop collection.", tbLevelOfData, 1500);
-                    
                     break;
             }
         }
