@@ -350,7 +350,7 @@ namespace SSASDiag
         {
             if (chkDeleteRaw.Checked)
             {
-                ttStatus.Show("Zipped output must be unzipped for analysis.  Do not delete raw data to avoid this step.", chkDeleteRaw, 4000);
+                ttStatus.Show("After zip, keep raw data for analysis.\r\nThis saves the zip decompression step later.", chkDeleteRaw, 4000);
                 chkZip.Checked = true;
             }
         }
@@ -589,13 +589,11 @@ namespace SSASDiag
             UpdateUIIfOnlyNetworkingEnabled();
             EnsureSomethingToCapture();
         }
-
         private void tcCollectionAnalysisTabs_Selecting(object sender, TabControlCancelEventArgs e)
         {
             if (!tbAnalysis.Enabled)
                 e.Cancel = true;
         }
-
         private void UpdateUIIfOnlyNetworkingEnabled()
         {
             if (chkGetNetwork.Checked && !chkGetProfiler.Checked && !chkGetPerfMon.Checked && !chkGetConfigDetails.Checked && !chkXMLA.Checked && !chkABF.Checked && !chkBAK.Checked)
@@ -661,7 +659,6 @@ namespace SSASDiag
                 PopulateAnalysisTabs();
             }
         }
-
         private void PopulateAnalysisTabs()
         {
             tcAnalysis.TabPages.Clear();
@@ -748,7 +745,6 @@ namespace SSASDiag
             txtStatus.Text = Text;
             return txtStatus;
         }
-
         private void tcCollectionAnalysisTabs_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (tcCollectionAnalysisTabs.SelectedIndex == 1 && tbAnalysis.Enabled)

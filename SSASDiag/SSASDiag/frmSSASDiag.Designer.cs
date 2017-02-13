@@ -104,7 +104,7 @@
             this.lkFeedback.Image = ((System.Drawing.Image)(resources.GetObject("lkFeedback.Image")));
             this.lkFeedback.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkFeedback.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkFeedback.Location = new System.Drawing.Point(12, 465);
+            this.lkFeedback.Location = new System.Drawing.Point(7, 468);
             this.lkFeedback.Name = "lkFeedback";
             this.lkFeedback.Padding = new System.Windows.Forms.Padding(2);
             this.lkFeedback.Size = new System.Drawing.Size(77, 17);
@@ -122,7 +122,7 @@
             this.lkBugs.Image = ((System.Drawing.Image)(resources.GetObject("lkBugs.Image")));
             this.lkBugs.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkBugs.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkBugs.Location = new System.Drawing.Point(95, 465);
+            this.lkBugs.Location = new System.Drawing.Point(90, 468);
             this.lkBugs.Name = "lkBugs";
             this.lkBugs.Padding = new System.Windows.Forms.Padding(2);
             this.lkBugs.Size = new System.Drawing.Size(53, 17);
@@ -140,7 +140,7 @@
             this.lkDiscussion.Image = ((System.Drawing.Image)(resources.GetObject("lkDiscussion.Image")));
             this.lkDiscussion.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkDiscussion.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkDiscussion.Location = new System.Drawing.Point(154, 465);
+            this.lkDiscussion.Location = new System.Drawing.Point(149, 468);
             this.lkDiscussion.Name = "lkDiscussion";
             this.lkDiscussion.Padding = new System.Windows.Forms.Padding(2);
             this.lkDiscussion.Size = new System.Drawing.Size(111, 17);
@@ -155,7 +155,7 @@
             this.lblBAK.AutoSize = true;
             this.lblBAK.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblBAK.ForeColor = System.Drawing.SystemColors.ControlDark;
-            this.lblBAK.Location = new System.Drawing.Point(129, 45);
+            this.lblBAK.Location = new System.Drawing.Point(136, 45);
             this.lblBAK.Name = "lblBAK";
             this.lblBAK.Size = new System.Drawing.Size(75, 12);
             this.lblBAK.TabIndex = 6;
@@ -167,7 +167,7 @@
             this.lblABF.AutoSize = true;
             this.lblABF.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblABF.ForeColor = System.Drawing.SystemColors.ControlDark;
-            this.lblABF.Location = new System.Drawing.Point(72, 45);
+            this.lblABF.Location = new System.Drawing.Point(75, 45);
             this.lblABF.Name = "lblABF";
             this.lblABF.Size = new System.Drawing.Size(55, 12);
             this.lblABF.TabIndex = 5;
@@ -406,7 +406,7 @@
             this.rtbProblemDescription.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.rtbProblemDescription.Location = new System.Drawing.Point(5, 112);
             this.rtbProblemDescription.Name = "rtbProblemDescription";
-            this.rtbProblemDescription.Size = new System.Drawing.Size(196, 240);
+            this.rtbProblemDescription.Size = new System.Drawing.Size(206, 240);
             this.rtbProblemDescription.TabIndex = 120;
             this.rtbProblemDescription.Text = "";
             // 
@@ -422,7 +422,7 @@
             "Data Corruption"});
             this.cmbProblemType.Location = new System.Drawing.Point(5, 81);
             this.cmbProblemType.Name = "cmbProblemType";
-            this.cmbProblemType.Size = new System.Drawing.Size(196, 21);
+            this.cmbProblemType.Size = new System.Drawing.Size(206, 21);
             this.cmbProblemType.TabIndex = 8;
             this.cmbProblemType.SelectedIndexChanged += new System.EventHandler(this.cmbProblemType_SelectedIndexChanged);
             // 
@@ -430,7 +430,7 @@
             // 
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(61, 64);
+            this.label7.Location = new System.Drawing.Point(66, 64);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(82, 13);
             this.label7.TabIndex = 7;
@@ -440,7 +440,7 @@
             // 
             this.lblLevelOfReproData.AutoSize = true;
             this.lblLevelOfReproData.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblLevelOfReproData.Location = new System.Drawing.Point(29, 5);
+            this.lblLevelOfReproData.Location = new System.Drawing.Point(34, 5);
             this.lblLevelOfReproData.Name = "lblLevelOfReproData";
             this.lblLevelOfReproData.Size = new System.Drawing.Size(146, 13);
             this.lblLevelOfReproData.TabIndex = 3;
@@ -449,10 +449,10 @@
             // tbLevelOfData
             // 
             this.tbLevelOfData.LargeChange = 1;
-            this.tbLevelOfData.Location = new System.Drawing.Point(21, 16);
+            this.tbLevelOfData.Location = new System.Drawing.Point(5, 16);
             this.tbLevelOfData.Maximum = 2;
             this.tbLevelOfData.Name = "tbLevelOfData";
-            this.tbLevelOfData.Size = new System.Drawing.Size(163, 45);
+            this.tbLevelOfData.Size = new System.Drawing.Size(199, 45);
             this.tbLevelOfData.TabIndex = 1;
             this.tbLevelOfData.Scroll += new System.EventHandler(this.tbLevelOfData_Scroll);
             this.tbLevelOfData.ValueChanged += new System.EventHandler(this.tbLevelOfData_ValueChanged);
@@ -788,7 +788,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(601, 485);
+            this.ClientSize = new System.Drawing.Size(601, 489);
             this.Controls.Add(this.tcCollectionAnalysisTabs);
             this.Controls.Add(this.lkDiscussion);
             this.Controls.Add(this.lkBugs);
