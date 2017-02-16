@@ -69,7 +69,10 @@ namespace SSASDiag
                         Directory.CreateDirectory(m_analysisPath + "\\Analysis");
 
                     if (z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").Count() > 0)
+                    {
                         z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").First().Extract(m_analysisPath + "\\Analysis", Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                        z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".ldf").First().Extract(m_analysisPath + "\\Analysis", Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                    }
                     else
                        if (z.Entries.Where(f => f.FileName.Contains(".trc")).Count() > 0)
                         foreach (Ionic.Zip.ZipEntry e in z.Entries.Where(f => f.FileName.Contains(".trc")))
@@ -170,65 +173,82 @@ namespace SSASDiag
                     if (File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
                     {
                         AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
+                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
                         ProfilerTraceStatusTextBox.AppendText("Using trace data loaded into SQL .mdf at " + m_analysisPath + "\\Analysis\\.\r\n");
                         ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
                                                                                 + ".mdf\r\n\r\nLocated at:\r\n" + m_analysisPath + "\\Analysis\r\n\r\n"
                                                                                 + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
                                                                                 + "Note:  Whie attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
-                    }
-                    else
-                    {
-                        ValidateProfilerTraceDBConnectionStatus();
-                        try
-                        {
-                            SqlCommand cmd = new SqlCommand(Properties.Resources.CreateDBSQLScript.
-                                                            Replace("<mdfpath/>", m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf").
-                                                            Replace("<ldfpath/>", m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf").
-                                                            Replace("<dbname/>", AnalysisTraceID)
-                                                            , connSqlDb);
-                            int ret = cmd.ExecuteNonQuery();
-                            BackgroundWorker bg = new BackgroundWorker();
-                            bg.DoWork += bgImportProfilerTrace;
-                            bg.RunWorkerCompleted += bgImportProfilerTraceComplete;
-                            bg.RunWorkerAsync(new object[] { ProfilerTraceStatusTextBox, AnalysisTraceID, "Initial Catalog=" + AnalysisTraceID + ";Persist Security Info=False;" + connSqlDb.ConnectionString });
-                        }
-                        catch (SqlException ex)
-                        {
-                            ProfilerTraceStatusTextBox.Text = "Error loading profiler trace: \r\n" + ex.Message;
-                        }
+                        btnImportProfilerTrace.Visible = false;
                     }
                 }
             }
         }
 
-        private void bgImportProfilerTraceComplete(object sender, RunWorkerCompletedEventArgs e)
+        private void btnImportProfilerTrace_Click(object sender, EventArgs e)
         {
-
-
+            btnImportProfilerTrace.Enabled = false;
+            ValidateProfilerTraceDBConnectionStatus();
+            try
+            {
+                BackgroundWorker bg = new BackgroundWorker();
+                bg.DoWork += bgImportProfilerTrace;
+                bg.RunWorkerCompleted += bgImportProfilerTraceComplete;
+                bg.RunWorkerAsync(new object[] { ProfilerTraceStatusTextBox, "Initial Catalog=" + AnalysisTraceID + ";Persist Security Info=False;" + connSqlDb.ConnectionString });
+            }
+            catch (SqlException ex)
+            {
+                ProfilerTraceStatusTextBox.Text = "Error loading profiler trace: \r\n" + ex.Message;
+            }
         }
+
 
         private void bgImportProfilerTrace(object sender, DoWorkEventArgs e)
         {
-            TextBox ProfilerTraceStatusTextBox = (e.Argument as object[])[0] as TextBox;
-            string AnalysisTraceID = (e.Argument as object[])[1] as string;
-            string connstr = (e.Argument as object[])[2] as string;
-            Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ASProfilerTraceImporterCmd.exe";
-            p.StartInfo.Arguments = "\"" + m_analysisPath + "\\" + AnalysisTraceID + "1.trc\" \"" + connstr + "\" \"" + AnalysisTraceID + "\"";
-            p.Start();
-            while (!p.HasExited)
-                ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + p.StandardOutput.ReadLine())));
-            SqlConnection conn = new SqlConnection(connstr.Replace("Initial Catalog=" + AnalysisTraceID, "Initial Catalog=master"));
-            conn.Open();
-            SqlCommand cmd = new SqlCommand("EXEC master.dbo.sp_detach_db @dbname = N'" + AnalysisTraceID + "'", conn);
-            int ret = cmd.ExecuteNonQuery();
-            AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
-            if (txtFolderZipForAnalysis.Text.EndsWith(".zip"))
-                foreach (string file in Directory.EnumerateFiles(m_analysisPath, AnalysisTraceID + "*.trc"))
-                    File.Delete(file);
+            try
+            {
+                SqlCommand cmd = new SqlCommand(Properties.Resources.CreateDBSQLScript.
+                                    Replace("<mdfpath/>", m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf").
+                                    Replace("<ldfpath/>", m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf").
+                                    Replace("<dbname/>", AnalysisTraceID)
+                                    , connSqlDb);
+                int ret = cmd.ExecuteNonQuery();
+
+                TextBox ProfilerTraceStatusTextBox = (e.Argument as object[])[0] as TextBox;
+                string connstr = (e.Argument as object[])[1] as string;
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ASProfilerTraceImporterCmd.exe";
+                p.StartInfo.Arguments = "\"" + m_analysisPath + "\\" + AnalysisTraceID + "1.trc\" \"" + connstr + "\" \"" + AnalysisTraceID + "\"";
+                p.Start();
+                while (!p.HasExited)
+                    ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + p.StandardOutput.ReadLine())));
+                SqlConnection conn = new SqlConnection(connstr.Replace("Initial Catalog=" + AnalysisTraceID, "Initial Catalog=master"));
+                conn.Open();
+                cmd = new SqlCommand("EXEC master.dbo.sp_detach_db @dbname = N'" + AnalysisTraceID + "'", conn);
+                ret = cmd.ExecuteNonQuery();
+                AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
+                AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
+                if (txtFolderZipForAnalysis.Text.EndsWith(".zip"))
+                    foreach (string file in Directory.EnumerateFiles(m_analysisPath, AnalysisTraceID + "*.trc"))
+                        File.Delete(file);
+            }
+            catch (Exception ex)
+            {
+                ProfilerTraceStatusTextBox.Text = "Error loading trace: " + ex.Message;
+            }
+        }
+
+        private void bgImportProfilerTraceComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
+            {
+                btnImportProfilerTrace.Visible = false;
+                tcAnalysis_SelectedIndexChanged(sender, e);
+            }
+            btnImportProfilerTrace.Enabled = true;
         }
 
         private TextBox GetStatusTextBox(string Text = "")
@@ -356,6 +376,11 @@ namespace SSASDiag
                                         return;
                                     }
                                 }
+                            }
+                            else if (ex.Message.Contains("Unable to open the physical file"))
+                            {
+                                ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  Import to perform analysis.";
+                                return;
                             }
                             else
                                 ProfilerTraceStatusTextBox.AppendText("Unable to attach to database due to exception:\r\n" + ex.Message + "\r\n\r\nDeleting .mdf at " + m_analysisPath + " and attempting analysis again will recreate from original captured .trc file if it is still available.\r\n\r\n");

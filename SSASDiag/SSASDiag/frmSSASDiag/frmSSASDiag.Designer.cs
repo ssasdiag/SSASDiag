@@ -79,6 +79,7 @@
             this.tbAnalysis = new System.Windows.Forms.TabPage();
             this.tcAnalysis = new System.Windows.Forms.TabControl();
             this.tbProfilerTraces = new System.Windows.Forms.TabPage();
+            this.btnImportProfilerTrace = new System.Windows.Forms.Button();
             this.chkDettachProfilerAnalysisDBWhenDone = new System.Windows.Forms.CheckBox();
             this.ProfilerTraceStatusTextBox = new System.Windows.Forms.TextBox();
             this.imgAnalyzerIcons = new System.Windows.Forms.ImageList(this.components);
@@ -756,6 +757,7 @@
             // tbProfilerTraces
             // 
             this.tbProfilerTraces.BackColor = System.Drawing.SystemColors.Control;
+            this.tbProfilerTraces.Controls.Add(this.btnImportProfilerTrace);
             this.tbProfilerTraces.Controls.Add(this.chkDettachProfilerAnalysisDBWhenDone);
             this.tbProfilerTraces.Controls.Add(this.ProfilerTraceStatusTextBox);
             this.tbProfilerTraces.ImageIndex = 5;
@@ -765,17 +767,29 @@
             this.tbProfilerTraces.TabIndex = 0;
             this.tbProfilerTraces.Text = "Profiler Traces";
             // 
+            // btnImportProfilerTrace
+            // 
+            this.btnImportProfilerTrace.Location = new System.Drawing.Point(235, 111);
+            this.btnImportProfilerTrace.Name = "btnImportProfilerTrace";
+            this.btnImportProfilerTrace.Size = new System.Drawing.Size(108, 26);
+            this.btnImportProfilerTrace.TabIndex = 2;
+            this.btnImportProfilerTrace.Text = "Import and &Analyze";
+            this.btnImportProfilerTrace.UseVisualStyleBackColor = true;
+            this.btnImportProfilerTrace.Click += new System.EventHandler(this.btnImportProfilerTrace_Click);
+            // 
             // chkDettachProfilerAnalysisDBWhenDone
             // 
             this.chkDettachProfilerAnalysisDBWhenDone.AutoSize = true;
             this.chkDettachProfilerAnalysisDBWhenDone.Checked = true;
             this.chkDettachProfilerAnalysisDBWhenDone.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkDettachProfilerAnalysisDBWhenDone.Location = new System.Drawing.Point(82, 111);
+            this.chkDettachProfilerAnalysisDBWhenDone.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.chkDettachProfilerAnalysisDBWhenDone.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkDettachProfilerAnalysisDBWhenDone.Location = new System.Drawing.Point(0, 355);
             this.chkDettachProfilerAnalysisDBWhenDone.Name = "chkDettachProfilerAnalysisDBWhenDone";
-            this.chkDettachProfilerAnalysisDBWhenDone.Size = new System.Drawing.Size(414, 17);
+            this.chkDettachProfilerAnalysisDBWhenDone.Size = new System.Drawing.Size(579, 16);
             this.chkDettachProfilerAnalysisDBWhenDone.TabIndex = 1;
-            this.chkDettachProfilerAnalysisDBWhenDone.Text = "Dettach the portable analysis database when leaving analysis pane or exiting tool" +
-    "?";
+            this.chkDettachProfilerAnalysisDBWhenDone.Text = "Detach trace database imported for analysis when leaving analysis pane or exiting" +
+    " tool";
             this.chkDettachProfilerAnalysisDBWhenDone.UseVisualStyleBackColor = true;
             // 
             // ProfilerTraceStatusTextBox
@@ -926,6 +940,7 @@
         private System.Windows.Forms.TabPage tbProfilerTraces;
         private System.Windows.Forms.TextBox ProfilerTraceStatusTextBox;
         private System.Windows.Forms.CheckBox chkDettachProfilerAnalysisDBWhenDone;
+        private System.Windows.Forms.Button btnImportProfilerTrace;
     }
 }
 
