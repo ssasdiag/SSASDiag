@@ -78,6 +78,9 @@
             this.lblInterval2 = new System.Windows.Forms.Label();
             this.tbAnalysis = new System.Windows.Forms.TabPage();
             this.tcAnalysis = new System.Windows.Forms.TabControl();
+            this.tbProfilerTraces = new System.Windows.Forms.TabPage();
+            this.chkDettachProfilerAnalysisDBWhenDone = new System.Windows.Forms.CheckBox();
+            this.ProfilerTraceStatusTextBox = new System.Windows.Forms.TextBox();
             this.imgAnalyzerIcons = new System.Windows.Forms.ImageList(this.components);
             this.btnAnalysisFolder = new System.Windows.Forms.Button();
             this.txtFolderZipForAnalysis = new System.Windows.Forms.TextBox();
@@ -94,6 +97,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.udInterval)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).BeginInit();
             this.tbAnalysis.SuspendLayout();
+            this.tcAnalysis.SuspendLayout();
+            this.tbProfilerTraces.SuspendLayout();
             this.SuspendLayout();
             // 
             // lkFeedback
@@ -735,6 +740,7 @@
             // 
             // tcAnalysis
             // 
+            this.tcAnalysis.Controls.Add(this.tbProfilerTraces);
             this.tcAnalysis.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.tcAnalysis.ImageList = this.imgAnalyzerIcons;
             this.tcAnalysis.ItemSize = new System.Drawing.Size(0, 26);
@@ -745,6 +751,45 @@
             this.tcAnalysis.SelectedIndex = 0;
             this.tcAnalysis.Size = new System.Drawing.Size(587, 405);
             this.tcAnalysis.TabIndex = 23;
+            this.tcAnalysis.SelectedIndexChanged += new System.EventHandler(this.tcAnalysis_SelectedIndexChanged);
+            // 
+            // tbProfilerTraces
+            // 
+            this.tbProfilerTraces.BackColor = System.Drawing.SystemColors.Control;
+            this.tbProfilerTraces.Controls.Add(this.chkDettachProfilerAnalysisDBWhenDone);
+            this.tbProfilerTraces.Controls.Add(this.ProfilerTraceStatusTextBox);
+            this.tbProfilerTraces.ImageIndex = 5;
+            this.tbProfilerTraces.Location = new System.Drawing.Point(4, 30);
+            this.tbProfilerTraces.Name = "tbProfilerTraces";
+            this.tbProfilerTraces.Size = new System.Drawing.Size(579, 371);
+            this.tbProfilerTraces.TabIndex = 0;
+            this.tbProfilerTraces.Text = "Profiler Traces";
+            // 
+            // chkDettachProfilerAnalysisDBWhenDone
+            // 
+            this.chkDettachProfilerAnalysisDBWhenDone.AutoSize = true;
+            this.chkDettachProfilerAnalysisDBWhenDone.Checked = true;
+            this.chkDettachProfilerAnalysisDBWhenDone.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkDettachProfilerAnalysisDBWhenDone.Location = new System.Drawing.Point(82, 111);
+            this.chkDettachProfilerAnalysisDBWhenDone.Name = "chkDettachProfilerAnalysisDBWhenDone";
+            this.chkDettachProfilerAnalysisDBWhenDone.Size = new System.Drawing.Size(414, 17);
+            this.chkDettachProfilerAnalysisDBWhenDone.TabIndex = 1;
+            this.chkDettachProfilerAnalysisDBWhenDone.Text = "Dettach the portable analysis database when leaving analysis pane or exiting tool" +
+    "?";
+            this.chkDettachProfilerAnalysisDBWhenDone.UseVisualStyleBackColor = true;
+            // 
+            // ProfilerTraceStatusTextBox
+            // 
+            this.ProfilerTraceStatusTextBox.BackColor = System.Drawing.Color.Black;
+            this.ProfilerTraceStatusTextBox.Dock = System.Windows.Forms.DockStyle.Top;
+            this.ProfilerTraceStatusTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ProfilerTraceStatusTextBox.ForeColor = System.Drawing.Color.LightSkyBlue;
+            this.ProfilerTraceStatusTextBox.Location = new System.Drawing.Point(0, 0);
+            this.ProfilerTraceStatusTextBox.Multiline = true;
+            this.ProfilerTraceStatusTextBox.Name = "ProfilerTraceStatusTextBox";
+            this.ProfilerTraceStatusTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.ProfilerTraceStatusTextBox.Size = new System.Drawing.Size(579, 105);
+            this.ProfilerTraceStatusTextBox.TabIndex = 0;
             // 
             // imgAnalyzerIcons
             // 
@@ -817,6 +862,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.udRollover)).EndInit();
             this.tbAnalysis.ResumeLayout(false);
             this.tbAnalysis.PerformLayout();
+            this.tcAnalysis.ResumeLayout(false);
+            this.tbProfilerTraces.ResumeLayout(false);
+            this.tbProfilerTraces.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -875,6 +923,9 @@
         private System.Windows.Forms.Label lblFolderZipPrompt;
         private System.Windows.Forms.TabControl tcAnalysis;
         private System.Windows.Forms.ImageList imgAnalyzerIcons;
+        private System.Windows.Forms.TabPage tbProfilerTraces;
+        private System.Windows.Forms.TextBox ProfilerTraceStatusTextBox;
+        private System.Windows.Forms.CheckBox chkDettachProfilerAnalysisDBWhenDone;
     }
 }
 

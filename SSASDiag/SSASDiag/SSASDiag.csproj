@@ -82,6 +82,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
@@ -101,28 +102,46 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CDiagnosticsCollector.cs" />
-    <Compile Include="FolderFileDialog.cs" />
-    <Compile Include="frmSSASDiag.cs">
+    <Compile Include="frmSSASDiag\FolderFileDialog.cs" />
+    <Compile Include="frmSSASDiag\frmSSASDiag.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmSSASDiag.Designer.cs">
+    <Compile Include="frmSSASDiag\frmSSASDiag.Designer.cs">
       <DependentUpon>frmSSASDiag.cs</DependentUpon>
     </Compile>
-    <Compile Include="PasswordPrompt.cs">
+    <Compile Include="frmPasswordPrompt.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="PasswordPrompt.Designer.cs">
-      <DependentUpon>PasswordPrompt.cs</DependentUpon>
+    <Compile Include="frmPasswordPrompt.Designer.cs">
+      <DependentUpon>frmPasswordPrompt.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmSSASDiag\AnalysisUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSSASDiag\CaptureStartStop.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSSASDiag\CollectionUI.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="PdhNative.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="frmSSASDiag.resx">
+    <Compile Include="frmSimpleSQLServerPrompt.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSimpleSQLServerPrompt.Designer.cs">
+      <DependentUpon>frmSimpleSQLServerPrompt.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="frmSimpleSQLServerPrompt.resx">
+      <DependentUpon>frmSimpleSQLServerPrompt.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmSSASDiag\frmSSASDiag.resx">
       <DependentUpon>frmSSASDiag.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="PasswordPrompt.resx">
-      <DependentUpon>PasswordPrompt.cs</DependentUpon>
+    <EmbeddedResource Include="frmPasswordPrompt.resx">
+      <DependentUpon>frmPasswordPrompt.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -181,6 +200,7 @@
     <None Include="Resources\stop-button-lit.png" />
     <None Include="Resources\play-half-lit.png" />
     <None Include="Resources\stop-button-half-lit.png" />
+    <None Include="Resources\ASProfilerTraceImporterCmd.exe" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

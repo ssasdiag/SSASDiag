@@ -29,8 +29,7 @@ namespace SSASDiag
             // Setup custom app domain to launch real assembly from temp location, and act as singleton also...
             if (AppDomain.CurrentDomain.BaseDirectory != m_strPrivateTempBinPath)
             {
-                bool bScheduleUpdateOfBin = false;
-                string sNewBin = Environment.GetEnvironmentVariable("temp") + "\\ssasdiag_newbin_tmp";
+                string sNewBin = Environment.GetEnvironmentVariable("temp") + "\\ssasdiag\\newbin_tmp";
 
                 int ret = 0;
 
@@ -54,8 +53,7 @@ namespace SSASDiag
                         {
                             System.IO.Compression.ZipFile.ExtractToDirectory(f, m_strPrivateTempBinPath);
                         }
-                        catch { } // I deliberately ignore this exception.  I may occasionally fail to extract if files are already there due to some prior crashed run or something.  Just move on from it.  If it is truly unrecoverable we will blow up later then.  :)           
-
+                        catch (Exception ex) { Debug.WriteLine(ex.Message); } // I deliberately ignore this exception.  I may occasionally fail to extract if files are already there due to some prior crashed run or something.  Just move on from it.  If it is truly unrecoverable we will blow up later then.  :)           
                 try
                 {
                     // Initialize the new app domain from temp location...
@@ -99,8 +97,18 @@ namespace SSASDiag
                                     Stream newBin = File.OpenWrite(sNewBin);
                                     req.GetResponse().GetResponseStream().CopyTo(newBin);
                                     newBin.Close();
-                                    MessageBox.Show("SSASDiag has an update!  Restart to use the updated version.", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                    bScheduleUpdateOfBin = true;
+                                    if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.OK)
+                                    {
+                                        Process p = new Process();
+                                        p.StartInfo.UseShellExecute = false;
+                                        p.StartInfo.CreateNoWindow = true;
+                                        p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                                        p.StartInfo.FileName = "cmd.exe";
+                                        p.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 1500 > nul & move /y \"" + sNewBin + "\" " + Assembly.GetEntryAssembly().Location + " & " + Assembly.GetEntryAssembly().Location;
+                                        p.Start();
+                                        AppDomain.Unload(tempDomain);
+                                        return;
+                                    }
                                 }
                                 tempDomain.SetData("Case", Case);
                             }
@@ -111,11 +119,11 @@ namespace SSASDiag
                     // Execute the domain.
                     ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName);
 
-                    //  Finally unload our actual executing AppDomain after finished from temp directory, to delete the files there...
-                    AppDomain.Unload(tempDomain);
-
-
+                    //  Finally unload our actual executing AppDomain after finished from temp directory, to delete the files there...)
+                    try { AppDomain.Unload(tempDomain); } catch { }
                 }
+                catch (AppDomainUnloadedException)
+                { /* This happens normally if we terminate due to update process... */ }
                 catch (Exception ex)
                 {
                     // This is the generic exception handler from the top level default AppDomain, 
@@ -140,20 +148,14 @@ namespace SSASDiag
                     Process.Start("mailto:jon.burchel@mcirosoft.com?subject=" + "SSASDiag error");
                 }
 
-
-                try { Directory.Delete(m_strPrivateTempBinPath, true); } catch { /* ignore failures on cleanup */ }
-
-                // Don't forget to kick off the file replacement copy to run 2s after we complete if there was a new version!  ;)
-                if (bScheduleUpdateOfBin)
-                {
-                    Process p = new Process();
-                    p.StartInfo.UseShellExecute = false;
-                    p.StartInfo.CreateNoWindow = true;
-                    p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                    p.StartInfo.FileName = "cmd.exe";
-                    p.StartInfo.Arguments = "/c ping 127.0.0.1 -n 2 > nul & move /y \"" + sNewBin + "\" " + Assembly.GetEntryAssembly().Location;
-                    p.Start();
-                }
+                // Cleanup temp bin after exit...
+                Process pp = new Process();
+                pp.StartInfo.UseShellExecute = false;
+                pp.StartInfo.CreateNoWindow = true;
+                pp.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                pp.StartInfo.FileName = "cmd.exe";
+                pp.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 500 > nul & del /q /f /s \"" + m_strPrivateTempBinPath.Trim('\\') + "\"";
+                pp.Start();
 
                 // After the inner app domain exits
                 Environment.ExitCode = ret;

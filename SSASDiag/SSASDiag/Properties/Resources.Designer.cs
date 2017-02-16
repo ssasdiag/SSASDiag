@@ -61,6 +61,16 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ASProfilerTraceImporterCmd {
+            get {
+                object obj = ResourceManager.GetObject("ASProfilerTraceImporterCmd", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;Backup xmlns=&quot;http://schemas.microsoft.com/analysisservices/2003/engine&quot;&gt;
         ///  &lt;Object&gt;
         ///    &lt;DatabaseID/&gt;
@@ -72,6 +82,22 @@ namespace SSASDiag.Properties {
         internal static string BackupDbXMLA {
             get {
                 return ResourceManager.GetString("BackupDbXMLA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IF  NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N&apos;&lt;dbname/&gt;&apos;)
+        ///CREATE DATABASE [&lt;dbname/&gt;]
+        /// CONTAINMENT = NONE
+        /// ON  PRIMARY 
+        ///( NAME = N&apos;test&apos;, FILENAME = N&apos;&lt;mdfpath/&gt;&apos; , SIZE = 4096KB , FILEGROWTH = 1024KB )
+        /// LOG ON 
+        ///( NAME = N&apos;test_log&apos;, FILENAME = N&apos;&lt;ldfpath/&gt;&apos; , SIZE = 1024KB , FILEGROWTH = 10%)
+        ///.
+        /// </summary>
+        internal static string CreateDBSQLScript {
+            get {
+                return ResourceManager.GetString("CreateDBSQLScript", resourceCulture);
             }
         }
         
@@ -98,6 +124,15 @@ namespace SSASDiag.Properties {
         internal static string DbsCapturedTraceStartXMLA {
             get {
                 return ResourceManager.GetString("DbsCapturedTraceStartXMLA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N&apos;[dbo].[ProfilerEventClass]&apos;) AND type in (N&apos;U&apos;)) DROP TABLE [dbo].[ProfilerEventClass]; CREATE TABLE [dbo].[ProfilerEventClass]([EventClassID] [int] NOT NULL, [Name] [nvarchar](50) NULL, [Description] [nvarchar](500) NULL, CONSTRAINT [PK_ProfilerEventClass] PRIMARY KEY CLUSTERED ([EventClassID] ASC) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]) ON [PRIMAR [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string EventClassSubClassTablesScript {
+            get {
+                return ResourceManager.GetString("EventClassSubClassTablesScript", resourceCulture);
             }
         }
         

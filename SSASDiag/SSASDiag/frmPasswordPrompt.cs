@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SSASDiag
 {
-    public partial class PasswordPrompt : Form
+    public partial class frmPasswordPrompt : Form
     {
         public string Password
         {
@@ -32,7 +32,7 @@ namespace SSASDiag
             set { txtStatus.Text = value; }
         }
 
-        public PasswordPrompt()
+        public frmPasswordPrompt()
         {
             InitializeComponent();
         }

@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSASDiag", "SSASDiag\SSASDi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractDbNamesFromTrace", "ExtractDbNamesFromTrace\ExtractDbNamesFromTrace.csproj", "{9E72E182-4640-419F-9EAD-CBE00B76DDA3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASProfilerTraceImporterCmd", "ASProfilerTraceImporterCmd\ASProfilerTraceImporterCmd.csproj", "{6EF241B1-63F3-4389-BFB1-E973B82FDAF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{9E72E182-4640-419F-9EAD-CBE00B76DDA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E72E182-4640-419F-9EAD-CBE00B76DDA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E72E182-4640-419F-9EAD-CBE00B76DDA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EF241B1-63F3-4389-BFB1-E973B82FDAF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EF241B1-63F3-4389-BFB1-E973B82FDAF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EF241B1-63F3-4389-BFB1-E973B82FDAF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EF241B1-63F3-4389-BFB1-E973B82FDAF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

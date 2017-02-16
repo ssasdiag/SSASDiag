@@ -22,5 +22,17 @@ namespace SSASDiag.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(".")]
+        public string SqlForProfilerTraceAnalysis {
+            get {
+                return ((string)(this["SqlForProfilerTraceAnalysis"]));
+            }
+            set {
+                this["SqlForProfilerTraceAnalysis"] = value;
+            }
+        }
     }
 }

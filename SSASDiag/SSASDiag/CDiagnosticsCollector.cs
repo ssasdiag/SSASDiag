@@ -384,7 +384,15 @@ namespace SSASDiag
             else
             {
                 if (slStatus.Count > 0)
-                    AddItemToStatus(slStatus[slStatus.Count - 1] + " .", false, slStatus[slStatus.Count - 1]);
+                {
+                    AddItemToStatus(slStatus[slStatus.Count - 1] + (slStatus[slStatus.Count - 1].Length - slStatus[slStatus.Count - 1].LastIndexOf(" ") < 4 ? "." : " ."), false, slStatus[slStatus.Count - 1]);
+                    if (slStatus[slStatus.Count - 1].StartsWith("Executing AS server command to stop profiler trace... ..."))
+                    {
+                        AddItemToStatus("\r\nProfiler tracing usually completes instantly.  Since it has not completed yet, the server may be hung.  "
+                                      + "You may need to manually stop the SSAS service or kill the msmdsrv.exe process to complete capture of the diagnostic then.  "
+                                      + "All other diagnostics have been stopped already, so this may only impact the data not yet flushed to file for the Profiler trace, even in a worst case scenario.\r\n");
+                    }
+                }
 
                 if (bRunning)
                 {
@@ -428,8 +436,27 @@ namespace SSASDiag
                     AddItemToStatus("Collected Application and System event logs.");
                 }
 
+                if (bGetNetwork)
+                {
+                    BackgroundWorker bgStopNetwork = new BackgroundWorker();
+                    bgStopNetwork.DoWork += bgStopNewtworkWorker;
+                    bgStopNetwork.RunWorkerCompleted += bgStopNetworkComplete;
+                    bgStopNetwork.RunWorkerAsync();
+                }
+                else
+                {
+                    // Zip the data as last background worker process, 
+                    // from here if we skipped network traces,
+                    // otherwise, from network trace completion below.
+                    BackgroundWorker bgZipData = new BackgroundWorker();
+                    bgZipData.DoWork += bgZipDataWorker;
+                    bgZipData.RunWorkerCompleted += bgZipData_Completion;
+                    bgZipData.RunWorkerAsync();
+                }
+
                 if (bGetProfiler)
                 {
+                    AddItemToStatus("Executing AS server command to stop profiler trace...");
                     ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
                     AddItemToStatus("Stopped profiler trace.");
 
@@ -506,24 +533,6 @@ namespace SSASDiag
                         }
                     }
                 }
-
-                if (bGetNetwork)
-                {
-                    BackgroundWorker bgStopNetwork = new BackgroundWorker();
-                    bgStopNetwork.DoWork += bgStopNewtworkWorker;
-                    bgStopNetwork.RunWorkerCompleted += bgStopNetworkComplete;
-                    bgStopNetwork.RunWorkerAsync();
-                }
-                else
-                {
-                    // Zip the data as last background worker process, 
-                    // from here if we skipped network traces,
-                    // otherwise, from network trace completion below.
-                    BackgroundWorker bgZipData = new BackgroundWorker();
-                    bgZipData.DoWork += bgZipDataWorker;
-                    bgZipData.RunWorkerCompleted += bgZipData_Completion;
-                    bgZipData.RunWorkerAsync();
-                }
             }
         }
         private void GetBAK(string db, Server s)
@@ -568,7 +577,7 @@ namespace SSASDiag
                     if (ex.Message.StartsWith("Login failed"))
                     {
                         // If it fails the first try, prompt for remote admin
-                        PasswordPrompt pp = new PasswordPrompt();
+                        frmPasswordPrompt pp = new frmPasswordPrompt();
                         pp.UserMessage = "Windows Administrator required for remote server:\r\n" + srvName
                             + "\r\n\r\nFor data source name:\r\n" + ds.Name
                             + "\r\n\r\nIn AS database:\r\n" + db;
