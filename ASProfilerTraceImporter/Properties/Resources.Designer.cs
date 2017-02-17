@@ -82,39 +82,9 @@ namespace ASProfilerTraceImporter.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] Microsoft_Data_ConnectionUI {
+        internal static byte[] ResourcesMember {
             get {
-                object obj = ResourceManager.GetObject("Microsoft_Data_ConnectionUI", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Microsoft_Data_ConnectionUI_Dialog {
-            get {
-                object obj = ResourceManager.GetObject("Microsoft_Data_ConnectionUI_Dialog", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Microsoft_SqlServer_ConnectionInfo {
-            get {
-                object obj = ResourceManager.GetObject("Microsoft_SqlServer_ConnectionInfo", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Microsoft_SqlServer_ConnectionInfoExtended {
-            get {
-                object obj = ResourceManager.GetObject("Microsoft_SqlServer_ConnectionInfoExtended", resourceCulture);
+                object obj = ResourceManager.GetObject("Resources", resourceCulture);
                 return ((byte[])(obj));
             }
         }

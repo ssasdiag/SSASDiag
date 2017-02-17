@@ -6,6 +6,11 @@ using System.Windows.Forms;
 using System.Reflection;
 using Microsoft.Win32;
 using System.IO;
+using System.Resources;
+using System.Collections;
+using System.Globalization;
+using System.IO.Compression;
+using System.Diagnostics;
 
 namespace ASProfilerTraceImporter
 {
@@ -29,15 +34,28 @@ namespace ASProfilerTraceImporter
                 r.SetValue("", "\"" + Application.ExecutablePath + "\" \"%1\"");
                 Registry.ClassesRoot.OpenSubKey("SystemFileAssociations\\.trc\\shell\\import", true).SetValue("", "&Import profiler trace to SQL table");
 
-                if (!Directory.Exists(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll"))
-                    Directory.CreateDirectory(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll").Attributes = FileAttributes.Directory | FileAttributes.Hidden;
-                else
-                    foreach (string f in Directory.EnumerateFiles(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll"))  File.Delete(f); 
 
-                if (!File.Exists(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\Microsoft.Data.ConnectionUI.dll")) File.WriteAllBytes(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\Microsoft.Data.ConnectionUI.dll", Properties.Resources.Microsoft_Data_ConnectionUI);
-                if (!File.Exists(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\Microsoft.Data.ConnectionUI.Dialog.dll")) File.WriteAllBytes(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\Microsoft.Data.ConnectionUI.Dialog.dll", Properties.Resources.Microsoft_Data_ConnectionUI_Dialog);
-                if (!File.Exists(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\Microsoft.SqlServer.ConnectionInfo.dll")) File.WriteAllBytes(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\Microsoft.SqlServer.ConnectionInfo.dll", Properties.Resources.Microsoft_SqlServer_ConnectionInfo);
-                if (!File.Exists(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\Microsoft.SqlServer.ConnectionInfoExtended.dll")) File.WriteAllBytes(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\Microsoft.SqlServer.ConnectionInfoExtended.dll", Properties.Resources.Microsoft_SqlServer_ConnectionInfoExtended);
+                ResourceManager rm = Properties.Resources.ResourceManager;
+                ResourceSet rs = rm.GetResourceSet(new CultureInfo("en-US"), true, true);
+                IDictionaryEnumerator de = rs.GetEnumerator();
+                while (de.MoveNext() == true)
+                    if (de.Entry.Value is byte[])
+                        try
+                        {
+                            File.WriteAllBytes(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\"
+                                          + de.Key.ToString().Replace('_', '.') + (de.Key.ToString() == "Resources" ? ".zip" : ".exe"),
+                                          de.Entry.Value as byte[]);
+                        }
+                        catch { } // may fail if file is in use, fine...
+
+                foreach (string f in Directory.GetFiles(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\"))
+                    if (f.EndsWith(".zip"))
+                        try
+                        {
+                            System.IO.Compression.ZipFile.ExtractToDirectory(f, Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\");
+                        }
+                        catch (Exception ex) { Debug.WriteLine(ex.Message); } // I deliberately ignore this exception.  I may occasionally fail to extract if files are already there due to some prior crashed run or something.  Just move on from it.  If it is truly unrecoverable we will blow up later then.  :)           
+
                 if (!File.Exists(Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\AS Profiler Trace Importer.exe")) File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\ASProfilerTraceImporter\\dll\\AS Profiler Trace Importer.exe");
 
                 var currentAssembly = Assembly.GetExecutingAssembly();
