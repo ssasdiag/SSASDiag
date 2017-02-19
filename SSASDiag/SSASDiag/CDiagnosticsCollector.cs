@@ -336,7 +336,7 @@ namespace SSASDiag
         }
         private void bgGetNetworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Starting network trace.");
+            AddItemToStatus("Starting network trace...");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -385,7 +385,7 @@ namespace SSASDiag
             {
                 if (slStatus.Count > 0)
                 {
-                    AddItemToStatus(slStatus[slStatus.Count - 1] + (slStatus[slStatus.Count - 1].Length - slStatus[slStatus.Count - 1].LastIndexOf(" ") < 4 ? "." : " ."), false, slStatus[slStatus.Count - 1]);
+                    AddItemToStatus(slStatus[slStatus.Count - 1] + (slStatus[slStatus.Count - 1].Length - slStatus[slStatus.Count - 1].LastIndexOf(" ") < 4 ? "." : " "), false, slStatus[slStatus.Count - 1]);
                     if (slStatus[slStatus.Count - 1].StartsWith("Executing AS server command to stop profiler trace... ..."))
                     {
                         AddItemToStatus("\r\nProfiler tracing usually completes instantly.  Since it has not completed yet, the server may be hung.  "
@@ -445,93 +445,13 @@ namespace SSASDiag
                 }
                 else
                 {
-                    // Zip the data as last background worker process, 
+                    // Complete profiler trace and zip the data as last background worker process, 
                     // from here if we skipped network traces,
                     // otherwise, from network trace completion below.
                     BackgroundWorker bgZipData = new BackgroundWorker();
-                    bgZipData.DoWork += bgZipDataWorker;
-                    bgZipData.RunWorkerCompleted += bgZipData_Completion;
+                    bgZipData.DoWork += bgFinalProfilerAndZipSteps;
+                    bgZipData.RunWorkerCompleted += bgFinalProfilerAndZipSteps_Completion;
                     bgZipData.RunWorkerAsync();
-                }
-
-                if (bGetProfiler)
-                {
-                    AddItemToStatus("Executing AS server command to stop profiler trace...");
-                    ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
-                    AddItemToStatus("Stopped profiler trace.");
-
-                    if (bGetXMLA || bGetABF)
-                    {
-                        string[] dbs = { };
-
-                        #region X86 TraceFile reader workaround
-                        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        // TraceFile binaries for Microsoft.SqlServer.Management.Trace are only available in x86.
-                        // The SSASDiag process needs to be X64 to optimally work with large files.
-                        // Workaround here, costs a few extra seconds to invoke at stop time but worth it
-                        // Call the simple X86 ExtractDbNamesFromTrace process from SSASDiag.  
-
-                        AddItemToStatus("Finding databases with queries/commands started/completed during tracing.");
-                        ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
-                        Process p = new Process();
-                        p.StartInfo.UseShellExecute = false;
-                        p.StartInfo.CreateNoWindow = true;
-                        p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ExtractDbNamesFromTrace.exe";
-                        p.StartInfo.Arguments = 
-                            AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.trc " 
-                            + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt";
-                        p.Start();
-                        p.WaitForExit();
-                        if (File.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt"))
-                        {
-                            dbs = File.ReadAllLines(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt");
-                            File.Delete(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.txt");
-                        }
-                        if (File.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.trc"))
-                            File.Delete(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "1.trc");
-                        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        #endregion X86 TraceFile reader workaround
-
-                        if (dbs.Length == 0)
-                            AddItemToStatus("There were no databases captured in the trace.  No AS database definitions or backups will be captured.");
-                        else
-                        {
-                            Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
-                            s.Connect("." + (sInstanceName == "" ? "" : "\\" + sInstanceName));
-
-                            if (!Directory.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases"))
-                                Directory.CreateDirectory(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases");
-
-                            foreach (string db in dbs)
-                            {
-                                if (bGetXMLA)
-                                {
-                                    AddItemToStatus("Extracting database definition XMLA script for " + db + ".");
-                                    MajorObject[] mo = { s.Databases.FindByName(db) };
-
-                                    XmlWriter output = XmlWriter.Create(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
-                                    Microsoft.AnalysisServices.Scripter sc = new Microsoft.AnalysisServices.Scripter();
-                                    sc.ScriptCreate(mo, output, true);
-                                    output.Flush();
-                                    output.Close();
-
-                                    if (bGetBAK)
-                                        GetBAK(db, s);
-                                }
-                                if (bGetABF)
-                                {
-                                    AddItemToStatus("Backing up AS database .abf for " + db + ".");
-                                    string batch = Properties.Resources.BackupDbXMLA
-                                        .Replace("<DatabaseID/>", "<DatabaseID>" + s.Databases.FindByName(db).ID  + "</DatabaseID>")
-                                        .Replace("<File/>", "<File>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".abf</File>")
-                                        .Replace("<AllowOverwrite/>", "<AllowOverwrite>true</AllowOverwrite>");
-                                    string ret = ServerExecute(batch);
-                                    if (ret != "Success!")
-                                        AddItemToStatus("Error backing up AS database for " + db + ":\n\t" + ret);
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -560,7 +480,7 @@ namespace SSASDiag
                 if (cs.Contains("Password"))
                 cs = cs.Remove(cs.IndexOf("Password="), cs.IndexOf(";", cs.IndexOf("Password=")));
 
-                AddItemToStatus("Starting SQL datasource backup for AS database " + db + ", data source name " + ds.Name + ", SQL database " + sqlDbName + " on server " + (srvName == "." ? Environment.MachineName : srvName) + ".");
+                AddItemToStatus("Starting SQL datasource backup for AS database " + db + ", data source name " + ds.Name + ", SQL database " + sqlDbName + " on server " + (srvName == "." ? Environment.MachineName : srvName) + "...");
 
                 OleDbConnection conn = new OleDbConnection(cs);
                 bool bAuthenticated = false;
@@ -653,7 +573,7 @@ namespace SSASDiag
                 cmd = new OleDbCommand(@"BACKUP DATABASE [" + SQLDBName + "] TO  DISK = N'" + BackupDir + "\\SSASDiag_" + SQLDBName + ".bak' WITH NOFORMAT, INIT, NAME = N'SSASDag_" + SQLDBName + "-Full Database Backup', SKIP, NOREWIND, NOUNLOAD, COMPRESSION, STATS = 10", conn);
                 int ret = cmd.ExecuteNonQuery();
                 AddItemToStatus("Database backup completed.");
-                AddItemToStatus("Moving SQL backup to local capture directory.");
+                AddItemToStatus("Moving SQL backup to local capture directory...");
                 try
                 {
                     CopyBAKLocal(srvName, BackupDir, SQLDBName);
@@ -710,7 +630,7 @@ namespace SSASDiag
         }
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Stopping network trace.  This may take a while.");
+            AddItemToStatus("Stopping network trace.  This may take a while...");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -726,13 +646,94 @@ namespace SSASDiag
         }
         private void bgStopNetworkComplete(object sender, RunWorkerCompletedEventArgs e)
         {
-            BackgroundWorker bgZipData = new BackgroundWorker();
-            bgZipData.DoWork += bgZipDataWorker;
-            bgZipData.RunWorkerCompleted += bgZipData_Completion;
-            bgZipData.RunWorkerAsync();
+            BackgroundWorker bgFinalSteps = new BackgroundWorker();
+            bgFinalSteps.DoWork += bgFinalProfilerAndZipSteps;
+            bgFinalSteps.RunWorkerCompleted += bgFinalProfilerAndZipSteps_Completion;
+            bgFinalSteps.RunWorkerAsync();
         }
-        private void bgZipDataWorker(object sender, DoWorkEventArgs e)
+        private void bgFinalProfilerAndZipSteps(object sender, DoWorkEventArgs e)
         {
+            if (bGetProfiler)
+            {
+                AddItemToStatus("Executing AS server command to stop profiler trace...");
+                ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
+                AddItemToStatus("Stopped profiler trace.");
+
+                if (bGetXMLA || bGetABF)
+                {
+                    string[] dbs = { };
+
+                    #region X86 TraceFile reader workaround
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // TraceFile binaries for Microsoft.SqlServer.Management.Trace are only available in x86.
+                    // The SSASDiag process needs to be X64 to optimally work with large files.
+                    // Workaround here, costs a few extra seconds to invoke at stop time but worth it
+                    // Call the simple X86 ExtractDbNamesFromTrace process from SSASDiag.  
+
+                    AddItemToStatus("Finding databases with queries/commands started/completed during tracing...");
+                    ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
+                    Process p = new Process();
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.CreateNoWindow = true;
+                    p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ExtractDbNamesFromTrace.exe";
+                    p.StartInfo.Arguments =
+                        "\"" + Directory.GetFiles(AppDomain.CurrentDomain.GetData("originalbinlocation") as string, TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "*.trc")[0] + "\" "
+                        + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".txt";
+                    p.Start();
+                    p.WaitForExit();
+                    if (File.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".txt"))
+                    {
+                        dbs = File.ReadAllLines(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".txt");
+                        File.Delete(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".txt");
+                    }
+                    if (Directory.GetFiles(AppDomain.CurrentDomain.GetData("originalbinlocation") as string, TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "*.trc").Length > 0)
+                        File.Delete(Directory.GetFiles(AppDomain.CurrentDomain.GetData("originalbinlocation") as string, TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "*.trc")[0]);
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    #endregion X86 TraceFile reader workaround
+
+                    if (dbs.Length == 0)
+                        AddItemToStatus("There were no databases captured in the trace.  No AS database definitions or backups will be captured.");
+                    else
+                    {
+                        Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
+                        s.Connect("." + (sInstanceName == "" ? "" : "\\" + sInstanceName));
+
+                        if (!Directory.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases"))
+                            Directory.CreateDirectory(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases");
+
+                        foreach (string db in dbs)
+                        {
+                            if (bGetXMLA)
+                            {
+                                AddItemToStatus("Extracting database definition XMLA script for " + db + ".");
+                                MajorObject[] mo = { s.Databases.FindByName(db) };
+
+                                XmlWriter output = XmlWriter.Create(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
+                                Microsoft.AnalysisServices.Scripter sc = new Microsoft.AnalysisServices.Scripter();
+                                sc.ScriptCreate(mo, output, true);
+                                output.Flush();
+                                output.Close();
+                                if (bGetBAK)
+                                    GetBAK(db, s);
+                            }
+                            if (bGetABF)
+                            {
+                                AddItemToStatus("Backing up AS database .abf for " + db + ".");
+                                string batch = Properties.Resources.BackupDbXMLA
+                                    .Replace("<DatabaseID/>", "<DatabaseID>" + s.Databases.FindByName(db).ID + "</DatabaseID>")
+                                    .Replace("<File/>", "<File>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".abf</File>")
+                                    .Replace("<AllowOverwrite/>", "<AllowOverwrite>true</AllowOverwrite>");
+                                string ret = ServerExecute(batch);
+                                if (ret != "Success!")
+                                    AddItemToStatus("Error backing up AS database for " + db + ":\n\t" + ret);
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
             // Just before zip, write out last line of this capture log and save that file...
             // The last line captured in text file here:
             AddItemToStatus("Stoppped SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
@@ -740,7 +741,7 @@ namespace SSASDiag
             string logtext = "";
             int i = slStatus.Count - 1;
             for (; i > 0; i--)
-                if (slStatus[i].StartsWith("Initializing")) break;
+                if (slStatus != null && slStatus[i].StartsWith("Initializing")) break;
             for (; i < slStatus.Count - 1; i++)
                 logtext += slStatus[i] + "\r\n";
             File.WriteAllText(TraceID + "Output\\SSASDiag.log", logtext);
@@ -778,12 +779,14 @@ namespace SSASDiag
                 } 
             }
         }
-        private void bgZipData_Completion(object sender, RunWorkerCompletedEventArgs e)
+        private void bgFinalProfilerAndZipSteps_Completion(object sender, RunWorkerCompletedEventArgs e)
         {
             FinalizeStop();
         }
         private void FinalizeStop()
         {
+            
+
             AddItemToStatus("SSASDiag completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             PerfMonAndUIPumpTimer.Stop();
             bScheduledStartPending = false;

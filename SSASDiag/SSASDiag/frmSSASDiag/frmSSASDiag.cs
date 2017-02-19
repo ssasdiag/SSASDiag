@@ -29,10 +29,12 @@ namespace SSASDiag
             imgStop = Properties.Resources.stop_button_th, imgStopLit = Properties.Resources.stop_button_lit, imgStopHalfLit = Properties.Resources.stop_button_half_lit;
 
         bool bClosing = false, bProfilerTraceDbAttached = false;
+
         DateTime dtLastScrollTime = DateTime.Now;
         System.Windows.Forms.Timer tmScrollStart = new System.Windows.Forms.Timer();
         SqlConnection connSqlDb = new SqlConnection();
         List<TabPage> HiddenTabPages = new List<TabPage>();
+        List<KeyValuePair<string, string>> ProfilerTraceAnalysisQueries;
         #endregion
 
         public frmSSASDiag()
@@ -68,7 +70,22 @@ namespace SSASDiag
                 HiddenTabPages.Add(t);
             for (int i = 0; i < tcAnalysis.TabPages.Count; i++)
                 tcAnalysis.TabPages.RemoveAt(0);
+
+            ProfilerTraceAnalysisQueries = InitializeProfilerTraceAnalysisQueries();
+            cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries;
+            cmbProfilerAnalyses.DisplayMember = "Key";
         }
+
+        private List<KeyValuePair<string, string>> InitializeProfilerTraceAnalysisQueries()
+        {
+            List<KeyValuePair<string, string>> q = new List<KeyValuePair<string, string>>();
+            q.Add(new KeyValuePair<string, string>("", ""));
+            q.Add(new KeyValuePair<string, string>(
+                            "Longest running 100 queries captured",
+                            "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Database]\r\nWHERE EventClass = 10\r\nORDER BY Duration DESC"));
+            return q;
+        }
+
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
             try
@@ -93,12 +110,7 @@ namespace SSASDiag
                             Application.OpenForms["PasswordPrompt"].Invoke(new System.Action(()=> Application.OpenForms["PasswordPrompt"].Close()));
                     }
                 if (bProfilerTraceDbAttached && chkDettachProfilerAnalysisDBWhenDone.Checked)
-                {
-                    SqlCommand cmd = new SqlCommand("EXEC master.dbo.sp_detach_db @dbname = N'" + AnalysisTraceID + "'", connSqlDb);
-                    cmd.ExecuteNonQuery();
-                    bProfilerTraceDbAttached = false;
-                    tcAnalysis.TabPages["Profiler Traces"].Controls["StatusTextbox"].Text += "\r\nDetached trace database [" + AnalysisTraceID + "]\r\nfrom SQL instance [" + connSqlDb.DataSource + "]\r\nat " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n";
-                }
+                    DettachProfilerTraceDB();
             }
             catch
             {
@@ -112,6 +124,7 @@ namespace SSASDiag
             txtStatus.Height = this.Height - 266;
             tcCollectionAnalysisTabs.Height = this.Height - 59;
             tcAnalysis.Height = this.Height - 119;
+            txtProfilerAnalysisQuery.Width = tcCollectionAnalysisTabs.Width - 201;
         }
         #endregion frmSSASDiagEvents
     }

@@ -10,8 +10,6 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using Microsoft.Data.ConnectionUI;
 using System.Text.RegularExpressions;
-using System.Reflection;
-using System.Runtime;
 
 namespace ASProfilerTraceImporter
 {
@@ -193,7 +191,7 @@ namespace ASProfilerTraceImporter
                                         SqlCommandInfiniteConstructor(Properties.Resources.EventClassSubClassTablesScript, conn2).ExecuteNonQuery();
                                         SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_v') drop view [" + Table + "_v];", conn2).ExecuteNonQuery();
                                         SqlCommandInfiniteConstructor(
-                                            "create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from " + Table + "  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
+                                            "create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from [" + Table + "]  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
                                         bEventViewCreated = true;
                                     }
                                     catch
@@ -220,7 +218,10 @@ namespace ASProfilerTraceImporter
                                     }
                                 }
                                 SetText(lblStatus2, "Merged " + (CurFile + 1).ToString() + " files.");
-                                SetText(lblStatus3, bStatsViewCreated && bEventViewCreated ? "Missing QuerySubcube/EventClass columns.  Unable to calculate query stats/event names views." : bStatsViewCreated ? "Missing EventClass columns.  Unable to calculate event names view." : "Missing QuerySubcube columns.  Unable to calculate query stats view.");
+                                if (!bStatsViewCreated || !bEventViewCreated)
+                                    SetText(lblStatus3, !bStatsViewCreated && !bEventViewCreated ? "Missing QuerySubcube and EventClass or Subclass columns.  Unable to calculate query stats/event names views." :
+                                        bStatsViewCreated ? "Created query statistics view [" + Table + "_QueryStats].\r\nMissing EventClass or Subclass columns.  Unable to calculate event names view." :
+                                        "Created event names view [" + Table + "_v].\r\nMissing QuerySubcube columns.  Unable to calculate query stats view.");
                             }
                             conn2.Close();
                         }

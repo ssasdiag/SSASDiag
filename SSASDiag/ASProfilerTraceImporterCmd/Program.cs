@@ -157,11 +157,12 @@ namespace ASProfilerTraceImporterCmd
                     SqlCommandInfiniteConstructor(Properties.Resources.EventClassSubClassTablesScript, conn2).ExecuteNonQuery();
                     SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_v') drop view [" + Table + "_v];", conn2).ExecuteNonQuery();
                     SqlCommandInfiniteConstructor(
-                        "create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from " + Table + "  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
+                        "create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from [" + Table + "]  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
                     bEventViewCreated = true;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    SetText("Exception creating event class/subclass view:\r\n" + ex.Message);
                     Debug.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
                 }
                 SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "EventClassIndex') drop view [" + Table + "EventClassIndex];", conn2).ExecuteNonQuery();
@@ -175,15 +176,20 @@ namespace ASProfilerTraceImporterCmd
                         bStatsViewCreated = true;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Debug.WriteLine("Can safely ignore since view creation will fail if necessary events are missing.");
+                    SetText("Exception creating query stats view:\r\n" + ex.Message);
+                    Debug.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
                 }
                 SetText("Merged " + (CurFile + 1).ToString() + " files.");
-                SetText(bStatsViewCreated && bEventViewCreated ? "Missing QuerySubcube/EventClass columns.  Unable to calculate query stats/event names views." : bStatsViewCreated ? "Missing EventClass columns.  Unable to calculate event names view." : "Missing QuerySubcube columns.  Unable to calculate query stats view.");
-                        
+                if (!bStatsViewCreated || !bEventViewCreated)
+                    SetText(!bStatsViewCreated && !bEventViewCreated ? "Missing QuerySubcube and EventClass or Subclass columns.  Unable to calculate query stats/event names views." :
+                        bStatsViewCreated ? "Created query statistics view [" + Table + "_QueryStats].\r\nMissing EventClass or Subclass columns.  Unable to calculate event names view." :
+                        "Created event names view [" + Table + "_v].\r\nMissing QuerySubcube columns.  Unable to calculate query stats view.");
+                else
+                    SetText("Created query statitistics view [" + Table + "_QueryStats].\r\nCreated event names view [" + Table + "_v].");
                 conn2.Close();
-         
+                SetText("Preparing profiler trace database for analysis...");
             }
             catch (Exception exc)
             {
