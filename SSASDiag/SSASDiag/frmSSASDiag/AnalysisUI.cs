@@ -34,16 +34,16 @@ namespace SSASDiag
                 if (dc != null)
                 {
                     AnalysisTraceID = dc.TraceID;
-                    if (Directory.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + dc.TraceID + "Output"))
+                    if (Directory.Exists(Environment.CurrentDirectory + "\\" + dc.TraceID))
                     {
-                        m_analysisPath = txtFolderZipForAnalysis.Text = AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + dc.TraceID + "Output";
+                        m_analysisPath = txtFolderZipForAnalysis.Text = Environment.CurrentDirectory + "\\" + dc.TraceID;
                         PopulateAnalysisTabs();
                     }
                     else
                     {
-                        if (File.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + dc.TraceID + ".zip"))
+                        if (File.Exists(Environment.CurrentDirectory + "\\" + dc.TraceID + ".zip"))
                         {
-                            m_analysisPath = txtFolderZipForAnalysis.Text = AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + dc.TraceID + ".zip";
+                            m_analysisPath = txtFolderZipForAnalysis.Text = Environment.CurrentDirectory + "\\" + dc.TraceID + ".zip";
                             PopulateAnalysisTabs();
                         }
                     }
@@ -70,7 +70,7 @@ namespace SSASDiag
         {
             BrowseForFolder bff = new BrowseForFolder();
             bff.Filters.Add("zip");
-            string strPath = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
+            string strPath = Environment.CurrentDirectory as string;
             strPath = bff.SelectFolder("Choose a folder or zip file for analysis:", txtFolderZipForAnalysis.Text == "" ? strPath : txtFolderZipForAnalysis.Text, this.Handle);
             if (strPath != null && strPath != "")
             {
@@ -123,7 +123,7 @@ namespace SSASDiag
             Ionic.Zip.ZipFile z = new Ionic.Zip.ZipFile(m_analysisPath);
             // Always extract directly into the current running location.
             // This ensures we don't accidentally fill up a temp drive or something with large files.
-            m_analysisPath = AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace(".zip", "");
+            m_analysisPath = Environment.CurrentDirectory + "\\" + m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace(".zip", "");
             AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
 
             if (!Directory.Exists(m_analysisPath))
@@ -346,7 +346,7 @@ namespace SSASDiag
 
                 TextBox ProfilerTraceStatusTextBox = (e.Argument as object[])[0] as TextBox;
                 ProfilerTraceStatusTextBox.Invoke(new System.Action(()=>
-                    ProfilerTraceStatusTextBox.Text = "Importing profiler trace to database [" + AnalysisTraceID + "] on SQL instance: [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "].\r\n"));
+                    ProfilerTraceStatusTextBox.Text = "Importing profiler trace to database [" + AnalysisTraceID + "] on SQL instance: [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]."));
                 string connstr = (e.Argument as object[])[1] as string;
                 Process p = new Process();
                 p.StartInfo.UseShellExecute = false;
@@ -373,7 +373,7 @@ namespace SSASDiag
                         else
                             ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + sOut)));
                 }
-                ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText("Adding profiler database to collection data...\r\n")));
+                ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText("\r\nAdding profiler database to collection data...\r\n")));
                 DettachProfilerTraceDB();
                 AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
                 AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
@@ -409,15 +409,23 @@ namespace SSASDiag
         }
         private void cmbProfilerAnalyses_SelectedIndexChanged(object sender, EventArgs e)
         {
-            txtProfilerAnalysisQuery.Text = ProfilerTraceAnalysisQueries.First(kv => kv.Key == cmbProfilerAnalyses.Text).Value.Replace("[Database]", "[" + AnalysisTraceID + "_v]");
-            connSqlDb.ChangeDatabase(AnalysisTraceID);
-            SqlCommand cmd = new SqlCommand(txtProfilerAnalysisQuery.Text, connSqlDb);
-            SqlDataReader dr = cmd.ExecuteReader();
-            DataTable dt = new DataTable();
-            dt.Load(dr);
-            dgdProfilerAnalyses.AutoGenerateColumns = true;
-            dgdProfilerAnalyses.DataSource = dt;
-            dgdProfilerAnalyses.Refresh();
+            txtProfilerAnalysisQuery.Text = ProfilerTraceAnalysisQueries.First(kv => kv.Key == cmbProfilerAnalyses.Text).Value.Replace("[Database]", "[" + AnalysisTraceID + "]");
+            if (txtProfilerAnalysisQuery.Text != "")
+            {
+                connSqlDb.ChangeDatabase(AnalysisTraceID);
+                SqlCommand cmd = new SqlCommand(txtProfilerAnalysisQuery.Text, connSqlDb);
+                SqlDataReader dr = cmd.ExecuteReader();
+                DataTable dt = new DataTable();
+                dt.Load(dr);
+                dgdProfilerAnalyses.AutoGenerateColumns = true;
+                dgdProfilerAnalyses.DataSource = dt;
+                dgdProfilerAnalyses.Refresh();
+            }
+            else
+            {
+                dgdProfilerAnalyses.DataSource = null;
+                dgdProfilerAnalyses.Refresh();
+            }
         }
         private void ValidateProfilerTraceDBConnectionStatus()
         {

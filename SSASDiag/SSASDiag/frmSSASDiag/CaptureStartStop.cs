@@ -43,7 +43,7 @@ namespace SSASDiag
         }
         private void callback_StopAndFinalizeAllDiagnosticsComplete()
         {
-            tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+            txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
             udRollover.Enabled = chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Checked;

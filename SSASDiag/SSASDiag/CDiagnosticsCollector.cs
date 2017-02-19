@@ -156,24 +156,24 @@ namespace SSASDiag
                     AddItemToStatus("The msmdsrv.ini configuration for the instance at " + sConfigDir + ".");
                 }
 
-                if (!Directory.Exists(TraceID + "Output"))
-                    Directory.CreateDirectory(TraceID + "Output");
+                if (!Directory.Exists(TraceID))
+                    Directory.CreateDirectory(TraceID);
                 else
                 {
                     if (MessageBox.Show("There is an existing output directory found.\r\nDelete these files to start with a fresh output folder?", "Existing output folder found", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     {
-                        try { Directory.Delete(TraceID + "Output", true); } catch { }
-                        Directory.CreateDirectory(TraceID + "Output");
+                        try { Directory.Delete(TraceID, true); } catch { }
+                        Directory.CreateDirectory(TraceID);
                     }
                 }
-                AddItemToStatus("Created temporary folder " + TraceID + "Output to collect diagnostic files.");
+                AddItemToStatus("Created temporary folder " + TraceID + " to collect diagnostic files.");
 
                 // Add explicit full control access for AS service account to our temp output location since server trace is written under that identity.
                 if (sInstanceVersion != "")
                 {
                     try
                     {
-                        DirectoryInfo dirInfo = new DirectoryInfo(Environment.CurrentDirectory + "\\" + TraceID + "Output");
+                        DirectoryInfo dirInfo = new DirectoryInfo(Environment.CurrentDirectory + "\\" + TraceID );
                         DirectorySecurity dirSec = dirInfo.GetAccessControl();
                         dirSec.AddAccessRule(new FileSystemAccessRule(sServiceAccount, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
                         dirInfo.SetAccessControl(dirSec);
@@ -188,10 +188,10 @@ namespace SSASDiag
                 if (bGetConfigDetails)
                 {
                     // Collect SSAS LOG dir, config and save log of this diagnostic capture
-                    if (!Directory.Exists(TraceID + "Output\\Log")) Directory.CreateDirectory(TraceID + "Output\\Log");
+                    if (!Directory.Exists(TraceID + "\\Log")) Directory.CreateDirectory(TraceID + "\\Log");
                     foreach (string f in Directory.GetFiles(sLogDir))
-                        File.Copy(f, TraceID + "Output\\Log\\" + f.Substring(f.LastIndexOf("\\") + 1));
-                    File.Copy(sConfigDir + "\\msmdsrv.ini", TraceID + "Output\\msmdsrv.ini");
+                        File.Copy(f, TraceID + "\\Log\\" + f.Substring(f.LastIndexOf("\\") + 1));
+                    File.Copy(sConfigDir + "\\msmdsrv.ini", TraceID + "\\msmdsrv.ini");
                     AddItemToStatus("Captured OLAP\\Log contents and msmdsrv.ini config for the instance.");
 
                     BackgroundWorker bg = new BackgroundWorker();
@@ -219,7 +219,7 @@ namespace SSASDiag
             p.WaitForExit();
             if (sErr == "")
             {
-                File.WriteAllText(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\ServiceAccountSPNs.txt", sOut);
+                File.WriteAllText(Environment.CurrentDirectory + "\\" + TraceID + "\\ServiceAccountSPNs.txt", sOut);
                 AddItemToStatus("Captured SPNs defined for service account " + sServiceAccount + ".");
             }
             else
@@ -232,7 +232,7 @@ namespace SSASDiag
         {
             if (bGetPerfMon)
             {
-                uint r = InitializePerfLog(TraceID + "Output\\" + TraceID + ".blg");
+                uint r = InitializePerfLog(TraceID + "\\" + TraceID + ".blg");
 
                 if (r != 0)
                 {
@@ -250,7 +250,7 @@ namespace SSASDiag
             if (bGetProfiler)
             {
                 string XMLABatch = (bPerfEvents ? Properties.Resources.ProfilerTraceStartWithQuerySubcubeEventsXMLA : Properties.Resources.ProfilerTraceStartXMLA)
-                    .Replace("<LogFileName/>", "<LogFileName>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\" + TraceID + ".trc</LogFileName>")
+                    .Replace("<LogFileName/>", "<LogFileName>" + Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + ".trc</LogFileName>")
                     .Replace("<LogFileSize/>", bRollover ? "<LogFileSize>" + iRollover + "</LogFileSize>" : "")
                     .Replace("<LogFileRollover/>", bRollover ? "<LogFileRollover>" + bRollover.ToString().ToLower() + "</LogFileRollover>" : "")
                     .Replace("<AutoRestart/>", "<AutoRestart>" + bAutoRestart.ToString().ToLower() + "</AutoRestart>")
@@ -269,7 +269,7 @@ namespace SSASDiag
                 if (bGetXMLA || bGetABF)
                 {
                     XMLABatch = Properties.Resources.DbsCapturedTraceStartXMLA
-                        .Replace("<LogFileName/>", "<LogFileName>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".trc</LogFileName>")
+                        .Replace("<LogFileName/>", "<LogFileName>" + Environment.CurrentDirectory + "\\" + TraceID + "\\DatabaseNamesOnly_" + TraceID + ".trc</LogFileName>")
                         .Replace("<LogFileSize/>", "")
                         .Replace("<LogFileRollover/>", "")
                         .Replace("<AutoRestart/>", "<AutoRestart>" + bAutoRestart.ToString().ToLower() + "</AutoRestart>")
@@ -347,7 +347,7 @@ namespace SSASDiag
             p.WaitForExit(500);
             string sOut = p.StandardOutput.ReadToEnd();
             p.WaitForExit();
-            p.StartInfo.Arguments = "trace start fileMode=" + (bRollover ? "circular" : "single") + " capture=yes tracefile=" + Environment.CurrentDirectory + "\\" + TraceID + "Output\\" + TraceID + ".etl maxSize=" + (bRollover ? iRollover.ToString() : "0");
+            p.StartInfo.Arguments = "trace start fileMode=" + (bRollover ? "circular" : "single") + " capture=yes tracefile=" + Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + ".etl maxSize=" + (bRollover ? iRollover.ToString() : "0");
             p.Start();
             sOut = p.StandardOutput.ReadToEnd();
             Debug.WriteLine("netsh trace start's output: " + sOut);
@@ -431,8 +431,8 @@ namespace SSASDiag
                 if (bGetConfigDetails)
                 {
                     // Grab event logs post repro
-                    EvtExportLog(IntPtr.Zero, "Application", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\" + TraceID + "_Application.evtx", EventExportLogFlags.ChannelPath);
-                    EvtExportLog(IntPtr.Zero, "System", "*", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\" + TraceID + "_System.evtx", EventExportLogFlags.ChannelPath);
+                    EvtExportLog(IntPtr.Zero, "Application", "*", Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + "_Application.evtx", EventExportLogFlags.ChannelPath);
+                    EvtExportLog(IntPtr.Zero, "System", "*", Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + "_System.evtx", EventExportLogFlags.ChannelPath);
                     AddItemToStatus("Collected Application and System event logs.");
                 }
 
@@ -624,9 +624,9 @@ namespace SSASDiag
         void CopyBAKLocal(string srvName, string BackupDir, string SQLDBName)
         {
             if (srvName != "." && srvName.ToUpper() != Environment.MachineName.ToUpper() && srvName.ToUpper() != GetFQDN())
-                File.Move("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$") + "\\SSASDiag_" + SQLDBName + ".bak", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + SQLDBName + ".bak");
+                File.Move("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$") + "\\SSASDiag_" + SQLDBName + ".bak", Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + SQLDBName + ".bak");
             else
-                File.Move(BackupDir + "\\SSASDiag_" + SQLDBName + ".bak", AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + SQLDBName + ".bak");
+                File.Move(BackupDir + "\\SSASDiag_" + SQLDBName + ".bak", Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + SQLDBName + ".bak");
         }
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
@@ -677,17 +677,17 @@ namespace SSASDiag
                     p.StartInfo.CreateNoWindow = true;
                     p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ExtractDbNamesFromTrace.exe";
                     p.StartInfo.Arguments =
-                        "\"" + Directory.GetFiles(AppDomain.CurrentDomain.GetData("originalbinlocation") as string, TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "*.trc")[0] + "\" "
-                        + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".txt";
+                        "\"" + Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0] + "\" "
+                        + Environment.CurrentDirectory + "\\" + TraceID + "\\DatabaseNamesOnly_" + TraceID + ".txt";
                     p.Start();
                     p.WaitForExit();
-                    if (File.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".txt"))
+                    if (File.Exists(Environment.CurrentDirectory + "\\" + TraceID + "\\DatabaseNamesOnly_" + TraceID + ".txt"))
                     {
-                        dbs = File.ReadAllLines(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".txt");
-                        File.Delete(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\DatabaseNamesOnly_" + TraceID + ".txt");
+                        dbs = File.ReadAllLines(Environment.CurrentDirectory + "\\" + TraceID + "\\DatabaseNamesOnly_" + TraceID + ".txt");
+                        File.Delete(Environment.CurrentDirectory + "\\" + TraceID + "\\DatabaseNamesOnly_" + TraceID + ".txt");
                     }
-                    if (Directory.GetFiles(AppDomain.CurrentDomain.GetData("originalbinlocation") as string, TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "*.trc").Length > 0)
-                        File.Delete(Directory.GetFiles(AppDomain.CurrentDomain.GetData("originalbinlocation") as string, TraceID + "Output\\DatabaseNamesOnly_" + TraceID + "*.trc")[0]);
+                    if (Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc").Length > 0)
+                        File.Delete(Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0]);
                     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     #endregion X86 TraceFile reader workaround
 
@@ -698,8 +698,8 @@ namespace SSASDiag
                         Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
                         s.Connect("." + (sInstanceName == "" ? "" : "\\" + sInstanceName));
 
-                        if (!Directory.Exists(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases"))
-                            Directory.CreateDirectory(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases");
+                        if (!Directory.Exists(Environment.CurrentDirectory + "\\" + TraceID + "\\Databases"))
+                            Directory.CreateDirectory(Environment.CurrentDirectory + "\\" + TraceID + "\\Databases");
 
                         foreach (string db in dbs)
                         {
@@ -708,7 +708,7 @@ namespace SSASDiag
                                 AddItemToStatus("Extracting database definition XMLA script for " + db + ".");
                                 MajorObject[] mo = { s.Databases.FindByName(db) };
 
-                                XmlWriter output = XmlWriter.Create(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
+                                XmlWriter output = XmlWriter.Create(Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
                                 Microsoft.AnalysisServices.Scripter sc = new Microsoft.AnalysisServices.Scripter();
                                 sc.ScriptCreate(mo, output, true);
                                 output.Flush();
@@ -721,7 +721,7 @@ namespace SSASDiag
                                 AddItemToStatus("Backing up AS database .abf for " + db + ".");
                                 string batch = Properties.Resources.BackupDbXMLA
                                     .Replace("<DatabaseID/>", "<DatabaseID>" + s.Databases.FindByName(db).ID + "</DatabaseID>")
-                                    .Replace("<File/>", "<File>" + AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\" + TraceID + "Output\\Databases\\" + db + ".abf</File>")
+                                    .Replace("<File/>", "<File>" + Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + db + ".abf</File>")
                                     .Replace("<AllowOverwrite/>", "<AllowOverwrite>true</AllowOverwrite>");
                                 string ret = ServerExecute(batch);
                                 if (ret != "Success!")
@@ -744,7 +744,7 @@ namespace SSASDiag
                 if (slStatus != null && slStatus[i].StartsWith("Initializing")) break;
             for (; i < slStatus.Count - 1; i++)
                 logtext += slStatus[i] + "\r\n";
-            File.WriteAllText(TraceID + "Output\\SSASDiag.log", logtext);
+            File.WriteAllText(TraceID + "\\SSASDiag.log", logtext);
 
             if (bCompress)
             {
@@ -752,7 +752,7 @@ namespace SSASDiag
 
                 // Zip up all output into a single zip file.
                 ZipFile z = new ZipFile();
-                z.AddDirectory(TraceID + "Output");
+                z.AddDirectory(TraceID );
                 z.MaxOutputSegmentSize = 1024 * 1024 * (int)iRollover;
                 z.Encryption = EncryptionAlgorithm.None;
                 z.CompressionLevel = Ionic.Zlib.CompressionLevel.Default;
@@ -767,14 +767,14 @@ namespace SSASDiag
             {
                 try
                 {
-                    Directory.Delete(TraceID + "Output", true);
+                    Directory.Delete(TraceID, true);
                     AddItemToStatus("Deleted capture output folder.");
                 }
                 catch
                 {
                     AddItemToStatus("Failed to delete output folder:\n"
                         + "\tThis could be due to locked files in the folder and suggests possible failure stopping a trace.\n"
-                        + "\tPlease review the contents of the folder " + TraceID + "Output\n."
+                        + "\tPlease review the contents of the folder " + TraceID + "\n."
                         + "\tIt was created in the same location where you ran this utility.");
                 } 
             }

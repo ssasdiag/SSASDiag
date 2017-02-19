@@ -35,7 +35,7 @@ namespace SSASDiag
                     btnCapture.Image = imgPlayHalfLit;
                     tbAnalysis.ForeColor = SystemColors.ControlDark;
                     tcCollectionAnalysisTabs.Refresh();
-                    tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+                    txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
                     ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
                     string TracePrefix = Environment.MachineName + (cbsdi == null ? "" : "_"
                         + (cbInstances.SelectedIndex == 0 ? "" : cbsdi.Text + "_"));
@@ -93,7 +93,7 @@ namespace SSASDiag
                     Server srv = new Server();
                     ComboBoxServiceDetailsItem SelItem = cbInstances.Invoke(new Func<ComboBoxServiceDetailsItem>(() => { return (cbInstances.SelectedItem as ComboBoxServiceDetailsItem); })) as ComboBoxServiceDetailsItem;
 
-                    srv.Connect("Data source=." + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text));
+                    srv.Connect("Data source=" + Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text) + ";Integrated Security=SSPI;Persist Security Info=false;");
                     lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
                     m_instanceType = srv.ServerMode.ToString();
                     m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
@@ -161,6 +161,18 @@ namespace SSASDiag
 
         #region VariousNonBlockingUIElements
 
+        private void btnSaveLocation_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.ShowNewFolderButton = true;
+            fbd.Description = "Select save location for capture.";
+            fbd.SelectedPath = txtSaveLocation.Text;
+            if (fbd.ShowDialog(this) == DialogResult.OK)
+            {
+                Properties.Settings.Default["SaveLocation"] = Environment.CurrentDirectory = txtSaveLocation.Text = fbd.SelectedPath;
+                Properties.Settings.Default.Save();
+            }
+        }
         private void txtStatus_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)

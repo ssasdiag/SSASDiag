@@ -54,6 +54,9 @@ namespace SSASDiag
             imgPlay.Tag = "Play"; imgPlayLit.Tag = "Play Lit"; imgPlayHalfLit.Tag = "Play Half Lit"; imgStop.Tag = "Stop"; imgStopLit.Tag = "Stop Lit"; imgStopHalfLit.Tag = "Stop Half Lit";
             btnCapture.Image = imgPlay;
             Environment.CurrentDirectory = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
+            if (Properties.Settings.Default["SaveLocation"] as string != Environment.CurrentDirectory && Properties.Settings.Default["SaveLocation"] as string != "")
+                Environment.CurrentDirectory = Properties.Settings.Default["SaveLocation"] as string;
+
             PopulateInstanceDropdown();
             dtStopTime.Value = DateTime.Now.AddHours(1);
             dtStopTime.MinDate = DateTime.Now.AddMinutes(1);
@@ -74,6 +77,8 @@ namespace SSASDiag
             ProfilerTraceAnalysisQueries = InitializeProfilerTraceAnalysisQueries();
             cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries;
             cmbProfilerAnalyses.DisplayMember = "Key";
+
+            txtSaveLocation.Text = Environment.CurrentDirectory;
         }
 
         private List<KeyValuePair<string, string>> InitializeProfilerTraceAnalysisQueries()
@@ -125,6 +130,15 @@ namespace SSASDiag
             tcCollectionAnalysisTabs.Height = this.Height - 59;
             tcAnalysis.Height = this.Height - 119;
             txtProfilerAnalysisQuery.Width = tcCollectionAnalysisTabs.Width - 201;
+            btnImportProfilerTrace.Left = this.Width / 2 - btnImportProfilerTrace.Width / 2;
+            dgdProfilerAnalyses.Height = this.Height - 298;
+            if (tcAnalysis.TabPages.ContainsKey("Network Trace") || HiddenTabPages.Where(t => t.Name == "Network Trace").Count() > 0)
+            {
+                Button btnAnalyzeNetworkTrace = tcAnalysis.TabPages.ContainsKey("Network Trace") ? 
+                    tcAnalysis.TabPages["Network Trace"].Controls["btnAnalyzeNetworkTrace"] as Button : 
+                    HiddenTabPages.First(t => t.Name == "Network Trace").Controls["btnAnalyzeNetworkTrace"] as Button;
+                btnAnalyzeNetworkTrace.Left = this.Width / 2 - btnAnalyzeNetworkTrace.Width / 2;
+            }
         }
         #endregion frmSSASDiagEvents
     }

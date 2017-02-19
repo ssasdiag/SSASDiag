@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSSASDiag));
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
@@ -44,6 +45,9 @@
             this.chkProfilerPerfDetails = new System.Windows.Forms.CheckBox();
             this.chkGetNetwork = new System.Windows.Forms.CheckBox();
             this.chkXMLA = new System.Windows.Forms.CheckBox();
+            this.txtSaveLocation = new System.Windows.Forms.TextBox();
+            this.btnSaveLocation = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
             this.tcCollectionAnalysisTabs = new System.Windows.Forms.TabControl();
             this.tbCollection = new System.Windows.Forms.TabPage();
             this.chkDeleteRaw = new System.Windows.Forms.CheckBox();
@@ -289,6 +293,38 @@
             this.chkXMLA.UseVisualStyleBackColor = true;
             this.chkXMLA.CheckedChanged += new System.EventHandler(this.chkXMLA_CheckedChanged);
             // 
+            // txtSaveLocation
+            // 
+            this.txtSaveLocation.Location = new System.Drawing.Point(32, 63);
+            this.txtSaveLocation.Name = "txtSaveLocation";
+            this.txtSaveLocation.ReadOnly = true;
+            this.txtSaveLocation.Size = new System.Drawing.Size(228, 20);
+            this.txtSaveLocation.TabIndex = 44;
+            this.ttStatus.SetToolTip(this.txtSaveLocation, resources.GetString("txtSaveLocation.ToolTip"));
+            // 
+            // btnSaveLocation
+            // 
+            this.btnSaveLocation.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSaveLocation.Location = new System.Drawing.Point(6, 62);
+            this.btnSaveLocation.Margin = new System.Windows.Forms.Padding(0);
+            this.btnSaveLocation.Name = "btnSaveLocation";
+            this.btnSaveLocation.Size = new System.Drawing.Size(24, 22);
+            this.btnSaveLocation.TabIndex = 43;
+            this.btnSaveLocation.Text = "...";
+            this.ttStatus.SetToolTip(this.btnSaveLocation, resources.GetString("btnSaveLocation.ToolTip"));
+            this.btnSaveLocation.UseVisualStyleBackColor = true;
+            this.btnSaveLocation.Click += new System.EventHandler(this.btnSaveLocation_Click);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(5, 47);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(121, 13);
+            this.label3.TabIndex = 45;
+            this.label3.Text = "Data collection location:";
+            this.ttStatus.SetToolTip(this.label3, resources.GetString("label3.ToolTip"));
+            // 
             // tcCollectionAnalysisTabs
             // 
             this.tcCollectionAnalysisTabs.Controls.Add(this.tbCollection);
@@ -307,6 +343,9 @@
             // tbCollection
             // 
             this.tbCollection.BackColor = System.Drawing.SystemColors.Control;
+            this.tbCollection.Controls.Add(this.label3);
+            this.tbCollection.Controls.Add(this.txtSaveLocation);
+            this.tbCollection.Controls.Add(this.btnSaveLocation);
             this.tbCollection.Controls.Add(this.chkDeleteRaw);
             this.tbCollection.Controls.Add(this.chkZip);
             this.tbCollection.Controls.Add(this.groupBox1);
@@ -335,7 +374,7 @@
             // chkDeleteRaw
             // 
             this.chkDeleteRaw.AutoSize = true;
-            this.chkDeleteRaw.Location = new System.Drawing.Point(120, 58);
+            this.chkDeleteRaw.Location = new System.Drawing.Point(120, 89);
             this.chkDeleteRaw.Name = "chkDeleteRaw";
             this.chkDeleteRaw.Size = new System.Drawing.Size(144, 17);
             this.chkDeleteRaw.TabIndex = 26;
@@ -348,7 +387,7 @@
             this.chkZip.AutoSize = true;
             this.chkZip.Checked = true;
             this.chkZip.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkZip.Location = new System.Drawing.Point(8, 58);
+            this.chkZip.Location = new System.Drawing.Point(8, 89);
             this.chkZip.Name = "chkZip";
             this.chkZip.Size = new System.Drawing.Size(106, 17);
             this.chkZip.TabIndex = 25;
@@ -365,7 +404,7 @@
             this.groupBox1.Margin = new System.Windows.Forms.Padding(0);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(0);
-            this.groupBox1.Size = new System.Drawing.Size(239, 147);
+            this.groupBox1.Size = new System.Drawing.Size(239, 170);
             this.groupBox1.TabIndex = 35;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Diagnostics to Capture:";
@@ -381,7 +420,7 @@
             this.tcSimpleAdvanced.Name = "tcSimpleAdvanced";
             this.tcSimpleAdvanced.Padding = new System.Drawing.Point(0, 0);
             this.tcSimpleAdvanced.SelectedIndex = 0;
-            this.tcSimpleAdvanced.Size = new System.Drawing.Size(239, 134);
+            this.tcSimpleAdvanced.Size = new System.Drawing.Size(239, 157);
             this.tcSimpleAdvanced.TabIndex = 1;
             // 
             // tabGuided
@@ -391,7 +430,7 @@
             this.tabGuided.Location = new System.Drawing.Point(4, 22);
             this.tabGuided.Margin = new System.Windows.Forms.Padding(0);
             this.tabGuided.Name = "tabGuided";
-            this.tabGuided.Size = new System.Drawing.Size(231, 108);
+            this.tabGuided.Size = new System.Drawing.Size(231, 131);
             this.tabGuided.TabIndex = 0;
             this.tabGuided.Text = "Guided";
             // 
@@ -409,7 +448,7 @@
             this.pnlSimple.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlSimple.Location = new System.Drawing.Point(0, 0);
             this.pnlSimple.Name = "pnlSimple";
-            this.pnlSimple.Size = new System.Drawing.Size(231, 108);
+            this.pnlSimple.Size = new System.Drawing.Size(231, 131);
             this.pnlSimple.TabIndex = 33;
             // 
             // rtbProblemDescription
@@ -476,7 +515,7 @@
             this.tabAdvanced.Location = new System.Drawing.Point(4, 22);
             this.tabAdvanced.Margin = new System.Windows.Forms.Padding(0);
             this.tabAdvanced.Name = "tabAdvanced";
-            this.tabAdvanced.Size = new System.Drawing.Size(231, 108);
+            this.tabAdvanced.Size = new System.Drawing.Size(231, 131);
             this.tabAdvanced.TabIndex = 1;
             this.tabAdvanced.Text = "Advanced";
             // 
@@ -496,7 +535,7 @@
             this.pnlDiagnosticsToCollect.Location = new System.Drawing.Point(0, 0);
             this.pnlDiagnosticsToCollect.Margin = new System.Windows.Forms.Padding(0);
             this.pnlDiagnosticsToCollect.Name = "pnlDiagnosticsToCollect";
-            this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(231, 108);
+            this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(231, 131);
             this.pnlDiagnosticsToCollect.TabIndex = 38;
             // 
             // chkGetProfiler
@@ -532,15 +571,15 @@
             this.dtStopTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
             this.dtStopTime.Enabled = false;
             this.dtStopTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtStopTime.Location = new System.Drawing.Point(79, 128);
+            this.dtStopTime.Location = new System.Drawing.Point(79, 159);
             this.dtStopTime.Name = "dtStopTime";
-            this.dtStopTime.Size = new System.Drawing.Size(184, 20);
+            this.dtStopTime.Size = new System.Drawing.Size(181, 20);
             this.dtStopTime.TabIndex = 32;
             // 
             // chkStopTime
             // 
             this.chkStopTime.AutoSize = true;
-            this.chkStopTime.Location = new System.Drawing.Point(8, 127);
+            this.chkStopTime.Location = new System.Drawing.Point(8, 158);
             this.chkStopTime.Name = "chkStopTime";
             this.chkStopTime.Size = new System.Drawing.Size(73, 17);
             this.chkStopTime.TabIndex = 31;
@@ -553,15 +592,15 @@
             this.dtStartTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
             this.dtStartTime.Enabled = false;
             this.dtStartTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtStartTime.Location = new System.Drawing.Point(79, 105);
+            this.dtStartTime.Location = new System.Drawing.Point(79, 136);
             this.dtStartTime.Name = "dtStartTime";
-            this.dtStartTime.Size = new System.Drawing.Size(184, 20);
+            this.dtStartTime.Size = new System.Drawing.Size(181, 20);
             this.dtStartTime.TabIndex = 30;
             // 
             // chkStartTime
             // 
             this.chkStartTime.AutoSize = true;
-            this.chkStartTime.Location = new System.Drawing.Point(8, 104);
+            this.chkStartTime.Location = new System.Drawing.Point(8, 135);
             this.chkStartTime.Name = "chkStartTime";
             this.chkStartTime.Size = new System.Drawing.Size(73, 17);
             this.chkStartTime.TabIndex = 29;
@@ -571,7 +610,7 @@
             // 
             // udInterval
             // 
-            this.udInterval.Location = new System.Drawing.Point(149, 174);
+            this.udInterval.Location = new System.Drawing.Point(148, 202);
             this.udInterval.Maximum = new decimal(new int[] {
             60,
             0,
@@ -597,7 +636,7 @@
             // udRollover
             // 
             this.udRollover.Enabled = false;
-            this.udRollover.Location = new System.Drawing.Point(169, 83);
+            this.udRollover.Location = new System.Drawing.Point(169, 114);
             this.udRollover.Maximum = new decimal(new int[] {
             2048,
             0,
@@ -623,7 +662,7 @@
             // chkAutoRestart
             // 
             this.chkAutoRestart.AutoSize = true;
-            this.chkAutoRestart.Location = new System.Drawing.Point(8, 150);
+            this.chkAutoRestart.Location = new System.Drawing.Point(8, 181);
             this.chkAutoRestart.Name = "chkAutoRestart";
             this.chkAutoRestart.Size = new System.Drawing.Size(206, 17);
             this.chkAutoRestart.TabIndex = 33;
@@ -634,7 +673,7 @@
             // chkRollover
             // 
             this.chkRollover.AutoSize = true;
-            this.chkRollover.Location = new System.Drawing.Point(8, 81);
+            this.chkRollover.Location = new System.Drawing.Point(8, 112);
             this.chkRollover.Name = "chkRollover";
             this.chkRollover.Size = new System.Drawing.Size(162, 17);
             this.chkRollover.TabIndex = 27;
@@ -692,7 +731,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(226, 82);
+            this.label2.Location = new System.Drawing.Point(226, 113);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 13);
             this.label2.TabIndex = 42;
@@ -705,10 +744,10 @@
             this.txtStatus.DetectUrls = false;
             this.txtStatus.Font = new System.Drawing.Font("Consolas", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtStatus.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.txtStatus.Location = new System.Drawing.Point(3, 200);
+            this.txtStatus.Location = new System.Drawing.Point(3, 225);
             this.txtStatus.Name = "txtStatus";
             this.txtStatus.ReadOnly = true;
-            this.txtStatus.Size = new System.Drawing.Size(587, 238);
+            this.txtStatus.Size = new System.Drawing.Size(587, 213);
             this.txtStatus.TabIndex = 36;
             this.txtStatus.Text = "";
             this.txtStatus.MouseDown += new System.Windows.Forms.MouseEventHandler(this.txtStatus_MouseDown);
@@ -716,7 +755,7 @@
             // lblInterval
             // 
             this.lblInterval.AutoSize = true;
-            this.lblInterval.Location = new System.Drawing.Point(24, 173);
+            this.lblInterval.Location = new System.Drawing.Point(24, 204);
             this.lblInterval.Name = "lblInterval";
             this.lblInterval.Size = new System.Drawing.Size(124, 13);
             this.lblInterval.TabIndex = 39;
@@ -725,7 +764,7 @@
             // lblInterval2
             // 
             this.lblInterval2.AutoSize = true;
-            this.lblInterval2.Location = new System.Drawing.Point(195, 173);
+            this.lblInterval2.Location = new System.Drawing.Point(195, 204);
             this.lblInterval2.Name = "lblInterval2";
             this.lblInterval2.Size = new System.Drawing.Size(50, 13);
             this.lblInterval2.TabIndex = 38;
@@ -781,7 +820,7 @@
             // 
             this.lblAnalysisQueries.AutoSize = true;
             this.lblAnalysisQueries.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAnalysisQueries.Location = new System.Drawing.Point(2, 108);
+            this.lblAnalysisQueries.Location = new System.Drawing.Point(3, 81);
             this.lblAnalysisQueries.Name = "lblAnalysisQueries";
             this.lblAnalysisQueries.Size = new System.Drawing.Size(130, 13);
             this.lblAnalysisQueries.TabIndex = 27;
@@ -793,7 +832,7 @@
             this.cmbProfilerAnalyses.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbProfilerAnalyses.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbProfilerAnalyses.FormattingEnabled = true;
-            this.cmbProfilerAnalyses.Location = new System.Drawing.Point(5, 121);
+            this.cmbProfilerAnalyses.Location = new System.Drawing.Point(6, 94);
             this.cmbProfilerAnalyses.Name = "cmbProfilerAnalyses";
             this.cmbProfilerAnalyses.Size = new System.Drawing.Size(207, 21);
             this.cmbProfilerAnalyses.TabIndex = 25;
@@ -802,27 +841,33 @@
             // 
             // dgdProfilerAnalyses
             // 
+            this.dgdProfilerAnalyses.AllowUserToAddRows = false;
+            this.dgdProfilerAnalyses.AllowUserToDeleteRows = false;
+            this.dgdProfilerAnalyses.AllowUserToResizeRows = false;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.AliceBlue;
+            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             this.dgdProfilerAnalyses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle2;
             this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 157);
+            this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 130);
+            this.dgdProfilerAnalyses.Margin = new System.Windows.Forms.Padding(0);
             this.dgdProfilerAnalyses.Name = "dgdProfilerAnalyses";
             this.dgdProfilerAnalyses.ReadOnly = true;
             this.dgdProfilerAnalyses.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdProfilerAnalyses.RowHeadersVisible = false;
-            this.dgdProfilerAnalyses.Size = new System.Drawing.Size(579, 198);
+            this.dgdProfilerAnalyses.Size = new System.Drawing.Size(579, 225);
             this.dgdProfilerAnalyses.TabIndex = 24;
             // 
             // btnImportProfilerTrace
             // 
-            this.btnImportProfilerTrace.Location = new System.Drawing.Point(235, 117);
+            this.btnImportProfilerTrace.Location = new System.Drawing.Point(236, 90);
             this.btnImportProfilerTrace.Name = "btnImportProfilerTrace";
             this.btnImportProfilerTrace.Size = new System.Drawing.Size(108, 26);
             this.btnImportProfilerTrace.TabIndex = 2;
@@ -855,18 +900,18 @@
             this.ProfilerTraceStatusTextBox.Multiline = true;
             this.ProfilerTraceStatusTextBox.Name = "ProfilerTraceStatusTextBox";
             this.ProfilerTraceStatusTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.ProfilerTraceStatusTextBox.Size = new System.Drawing.Size(579, 105);
+            this.ProfilerTraceStatusTextBox.Size = new System.Drawing.Size(579, 78);
             this.ProfilerTraceStatusTextBox.TabIndex = 0;
             // 
             // txtProfilerAnalysisQuery
             // 
             this.txtProfilerAnalysisQuery.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtProfilerAnalysisQuery.Location = new System.Drawing.Point(216, 110);
+            this.txtProfilerAnalysisQuery.Location = new System.Drawing.Point(217, 83);
             this.txtProfilerAnalysisQuery.Multiline = true;
             this.txtProfilerAnalysisQuery.Name = "txtProfilerAnalysisQuery";
             this.txtProfilerAnalysisQuery.ReadOnly = true;
             this.txtProfilerAnalysisQuery.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtProfilerAnalysisQuery.Size = new System.Drawing.Size(360, 41);
+            this.txtProfilerAnalysisQuery.Size = new System.Drawing.Size(362, 41);
             this.txtProfilerAnalysisQuery.TabIndex = 26;
             this.txtProfilerAnalysisQuery.Visible = false;
             // 
@@ -1011,6 +1056,9 @@
         private System.Windows.Forms.ComboBox cmbProfilerAnalyses;
         private System.Windows.Forms.DataGridView dgdProfilerAnalyses;
         private System.Windows.Forms.Label lblAnalysisQueries;
+        private System.Windows.Forms.TextBox txtSaveLocation;
+        private System.Windows.Forms.Button btnSaveLocation;
+        private System.Windows.Forms.Label label3;
     }
 }
 
