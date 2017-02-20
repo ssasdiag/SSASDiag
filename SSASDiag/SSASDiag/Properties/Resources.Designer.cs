@@ -139,9 +139,9 @@ namespace SSASDiag.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] ExtractDbNamesFromTrace {
+        internal static byte[] ExtractDbNamesFromTraceCmd {
             get {
-                object obj = ResourceManager.GetObject("ExtractDbNamesFromTrace", resourceCulture);
+                object obj = ResourceManager.GetObject("ExtractDbNamesFromTraceCmd", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -173,6 +173,16 @@ namespace SSASDiag.Properties {
             get {
                 object obj = ResourceManager.GetObject("ntshrui_3029", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap package_new {
+            get {
+                object obj = ResourceManager.GetObject("package_new", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -258,6 +268,16 @@ namespace SSASDiag.Properties {
         internal static string ProfilerTraceStopXMLA {
             get {
                 return ResourceManager.GetString("ProfilerTraceStopXMLA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Progress {
+            get {
+                object obj = ResourceManager.GetObject("Progress", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         

@@ -23,6 +23,7 @@ namespace SSASDiag
         #region locals
         string m_instanceVersion, m_instanceType, m_instanceEdition, m_analysisPath = "";
         CDiagnosticsCollector dc;
+        frmStatusFloater StatusFloater = new frmStatusFloater();
         string m_LogDir = "", m_ConfigDir = "", AnalysisTraceID = "";  
         List<ComboBoxServiceDetailsItem> LocalInstances = new List<ComboBoxServiceDetailsItem>();
         Image imgPlay = Properties.Resources.play, imgPlayLit = Properties.Resources.play_lit, imgPlayHalfLit = Properties.Resources.play_half_lit,
@@ -34,7 +35,7 @@ namespace SSASDiag
         System.Windows.Forms.Timer tmScrollStart = new System.Windows.Forms.Timer();
         SqlConnection connSqlDb = new SqlConnection();
         List<TabPage> HiddenTabPages = new List<TabPage>();
-        List<KeyValuePair<string, string>> ProfilerTraceAnalysisQueries;
+        List<ProfilerTraceQuery> ProfilerTraceAnalysisQueries;
         #endregion
 
         public frmSSASDiag()
@@ -80,17 +81,6 @@ namespace SSASDiag
 
             txtSaveLocation.Text = Environment.CurrentDirectory;
         }
-
-        private List<KeyValuePair<string, string>> InitializeProfilerTraceAnalysisQueries()
-        {
-            List<KeyValuePair<string, string>> q = new List<KeyValuePair<string, string>>();
-            q.Add(new KeyValuePair<string, string>("", ""));
-            q.Add(new KeyValuePair<string, string>(
-                            "Longest running 100 queries captured",
-                            "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Database]\r\nWHERE EventClass = 10\r\nORDER BY Duration DESC"));
-            return q;
-        }
-
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
             try
@@ -115,23 +105,44 @@ namespace SSASDiag
                             Application.OpenForms["PasswordPrompt"].Invoke(new System.Action(()=> Application.OpenForms["PasswordPrompt"].Close()));
                     }
                 if (bProfilerTraceDbAttached && chkDettachProfilerAnalysisDBWhenDone.Checked)
-                    DettachProfilerTraceDB();
+                {
+                    StatusFloater.lblStatus.Text = "Detaching attached profiler trace database...";
+                    StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.Show(this);
+                    this.Enabled = false;
+                    BackgroundWorker bgDetachProfilerDB = new BackgroundWorker();
+                    bgDetachProfilerDB.DoWork += BgDetachProfilerDB_DoWork; ;
+                    bgDetachProfilerDB.RunWorkerCompleted += BgDetachProfilerDB_RunWorkerCompleted;
+                    bgDetachProfilerDB.RunWorkerAsync();
+                    e.Cancel = true;
+                }
             }
             catch
             {
                 // This should never happen but might if we are summarily killing midway through something.  Don't get hung up just close.
             }
         }
+        private void BgDetachProfilerDB_DoWork(object sender, DoWorkEventArgs e)
+        {
+            DettachProfilerTraceDB();
+        }
+        private void BgDetachProfilerDB_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            StatusFloater.Close();
+            this.Close();
+        }
+
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
             lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 59;
-            txtStatus.Width = this.Width - 42;
-            txtStatus.Height = this.Height - 266;
+            txtStatus.Width = this.Width - 30;
+            txtStatus.Height = this.Height - 315;
             tcCollectionAnalysisTabs.Height = this.Height - 59;
             tcAnalysis.Height = this.Height - 119;
-            txtProfilerAnalysisQuery.Width = tcCollectionAnalysisTabs.Width - 201;
+            txtProfilerAnalysisQuery.Width = this.Width - 255;
             btnImportProfilerTrace.Left = this.Width / 2 - btnImportProfilerTrace.Width / 2;
-            dgdProfilerAnalyses.Height = this.Height - 298;
+            dgdProfilerAnalyses.Height = this.Height - 288;
             if (tcAnalysis.TabPages.ContainsKey("Network Trace") || HiddenTabPages.Where(t => t.Name == "Network Trace").Count() > 0)
             {
                 Button btnAnalyzeNetworkTrace = tcAnalysis.TabPages.ContainsKey("Network Trace") ? 
@@ -141,5 +152,25 @@ namespace SSASDiag
             }
         }
         #endregion frmSSASDiagEvents
+
+        #region FeedbackUI
+        private void lkFeedback_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("mailto:SSASDiagChamps@microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
+        }
+        private void lkBugs_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://asprofilertraceimporter.codeplex.com/workitem/list/basic");
+        }
+        private void lkDiscussion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://asprofilertraceimporter.codeplex.com/discussions");
+        }
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            frmAbout f = new frmAbout();
+            f.ShowDialog(this);
+        }
+        #endregion FeedbackUI
     }
 }

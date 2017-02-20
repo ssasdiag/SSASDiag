@@ -188,6 +188,30 @@ Generated trace/log files are saved with file names of the format:
 Generated trace/log files are saved with file names of the format:
 &lt;hostname&gt;_&lt;instance if named&gt;_&lt;UTC time&gt;.&lt;file extension&gt;</value>
   </data>
+  <data name="lkAbout.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1
+        MAAA6mAAADqYAAAXb5JfxUYAAAAJcEhZcwAADdcAAA3XAUIom3gAAAQjSURBVDhPnVV/TJR1HP4KHJ0T
+        +wU3NrBz00rQLMuyTU1LjMg11A6IX6ILDQeb7LBsZuSCMCT5eSg7Jj8UuDsEDu7iFC7gDuXAO5imgBGg
+        C5tcS07DwJrzePp837taOdlcz/b88X6ez/N8P+/3fd/vyx4BjxODiUuJT/LC/8UimUyWVVJSYj6lUQ/W
+        atRXSpXKswkJCUe8vb35Ao8MUUxsrPLu9BRmwx93p5GSkqKiXh+XZXYsMBqN424fmjr78bHShMO1vfim
+        zgZ5STuU9SY4bv4q6FardVIkEs06rUin013jjdftE3gvvREr9zYjs2FIMHMUG3/C2vQOvL1fi7bOHqHW
+        Zem+Sd6nXRH/glwur+ANQ9duwC9KiRWfduCzulFUnx0DnL+T4kRTrx2fqIbwVpYVkm01aGnv4hZkH87R
+        u2Nc8PT0XHbLMSGIL+4qw/ztesQUX8CeiktIVF5EVsMg8r8dwr6aQchPXEZscR8WppqwOLEKU45x3L/3
+        J/z8/N5wxzEWHR39FQ8r05rB1iuxfP85hGZZIMuzQd93A+YBOzovXUdm3QC25FoRntODlennwNZVIrvc
+        KAyStHv3UXcce0qhKDLz4tYDp8BCVRDF6bAwpQWrDpgx7pgWDMB9CuxH8N52BMmNmL9DT70arJfXCapW
+        2zBIWYt5YFCtRvMjL76WXAMW1QTPKC3Y1jp4xTYJC1SYaR8JkXk9YGFqeMQ0QrxNB/a+FtL4KlKcsPZY
+        Jui21/LAYI1GPQLM4IWdlWARWjzxYTNYZAOYrB5sxXEo9K4n/e4hC1hItTDdXB4YXo/AuBOCZjvf7fh7
+        HyUlx45ZeDEkuRxsQxUkSS0Q8ekiKHBdFfJ0A4JJlnsebJMGc+N1NCXp1Ls6WSVopw2GYQ8PjyU8kNFb
+        X8iLn+eqwF4pwrxdrfD/yAAxGdkGFY5ovyd1BltyaMJ3NJjzAW1JvAFsWT6yK03cirS0tJNCGIevr+/r
+        U3d+w9jVASwILwTbWA3/lDYsSm0FW6PBl5VWskxj4x66frkCbAeF0XS+ocIcAqRS6SZ3nAt5+QXNXChV
+        0628mi0YvLafQUZ1N8ZGfyDlF1wd+xmRhTawl0rBlmbC0DfKLVAqlRZ3zH/gf7l/8A5vqNA0QhSWDxaU
+        i30FehyqNmFnQRuOG6wIS1XTlF+j1coXAYaHh53kfc4V8QB8fHxWjYyMzvDGKwMXkZR1EvM2HwVbTeFr
+        iKFFiMusx+TtW0KY3W6HRCIJddsfDjrrpAqFwsQ/JwHOexTgwIPHWXl5mU0sFrue6kMwhygiPiZcEQIC
+        AmK+OHiwo/XM6du9PV3OC7bumbbvWiczMjK7AgMDE6nFw9XJxERvIs/4B15EftQHEvn5tpz4DPFZ4pvE
+        CGIkMYT4PJFrvIdTSuS/BhqIsb8AgXLj5mo26BAAAAAASUVORK5CYII=
+</value>
+  </data>
   <metadata name="imgAnalyzerIcons.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>110, 17</value>
   </metadata>
@@ -196,7 +220,7 @@ Generated trace/log files are saved with file names of the format:
         AAEAAAD/////AQAAAAAAAAAMAgAAAFdTeXN0ZW0uV2luZG93cy5Gb3JtcywgVmVyc2lvbj00LjAuMC4w
         LCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWI3N2E1YzU2MTkzNGUwODkFAQAAACZTeXN0
         ZW0uV2luZG93cy5Gb3Jtcy5JbWFnZUxpc3RTdHJlYW1lcgEAAAAERGF0YQcCAgAAAAkDAAAADwMAAABM
-        GgAAAk1TRnQBSQFMAgEBBgEAAZgBAAGYAQABGAEAARgBAAT/AQkBAAj/AUIBTQE2AQQGAAE2AQQCAAEo
+        GgAAAk1TRnQBSQFMAgEBBgEAAfABAAHwAQABGAEAARgBAAT/AQkBAAj/AUIBTQE2AQQGAAE2AQQCAAEo
         AwABYAMAATADAAEBAQABCAYAARIYAAGAAgABgAMAAoABAAGAAwABgAEAAYABAAKAAgADwAEAAcAB3AHA
         AQAB8AHKAaYBAAEzBQABMwEAATMBAAEzAQACMwIAAxYBAAMcAQADIgEAAykBAANVAQADTQEAA0IBAAM5
         AQABgAF8Af8BAAJQAf8BAAGTAQAB1gEAAf8B7AHMAQABxgHWAe8BAAHWAucBAAGQAakBrQIAAf8BMwMA

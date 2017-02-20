@@ -25,7 +25,10 @@ namespace SSASDiag
     {
         #region AnalysisUI
 
+        #region AnalysisLocals
         System.Windows.Forms.Timer AnalysisMessagePumpTimer = new System.Windows.Forms.Timer();
+        bool bProfilerEventClassSublcassViewPresent = false, bProfilerQueryStatsPresent = false;
+        #endregion AnalysisLocals
 
         private void tcCollectionAnalysisTabs_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -283,6 +286,80 @@ namespace SSASDiag
         }
 
         #region Profiler Trace Analysis
+        enum ProfilerQueryTypes
+        {
+            BaseQuery = 1,
+            QueriesWithEventClassSubclassNames,
+            QueriesWithQueryStats,
+            AllQueries            
+        }
+        class ProfilerTraceQuery
+        {
+            public ProfilerTraceQuery(string key, string value, ProfilerQueryTypes queryType)
+            { Key = key; Value = value; QueryType = queryType; }
+            public ProfilerTraceQuery(ProfilerTraceQuery p, ProfilerQueryTypes t)
+            {
+                Key = p.Key;
+                Value = p.Value;
+                QueryType = t;
+            }
+            public string Key { get; set; }
+            public string Value { get; set; }
+            public ProfilerQueryTypes QueryType { get; set; }
+        }
+
+        private List<ProfilerTraceQuery> InitializeProfilerTraceAnalysisQueries()
+        {
+            List<ProfilerTraceQuery> q = new List<ProfilerTraceQuery>();
+
+            // Longest running queries
+            q.Add(new ProfilerTraceQuery("", "", ProfilerQueryTypes.BaseQuery));
+            q.Add(new ProfilerTraceQuery("Longest running queries captured",
+                                         "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Table]\r\nWHERE EventClass = 10\r\nORDER BY Duration DESC",
+                                         ProfilerQueryTypes.BaseQuery));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
+
+
+            // Most collectively expensive events
+            q.Add(new ProfilerTraceQuery("Most collectively expensive events",
+                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventSubclass, TextData\r\nFROM [Table]\r\nWHERE EventClass <> 42-- skip ExistingSession durations\r\nGROUP BY TextData, EventClass, EventSubclass\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
+                                         ProfilerQueryTypes.BaseQuery));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
+            q.Add(new ProfilerTraceQuery("Most collectively expensive events",
+                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData\r\nFROM [Table_v]\r\nWHERE EventClass <> 42-- skip ExistingSession durations\r\nGROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
+                                         ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+
+            // Most collectively expensive queries
+            q.Add(new ProfilerTraceQuery("Most collectively expensive queries",
+                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventSubclass, TextData\r\nFROM [Table]\r\nWHERE EventClass in (10, 15) -- Only include query and command end events\r\nGROUP BY TextData, EventClass, EventSubclass\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
+                                         ProfilerQueryTypes.BaseQuery));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
+            q.Add(new ProfilerTraceQuery("Most collectively expensive queries",
+                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData\r\nFROM [Table_v]\r\nWHERE EventClass in (10, 15) -- Only include query and command end events\r\nGROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
+                                         ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+
+            // Errors
+            q.Add(new ProfilerTraceQuery("Queries/commands with errors",
+                                         "SELECT TextData, CONVERT(VARBINARY(8), Error) Error, DatabaseName, EventClass, NTUserName, NTDomainName, a.ConnectionID, ClientProcessID, SPID, ApplicationName\r\nFROM[Table] a,\r\n\t(\r\n\t\tSELECT RowNumber, ConnectionID, StartTime\r\n\t\tFROM [Table]\r\n\t\tWHERE EventClass = 17\r\n\t) b\r\nWHERE EventClass in (9, 10, 15, 16, 17) AND\r\n\ta.ConnectionID = b.ConnectionID AND\r\n\ta.StartTime >= b.StartTime AND\r\n\ta.RowNumber <= b.RowNumber",
+                                         ProfilerQueryTypes.BaseQuery));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
+            q.Add(new ProfilerTraceQuery("Queries/commands with errors",
+                                         "SELECT TextData, CONVERT(VARBINARY(8), Error) Error, DatabaseName, EventClass, EventClassName, NTUserName, NTDomainName, a.ConnectionID, ClientProcessID, SPID, ApplicationName\r\nFROM[Table_v] a,\r\n\t(\r\n\t\tSELECT RowNumber, ConnectionID, StartTime\r\n\t\tFROM [Table]\r\n\t\tWHERE EventClass = 17\r\n\t) b\r\nWHERE EventClass in (9, 10, 15, 16, 17) AND\r\n\ta.ConnectionID = b.ConnectionID AND\r\n\ta.StartTime >= b.StartTime AND\r\n\ta.RowNumber <= b.RowNumber",
+                                         ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+
+            // Query Stats
+            q.Add(new ProfilerTraceQuery("Formula/Storage engine statistics",
+                                         "SELECT QueryDuration, StorageEngineTime, QueryDuration - StorageEngineTime FormulaEngineTime, SEPct, 100 - SEPct FEPct, StartRow, EndRow, StartTime, EndTime, ConnectionID, TextData, RequestParameters, RequestProperties, SPID, NTUserName, NTDomainName\r\nFROM [Table_QueryStats]\r\nORDER BY QueryDuration",
+                                         ProfilerQueryTypes.QueriesWithQueryStats));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+
+            return q;
+        }
         private void btnImportProfilerTrace_Click(object sender, EventArgs e)
         {
             btnImportProfilerTrace.Enabled = false;
@@ -370,16 +447,19 @@ namespace SSASDiag
                                     ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + sOut);
                             }
                             ));
+                        else if (sOut == "Database prepared for analysis.")
+                            break;
                         else
                             ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + sOut)));
                 }
-                ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText("\r\nAdding profiler database to collection data...\r\n")));
+                Debug.WriteLine(p.HasExited);
+                ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Adding profiler database to collection data...")));
                 DettachProfilerTraceDB();
                 AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
                 AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
                 if (txtFolderZipForAnalysis.Text.EndsWith(".zip"))
                 {
-                    ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText("Deleting redundant profiler trace files from data extraction location...\r\n")));
+                    ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText("\r\nDeleting redundant profiler trace files from data extraction location...")));
                     foreach (string file in Directory.EnumerateFiles(m_analysisPath, AnalysisTraceID + "*.trc"))
                         File.Delete(file);
                 }
@@ -409,23 +489,48 @@ namespace SSASDiag
         }
         private void cmbProfilerAnalyses_SelectedIndexChanged(object sender, EventArgs e)
         {
-            txtProfilerAnalysisQuery.Text = ProfilerTraceAnalysisQueries.First(kv => kv.Key == cmbProfilerAnalyses.Text).Value.Replace("[Database]", "[" + AnalysisTraceID + "]");
+            txtProfilerAnalysisQuery.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Key == cmbProfilerAnalyses.Text).Value.Replace("[Table", "[" + AnalysisTraceID);
+            
             if (txtProfilerAnalysisQuery.Text != "")
             {
-                connSqlDb.ChangeDatabase(AnalysisTraceID);
-                SqlCommand cmd = new SqlCommand(txtProfilerAnalysisQuery.Text, connSqlDb);
-                SqlDataReader dr = cmd.ExecuteReader();
-                DataTable dt = new DataTable();
-                dt.Load(dr);
-                dgdProfilerAnalyses.AutoGenerateColumns = true;
-                dgdProfilerAnalyses.DataSource = dt;
-                dgdProfilerAnalyses.Refresh();
+                BackgroundWorker bgLoadProfilerAnalysis = new BackgroundWorker();
+                bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
+                bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
+                StatusFloater.lblStatus.Text = "Running analysis query...";
+                StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
+                StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
+                StatusFloater.Visible = true;
+                this.Enabled = false;
+                bgLoadProfilerAnalysis.RunWorkerAsync();
             }
             else
             {
                 dgdProfilerAnalyses.DataSource = null;
                 dgdProfilerAnalyses.Refresh();
             }
+        }
+        private void BgLoadProfilerAnalysis_DoWork(object sender, DoWorkEventArgs e)
+        {
+            connSqlDb.ChangeDatabase(AnalysisTraceID);
+            SqlCommand cmd = new SqlCommand(txtProfilerAnalysisQuery.Text, connSqlDb);
+            SqlDataReader dr = cmd.ExecuteReader();
+            DataTable dt = new DataTable();
+            dt.Load(dr);
+            dgdProfilerAnalyses.Invoke(new System.Action(() =>
+                {
+                    dgdProfilerAnalyses.AutoGenerateColumns = true;
+                    dgdProfilerAnalyses.DataSource = dt;
+                    dgdProfilerAnalyses.Refresh();
+                }));
+        }
+        private void BgLoadProfilerAnalysis_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            Invoke(new System.Action(() =>
+                {
+                    StatusFloater.Visible = false;
+                    this.Enabled = true;
+                    this.Activate();
+                }));
         }
         private void ValidateProfilerTraceDBConnectionStatus()
         {
@@ -465,13 +570,43 @@ namespace SSASDiag
                 }
             }
         }
+        private void ValidateProfilerTraceViews()
+        {
+            if (connSqlDb.State == ConnectionState.Open)
+            {
+                connSqlDb.ChangeDatabase(AnalysisTraceID);
+                SqlCommand cmd = new SqlCommand("SELECT TOP 1 name FROM sys.views WHERE name = N'" + AnalysisTraceID + "_v'", connSqlDb);
+                if (cmd.ExecuteScalar() != null)
+                    bProfilerEventClassSublcassViewPresent = true;
+                else
+                    bProfilerEventClassSublcassViewPresent = false;
+                ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed event class/subclass view is " + (bProfilerEventClassSublcassViewPresent ? "present.\r\n" : "not present.\r\n"));
+                cmd.CommandText = "SELECT TOP 1 name FROM sys.views WHERE name = N'" + AnalysisTraceID + "_QueryStats'";
+                if (cmd.ExecuteScalar() != null)
+                    bProfilerQueryStatsPresent = true;
+                else
+                    bProfilerQueryStatsPresent = false;
+                ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed query statistics view is " + (bProfilerQueryStatsPresent ? "present.\r\n" : "not present.\r\n"));
+                if (bProfilerEventClassSublcassViewPresent && bProfilerQueryStatsPresent)
+                    cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries.Where(q => q.QueryType == (bProfilerEventClassSublcassViewPresent && bProfilerQueryStatsPresent ? ProfilerQueryTypes.AllQueries :
+                                                                                                            bProfilerEventClassSublcassViewPresent ? ProfilerQueryTypes.QueriesWithEventClassSubclassNames :
+                                                                                                            bProfilerQueryStatsPresent ? ProfilerQueryTypes.QueriesWithQueryStats :
+                                                                                                            ProfilerQueryTypes.BaseQuery) 
+                                                                                             || q.Key == "").ToList();
+                cmbProfilerAnalyses.Refresh();
+            }
+        }
+
         private void AttachProfilerTraceDB()
         {
-            tcAnalysis.SelectedTab.Controls["ProfilerTraceStatusTextbox"].Text += "Attaching profiler trace database...\r\n";
+            tcAnalysis.SelectedTab.Controls["ProfilerTraceStatusTextbox"].Text += (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attaching profiler trace database...\r\n";
             ValidateProfilerTraceDBConnectionStatus();
             if (connSqlDb.State == ConnectionState.Open)
             {
-                SqlCommand cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') CREATE DATABASE [" + AnalysisTraceID + "] ON (FILENAME = N'" + m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf'),"
+                connSqlDb.ChangeDatabase("master");
+                SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET MULTI_USER", connSqlDb);
+                cmd.ExecuteNonQuery();
+                cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') CREATE DATABASE [" + AnalysisTraceID + "] ON (FILENAME = N'" + m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf'),"
                                                 + "(FILENAME = N'" + m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf') "
                                                 + "FOR ATTACH", connSqlDb);
                 try
@@ -486,7 +621,8 @@ namespace SSASDiag
                                                                             + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
                                                                             + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
                     }));
-                    ProfilerTraceStatusTextBox.AppendText("Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
+                    ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
+                    ValidateProfilerTraceViews();
                 }
                 catch (SqlException ex)
                 {
@@ -517,7 +653,8 @@ namespace SSASDiag
                                                                         + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
                                                                         + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
                                     }));
-                                    ProfilerTraceStatusTextBox.AppendText("Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
+                                    ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
+                                    ValidateProfilerTraceViews();
                                     break;
                                 }
                                 catch
@@ -527,7 +664,7 @@ namespace SSASDiag
                             }
                             else
                             {
-                                ProfilerTraceStatusTextBox.AppendText("Unable to load trace data to SQL table.  No local instance able to host the data is available.");
+                                ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to load trace data to SQL table.  No local instance able to host the data is available.");
                                 return;
                             }
                         }
@@ -539,7 +676,7 @@ namespace SSASDiag
                     }
                     else
                     {
-                        ProfilerTraceStatusTextBox.AppendText("Unable to attach to database due to exception:\r\n" + ex.Message);
+                        ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to attach to database due to exception:\r\n" + ex.Message);
                     }
                 }
             }
@@ -549,12 +686,13 @@ namespace SSASDiag
             try
             {
                 // Dettach without blocking for existing sessions...
-                SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET  SINGLE_USER WITH ROLLBACK IMMEDIATE", connSqlDb);
+                SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connSqlDb);
                 cmd.ExecuteNonQuery();
+                Thread.Sleep(1000); // Sometimes it fails if we just immediately went to single user mode...  Shouldn't have to but add a tiny wait.
                 cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') EXEC master.dbo.sp_detach_db @dbname = N'" + AnalysisTraceID + "'", connSqlDb);
                 cmd.ExecuteNonQuery();
                 bProfilerTraceDbAttached = lblAnalysisQueries.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
-                ProfilerTraceStatusTextBox.AppendText("Detached trace database [" + AnalysisTraceID + "]\r\nfrom SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nat " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
+                ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Detached trace database [" + AnalysisTraceID + "]\r\nfrom SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nat " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
             }
             catch (Exception ex) { Debug.WriteLine("Exception during dettach: " + ex.Message); }  // could fail if service stopped, no biggie just move on...
         }

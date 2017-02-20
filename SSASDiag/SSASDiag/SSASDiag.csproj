@@ -102,6 +102,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CDiagnosticsCollector.cs" />
+    <Compile Include="frmAbout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmAbout.Designer.cs">
+      <DependentUpon>frmAbout.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmSSASDiag\FolderFileDialog.cs" />
     <Compile Include="frmSSASDiag\frmSSASDiag.cs">
       <SubType>Form</SubType>
@@ -124,6 +130,12 @@
     <Compile Include="frmSSASDiag\CollectionUI.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="frmStatusFloater.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmStatusFloater.Designer.cs">
+      <DependentUpon>frmStatusFloater.cs</DependentUpon>
+    </Compile>
     <Compile Include="PdhNative.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -133,6 +145,9 @@
     <Compile Include="frmSimpleSQLServerPrompt.Designer.cs">
       <DependentUpon>frmSimpleSQLServerPrompt.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="frmAbout.resx">
+      <DependentUpon>frmAbout.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmSimpleSQLServerPrompt.resx">
       <DependentUpon>frmSimpleSQLServerPrompt.cs</DependentUpon>
     </EmbeddedResource>
@@ -143,16 +158,14 @@
     <EmbeddedResource Include="frmPasswordPrompt.resx">
       <DependentUpon>frmPasswordPrompt.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="frmStatusFloater.resx">
+      <DependentUpon>frmStatusFloater.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <None Include="app.config" />
     <None Include="app.manifest" />
     <None Include="packages.config" />
@@ -160,6 +173,11 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -201,6 +219,9 @@
     <None Include="Resources\play-half-lit.png" />
     <None Include="Resources\stop-button-half-lit.png" />
     <None Include="Resources\ASProfilerTraceImporterCmd.exe" />
+    <None Include="Resources\ExtractDbNamesFromTraceCmd.exe" />
+    <None Include="Resources\package_new.ico" />
+    <None Include="Resources\package_new.png" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

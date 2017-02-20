@@ -655,13 +655,15 @@ namespace SSASDiag
         {
             if (bGetProfiler)
             {
+                AddItemToStatus("Preparing to stop profiler trace...");
+                System.Threading.Thread.Sleep(5000); // Wait 5s to allow profiler events to catch up a little bit.
                 AddItemToStatus("Executing AS server command to stop profiler trace...");
                 ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
                 AddItemToStatus("Stopped profiler trace.");
 
                 if (bGetXMLA || bGetABF)
                 {
-                    string[] dbs = { };
+                    List<string> dbs = new List<string>();
 
                     #region X86 TraceFile reader workaround
                     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -674,24 +676,26 @@ namespace SSASDiag
                     ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
                     Process p = new Process();
                     p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.RedirectStandardOutput = true;
                     p.StartInfo.CreateNoWindow = true;
-                    p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ExtractDbNamesFromTrace.exe";
+                    p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ExtractDbNamesFromTraceCmd.exe";
                     p.StartInfo.Arguments =
-                        "\"" + Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0] + "\" "
-                        + Environment.CurrentDirectory + "\\" + TraceID + "\\DatabaseNamesOnly_" + TraceID + ".txt";
+                        "\"" + Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0] + "\" ";
                     p.Start();
-                    p.WaitForExit();
-                    if (File.Exists(Environment.CurrentDirectory + "\\" + TraceID + "\\DatabaseNamesOnly_" + TraceID + ".txt"))
+                    while (true)
                     {
-                        dbs = File.ReadAllLines(Environment.CurrentDirectory + "\\" + TraceID + "\\DatabaseNamesOnly_" + TraceID + ".txt");
-                        File.Delete(Environment.CurrentDirectory + "\\" + TraceID + "\\DatabaseNamesOnly_" + TraceID + ".txt");
+                        string sOut = p.StandardOutput.ReadLine();
+                        if (sOut == "ExtractDbNamesFromTraceCmd finished.")
+                            break;
+                        else
+                            dbs.Add(sOut.TrimEnd(new char[] { '\r', '\n' }));
                     }
                     if (Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc").Length > 0)
                         File.Delete(Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0]);
                     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     #endregion X86 TraceFile reader workaround
 
-                    if (dbs.Length == 0)
+                    if (dbs.Count == 0)
                         AddItemToStatus("There were no databases captured in the trace.  No AS database definitions or backups will be captured.");
                     else
                     {
@@ -731,8 +735,6 @@ namespace SSASDiag
                     }
                 }
             }
-
-
 
             // Just before zip, write out last line of this capture log and save that file...
             // The last line captured in text file here:
@@ -834,21 +836,25 @@ namespace SSASDiag
         }
         void AddItemToStatus(string Item, bool bScroll = true, string AtLastLineStartingWith = "")
         {
-            int iCurStatusPos = 0;
-            txtStatus.Invoke(new System.Action(() => iCurStatusPos = txtStatus.SelectionStart));
-
+            //bool ShouldScroll = false;
+            //txtStatus.Invoke(new System.Action(() => ShouldScroll = txtStatus.SelectionStart > txtStatus.TextLength - 1));
+            
             if (AtLastLineStartingWith == "")
-                slStatus.Insert(slStatus.Count, Item);                
+                slStatus.Insert(slStatus.Count, Item);
             else
                 for (int i = slStatus.Count - 1; i >= 0; i--)
                     if (slStatus[i].StartsWith(AtLastLineStartingWith))
                         slStatus[i] = Item;
-            
-            if (bScroll) txtStatus.Invoke(new System.Action(() =>
-                                {
-                                    txtStatus.Select(txtStatus.Text.Length, 0);
-                                    txtStatus.ScrollToCaret();
-                                }));
+
+            // Disabling scroll option for now.  While capturing screen will be subject to forced scrolling.  :(  Due to a glitch where non-scrolling lines cause scroll to roll BACK a line, losting the active line...  
+            // Need to fix for UI interactivity to allow copy of text during capture, but also very minor.
+            //if (ShouldScroll)
+                txtStatus.Invoke(new System.Action(() =>
+                {
+                    if (txtStatus.Text.Length > 0)
+                        txtStatus.Select(txtStatus.Text.Length - 1, 1);
+                    txtStatus.ScrollToCaret();
+                }));
             txtStatus.Invoke(new System.Action(() => RaisePropertyChanged("Status")));
             return;
         }

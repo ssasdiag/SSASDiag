@@ -15,7 +15,7 @@ using System.Reflection;
 using System.Runtime;
 namespace ASProfilerTraceImporterCmd
 {
-    class Program
+    class ASProfilerTraceImporterCmd
     {
         static string TraceFilePath = "";
         static string ConnStr = "";
@@ -189,7 +189,7 @@ namespace ASProfilerTraceImporterCmd
                 else
                     SetText("Created query statitistics view [" + Table + "_QueryStats].\r\nCreated event names view [" + Table + "_v].");
                 conn2.Close();
-                SetText("Preparing profiler trace database for analysis...");
+                SetText("Database prepared for analysis.");
             }
             catch (Exception exc)
             {
@@ -216,8 +216,8 @@ namespace ASProfilerTraceImporterCmd
                 {
                     Sem.WaitOne();  // throttle execution based on semaphore
                     tIn.InitializeAsReader(FileName);
-                    tOut.InitializeAsWriter(tIn, Program.cib, CurFile == 0 ? Table : "##" + Table + "_" + CurFile);
-                    SqlConnection conn = new System.Data.SqlClient.SqlConnection(Program.ConnStr);
+                    tOut.InitializeAsWriter(tIn, ASProfilerTraceImporterCmd.cib, CurFile == 0 ? Table : "##" + Table + "_" + CurFile);
+                    SqlConnection conn = new System.Data.SqlClient.SqlConnection(ASProfilerTraceImporterCmd.ConnStr);
                     conn.Open();
                     bool bFirstFile = false;
                     if (cols == "")
@@ -234,7 +234,7 @@ namespace ASProfilerTraceImporterCmd
                     try
                     {
                         while (tOut.Write())
-                            if (RowCount++ % 256 == 0) ASProfilerTraceImporterCmd.Program.UpdateRowCounts();
+                            if (RowCount++ % 256 == 0) global::ASProfilerTraceImporterCmd.ASProfilerTraceImporterCmd.UpdateRowCounts();
                     }
                     catch (SqlTraceException ste)
                     {

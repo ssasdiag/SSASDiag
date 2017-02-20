@@ -510,21 +510,6 @@ namespace SSASDiag
 
         #endregion DiagnosticsToCaptureUI
 
-        #region FeedbackUI
-        private void lkFeedback_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start("mailto:SSASDiagChamps@microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
-        }
-        private void lkBugs_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start("https://asprofilertraceimporter.codeplex.com/workitem/list/basic");
-        }
-        private void lkDiscussion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start("https://asprofilertraceimporter.codeplex.com/discussions");
-        }
-        #endregion FeedbackUI
-
         #endregion VariousNonBlockingUIElements
 
         #endregion CollectionUI

@@ -30,8 +30,8 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSSASDiag));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
@@ -48,6 +48,7 @@
             this.txtSaveLocation = new System.Windows.Forms.TextBox();
             this.btnSaveLocation = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
+            this.lkAbout = new System.Windows.Forms.LinkLabel();
             this.tcCollectionAnalysisTabs = new System.Windows.Forms.TabControl();
             this.tbCollection = new System.Windows.Forms.TabPage();
             this.chkDeleteRaw = new System.Windows.Forms.CheckBox();
@@ -324,6 +325,24 @@
             this.label3.TabIndex = 45;
             this.label3.Text = "Data collection location:";
             this.ttStatus.SetToolTip(this.label3, resources.GetString("label3.ToolTip"));
+            // 
+            // lkAbout
+            // 
+            this.lkAbout.AutoSize = true;
+            this.lkAbout.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lkAbout.ForeColor = System.Drawing.SystemColors.Highlight;
+            this.lkAbout.Image = ((System.Drawing.Image)(resources.GetObject("lkAbout.Image")));
+            this.lkAbout.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lkAbout.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
+            this.lkAbout.Location = new System.Drawing.Point(266, 468);
+            this.lkAbout.Name = "lkAbout";
+            this.lkAbout.Padding = new System.Windows.Forms.Padding(2);
+            this.lkAbout.Size = new System.Drawing.Size(57, 17);
+            this.lkAbout.TabIndex = 22;
+            this.lkAbout.TabStop = true;
+            this.lkAbout.Text = "      About";
+            this.ttStatus.SetToolTip(this.lkAbout, "Who we are");
+            this.lkAbout.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
             // tcCollectionAnalysisTabs
             // 
@@ -844,30 +863,36 @@
             this.dgdProfilerAnalyses.AllowUserToAddRows = false;
             this.dgdProfilerAnalyses.AllowUserToDeleteRows = false;
             this.dgdProfilerAnalyses.AllowUserToResizeRows = false;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.AliceBlue;
-            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.AliceBlue;
+            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
+            this.dgdProfilerAnalyses.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgdProfilerAnalyses.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dgdProfilerAnalyses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle4;
             this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 130);
+            this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 119);
             this.dgdProfilerAnalyses.Margin = new System.Windows.Forms.Padding(0);
             this.dgdProfilerAnalyses.Name = "dgdProfilerAnalyses";
             this.dgdProfilerAnalyses.ReadOnly = true;
             this.dgdProfilerAnalyses.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdProfilerAnalyses.RowHeadersVisible = false;
-            this.dgdProfilerAnalyses.Size = new System.Drawing.Size(579, 225);
+            this.dgdProfilerAnalyses.RowTemplate.Height = 18;
+            this.dgdProfilerAnalyses.RowTemplate.ReadOnly = true;
+            this.dgdProfilerAnalyses.RowTemplate.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdProfilerAnalyses.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
+            this.dgdProfilerAnalyses.Size = new System.Drawing.Size(579, 236);
             this.dgdProfilerAnalyses.TabIndex = 24;
             // 
             // btnImportProfilerTrace
             // 
-            this.btnImportProfilerTrace.Location = new System.Drawing.Point(236, 90);
+            this.btnImportProfilerTrace.Location = new System.Drawing.Point(235, 84);
             this.btnImportProfilerTrace.Name = "btnImportProfilerTrace";
             this.btnImportProfilerTrace.Size = new System.Drawing.Size(108, 26);
             this.btnImportProfilerTrace.TabIndex = 2;
@@ -911,7 +936,7 @@
             this.txtProfilerAnalysisQuery.Name = "txtProfilerAnalysisQuery";
             this.txtProfilerAnalysisQuery.ReadOnly = true;
             this.txtProfilerAnalysisQuery.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtProfilerAnalysisQuery.Size = new System.Drawing.Size(362, 41);
+            this.txtProfilerAnalysisQuery.Size = new System.Drawing.Size(362, 33);
             this.txtProfilerAnalysisQuery.TabIndex = 26;
             this.txtProfilerAnalysisQuery.Visible = false;
             // 
@@ -958,6 +983,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(601, 489);
+            this.Controls.Add(this.lkAbout);
             this.Controls.Add(this.tcCollectionAnalysisTabs);
             this.Controls.Add(this.lkDiscussion);
             this.Controls.Add(this.lkBugs);
@@ -1059,6 +1085,7 @@
         private System.Windows.Forms.TextBox txtSaveLocation;
         private System.Windows.Forms.Button btnSaveLocation;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.LinkLabel lkAbout;
     }
 }
 
