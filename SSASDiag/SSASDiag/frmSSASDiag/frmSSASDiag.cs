@@ -135,7 +135,7 @@ namespace SSASDiag
 
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
-            lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 59;
+            lkAbout.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 59;
             txtStatus.Width = this.Width - 30;
             txtStatus.Height = this.Height - 315;
             tcCollectionAnalysisTabs.Height = this.Height - 59;
