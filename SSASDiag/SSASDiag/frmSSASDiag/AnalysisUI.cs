@@ -374,6 +374,7 @@ namespace SSASDiag
             }
             catch (SqlException ex)
             {
+                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                 if (ex.Message == "ExecuteNonQuery requires an open and available Connection. The connection's current state is closed.")
                 {
                     ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  No SQL Server was available to perform import";
@@ -435,7 +436,7 @@ namespace SSASDiag
                 while (!p.HasExited)
                 {
                     string sOut = p.StandardOutput.ReadLine();
-                    Debug.WriteLine(sOut);
+                    System.Diagnostics.Trace.WriteLine(sOut);
                     if (sOut != null)
                         if (sOut.StartsWith("Loaded "))
                             ProfilerTraceStatusTextBox.Invoke(new System.Action(() =>
@@ -452,7 +453,7 @@ namespace SSASDiag
                         else
                             ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + sOut)));
                 }
-                Debug.WriteLine(p.HasExited);
+                System.Diagnostics.Trace.WriteLine(p.HasExited);
                 ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Adding profiler database to collection data...")));
                 DettachProfilerTraceDB();
                 AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
@@ -466,6 +467,7 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                 if (ex.Message == "ExecuteNonQuery requires an open and available Connection. The connection's current state is closed.")
                 {
                     ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  No SQL Server was available to perform import.\r\n"));
@@ -547,6 +549,7 @@ namespace SSASDiag
                     }
                     catch (Exception ex)
                     {
+                        System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                         sqlForTraces = "";
                         exMsg = ex.Message;
                     }
@@ -587,11 +590,10 @@ namespace SSASDiag
                 else
                     bProfilerQueryStatsPresent = false;
                 ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed query statistics view is " + (bProfilerQueryStatsPresent ? "present.\r\n" : "not present.\r\n"));
-                if (bProfilerEventClassSublcassViewPresent && bProfilerQueryStatsPresent)
-                    cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries.Where(q => q.QueryType == (bProfilerEventClassSublcassViewPresent && bProfilerQueryStatsPresent ? ProfilerQueryTypes.AllQueries :
-                                                                                                            bProfilerEventClassSublcassViewPresent ? ProfilerQueryTypes.QueriesWithEventClassSubclassNames :
-                                                                                                            bProfilerQueryStatsPresent ? ProfilerQueryTypes.QueriesWithQueryStats :
-                                                                                                            ProfilerQueryTypes.BaseQuery) 
+                cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries.Where(q => q.QueryType == (bProfilerEventClassSublcassViewPresent && bProfilerQueryStatsPresent ? ProfilerQueryTypes.AllQueries :
+                                                                                                        bProfilerEventClassSublcassViewPresent ? ProfilerQueryTypes.QueriesWithEventClassSubclassNames :
+                                                                                                        bProfilerQueryStatsPresent ? ProfilerQueryTypes.QueriesWithQueryStats :
+                                                                                                        ProfilerQueryTypes.BaseQuery) 
                                                                                              || q.Key == "").ToList();
                 cmbProfilerAnalyses.Refresh();
             }
@@ -613,19 +615,17 @@ namespace SSASDiag
                 {
                     cmd.ExecuteNonQuery();
                     bProfilerTraceDbAttached = true;
-                    this.Invoke(new System.Action(() =>
-                    {
-                        lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = txtProfilerAnalysisQuery.Visible = true;
-                        ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
-                                                                            + ".mdf\r\n\r\nLocated at:\r\n" + m_analysisPath + "\\Analysis\r\n\r\n"
-                                                                            + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
-                                                                            + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
-                    }));
+                    lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = txtProfilerAnalysisQuery.Visible = true;
+                    ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
+                                                                        + ".mdf\r\n\r\nLocated at:\r\n" + m_analysisPath + "\\Analysis\r\n\r\n"
+                                                                        + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
+                                                                        + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
                     ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
                     ValidateProfilerTraceViews();
                 }
                 catch (SqlException ex)
                 {
+                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                     cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
 
                     if (ex.Message.Contains("cannot be opened because it is version"))
@@ -645,20 +645,18 @@ namespace SSASDiag
                                     cmd.Connection = connSqlDb;
                                     cmd.ExecuteNonQuery();
                                     bProfilerTraceDbAttached = true;
-                                    this.Invoke(new System.Action(() =>
-                                    {
-                                        lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = txtProfilerAnalysisQuery.Visible = true;
-                                        ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
-                                                                        + ".mdf\r\n\r\nLocated at:\r\n" + m_analysisPath + "\\Analysis\r\n\r\n"
-                                                                        + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
-                                                                        + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
-                                    }));
+                                    lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = txtProfilerAnalysisQuery.Visible = true;
+                                    ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
+                                                                    + ".mdf\r\n\r\nLocated at:\r\n" + m_analysisPath + "\\Analysis\r\n\r\n"
+                                                                    + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
+                                                                    + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
                                     ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
                                     ValidateProfilerTraceViews();
                                     break;
                                 }
                                 catch
                                 {
+                                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                                     MessageBox.Show("Unable to attach to database since it was created with a later version of SQL than the selected server.", "Select another instance", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 }
                             }
@@ -694,7 +692,7 @@ namespace SSASDiag
                 bProfilerTraceDbAttached = lblAnalysisQueries.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
                 ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Detached trace database [" + AnalysisTraceID + "]\r\nfrom SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nat " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
             }
-            catch (Exception ex) { Debug.WriteLine("Exception during dettach: " + ex.Message); }  // could fail if service stopped, no biggie just move on...
+            catch (Exception ex) { System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }  // could fail if service stopped, no biggie just move on...
         }
         
         #endregion Profiler Trace Analysis       

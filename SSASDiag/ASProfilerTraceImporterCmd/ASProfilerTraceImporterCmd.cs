@@ -163,7 +163,7 @@ namespace ASProfilerTraceImporterCmd
                 catch (Exception ex)
                 {
                     SetText("Exception creating event class/subclass view:\r\n" + ex.Message);
-                    Debug.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
+                    Trace.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
                 }
                 SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "EventClassIndex') drop view [" + Table + "EventClassIndex];", conn2).ExecuteNonQuery();
                 SqlCommandInfiniteConstructor("create index [" + Table + "EventClassIndex] on [" + Table + "] (EventClass)", conn2).ExecuteNonQuery();
@@ -179,7 +179,7 @@ namespace ASProfilerTraceImporterCmd
                 catch (Exception ex)
                 {
                     SetText("Exception creating query stats view:\r\n" + ex.Message);
-                    Debug.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
+                    Trace.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
                 }
                 SetText("Merged " + (CurFile + 1).ToString() + " files.");
                 if (!bStatsViewCreated || !bEventViewCreated)

@@ -182,6 +182,7 @@ namespace SSASDiag
                     catch (Exception ex)
                     {
                         AddItemToStatus("Adding access permissions for SSAS service account " + sServiceAccount + " to output folder failed:\n\t" + ex.Message);
+                        System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                     }
                 }
 
@@ -336,7 +337,7 @@ namespace SSASDiag
         }
         private void bgGetNetworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Starting network trace...");
+            AddItemToStatus("Starting network System.Diagnostics.Trace...");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -350,7 +351,7 @@ namespace SSASDiag
             p.StartInfo.Arguments = "trace start fileMode=" + (bRollover ? "circular" : "single") + " capture=yes tracefile=" + Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + ".etl maxSize=" + (bRollover ? iRollover.ToString() : "0");
             p.Start();
             sOut = p.StandardOutput.ReadToEnd();
-            Debug.WriteLine("netsh trace start's output: " + sOut);
+            System.Diagnostics.Trace.WriteLine("netsh trace start's output: " + sOut);
             p.WaitForExit();
             AddItemToStatus("Network tracing started to file: " + TraceID + ".etl.");
         }
@@ -386,7 +387,7 @@ namespace SSASDiag
                 if (slStatus.Count > 0)
                 {
                     AddItemToStatus(slStatus[slStatus.Count - 1] + (slStatus[slStatus.Count - 1].Length - slStatus[slStatus.Count - 1].LastIndexOf(" ") < 4 ? "." : " "), false, slStatus[slStatus.Count - 1]);
-                    if (slStatus[slStatus.Count - 1].StartsWith("Executing AS server command to stop profiler trace... ..."))
+                    if (slStatus[slStatus.Count - 1].StartsWith("Executing AS server command to stop profiler System.Diagnostics.Trace... ..."))
                     {
                         AddItemToStatus("\r\nProfiler tracing usually completes instantly.  Since it has not completed yet, the server may be hung.  "
                                       + "You may need to manually stop the SSAS service or kill the msmdsrv.exe process to complete capture of the diagnostic then.  "
@@ -402,7 +403,12 @@ namespace SSASDiag
                     if (iCurrentTimerTicksSinceLastInterval >= iInterval && bPerfMonRunning)
                     {
                         // If perfmon logging failed we still want to tick our timer so just fail past this with try/catch anything...
-                        try { m_PdhHelperInstance.UpdateLog("SSASDiag"); } catch (Exception ex) { MessageBox.Show(ex.Message); }
+                        try { m_PdhHelperInstance.UpdateLog("SSASDiag"); }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.Message);
+                            System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                        }
                         iCurrentTimerTicksSinceLastInterval = 0;
                     }
                     else
@@ -494,6 +500,7 @@ namespace SSASDiag
                 }
                 catch (OleDbException ex)
                 {
+                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                     if (ex.Message.StartsWith("Login failed"))
                     {
                         // If it fails the first try, prompt for remote admin
@@ -543,6 +550,7 @@ namespace SSASDiag
                                             pp.lblUserPasswordError.Visible = true;
                                             bAuthenticated = false;
                                             iTries++;
+                                            System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                                         }
                                     }
                                 }
@@ -580,6 +588,7 @@ namespace SSASDiag
                 }
                 catch(Exception ex)
                 {
+                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                     if (ex.Message.Contains("Could not find file") && (Domain == srvName || Domain == srvName.Substring(0, srvName.IndexOf(".")) || Domain == "."))
                     {
                         try
@@ -604,6 +613,7 @@ namespace SSASDiag
                         }
                         catch(Exception)
                         {
+                            System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                             AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ".");
                             AddItemToStatus("\r\nFor local administrator accounts except Administrator to access the remote SQL backup, create a DWORD32 value LocalAccountTokenFilterPolicy=1 in HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Policies\\System on the local server " + srvName + ".\r\n");
                         }
@@ -617,6 +627,7 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                 AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message);
             }
             return true;
@@ -630,7 +641,7 @@ namespace SSASDiag
         }
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Stopping network trace.  This may take a while...");
+            AddItemToStatus("Stopping network System.Diagnostics.Trace.  This may take a while...");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -639,7 +650,7 @@ namespace SSASDiag
             p.StartInfo.Arguments = "trace stop";
             p.Start();
             string sOut = p.StandardOutput.ReadToEnd();
-            Debug.WriteLine("netsh trace stop output: " + sOut);
+            System.Diagnostics.Trace.WriteLine("netsh trace stop output: " + sOut);
             if (sOut == "There is no trace session currently in progress.")
                 AddItemToStatus("Network trace failed to capture for unknown reason.  Manual collection may be necessary.");
             p.WaitForExit();
@@ -655,11 +666,11 @@ namespace SSASDiag
         {
             if (bGetProfiler)
             {
-                AddItemToStatus("Preparing to stop profiler trace...");
+                AddItemToStatus("Preparing to stop profiler System.Diagnostics.Trace...");
                 System.Threading.Thread.Sleep(5000); // Wait 5s to allow profiler events to catch up a little bit.
-                AddItemToStatus("Executing AS server command to stop profiler trace...");
+                AddItemToStatus("Executing AS server command to stop profiler System.Diagnostics.Trace...");
                 ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
-                AddItemToStatus("Stopped profiler trace.");
+                AddItemToStatus("Stopped profiler System.Diagnostics.Trace.");
 
                 if (bGetXMLA || bGetABF)
                 {
@@ -696,7 +707,7 @@ namespace SSASDiag
                     #endregion X86 TraceFile reader workaround
 
                     if (dbs.Count == 0)
-                        AddItemToStatus("There were no databases captured in the trace.  No AS database definitions or backups will be captured.");
+                        AddItemToStatus("There were no databases captured in the System.Diagnostics.Trace.  No AS database definitions or backups will be captured.");
                     else
                     {
                         Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
@@ -775,7 +786,7 @@ namespace SSASDiag
                 catch
                 {
                     AddItemToStatus("Failed to delete output folder:\n"
-                        + "\tThis could be due to locked files in the folder and suggests possible failure stopping a trace.\n"
+                        + "\tThis could be due to locked files in the folder and suggests possible failure stopping a System.Diagnostics.Trace.\n"
                         + "\tPlease review the contents of the folder " + TraceID + "\n."
                         + "\tIt was created in the same location where you ran this utility.");
                 } 
@@ -829,9 +840,17 @@ namespace SSASDiag
                                 return "Warning: " + message.Description;
                             else ret = "Success: " + message.Description;
                 }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                }
                 finally { s.Disconnect(); }
             }
-            catch (Exception e) { return "Error: " + e.Message; }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                return "Error: " + ex.Message;
+            }
             return ret;
         }
         void AddItemToStatus(string Item, bool bScroll = true, string AtLastLineStartingWith = "")

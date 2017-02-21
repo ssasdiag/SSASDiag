@@ -142,8 +142,8 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Failure during instance enumeration - could be because no instances were there.  Move on quietly then.");
-                Debug.WriteLine(ex);
+                System.Diagnostics.Trace.WriteLine("Failure during instance enumeration - could be because no instances were there.  Move on quietly then.");
+                System.Diagnostics.Trace.WriteLine(ex);
             }
             if (LocalInstances.Count == 0)
                 cbInstances.Invoke(new System.Action(() => cbInstances.Enabled = false));

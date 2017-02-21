@@ -53,7 +53,7 @@ namespace SSASDiag
                         {
                             System.IO.Compression.ZipFile.ExtractToDirectory(f, m_strPrivateTempBinPath);
                         }
-                        catch (Exception ex) { Debug.WriteLine(ex.Message); } // I deliberately ignore this exception.  I may occasionally fail to extract if files are already there due to some prior crashed run or something.  Just move on from it.  If it is truly unrecoverable we will blow up later then.  :)           
+                        catch (Exception ex) { Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); } // I deliberately ignore this exception.  I may occasionally fail to extract if files are already there due to some prior crashed run or something.  Just move on from it.  If it is truly unrecoverable we will blow up later then.  :)           
                 try
                 {
                     // Initialize the new app domain from temp location...
@@ -112,7 +112,7 @@ namespace SSASDiag
                                 }
                                 tempDomain.SetData("Case", Case);
                             }
-                            catch (Exception ex) { Debug.WriteLine(ex); }
+                            catch (Exception ex) { Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
                         })).Start();
                     
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
@@ -120,17 +120,24 @@ namespace SSASDiag
                     ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName);
 
                     //  Finally unload our actual executing AppDomain after finished from temp directory, to delete the files there...)
-                    try { AppDomain.Unload(tempDomain); } catch { }
+                    try { AppDomain.Unload(tempDomain); }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    }
                 }
-                catch (AppDomainUnloadedException)
-                { /* This happens normally if we terminate due to update process... */ }
+                catch (AppDomainUnloadedException ex)
+                {
+                    /* This happens normally if we terminate due to update process... */
+                    Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                }
                 catch (Exception ex)
                 {
                     // This is the generic exception handler from the top level default AppDomain, 
                     // which catches any previously uncaught exceptions originating from the tempDomain.
                     // This should avoid any crashes of the app in theory, instead providing graceful error messaging.
                     //
-
+                    Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                     string msg = "There was an unexpected error in the SSAS Diagnostics Collector and the application will close.  " 
                                     + "Details of the error are provided for debugging purposes, and copied on the clipboard.\r\n\r\n"
                                     + "An email will also be generated to the tool's author after you click OK.  Please paste the details there to report the issue.\r\n\r\n" 
@@ -171,8 +178,10 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
+                Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                 MessageBox.Show("There was an unexpected exception in the tool:\n\t" + ex.Message);
             }
+            System.Diagnostics.Trace.WriteLine("Exiting SSASDiag.");
         }
 
         private static bool ServerFileIsNewer(string clientFileVersion, string serverFile)

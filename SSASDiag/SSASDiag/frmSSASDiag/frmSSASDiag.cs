@@ -35,6 +35,13 @@ namespace SSASDiag
         System.Windows.Forms.Timer tmScrollStart = new System.Windows.Forms.Timer();
         SqlConnection connSqlDb = new SqlConnection();
         List<TabPage> HiddenTabPages = new List<TabPage>();
+
+        //bool bUserScrolled = false;
+        //private void txtStatus_VScroll(object sender, EventArgs e)
+        //{
+        //    bUserScrolled = true;
+        //}
+
         List<ProfilerTraceQuery> ProfilerTraceAnalysisQueries;
         #endregion
 
@@ -46,6 +53,9 @@ namespace SSASDiag
         #region frmSSASDiagEvents
         private void frmSSASDiag_Load(object sender, EventArgs e)
         {
+            if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug"))
+                SetupDebugTrace();
+
             if (!(Environment.OSVersion.Version.Major >= 7 || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)))
             {
                 MessageBox.Show("Network trace collection requires\nWindows 7 or Server 2008 R2 or greater.\nPlease upgrade your OS to use that feature.", "SSAS Diagnotics Network Trace Incompatibility Warning", MessageBoxButtons.OK, MessageBoxIcon.Hand);
@@ -80,6 +90,12 @@ namespace SSASDiag
             cmbProfilerAnalyses.DisplayMember = "Key";
 
             txtSaveLocation.Text = Environment.CurrentDirectory;
+        }
+        private void SetupDebugTrace()
+        {
+            System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\SSASDiagDebugTrace_" + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" + ".log"));
+            System.Diagnostics.Trace.AutoFlush = true;
+            System.Diagnostics.Trace.WriteLine("Started diagnostic trace.");
         }
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -118,10 +134,12 @@ namespace SSASDiag
                     e.Cancel = true;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                 // This should never happen but might if we are summarily killing midway through something.  Don't get hung up just close.
             }
+            System.Diagnostics.Trace.WriteLine("SSASDiag form closed, Cancel set to: " + e.Cancel);
         }
         private void BgDetachProfilerDB_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -156,7 +174,7 @@ namespace SSASDiag
         #region FeedbackUI
         private void lkFeedback_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("mailto:SSASDiagChamps@microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
+            Process.Start("mailto:ssasdiagchamps@service.microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
         }
         private void lkBugs_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
