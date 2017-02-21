@@ -184,7 +184,7 @@ namespace SSASDiag
         {
             Process.Start("https://asprofilertraceimporter.codeplex.com/discussions");
         }
-        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void lkAbout_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             frmAbout f = new frmAbout();
             f.ShowDialog(this);

@@ -825,9 +825,9 @@ namespace SSASDiag
                 if (e.ColumnIndex != -1 && e.RowIndex != -1)
                 {
                     ContextMenu m = new ContextMenu();
-                    m.MenuItems.Add(new MenuItem("Copy Selection", ProfilerAnalysisContextMenu_Click));
+                    m.MenuItems.Add(new MenuItem("Copy", ProfilerAnalysisContextMenu_Click));
+                    m.MenuItems.Add(new MenuItem("Copy with Headers", ProfilerAnalysisContextMenu_Click));
                     
-
                     if (dgdProfilerAnalyses.SelectedCells.Count == 0)
                         dgdProfilerAnalyses.CurrentCell = dgdProfilerAnalyses[e.ColumnIndex, e.RowIndex];
 
@@ -837,6 +837,7 @@ namespace SSASDiag
                         cmbProfilerAnalyses.Text == "Most collectively expensive commands" ||
                         cmbProfilerAnalyses.Text == "Queries/commands with errors")
                     {
+                        m.MenuItems.Add(new MenuItem("-"));
                         m.MenuItems.Add(new MenuItem(string.Format("Find all queries/commands overlapping with selection", e.RowIndex), ProfilerAnalysisContextMenu_Click));
                     }
 
@@ -847,13 +848,59 @@ namespace SSASDiag
         }
         private void ProfilerAnalysisContextMenu_Click(object sender, EventArgs e)
         {
-            if ((sender as MenuItem).Text == "Copy Selection")
+            string sOut = "";
+            int PriorRowNum = -1;
+            if ((sender as MenuItem).Text == "Copy")
             {
                 // This is just placeholder, need to format output...
-                string sOut = "";
+                
+                List<DataGridViewCell> cells = new List<DataGridViewCell>();
                 foreach (DataGridViewCell c in dgdProfilerAnalyses.SelectedCells)
-                    sOut += c.Value + ", ";
-                Clipboard.SetText(sOut.TrimEnd(new char[] { ',', ' ' }));
+                    cells.Add(c);
+                cells = cells.OrderBy(c => c.ColumnIndex).OrderBy(c => c.RowIndex).ToList();
+                foreach (DataGridViewCell c in cells)
+                {
+                    if (PriorRowNum != c.RowIndex && PriorRowNum != -1)
+                        sOut += "\r\n" + (c.Value is DBNull ? "NULL" : c.Value + "");
+                    else
+                        if (PriorRowNum == -1)
+                            sOut = (c.Value is DBNull ? "NULL" : c.Value + "");
+                    else
+                        sOut += ", " + (c.Value is DBNull ? "NULL" : c.Value + "");
+                    PriorRowNum = c.RowIndex;
+                }
+                Clipboard.SetText(sOut);
+            }
+            if ((sender as MenuItem).Text == "Copy with Headers")
+            {
+                List<DataGridViewCell> cells = new List<DataGridViewCell>();
+                foreach (DataGridViewCell c in dgdProfilerAnalyses.SelectedCells)
+                    cells.Add(c);
+                cells = cells.OrderBy(c => c.ColumnIndex).OrderBy(c => c.RowIndex).ToList();
+                string headers = "", sLine = "", priorHeaders = "";
+                foreach (DataGridViewCell c in cells)
+                {
+                    if (PriorRowNum != c.RowIndex || PriorRowNum == -1)
+                    {
+                        if (PriorRowNum != -1)
+                        {
+                            sOut += "\r\n" + (headers != priorHeaders ? headers + "\r\n" : "") + sLine;
+                            priorHeaders = headers;
+                            sLine = "";
+                            headers = "";
+                        }
+                        headers = dgdProfilerAnalyses.Columns[c.ColumnIndex].HeaderCell.Value + "";
+                        sLine = (c.Value is DBNull ? "NULL" : c.Value + "");
+                    }
+                    else
+                    {
+                        headers += ", " + dgdProfilerAnalyses.Columns[c.ColumnIndex].HeaderCell.Value + "";
+                        sLine += ", " + (c.Value is DBNull ? "NULL" : c.Value + "");
+                    }
+                    PriorRowNum = c.RowIndex;
+                }
+                sOut += "\r\n" + (headers != priorHeaders ? headers + "\r\n" : "") + sLine;
+                Clipboard.SetText(sOut.TrimStart(new char[] { '\r', '\n' }));
             }
             if ((sender as MenuItem).Text == "Find all queries/commands overlappning with selection")
                 ; // TODO

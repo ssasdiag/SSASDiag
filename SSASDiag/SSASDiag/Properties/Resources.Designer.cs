@@ -225,9 +225,7 @@ namespace SSASDiag.Properties {
         ///				&lt;ID/&gt;
         ///				&lt;LogFileSize/&gt;&lt;LogFileRollover/&gt;
         ///				&lt;Name/&gt;
-        ///				&lt;AutoRestart/&gt;&lt;StartTime/&gt;&lt;StopTime/&gt;
-        ///				&lt;LogFileAppend&gt;false&lt;/LogFileAppend&gt;
-        ///				&lt;Events&gt;&lt;Event&gt;&lt;EventID&gt;15&lt;/EventID&gt;&lt;Columns&gt;&lt;ColumnID&gt;32&lt;/ColumnID&gt;&lt;ColumnID&gt;1&lt;/ColumnID&gt;&lt;ColumnID&gt; [rest of string was truncated]&quot;;.
+        ///				&lt;AutoRestart/&gt;&lt;StartTime/&gt;&lt;StopTime/&gt;&lt;LogFileAppend&gt;true&lt;/LogFileAppend&gt;		&lt;Events&gt;&lt;Event&gt;&lt;EventID&gt;15&lt;/EventID&gt;&lt;Columns&gt;&lt;ColumnID&gt;32&lt;/ColumnID&gt;&lt;ColumnID&gt;1&lt;/ColumnID&gt;&lt;ColumnID&gt;25&lt;/ColumnI [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ProfilerTraceStartWithQuerySubcubeEventsXMLA {
             get {
@@ -244,13 +242,13 @@ namespace SSASDiag.Properties {
         ///				&lt;ID/&gt;
         ///				&lt;LogFileSize/&gt;&lt;LogFileRollover/&gt;
         ///				&lt;Name/&gt;
-        ///				&lt;AutoRestart/&gt;&lt;StartTime/&gt;&lt;StopTime/&gt;
-        ///				&lt;LogFileAppend&gt;false&lt;/LogFileAppend&gt;
+        ///				&lt;AutoRestart/&gt;&lt;StartTime/&gt;&lt;StopTime/&gt;&lt;LogFileAppend&gt;true&lt;/LogFileAppend&gt;
         ///				&lt;Events&gt;
         ///					&lt;Event&gt;
         ///						&lt;EventID&gt;15&lt;/EventID&gt;
         ///						&lt;Columns&gt;
-        ///							&lt;ColumnID&gt;32&lt;/ColumnID&gt; [rest of string was truncated]&quot;;.
+        ///							&lt;ColumnID&gt;32&lt;/ColumnID&gt;
+        ///					 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ProfilerTraceStartXMLA {
             get {

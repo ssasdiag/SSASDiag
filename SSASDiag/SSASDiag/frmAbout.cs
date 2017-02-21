@@ -13,7 +13,7 @@ namespace SSASDiag
     public partial class frmAbout : Form
     {
         Timer t = new Timer();
-        bool bOpening = true;
+        bool bOpening = true, bDecelerating = false;
 
         public frmAbout()
         {
@@ -22,7 +22,7 @@ namespace SSASDiag
 
         private void frmAbout_Shown(object sender, EventArgs e)
         {
-            t.Interval = 1;
+            t.Interval = 20;
             t.Tick += T_Tick;
             t.Start();
         }
@@ -31,16 +31,26 @@ namespace SSASDiag
         {
             if (bOpening)
             {
-                Opacity += .2;
-                if (Opacity >= 1)
+                if (Opacity >= .8)
                 {
-                    t.Interval = 3000;
+                    t.Interval = 40;
                     bOpening = false;
+                    bDecelerating = true;
                 }
+                Opacity += .05;
+            }
+            else if (bDecelerating)
+            {
+                if (Opacity >= .95)
+                {
+                    t.Interval = 2700;
+                    bDecelerating = false;
+                }
+                Opacity += .01;
             }
             else
             {
-                t.Interval = 6;
+                t.Interval = 10;
                 Opacity -= .02;
                 if (Opacity == 0)
                 {

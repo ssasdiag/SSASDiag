@@ -35,13 +35,13 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Segoe UI", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.label1.Location = new System.Drawing.Point(27, 98);
+            this.label1.Location = new System.Drawing.Point(59, 85);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(215, 111);
+            this.label1.Size = new System.Drawing.Size(194, 150);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Srini Gajella\r\nMalcolm Stewart\r\nJon Burchel";
+            this.label1.Text = "Yinn Wong\r\nSrini Gajella\r\nSamarendra Panda\r\nMalcolm Stewart\r\nJon Burchel";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
@@ -49,7 +49,7 @@
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Segoe UI", 32F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.label2.Location = new System.Drawing.Point(3, 9);
+            this.label2.Location = new System.Drawing.Point(25, 9);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(263, 59);
             this.label2.TabIndex = 1;
@@ -60,7 +60,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.ClientSize = new System.Drawing.Size(268, 266);
+            this.ClientSize = new System.Drawing.Size(312, 282);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
