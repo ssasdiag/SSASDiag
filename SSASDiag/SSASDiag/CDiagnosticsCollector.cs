@@ -337,7 +337,7 @@ namespace SSASDiag
         }
         private void bgGetNetworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Starting network System.Diagnostics.Trace...");
+            AddItemToStatus("Starting network trace...");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -387,7 +387,7 @@ namespace SSASDiag
                 if (slStatus.Count > 0)
                 {
                     AddItemToStatus(slStatus[slStatus.Count - 1] + (slStatus[slStatus.Count - 1].Length - slStatus[slStatus.Count - 1].LastIndexOf(" ") < 4 ? "." : " "), false, slStatus[slStatus.Count - 1]);
-                    if (slStatus[slStatus.Count - 1].StartsWith("Executing AS server command to stop profiler System.Diagnostics.Trace... ..."))
+                    if (slStatus[slStatus.Count - 1].StartsWith("Executing AS server command to stop profiler trace... ..."))
                     {
                         AddItemToStatus("\r\nProfiler tracing usually completes instantly.  Since it has not completed yet, the server may be hung.  "
                                       + "You may need to manually stop the SSAS service or kill the msmdsrv.exe process to complete capture of the diagnostic then.  "
@@ -641,7 +641,7 @@ namespace SSASDiag
         }
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Stopping network System.Diagnostics.Trace.  This may take a while...");
+            AddItemToStatus("Stopping network trace.  This may take a while...");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -666,11 +666,11 @@ namespace SSASDiag
         {
             if (bGetProfiler)
             {
-                AddItemToStatus("Preparing to stop profiler System.Diagnostics.Trace...");
+                AddItemToStatus("Preparing to stop profiler trace...");
                 System.Threading.Thread.Sleep(5000); // Wait 5s to allow profiler events to catch up a little bit.
-                AddItemToStatus("Executing AS server command to stop profiler System.Diagnostics.Trace...");
+                AddItemToStatus("Executing AS server command to stop profiler trace...");
                 ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
-                AddItemToStatus("Stopped profiler System.Diagnostics.Trace.");
+                AddItemToStatus("Stopped profiler trace.");
 
                 if (bGetXMLA || bGetABF)
                 {
@@ -707,7 +707,7 @@ namespace SSASDiag
                     #endregion X86 TraceFile reader workaround
 
                     if (dbs.Count == 0)
-                        AddItemToStatus("There were no databases captured in the System.Diagnostics.Trace.  No AS database definitions or backups will be captured.");
+                        AddItemToStatus("There were no databases captured in the profiler trace.  No AS database definitions or backups will be captured.");
                     else
                     {
                         Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
@@ -786,7 +786,7 @@ namespace SSASDiag
                 catch
                 {
                     AddItemToStatus("Failed to delete output folder:\n"
-                        + "\tThis could be due to locked files in the folder and suggests possible failure stopping a System.Diagnostics.Trace.\n"
+                        + "\tThis could be due to locked files in the folder and suggests possible failure stopping a trace.\n"
                         + "\tPlease review the contents of the folder " + TraceID + "\n."
                         + "\tIt was created in the same location where you ran this utility.");
                 } 

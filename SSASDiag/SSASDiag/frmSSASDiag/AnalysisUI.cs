@@ -144,8 +144,16 @@ namespace SSASDiag
 
             if (z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").Count() > 0)
             {
-                z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").First().Extract(m_analysisPath + "\\Analysis", Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
-                z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".ldf").First().Extract(m_analysisPath + "\\Analysis", Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                try
+                {
+                    z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").First().Extract(m_analysisPath + "\\Analysis", Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                    z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".ldf").First().Extract(m_analysisPath + "\\Analysis", Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                }
+                catch (Exception ex)
+                {
+                    // Continue, since if we fail writing these files, it means they do already exist, and we can probably just attach subsequently without failure.
+                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                }
             }
             else
                if (z.Entries.Where(f => f.FileName.Contains(".trc")).Count() > 0)
@@ -319,16 +327,40 @@ namespace SSASDiag
         private List<ProfilerTraceQuery> InitializeProfilerTraceAnalysisQueries()
         {
             List<ProfilerTraceQuery> q = new List<ProfilerTraceQuery>();
-
-            // Longest running queries
             q.Add(new ProfilerTraceQuery("", "", ProfilerQueryTypes.BaseQuery));
-            q.Add(new ProfilerTraceQuery("Longest running queries captured",
-                                         "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Table]\r\nWHERE EventClass = 10\r\nORDER BY Duration DESC",
-                                         ProfilerQueryTypes.BaseQuery));
+
+            // Basic details
+            q.Add(new ProfilerTraceQuery("Basic trace summary",
+                                         "SELECT * FROM\r\n(SELECT COUNT(*)[Queries Started] FROM [Table] WHERE EventClass = 9) a,\r\n(SELECT COUNT(*)[Queries Completed] FROM [Table] WHERE EventClass = 10) b,\r\n(SELECT SUM(Duration)[Total Query Duration], AVG(Duration)[Average Query Duration] FROM [Table] WHERE EventClass = 10) e,\r\n(SELECT(\r\n(SELECT MAX(Duration) FROM\r\n\t(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 10 AND Duration > 0 ORDER BY Duration) AS BottomHalf)\r\n\t+\r\n\t(SELECT MIN(Duration) FROM\r\n\t(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 10 AND Duration > 0 ORDER BY Duration DESC) AS TopHalf)\r\n)\t / 2 AS [Median Query Duration]) g,\r\n(SELECT COUNT(*)[Commands Started] FROM [Table] WHERE EventClass = 15) c,\r\n(SELECT COUNT(*)[Commands Completed] FROM [Table] WHERE EventClass = 16) d,\r\n(SELECT SUM(Duration) [Total Command Duration], AVG(Duration) [Average Command Duration] FROM [Table] WHERE EventClass = 16) f,\r\n(SELECT(\r\n\t(SELECT MAX(Duration) FROM\r\n\t(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 16 AND Duration > 0 ORDER BY Duration) AS BottomHalf)\r\n\t+\r\n\t(SELECT MIN(Duration) FROM\r\n\t(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 16 AND Duration > 0 ORDER BY Duration DESC) AS TopHalf)\r\n\t) / 2 AS [Median Command Duration]) h", ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
 
+            // Query FE/SE Stats
+            q.Add(new ProfilerTraceQuery("Formula/Storage engine statistics",
+                                         "SELECT QueryDuration, StorageEngineTime, QueryDuration - StorageEngineTime FormulaEngineTime, SEPct, 100 - SEPct FEPct, StartRow, EndRow, StartTime, EndTime, ConnectionID, TextData, RequestParameters, RequestProperties, SPID, NTUserName, NTDomainName\r\nFROM [Table_QueryStats]\r\nORDER BY QueryDuration",
+                                         ProfilerQueryTypes.QueriesWithQueryStats));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+
+            // Longest running queries
+            q.Add(new ProfilerTraceQuery("Longest running queries captured",
+                                         "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Table]\r\nWHERE EventClass = 10\r\nORDER BY Duration DESC",
+                                         ProfilerQueryTypes.BaseQuery));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
+            q.Add(new ProfilerTraceQuery("Longest running queries captured",
+                                         "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Table_v]\r\nWHERE EventClass = 10\r\nORDER BY Duration DESC", ProfilerQueryTypes.AllQueries));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
+            
+
+            // Longest running commands
+            q.Add(new ProfilerTraceQuery("Longest running commands captured",
+                                         "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Table]\r\nWHERE EventClass = 16\r\nORDER BY Duration DESC",
+                                         ProfilerQueryTypes.BaseQuery));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
+            q.Add(new ProfilerTraceQuery("Longest running commands captured",
+                                         "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Table_v]\r\nWHERE EventClass = 16\r\nORDER BY Duration DESC", ProfilerQueryTypes.AllQueries));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
+            
 
             // Most collectively expensive events
             q.Add(new ProfilerTraceQuery("Most collectively expensive events",
@@ -342,28 +374,32 @@ namespace SSASDiag
 
             // Most collectively expensive queries
             q.Add(new ProfilerTraceQuery("Most collectively expensive queries",
-                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventSubclass, TextData\r\nFROM [Table]\r\nWHERE EventClass in (10, 15) -- Only include query and command end events\r\nGROUP BY TextData, EventClass, EventSubclass\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
+                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventSubclass, TextData\r\nFROM [Table]\r\nWHERE EventClass = 10\r\nGROUP BY TextData, EventClass, EventSubclass\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
                                          ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Most collectively expensive queries",
-                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData\r\nFROM [Table_v]\r\nWHERE EventClass in (10, 15) -- Only include query and command end events\r\nGROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
+                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData\r\nFROM [Table_v]\r\nWHERE EventClass = 10\r\nGROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
+                                         ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+
+            // Most collectively expensive commands
+            q.Add(new ProfilerTraceQuery("Most collectively expensive queries",
+                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventSubclass, TextData\r\nFROM [Table]\r\nWHERE EventClass = 16\r\nGROUP BY TextData, EventClass, EventSubclass\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
+                                         ProfilerQueryTypes.BaseQuery));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
+            q.Add(new ProfilerTraceQuery("Most collectively expensive queries",
+                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData\r\nFROM [Table_v]\r\nWHERE EventClass = 16\r\nGROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
                                          ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
 
             // Errors
             q.Add(new ProfilerTraceQuery("Queries/commands with errors",
-                                         "SELECT TextData, CONVERT(VARBINARY(8), Error) Error, DatabaseName, EventClass, NTUserName, NTDomainName, a.ConnectionID, ClientProcessID, SPID, ApplicationName\r\nFROM[Table] a,\r\n\t(\r\n\t\tSELECT RowNumber, ConnectionID, StartTime\r\n\t\tFROM [Table]\r\n\t\tWHERE EventClass = 17\r\n\t) b\r\nWHERE EventClass in (9, 10, 15, 16, 17) AND\r\n\ta.ConnectionID = b.ConnectionID AND\r\n\ta.StartTime >= b.StartTime AND\r\n\ta.RowNumber <= b.RowNumber",
+                                         "SELECT TextData, CONVERT(VARBINARY(8), Error) Error, DatabaseName, EventClass, NTUserName, NTDomainName, a.ConnectionID, ClientProcessID, SPID, ApplicationName\r\nFROM [Table] a,\r\n\t(\r\n\t\tSELECT RowNumber, ConnectionID, StartTime\r\n\t\tFROM [Table]\r\n\t\tWHERE EventClass = 17\r\n\t) b\r\nWHERE EventClass in (9, 10, 15, 16, 17) AND\r\n\ta.ConnectionID = b.ConnectionID AND\r\n\ta.StartTime >= b.StartTime AND\r\n\ta.RowNumber <= b.RowNumber",
                                          ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Queries/commands with errors",
-                                         "SELECT TextData, CONVERT(VARBINARY(8), Error) Error, DatabaseName, EventClass, EventClassName, NTUserName, NTDomainName, a.ConnectionID, ClientProcessID, SPID, ApplicationName\r\nFROM[Table_v] a,\r\n\t(\r\n\t\tSELECT RowNumber, ConnectionID, StartTime\r\n\t\tFROM [Table]\r\n\t\tWHERE EventClass = 17\r\n\t) b\r\nWHERE EventClass in (9, 10, 15, 16, 17) AND\r\n\ta.ConnectionID = b.ConnectionID AND\r\n\ta.StartTime >= b.StartTime AND\r\n\ta.RowNumber <= b.RowNumber",
+                                         "SELECT TextData, CONVERT(VARBINARY(8), Error) Error, DatabaseName, EventClass, EventClassName, NTUserName, NTDomainName, a.ConnectionID, ClientProcessID, SPID, ApplicationName\r\nFROM [Table_v] a,\r\n\t(\r\n\t\tSELECT RowNumber, ConnectionID, StartTime\r\n\t\tFROM [Table]\r\n\t\tWHERE EventClass = 17\r\n\t) b\r\nWHERE EventClass in (9, 10, 15, 16, 17) AND\r\n\ta.ConnectionID = b.ConnectionID AND\r\n\ta.StartTime >= b.StartTime AND\r\n\ta.RowNumber <= b.RowNumber",
                                          ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
-            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
-
-            // Query Stats
-            q.Add(new ProfilerTraceQuery("Formula/Storage engine statistics",
-                                         "SELECT QueryDuration, StorageEngineTime, QueryDuration - StorageEngineTime FormulaEngineTime, SEPct, 100 - SEPct FEPct, StartRow, EndRow, StartTime, EndTime, ConnectionID, TextData, RequestParameters, RequestProperties, SPID, NTUserName, NTDomainName\r\nFROM [Table_QueryStats]\r\nORDER BY QueryDuration",
-                                         ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
 
             return q;
