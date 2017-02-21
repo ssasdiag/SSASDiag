@@ -101,8 +101,16 @@ namespace SSASDiag
                 Ionic.Zip.ZipFile z = new Ionic.Zip.ZipFile(txtFolderZipForAnalysis.Text);
                 if (z.Entries.Where(f => f.FileName.Substring(f.FileName.LastIndexOf("/") + 1) == file.Substring(file.LastIndexOf("\\") + 1)).Count() == 0)
                 {
-                    z.AddFile(file, "Analysis");
-                    z.Save();
+                    try
+                    {
+                        z.AddFile(file, "Analysis");
+                        z.Save();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                        // This may fail if a file is locked, but in that case we will skip it.
+                    }
                 }
             }
         }
@@ -684,13 +692,23 @@ namespace SSASDiag
             try
             {
                 // Dettach without blocking for existing sessions...
+                connSqlDb.ChangeDatabase("master");
                 SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connSqlDb);
                 cmd.ExecuteNonQuery();
                 Thread.Sleep(1000); // Sometimes it fails if we just immediately went to single user mode...  Shouldn't have to but add a tiny wait.
                 cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') EXEC master.dbo.sp_detach_db @dbname = N'" + AnalysisTraceID + "'", connSqlDb);
                 cmd.ExecuteNonQuery();
-                bProfilerTraceDbAttached = lblAnalysisQueries.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
-                ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Detached trace database [" + AnalysisTraceID + "]\r\nfrom SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nat " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
+                if (InvokeRequired)
+                    Invoke(new System.Action(() =>
+                    {
+                        bProfilerTraceDbAttached = lblAnalysisQueries.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
+                        ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Detached trace database [" + AnalysisTraceID + "]\r\nfrom SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nat " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
+                    }));
+                else
+                {
+                    bProfilerTraceDbAttached = lblAnalysisQueries.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
+                    ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Detached trace database [" + AnalysisTraceID + "]\r\nfrom SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nat " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
+                }
             }
             catch (Exception ex) { System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }  // could fail if service stopped, no biggie just move on...
         }
