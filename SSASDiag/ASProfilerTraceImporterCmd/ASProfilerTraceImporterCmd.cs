@@ -234,7 +234,7 @@ namespace ASProfilerTraceImporterCmd
                     try
                     {
                         while (tOut.Write())
-                            if (RowCount++ % 256 == 0) global::ASProfilerTraceImporterCmd.ASProfilerTraceImporterCmd.UpdateRowCounts();
+                            if (RowCount++ % 512 == 0) global::ASProfilerTraceImporterCmd.ASProfilerTraceImporterCmd.UpdateRowCounts();
                     }
                     catch (SqlTraceException ste)
                     {

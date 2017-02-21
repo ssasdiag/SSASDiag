@@ -30,8 +30,8 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSSASDiag));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
@@ -252,14 +252,12 @@
             // chkProfilerPerfDetails
             // 
             this.chkProfilerPerfDetails.AutoSize = true;
-            this.chkProfilerPerfDetails.Checked = true;
-            this.chkProfilerPerfDetails.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkProfilerPerfDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chkProfilerPerfDetails.Location = new System.Drawing.Point(23, 71);
             this.chkProfilerPerfDetails.Name = "chkProfilerPerfDetails";
             this.chkProfilerPerfDetails.Size = new System.Drawing.Size(160, 17);
             this.chkProfilerPerfDetails.TabIndex = 3;
-            this.chkProfilerPerfDetails.Text = "Performance relevant details";
+            this.chkProfilerPerfDetails.Text = "Verbose performance details";
             this.ttStatus.SetToolTip(this.chkProfilerPerfDetails, "Additional Profiler trace details increase size and weight of trace but allow dee" +
         "per investigation of performance bottlenecks.");
             this.chkProfilerPerfDetails.UseVisualStyleBackColor = true;
@@ -484,8 +482,8 @@
             // 
             this.cmbProblemType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbProblemType.Items.AddRange(new object[] {
+            "Errors/Hangs (non-connectivity)",
             "Performance",
-            "Errors (non-connectivity)",
             "Incorrect Query Results",
             "Connectivity Failures",
             "Connectivity (client/middle-tier only)",
@@ -590,7 +588,7 @@
             this.dtStopTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
             this.dtStopTime.Enabled = false;
             this.dtStopTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtStopTime.Location = new System.Drawing.Point(79, 159);
+            this.dtStopTime.Location = new System.Drawing.Point(79, 157);
             this.dtStopTime.Name = "dtStopTime";
             this.dtStopTime.Size = new System.Drawing.Size(181, 20);
             this.dtStopTime.TabIndex = 32;
@@ -611,7 +609,7 @@
             this.dtStartTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
             this.dtStartTime.Enabled = false;
             this.dtStartTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtStartTime.Location = new System.Drawing.Point(79, 136);
+            this.dtStartTime.Location = new System.Drawing.Point(79, 134);
             this.dtStartTime.Name = "dtStartTime";
             this.dtStartTime.Size = new System.Drawing.Size(181, 20);
             this.dtStartTime.TabIndex = 30;
@@ -655,7 +653,7 @@
             // udRollover
             // 
             this.udRollover.Enabled = false;
-            this.udRollover.Location = new System.Drawing.Point(169, 114);
+            this.udRollover.Location = new System.Drawing.Point(168, 110);
             this.udRollover.Maximum = new decimal(new int[] {
             2048,
             0,
@@ -750,7 +748,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(226, 113);
+            this.label2.Location = new System.Drawing.Point(224, 113);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 13);
             this.label2.TabIndex = 42;
@@ -863,19 +861,19 @@
             this.dgdProfilerAnalyses.AllowUserToAddRows = false;
             this.dgdProfilerAnalyses.AllowUserToDeleteRows = false;
             this.dgdProfilerAnalyses.AllowUserToResizeRows = false;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.AliceBlue;
-            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.AliceBlue;
+            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             this.dgdProfilerAnalyses.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdProfilerAnalyses.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dgdProfilerAnalyses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle4;
             this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 119);
             this.dgdProfilerAnalyses.Margin = new System.Windows.Forms.Padding(0);

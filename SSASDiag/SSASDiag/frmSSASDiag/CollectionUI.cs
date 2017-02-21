@@ -275,7 +275,7 @@ namespace SSASDiag
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
                     chkProfilerPerfDetails.Checked = chkGetProfiler.Checked = chkGetPerfMon.Checked = chkXMLA.Checked = chkGetConfigDetails.Checked = true;
                     break;
-                case "Errors (non-connectivity)":
+                case "Errors/Hangs (non-connectivity)":
                     rtbProblemDescription.Height = 170;
                     rtbProblemDescription.Text = "Non-connectivity related errors require minimal collection of config details, performance monitor logs, and basic profiler traces.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
@@ -397,7 +397,11 @@ namespace SSASDiag
         private void chkProfilerPerfDetails_CheckedChanged(object sender, EventArgs e)
         {
             if (chkProfilerPerfDetails.Checked)
+            {
                 chkGetProfiler.Checked = true;
+                if (MessageBox.Show("Adding verbose performance details to profiler traces accumulates data much more quickly than without, and is often not required even to understand many performance issues.\r\n\r\nDo you want to enable verbose tracing anyway?", "Verbose Trace Details Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.No)
+                    chkProfilerPerfDetails.Checked = false;
+            }
             UpdateUIIfOnlyNetworkingEnabled();
         }
         private void chkXMLA_CheckedChanged(object sender, EventArgs e)
