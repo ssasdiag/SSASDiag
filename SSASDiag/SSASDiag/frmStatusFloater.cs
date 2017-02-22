@@ -10,7 +10,21 @@ using System.Windows.Forms;
 
 namespace SSASDiag
 {
-    public partial class frmStatusFloater : Form
+    public class ShadowedForm : Form
+    {
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                const int CS_DROPSHADOW = 0x20000;
+                CreateParams cp = base.CreateParams;
+                cp.ClassStyle |= CS_DROPSHADOW;
+                return cp;
+            }
+        }
+    }
+
+    public partial class frmStatusFloater : ShadowedForm
     {
         public frmStatusFloater()
         {

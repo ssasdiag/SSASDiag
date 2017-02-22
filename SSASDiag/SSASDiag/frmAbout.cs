@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SSASDiag
 {
-    public partial class frmAbout : Form
+    public partial class frmAbout : ShadowedForm
     {
         Timer t = new Timer();
         bool bOpening = true, bDecelerating = false;
