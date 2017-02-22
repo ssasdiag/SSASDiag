@@ -90,7 +90,7 @@
             this.Name = "frmSimpleSQLServerPrompt";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "SQL Server instance to store and analyze traces";
+            this.Text = "Analysis requires SQL server";
             this.Load += new System.EventHandler(this.frmSimpleSQLServerPrompt_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -35,13 +35,6 @@ namespace SSASDiag
         System.Windows.Forms.Timer tmScrollStart = new System.Windows.Forms.Timer();
         SqlConnection connSqlDb = new SqlConnection();
         List<TabPage> HiddenTabPages = new List<TabPage>();
-
-        //bool bUserScrolled = false;
-        //private void txtStatus_VScroll(object sender, EventArgs e)
-        //{
-        //    bUserScrolled = true;
-        //}
-
         List<ProfilerTraceQuery> ProfilerTraceAnalysisQueries;
         #endregion
 
@@ -150,7 +143,6 @@ namespace SSASDiag
             StatusFloater.Close();
             this.Close();
         }
-
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
             lkAbout.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 59;
@@ -158,9 +150,11 @@ namespace SSASDiag
             txtStatus.Height = this.Height - 315;
             tcCollectionAnalysisTabs.Height = this.Height - 59;
             tcAnalysis.Height = this.Height - 119;
-            txtProfilerAnalysisQuery.Width = this.Width - 255;
+            //txtProfilerAnalysisQuery.Width = this.Width - 255;
             btnImportProfilerTrace.Left = this.Width / 2 - btnImportProfilerTrace.Width / 2;
-            dgdProfilerAnalyses.Height = this.Height - 288;
+            splitContainer1.Height = Height - 250;
+            txtProfilerAnalysisQuery.Width = Width - 254;
+            //dgdProfilerAnalyses.Height = this.Height - 288;
             if (tcAnalysis.TabPages.ContainsKey("Network Trace") || HiddenTabPages.Where(t => t.Name == "Network Trace").Count() > 0)
             {
                 Button btnAnalyzeNetworkTrace = tcAnalysis.TabPages.ContainsKey("Network Trace") ? 

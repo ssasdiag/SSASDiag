@@ -85,13 +85,14 @@
             this.tbAnalysis = new System.Windows.Forms.TabPage();
             this.tcAnalysis = new System.Windows.Forms.TabControl();
             this.tbProfilerTraces = new System.Windows.Forms.TabPage();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.lblAnalysisQueries = new System.Windows.Forms.Label();
             this.cmbProfilerAnalyses = new System.Windows.Forms.ComboBox();
+            this.txtProfilerAnalysisQuery = new System.Windows.Forms.TextBox();
             this.dgdProfilerAnalyses = new System.Windows.Forms.DataGridView();
             this.btnImportProfilerTrace = new System.Windows.Forms.Button();
             this.chkDettachProfilerAnalysisDBWhenDone = new System.Windows.Forms.CheckBox();
             this.ProfilerTraceStatusTextBox = new System.Windows.Forms.TextBox();
-            this.txtProfilerAnalysisQuery = new System.Windows.Forms.TextBox();
             this.imgAnalyzerIcons = new System.Windows.Forms.ImageList(this.components);
             this.btnAnalysisFolder = new System.Windows.Forms.Button();
             this.txtFolderZipForAnalysis = new System.Windows.Forms.TextBox();
@@ -110,6 +111,10 @@
             this.tbAnalysis.SuspendLayout();
             this.tcAnalysis.SuspendLayout();
             this.tbProfilerTraces.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdProfilerAnalyses)).BeginInit();
             this.SuspendLayout();
             // 
@@ -819,13 +824,10 @@
             // tbProfilerTraces
             // 
             this.tbProfilerTraces.BackColor = System.Drawing.SystemColors.Control;
-            this.tbProfilerTraces.Controls.Add(this.lblAnalysisQueries);
-            this.tbProfilerTraces.Controls.Add(this.cmbProfilerAnalyses);
-            this.tbProfilerTraces.Controls.Add(this.dgdProfilerAnalyses);
+            this.tbProfilerTraces.Controls.Add(this.splitContainer1);
             this.tbProfilerTraces.Controls.Add(this.btnImportProfilerTrace);
             this.tbProfilerTraces.Controls.Add(this.chkDettachProfilerAnalysisDBWhenDone);
             this.tbProfilerTraces.Controls.Add(this.ProfilerTraceStatusTextBox);
-            this.tbProfilerTraces.Controls.Add(this.txtProfilerAnalysisQuery);
             this.tbProfilerTraces.ImageIndex = 5;
             this.tbProfilerTraces.Location = new System.Drawing.Point(4, 30);
             this.tbProfilerTraces.Name = "tbProfilerTraces";
@@ -833,14 +835,34 @@
             this.tbProfilerTraces.TabIndex = 0;
             this.tbProfilerTraces.Text = "Profiler Traces";
             // 
+            // splitContainer1
+            // 
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 77);
+            this.splitContainer1.Name = "splitContainer1";
+            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.lblAnalysisQueries);
+            this.splitContainer1.Panel1.Controls.Add(this.cmbProfilerAnalyses);
+            this.splitContainer1.Panel1.Controls.Add(this.txtProfilerAnalysisQuery);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.dgdProfilerAnalyses);
+            this.splitContainer1.Size = new System.Drawing.Size(579, 278);
+            this.splitContainer1.SplitterDistance = 40;
+            this.splitContainer1.TabIndex = 28;
+            // 
             // lblAnalysisQueries
             // 
             this.lblAnalysisQueries.AutoSize = true;
             this.lblAnalysisQueries.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAnalysisQueries.Location = new System.Drawing.Point(3, 81);
+            this.lblAnalysisQueries.Location = new System.Drawing.Point(3, 0);
             this.lblAnalysisQueries.Name = "lblAnalysisQueries";
             this.lblAnalysisQueries.Size = new System.Drawing.Size(130, 13);
-            this.lblAnalysisQueries.TabIndex = 27;
+            this.lblAnalysisQueries.TabIndex = 30;
             this.lblAnalysisQueries.Text = "Choose an analysis query:";
             this.lblAnalysisQueries.Visible = false;
             // 
@@ -849,12 +871,25 @@
             this.cmbProfilerAnalyses.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbProfilerAnalyses.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbProfilerAnalyses.FormattingEnabled = true;
-            this.cmbProfilerAnalyses.Location = new System.Drawing.Point(6, 94);
+            this.cmbProfilerAnalyses.Location = new System.Drawing.Point(3, 16);
             this.cmbProfilerAnalyses.Name = "cmbProfilerAnalyses";
             this.cmbProfilerAnalyses.Size = new System.Drawing.Size(207, 21);
-            this.cmbProfilerAnalyses.TabIndex = 25;
+            this.cmbProfilerAnalyses.TabIndex = 28;
             this.cmbProfilerAnalyses.Visible = false;
-            this.cmbProfilerAnalyses.SelectedIndexChanged += new System.EventHandler(this.cmbProfilerAnalyses_SelectedIndexChanged);
+            this.cmbProfilerAnalyses.SelectedIndexChanged += cmbProfilerAnalyses_SelectedIndexChanged;
+            // 
+            // txtProfilerAnalysisQuery
+            // 
+            this.txtProfilerAnalysisQuery.Dock = System.Windows.Forms.DockStyle.Right;
+            this.txtProfilerAnalysisQuery.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtProfilerAnalysisQuery.Location = new System.Drawing.Point(216, 0);
+            this.txtProfilerAnalysisQuery.Multiline = true;
+            this.txtProfilerAnalysisQuery.Name = "txtProfilerAnalysisQuery";
+            this.txtProfilerAnalysisQuery.ReadOnly = true;
+            this.txtProfilerAnalysisQuery.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtProfilerAnalysisQuery.Size = new System.Drawing.Size(363, 40);
+            this.txtProfilerAnalysisQuery.TabIndex = 29;
+            this.txtProfilerAnalysisQuery.Visible = false;
             // 
             // dgdProfilerAnalyses
             // 
@@ -875,8 +910,8 @@
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle2;
-            this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 119);
+            this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 0);
             this.dgdProfilerAnalyses.Margin = new System.Windows.Forms.Padding(0);
             this.dgdProfilerAnalyses.Name = "dgdProfilerAnalyses";
             this.dgdProfilerAnalyses.ReadOnly = true;
@@ -886,9 +921,8 @@
             this.dgdProfilerAnalyses.RowTemplate.Height = 18;
             this.dgdProfilerAnalyses.RowTemplate.ReadOnly = true;
             this.dgdProfilerAnalyses.RowTemplate.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdProfilerAnalyses.Size = new System.Drawing.Size(579, 236);
-            this.dgdProfilerAnalyses.TabIndex = 24;
-            this.dgdProfilerAnalyses.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgdProfilerAnalyses_CellMouseClick);
+            this.dgdProfilerAnalyses.Size = new System.Drawing.Size(579, 234);
+            this.dgdProfilerAnalyses.TabIndex = 25;
             // 
             // btnImportProfilerTrace
             // 
@@ -927,18 +961,6 @@
             this.ProfilerTraceStatusTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.ProfilerTraceStatusTextBox.Size = new System.Drawing.Size(579, 78);
             this.ProfilerTraceStatusTextBox.TabIndex = 0;
-            // 
-            // txtProfilerAnalysisQuery
-            // 
-            this.txtProfilerAnalysisQuery.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtProfilerAnalysisQuery.Location = new System.Drawing.Point(217, 83);
-            this.txtProfilerAnalysisQuery.Multiline = true;
-            this.txtProfilerAnalysisQuery.Name = "txtProfilerAnalysisQuery";
-            this.txtProfilerAnalysisQuery.ReadOnly = true;
-            this.txtProfilerAnalysisQuery.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtProfilerAnalysisQuery.Size = new System.Drawing.Size(362, 33);
-            this.txtProfilerAnalysisQuery.TabIndex = 26;
-            this.txtProfilerAnalysisQuery.Visible = false;
             // 
             // imgAnalyzerIcons
             // 
@@ -1015,6 +1037,11 @@
             this.tcAnalysis.ResumeLayout(false);
             this.tbProfilerTraces.ResumeLayout(false);
             this.tbProfilerTraces.PerformLayout();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgdProfilerAnalyses)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -1078,14 +1105,15 @@
         private System.Windows.Forms.TextBox ProfilerTraceStatusTextBox;
         private System.Windows.Forms.CheckBox chkDettachProfilerAnalysisDBWhenDone;
         private System.Windows.Forms.Button btnImportProfilerTrace;
-        private System.Windows.Forms.TextBox txtProfilerAnalysisQuery;
-        private System.Windows.Forms.ComboBox cmbProfilerAnalyses;
-        private System.Windows.Forms.DataGridView dgdProfilerAnalyses;
-        private System.Windows.Forms.Label lblAnalysisQueries;
         private System.Windows.Forms.TextBox txtSaveLocation;
         private System.Windows.Forms.Button btnSaveLocation;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.LinkLabel lkAbout;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.Label lblAnalysisQueries;
+        private System.Windows.Forms.ComboBox cmbProfilerAnalyses;
+        private System.Windows.Forms.TextBox txtProfilerAnalysisQuery;
+        private System.Windows.Forms.DataGridView dgdProfilerAnalyses;
     }
 }
 

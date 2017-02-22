@@ -31,7 +31,7 @@ namespace SSASDiag
         {
             if (bOpening)
             {
-                if (Opacity >= .8)
+                if (Opacity >= .75)
                 {
                     t.Interval = 40;
                     bOpening = false;
@@ -41,7 +41,7 @@ namespace SSASDiag
             }
             else if (bDecelerating)
             {
-                if (Opacity >= .95)
+                if (Opacity >= 1)
                 {
                     t.Interval = 2700;
                     bDecelerating = false;
