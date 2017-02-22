@@ -420,11 +420,11 @@ namespace SSASDiag
 
             // Most impactful queries/commands
             q.Add(new ProfilerTraceQuery("Most impactful queries/commands",
-                                         "-- Returns a ranking of all queries and commands in the trace by the number of other queries and commands that overlap the query or command in question.\r\n-- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.\r\n\r\nselect top 100 b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassName, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientProcessID, ApplicationName from [Table_v] a,\r\n(\r\n\tselect count(*)[Overlapping Query Count], OriginalQueryConnection, OriginalQueryEndRow from\r\n\t(\r\n\t\tselect a.StartTime, a.CurrentTime EndTime, a.ConnectionID,\r\n\t\tb.RowNumber OriginalQueryEndRow, b.StartTime OriginalQueryStart, b.CurrentTime OriginalQueryEnd, b.ConnectionID OriginalQueryConnection\r\n\t\tfrom [Table] a,\r\n\t\t(\r\n\t\t\tselect RowNumber, ConnectionID, StartTime, CurrentTime from [Table] where eventclass in (10, 16)\r\n\t\t) b\r\n\t\twhere\r\n\t\t(\r\n\t\t\t(\r\n\t\t\t\t(a.StartTime >= b.StartTime and a.StartTime <= b.CurrentTime)\r\n\t\t\t\tor(a.CurrentTime <= b.CurrentTime and a.CurrentTime >= b.StartTime)\r\n\t\t\t\tor(a.StartTime <= b.StartTime and a.CurrentTime >= b.CurrentTime)\r\n\t\t\t)\r\n\t\t\tand a.ConnectionID<> b.ConnectionID and a.EventClass in (10, 16)\r\n\t\t)\r\n\t) OverlappingQueries\r\n\tgroup by OriginalQueryConnection, OriginalQueryEndRow\r\n) b\r\nwhere a.RowNumber = b.OriginalQueryEndRow\r\norder by[Overlapping Query Count] desc",
+                                         "-- Returns a ranking of all queries and commands completed within the trace by the number of other queries and commands that overlap the original query or command in question.\r\n-- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.\r\n\r\nselect top 100 b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassName, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientProcessID, ApplicationName from [Table_v] a,\r\n(\r\n\tselect count(*)[Overlapping Query Count], OriginalQueryConnection, OriginalQueryEndRow from\r\n\t(\r\n\t\tselect a.StartTime, a.CurrentTime EndTime, a.ConnectionID,\r\n\t\tb.RowNumber OriginalQueryEndRow, b.StartTime OriginalQueryStart, b.CurrentTime OriginalQueryEnd, b.ConnectionID OriginalQueryConnection\r\n\t\tfrom [Table] a,\r\n\t\t(\r\n\t\t\tselect RowNumber, ConnectionID, StartTime, CurrentTime from [Table] where eventclass in (10, 16)\r\n\t\t) b\r\n\t\twhere\r\n\t\t(\r\n\t\t\t(\r\n\t\t\t\t(a.StartTime >= b.StartTime and a.StartTime <= b.CurrentTime)\r\n\t\t\t\tor(a.CurrentTime <= b.CurrentTime and a.CurrentTime >= b.StartTime)\r\n\t\t\t\tor(a.StartTime <= b.StartTime and a.CurrentTime >= b.CurrentTime)\r\n\t\t\t)\r\n\t\t\tand a.ConnectionID<> b.ConnectionID and a.EventClass in (10, 16)\r\n\t\t)\r\n\t) OverlappingQueries\r\n\tgroup by OriginalQueryConnection, OriginalQueryEndRow\r\n) b\r\nwhere a.RowNumber = b.OriginalQueryEndRow\r\norder by[Overlapping Query Count] desc",
                                          ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
             q.Add(new ProfilerTraceQuery("Most impactful queries/commands",
-                                         "-- Returns a ranking of all queries and commands in the trace by the number of other queries and commands that overlap the query or command in question.\r\n-- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.\r\n\r\nselect top 100 b.[Overlapping Query Count], a.RowNumber, EventClass, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientProcessID, ApplicationName from [Table] a,\r\n(\r\n\tselect count(*)[Overlapping Query Count], OriginalQueryConnection, OriginalQueryEndRow from\r\n\t(\r\n\t\tselect a.StartTime, a.CurrentTime EndTime, a.ConnectionID,\r\n\t\tb.RowNumber OriginalQueryEndRow, b.StartTime OriginalQueryStart, b.CurrentTime OriginalQueryEnd, b.ConnectionID OriginalQueryConnection\r\n\t\tfrom [Table] a,\r\n\t\t(\r\n\t\t\tselect RowNumber, ConnectionID, StartTime, CurrentTime from [Table] where eventclass in (10, 16)\r\n\t\t) b\r\n\t\twhere\r\n\t\t(\r\n\t\t\t(\r\n\t\t\t\t(a.StartTime >= b.StartTime and a.StartTime <= b.CurrentTime)\r\n\t\t\t\tor(a.CurrentTime <= b.CurrentTime and a.CurrentTime >= b.StartTime)\r\n\t\t\t\tor(a.StartTime <= b.StartTime and a.CurrentTime >= b.CurrentTime)\r\n\t\t\t)\r\n\t\t\tand a.ConnectionID<> b.ConnectionID and a.EventClass in (10, 16)\r\n\t\t)\r\n\t) OverlappingQueries\r\n\tgroup by OriginalQueryConnection, OriginalQueryEndRow\r\n) b\r\nwhere a.RowNumber = b.OriginalQueryEndRow\r\norder by[Overlapping Query Count] desc"
+                                         "-- Returns a ranking of all queries and commands completed within the trace by the number of other queries and commands that overlap the original query or command in question.\r\n-- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.\r\n\r\nselect top 100 b.[Overlapping Query Count], a.RowNumber, EventClass, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientProcessID, ApplicationName from [Table] a,\r\n(\r\n\tselect count(*)[Overlapping Query Count], OriginalQueryConnection, OriginalQueryEndRow from\r\n\t(\r\n\t\tselect a.StartTime, a.CurrentTime EndTime, a.ConnectionID,\r\n\t\tb.RowNumber OriginalQueryEndRow, b.StartTime OriginalQueryStart, b.CurrentTime OriginalQueryEnd, b.ConnectionID OriginalQueryConnection\r\n\t\tfrom [Table] a,\r\n\t\t(\r\n\t\t\tselect RowNumber, ConnectionID, StartTime, CurrentTime from [Table] where eventclass in (10, 16)\r\n\t\t) b\r\n\t\twhere\r\n\t\t(\r\n\t\t\t(\r\n\t\t\t\t(a.StartTime >= b.StartTime and a.StartTime <= b.CurrentTime)\r\n\t\t\t\tor(a.CurrentTime <= b.CurrentTime and a.CurrentTime >= b.StartTime)\r\n\t\t\t\tor(a.StartTime <= b.StartTime and a.CurrentTime >= b.CurrentTime)\r\n\t\t\t)\r\n\t\t\tand a.ConnectionID<> b.ConnectionID and a.EventClass in (10, 16)\r\n\t\t)\r\n\t) OverlappingQueries\r\n\tgroup by OriginalQueryConnection, OriginalQueryEndRow\r\n) b\r\nwhere a.RowNumber = b.OriginalQueryEndRow\r\norder by[Overlapping Query Count] desc"
                                          , ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
 
@@ -669,10 +669,7 @@ namespace SSASDiag
             }
             return true;
         }
-
-        // For these next three functions I apologize for the heavy use of InvokeRequired and repetitive code to Invoke() or not depending on if required.  
-        // These functions can be called from UI thread or not and either way need to update UI without failure so for now this is how I achieve that.
-        // In the future I may work to ensure they are only ever called from off-UI thread and then remove the InvokeRequired to just always Invoke UI updates.
+        
         private void ValidateProfilerTraceViews()
         {
             if (connSqlDb.State == ConnectionState.Open)
@@ -683,18 +680,13 @@ namespace SSASDiag
                     bProfilerEventClassSublcassViewPresent = true;
                 else
                     bProfilerEventClassSublcassViewPresent = false;
-                //if (InvokeRequired)
-                    ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed event class/subclass view is " + (bProfilerEventClassSublcassViewPresent ? "present.\r\n" : "not present.\r\n"))));
-                //else
-                    //ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed event class/subclass view is " + (bProfilerEventClassSublcassViewPresent ? "present.\r\n" : "not present.\r\n"));
+                ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed event class/subclass view is " + (bProfilerEventClassSublcassViewPresent ? "present.\r\n" : "not present.\r\n"))));
                 cmd.CommandText = "SELECT TOP 1 name FROM sys.views WHERE name = N'" + AnalysisTraceID + "_QueryStats'";
                 if (cmd.ExecuteScalar() != null)
                     bProfilerQueryStatsPresent = true;
                 else
                     bProfilerQueryStatsPresent = false;
-                //if (InvokeRequired)
-                //{
-                    Invoke(new System.Action(() =>
+                Invoke(new System.Action(() =>
                     {
                         ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed query statistics view is " + (bProfilerQueryStatsPresent ? "present.\r\n" : "not present.\r\n"))));
                         cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries.Where(q => q.QueryType == (bProfilerEventClassSublcassViewPresent && bProfilerQueryStatsPresent ? ProfilerQueryTypes.AllQueries :
@@ -704,17 +696,6 @@ namespace SSASDiag
                                                                                                  || q.Key == "").ToList();
                         cmbProfilerAnalyses.Refresh();
                     }));
-                //}
-                //else
-                //{
-                //    ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed query statistics view is " + (bProfilerQueryStatsPresent ? "present.\r\n" : "not present.\r\n"));
-                //    cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries.Where(q => q.QueryType == (bProfilerEventClassSublcassViewPresent && bProfilerQueryStatsPresent ? ProfilerQueryTypes.AllQueries :
-                //                                                                                        bProfilerEventClassSublcassViewPresent ? ProfilerQueryTypes.QueriesWithEventClassSubclassNames :
-                //                                                                                        bProfilerQueryStatsPresent ? ProfilerQueryTypes.QueriesWithQueryStats :
-                //                                                                                        ProfilerQueryTypes.BaseQuery)
-                //                                                                             || q.Key == "").ToList();
-                //    cmbProfilerAnalyses.Refresh();
-                //}
             }
         }
         private void AttachProfilerTraceDB()
@@ -739,9 +720,7 @@ namespace SSASDiag
                 {
                     cmd.ExecuteNonQuery();
                     bProfilerTraceDbAttached = true;
-                    //if (InvokeRequired)
-                    //{
-                        Invoke(new System.Action(() =>
+                    Invoke(new System.Action(() =>
                         {
                             lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = txtProfilerAnalysisQuery.Visible = true;
                             ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
@@ -750,25 +729,13 @@ namespace SSASDiag
                                                                                 + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
                             ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
                         }));
-                    //}
-                    //else
-                    //{
-                    //    lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = txtProfilerAnalysisQuery.Visible = true;
-                    //    ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
-                    //                                                        + ".mdf\r\n\r\nLocated at:\r\n" + m_analysisPath + "\\Analysis\r\n\r\n"
-                    //                                                        + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
-                    //                                                        + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
-                    //    ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
-                    //}
+
                     ValidateProfilerTraceViews();
                 }
                 catch (SqlException ex)
                 {
                     System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
-                    //if (InvokeRequired)
-                        Invoke(new System.Action(() => cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false));
-                    //else
-                    //    cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
+                    Invoke(new System.Action(() => cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false));
 
                     if (ex.Message.Contains("cannot be opened because it is version"))
                     {
@@ -787,9 +754,7 @@ namespace SSASDiag
                                     cmd.Connection = connSqlDb;
                                     cmd.ExecuteNonQuery();
                                     bProfilerTraceDbAttached = true;
-                                    //if (InvokeRequired)
-                                    //{
-                                        Invoke(new System.Action(() =>
+                                    Invoke(new System.Action(() =>
                                         {
                                             lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = txtProfilerAnalysisQuery.Visible = true;
                                             ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
@@ -798,16 +763,6 @@ namespace SSASDiag
                                                                             + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
                                             ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
                                         }));
-                                    //}
-                                    //else
-                                   // {
-                                    //    lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = txtProfilerAnalysisQuery.Visible = true;
-                                    //    ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
-                                    //                                    + ".mdf\r\n\r\nLocated at:\r\n" + m_analysisPath + "\\Analysis\r\n\r\n"
-                                    //                                    + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
-                                    //                                    + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
-                                    //    ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
-                                    //}
                                     ValidateProfilerTraceViews();
                                     break;
                                 }
@@ -819,29 +774,18 @@ namespace SSASDiag
                             }
                             else
                             {
-                                //if (InvokeRequired)
-                                    Invoke(new System.Action(()=> ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to load trace data to SQL table.  No local instance able to host the data is available.\r\n")));
-                                //else
-                                    //ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to load trace data to SQL table.  No local instance able to host the data is available.\r\n");
+                                Invoke(new System.Action(()=> ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to load trace data to SQL table.  No local instance able to host the data is available.\r\n")));
                                 return;
                             }
                         }
                     }
                     else if (ex.Message.Contains("Unable to open the physical file") || ex.Message.Contains("The path specified by"))
                     {
-                        //if (InvokeRequired)
-                            ProfilerTraceStatusTextBox.Invoke(new System.Action(()=>ProfilerTraceStatusTextBox.Text = (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Trace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n"));
-                        //else
-                            //ProfilerTraceStatusTextBox.Text = (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Trace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n";
+                        ProfilerTraceStatusTextBox.Invoke(new System.Action(()=>ProfilerTraceStatusTextBox.Text = (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Trace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n"));
                         return;
                     }
                     else
-                    {
-                        //if (InvokeRequired)
-                            ProfilerTraceStatusTextBox.Invoke(new System.Action(()=> ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to attach to database due to exception:\r\n" + ex.Message)));
-                        //else
-                            //ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to attach to database due to exception:\r\n" + ex.Message);
-                    }
+                        ProfilerTraceStatusTextBox.Invoke(new System.Action(()=> ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to attach to database due to exception:\r\n" + ex.Message)));
                 }
             }
         }
@@ -854,20 +798,14 @@ namespace SSASDiag
                 connSqlDb.ChangeDatabase("master");
                 SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connSqlDb);
                 cmd.ExecuteNonQuery();
-                Thread.Sleep(1000); // Sometimes it fails if we just immediately went to single user mode...  Shouldn't have to but add a tiny wait.
+                //Thread.Sleep(1000); // Sometimes it fails if we just immediately went to single user mode...  Shouldn't have to but add a tiny wait.
                 cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') EXEC master.dbo.sp_detach_db @dbname = N'" + AnalysisTraceID + "'", connSqlDb);
                 cmd.ExecuteNonQuery();
-                //if (InvokeRequired)
-                    Invoke(new System.Action(() =>
+                Invoke(new System.Action(() =>
                     {
                         lblAnalysisQueries.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
                         ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Detached trace database [" + AnalysisTraceID + "]\r\nfrom SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nat " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
                     }));
-                //else
-                //{
-                //    lblAnalysisQueries.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
-                //    ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Detached trace database [" + AnalysisTraceID + "]\r\nfrom SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nat " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
-               // }
             }
             catch (Exception ex) { System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }  // could fail if service stopped, no biggie just move on...
         }
@@ -888,7 +826,10 @@ namespace SSASDiag
                         cmbProfilerAnalyses.Text == "Longest running commands captured" ||
                         cmbProfilerAnalyses.Text == "Most collectively expensive queries" ||
                         cmbProfilerAnalyses.Text == "Most collectively expensive commands" ||
-                        cmbProfilerAnalyses.Text == "Queries/commands with errors")
+                        cmbProfilerAnalyses.Text == "Queries/commands with errors" ||
+                        cmbProfilerAnalyses.Text == "Most impactful queries/commands" ||
+                        cmbProfilerAnalyses.Text == "Queries/commands not completed"
+                        )
                     {
                         m.MenuItems.Add(new MenuItem("-"));
                         m.MenuItems.Add(new MenuItem(string.Format("Find all queries/commands overlapping with selection", e.RowIndex), ProfilerAnalysisContextMenu_Click));
@@ -955,8 +896,39 @@ namespace SSASDiag
                 sOut += "\r\n" + (headers != priorHeaders ? headers + "\r\n" : "") + sLine;
                 Clipboard.SetText(sOut.TrimStart(new char[] { '\r', '\n' }));
             }
-            if ((sender as MenuItem).Text == "Find all queries/commands overlappning with selection")
-                ; // TODO
+            if ((sender as MenuItem).Text == "Find all queries/commands overlapping with selection")
+            {
+                string strQry = "";
+                //string rows = "";
+                List<int?> rows = new List<int?>();
+                foreach (DataGridViewCell c in dgdProfilerAnalyses.SelectedCells)
+                    rows.Add(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["RowNumber"].Value as int?);
+                cmbProfilerAnalyses.SelectedIndex = 0;
+                rows = rows.Distinct().ToList();
+                foreach (int row in rows)
+                {
+                    strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [Table_v] a,\r\n(select StartTime, CurrentTime from [Table] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID)
+                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [Table_v] a,\r\n(select StartTime, CurrentTime from [Table] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID));
+                }
+                txtProfilerAnalysisQuery.Text = "--All queries started or finished during the execution of the quer" + (rows.Count > 1 ? "ies" : "y" ) + " at row" + (rows.Count > 1 ? "s " : " ") + String.Join(", ", rows.ToArray()) + ".\r\n\r\n" + strQry + "\r\norder by duration desc, starttime desc";
+                if (txtProfilerAnalysisQuery.Text != "")
+                {
+                    BackgroundWorker bgLoadProfilerAnalysis = new BackgroundWorker();
+                    bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
+                    bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
+                    StatusFloater.lblStatus.Text = "Running analysis query...";
+                    StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.Show(this);
+                    this.SuspendLayout();
+                    bgLoadProfilerAnalysis.RunWorkerAsync();
+                }
+                else
+                {
+                    dgdProfilerAnalyses.DataSource = null;
+                    dgdProfilerAnalyses.Refresh();
+                }
+            }
             
         }
         #endregion Profiler Trace Analysis       
