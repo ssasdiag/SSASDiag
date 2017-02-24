@@ -200,6 +200,7 @@ namespace SSASDiag
         }
         private void PopulateAnalysisTabs()
         {
+            AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
             foreach (TabPage t in tcAnalysis.TabPages)
                 HiddenTabPages.Add(t);
             tcAnalysis.TabPages.Clear();
@@ -340,6 +341,10 @@ namespace SSASDiag
             public string Value { get; set; }
             public ProfilerQueryTypes QueryType { get; set; }
         }
+        private string ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(string qry)
+        {
+            return qry.Replace("[Table_v]", "[Table]").Replace("EventClassName, ", "").Replace("EventSubclassName, ", "").Replace("EventClassName", "").Replace("EventSubclassName", "");
+        }
         private List<ProfilerTraceQuery> InitializeProfilerTraceAnalysisQueries()
         {
             List<ProfilerTraceQuery> q = new List<ProfilerTraceQuery>();
@@ -347,105 +352,89 @@ namespace SSASDiag
 
             // Basic details
             q.Add(new ProfilerTraceQuery("Basic trace summary",
-                                         "SELECT * FROM\r\n(SELECT COUNT(*)[Queries Started] FROM [Table] WHERE EventClass = 9) a,\r\n(SELECT COUNT(*)[Queries Completed] FROM [Table] WHERE EventClass = 10) b,\r\n(SELECT SUM(Duration)[Total Query Duration], AVG(Duration)[Average Query Duration] FROM [Table] WHERE EventClass = 10) e,\r\n(SELECT(\r\n(SELECT MAX(Duration) FROM\r\n\t(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 10 AND Duration > 0 ORDER BY Duration) AS BottomHalf)\r\n\t+\r\n\t(SELECT MIN(Duration) FROM\r\n\t(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 10 AND Duration > 0 ORDER BY Duration DESC) AS TopHalf)\r\n)\t / 2 AS [Median Query Duration]) g,\r\n(SELECT COUNT(*)[Commands Started] FROM [Table] WHERE EventClass = 15) c,\r\n(SELECT COUNT(*)[Commands Completed] FROM [Table] WHERE EventClass = 16) d,\r\n(SELECT SUM(Duration) [Total Command Duration], AVG(Duration) [Average Command Duration] FROM [Table] WHERE EventClass = 16) f,\r\n(SELECT(\r\n\t(SELECT MAX(Duration) FROM\r\n\t(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 16 AND Duration > 0 ORDER BY Duration) AS BottomHalf)\r\n\t+\r\n\t(SELECT MIN(Duration) FROM\r\n\t(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 16 AND Duration > 0 ORDER BY Duration DESC) AS TopHalf)\r\n\t) / 2 AS [Median Command Duration]) h", ProfilerQueryTypes.BaseQuery));
+                                         Properties.Resources.QueryBasicTraceSummary, ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
 
             // Query FE/SE Stats
             q.Add(new ProfilerTraceQuery("Formula/Storage engine statistics",
-                                         "SELECT QueryDuration, StorageEngineTime, QueryDuration - StorageEngineTime FormulaEngineTime, SEPct, 100 - SEPct FEPct, StartRow, EndRow, StartTime, EndTime, ConnectionID, DatabaseName, TextData, RequestParameters, RequestProperties, SPID, NTUserName, NTDomainName\r\nFROM [Table_QueryStats]\r\nORDER BY QueryDuration",
-                                         ProfilerQueryTypes.QueriesWithQueryStats));
+                                         Properties.Resources.QueryFESEStats, ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
 
             // Longest running queries
             q.Add(new ProfilerTraceQuery("Longest running queries captured",
-                                         "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Table]\r\nWHERE EventClass = 10\r\nORDER BY Duration DESC",
-                                         ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryLongestRunningQueries), ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Longest running queries captured",
-                                         "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Table_v]\r\nWHERE EventClass = 10\r\nORDER BY Duration DESC", ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryLongestRunningQueries, ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
-            
 
-            // Longest running commands
+
+            // Longest running queries
             q.Add(new ProfilerTraceQuery("Longest running commands captured",
-                                         "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Table]\r\nWHERE EventClass = 16\r\nORDER BY Duration DESC",
-                                         ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryLongestRunningCommands), ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Longest running commands captured",
-                                         "SELECT TOP 100 Duration, CPUTime, StartTime, CurrentTime as EndTime, DatabaseName, TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, RequestParameters, RequestProperties\r\nFROM [Table_v]\r\nWHERE EventClass = 16\r\nORDER BY Duration DESC", ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryLongestRunningCommands, ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
-            
+
 
             // Most collectively expensive events
             q.Add(new ProfilerTraceQuery("Most collectively expensive events",
-                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventSubclass, TextData\r\nFROM [Table]\r\nWHERE EventClass <> 42-- skip ExistingSession durations\r\nGROUP BY TextData, EventClass, EventSubclass\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
-                                         ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostCollectivelyExpensiveEvents), ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Most collectively expensive events",
-                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData\r\nFROM [Table_v]\r\nWHERE EventClass <> 42-- skip ExistingSession durations\r\nGROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
-                                         ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
-            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryMostCollectivelyExpensiveEvents, ProfilerQueryTypes.AllQueries));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Most collectively expensive queries
             q.Add(new ProfilerTraceQuery("Most collectively expensive queries",
-                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventSubclass, TextData\r\nFROM [Table]\r\nWHERE EventClass = 10\r\nGROUP BY TextData, EventClass, EventSubclass\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
-                                         ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostCollectivelyExpensiveQueries), ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Most collectively expensive queries",
-                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData\r\nFROM [Table_v]\r\nWHERE EventClass = 10\r\nGROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
-                                         ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
-            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryMostCollectivelyExpensiveQueries, ProfilerQueryTypes.AllQueries));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Most collectively expensive commands
             q.Add(new ProfilerTraceQuery("Most collectively expensive commands",
-                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventSubclass, TextData\r\nFROM [Table]\r\nWHERE EventClass = 16\r\nGROUP BY TextData, EventClass, EventSubclass\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
-                                         ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostCollectivelyExpensiveCommands), ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Most collectively expensive commands",
-                                         "SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData\r\nFROM [Table_v]\r\nWHERE EventClass = 16\r\nGROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName\r\nHAVING SUM(Duration) > 0\r\nORDER BY SUM(Duration) DESC",
-                                         ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
-            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryMostCollectivelyExpensiveCommands, ProfilerQueryTypes.AllQueries));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Errors
             q.Add(new ProfilerTraceQuery("Queries/commands with errors",
-                                         "SELECT TextData, sys.fn_varbintohexstr(CONVERT(VARBINARY(8), Error)) [Error Code], DatabaseName, EventClass, NTUserName, NTDomainName, a.ConnectionID, ClientProcessID, SPID, ApplicationName\r\nFROM [Table] a,\r\n\t(\r\n\t\tSELECT RowNumber, ConnectionID, StartTime\r\n\t\tFROM [Table]\r\n\t\tWHERE EventClass = 17\r\n\t) b\r\nWHERE EventClass in (9, 10, 15, 16, 17) AND\r\n\ta.ConnectionID = b.ConnectionID AND\r\n\ta.StartTime >= b.StartTime AND\r\n\ta.RowNumber <= b.RowNumber",
-                                         ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryQueriesCommandsWithErrors), ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Queries/commands with errors",
-                                         "SELECT TextData, sys.fn_varbintohexstr(CONVERT(VARBINARY(8), Error)) [Error Code], DatabaseName, EventClass, EventClassName, NTUserName, NTDomainName, a.ConnectionID, ClientProcessID, SPID, ApplicationName\r\nFROM [Table_v] a,\r\n\t(\r\n\t\tSELECT RowNumber, ConnectionID, StartTime\r\n\t\tFROM [Table]\r\n\t\tWHERE EventClass = 17\r\n\t) b\r\nWHERE EventClass in (9, 10, 15, 16, 17) AND\r\n\ta.ConnectionID = b.ConnectionID AND\r\n\ta.StartTime >= b.StartTime AND\r\n\ta.RowNumber <= b.RowNumber",
-                                         ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
-            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryQueriesCommandsWithErrors, ProfilerQueryTypes.AllQueries));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Most impactful queries/commands
             q.Add(new ProfilerTraceQuery("Most impactful queries/commands",
-                                         "-- Returns a ranking of all queries and commands completed within the trace by the number of other queries and commands that overlap the original query or command in question.\r\n-- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.\r\n\r\nselect top 100 b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassName, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientProcessID, ApplicationName from [Table_v] a,\r\n(\r\n\tselect count(*)[Overlapping Query Count], OriginalQueryConnection, OriginalQueryEndRow from\r\n\t(\r\n\t\tselect a.StartTime, a.CurrentTime EndTime, a.ConnectionID,\r\n\t\tb.RowNumber OriginalQueryEndRow, b.StartTime OriginalQueryStart, b.CurrentTime OriginalQueryEnd, b.ConnectionID OriginalQueryConnection\r\n\t\tfrom [Table] a,\r\n\t\t(\r\n\t\t\tselect RowNumber, ConnectionID, StartTime, CurrentTime from [Table] where eventclass in (10, 16)\r\n\t\t) b\r\n\t\twhere\r\n\t\t(\r\n\t\t\t(\r\n\t\t\t\t(a.StartTime >= b.StartTime and a.StartTime <= b.CurrentTime)\r\n\t\t\t\tor(a.CurrentTime <= b.CurrentTime and a.CurrentTime >= b.StartTime)\r\n\t\t\t\tor(a.StartTime <= b.StartTime and a.CurrentTime >= b.CurrentTime)\r\n\t\t\t)\r\n\t\t\tand a.ConnectionID<> b.ConnectionID and a.EventClass in (10, 16)\r\n\t\t)\r\n\t) OverlappingQueries\r\n\tgroup by OriginalQueryConnection, OriginalQueryEndRow\r\n) b\r\nwhere a.RowNumber = b.OriginalQueryEndRow\r\norder by[Overlapping Query Count] desc",
-                                         ProfilerQueryTypes.AllQueries));
-            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
-            q.Add(new ProfilerTraceQuery("Most impactful queries/commands",
-                                         "-- Returns a ranking of all queries and commands completed within the trace by the number of other queries and commands that overlap the original query or command in question.\r\n-- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.\r\n\r\nselect top 100 b.[Overlapping Query Count], a.RowNumber, EventClass, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientProcessID, ApplicationName from [Table] a,\r\n(\r\n\tselect count(*)[Overlapping Query Count], OriginalQueryConnection, OriginalQueryEndRow from\r\n\t(\r\n\t\tselect a.StartTime, a.CurrentTime EndTime, a.ConnectionID,\r\n\t\tb.RowNumber OriginalQueryEndRow, b.StartTime OriginalQueryStart, b.CurrentTime OriginalQueryEnd, b.ConnectionID OriginalQueryConnection\r\n\t\tfrom [Table] a,\r\n\t\t(\r\n\t\t\tselect RowNumber, ConnectionID, StartTime, CurrentTime from [Table] where eventclass in (10, 16)\r\n\t\t) b\r\n\t\twhere\r\n\t\t(\r\n\t\t\t(\r\n\t\t\t\t(a.StartTime >= b.StartTime and a.StartTime <= b.CurrentTime)\r\n\t\t\t\tor(a.CurrentTime <= b.CurrentTime and a.CurrentTime >= b.StartTime)\r\n\t\t\t\tor(a.StartTime <= b.StartTime and a.CurrentTime >= b.CurrentTime)\r\n\t\t\t)\r\n\t\t\tand a.ConnectionID<> b.ConnectionID and a.EventClass in (10, 16)\r\n\t\t)\r\n\t) OverlappingQueries\r\n\tgroup by OriginalQueryConnection, OriginalQueryEndRow\r\n) b\r\nwhere a.RowNumber = b.OriginalQueryEndRow\r\norder by[Overlapping Query Count] desc"
-                                         , ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostImpactfulQueriesCommands), ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
+            q.Add(new ProfilerTraceQuery("Most impactful queries/commands",
+                                         Properties.Resources.QueryMostImpactfulQueriesCommands, ProfilerQueryTypes.AllQueries));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Queries/Commands not completed during trace
             q.Add(new ProfilerTraceQuery("Queries/commands not completed",
-                                         "SELECT a.[Time Captured in Trace], b.RowNumber, b.EventClassName, b.EventClass, b.StartTime, b.DatabaseName, b.TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ClientProcessID, b.ApplicationName, b.EventSubclassName, b.EventSubclass, SPID, RequestParameters, RequestProperties\r\nFROM\r\n(\r\n\tSELECT MAX(RowNumber) RowNumber,\r\n\tDATEDIFF(\"ms\", MAX(StartTime),\r\n\t\t(\r\n\t\t\tSELECT MAX(CurrentTime)\r\n\t\t\tFROM [Table]\r\n\t\t)\r\n\t)[Time Captured in Trace]\r\n\tFROM [Table_v] a\r\n\tWHERE EventClass IN(9, 10, 15, 16) AND NOT StartTime IS NULL\r\n\tGROUP BY a.StartTime, ConnectionID, TextData\r\n\tHAVING COUNT(*) = 1\r\n) a,\r\n[Table_v] b\r\nWHERE b.RowNumber = a.RowNumber\r\nAND b.EventClass NOT IN(10, 16)\r\nORDER BY[Time Captured in Trace] DESC",
-                                         ProfilerQueryTypes.AllQueries));
-            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
-            q.Add(new ProfilerTraceQuery("Queries/commands not completed",
-                                         "SELECT a.[Time Captured in Trace], b.RowNumber, b.EventClass, b.StartTime, b.DatabaseName, CONVERT(NVARCHAR(MAX), b.TextData) TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ClientProcessID, b.ApplicationName, b.EventSubclass, SPID, RequestParameters, RequestProperties\r\nFROM\r\n(\r\n\tSELECT MAX(RowNumber) RowNumber,\r\n\tDATEDIFF(\"ms\", MAX(StartTime),\r\n\t\t(\r\n\t\t\tSELECT MAX(CurrentTime)\r\n\t\t\tFROM [Table]\r\n\t\t)\r\n\t)[Time Captured in Trace]\r\n\tFROM [Table] a\r\n\tWHERE EventClass IN(9, 10, 15, 16) AND NOT StartTime IS NULL\r\n\tGROUP BY a.StartTime, ConnectionID, CONVERT(NVARCHAR(MAX), b.TextData)\r\n\tHAVING COUNT(*) = 1\r\n) a,\r\n[Table] b\r\nWHERE b.RowNumber = a.RowNumber\r\nAND b.EventClass NOT IN(10, 16)\r\nORDER BY[Time Captured in Trace] DESC",
-                                         ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryQueriesCommandsNotCompleted), ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
+            q.Add(new ProfilerTraceQuery("Queries/commands not completed",
+                                         Properties.Resources.QueryQueriesCommandsNotCompleted, ProfilerQueryTypes.AllQueries));
+            q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Possible runaway sessions
             q.Add(new ProfilerTraceQuery("Possible runaway sessions",
-                                         "-- These sessions were active when the trace started and never showed any begin or end events.\r\n-- This can indicate the sessions were already active and remained active without ever completing.\r\n-- If heavy load isn't otherwise detectable in a trace, check with users of possible runaway sessions.\r\n\r\nselect 'Existing Session' as EventClassName, StartTime, Duration as [Session Duration at TraceStart], ConnectionID, NTUserName, NTDomainName, DatabaseName, SPID, TextData as [Session Roles], ClientProcessID, ApplicationName, RequestProperties as [Session Properties]\r\nfrom [Table]\r\nwhere connectionid not in\r\n(\r\n\tselect connectionid from\r\n(\r\n\t\tselect connectionID, eventclass from [Table]\r\n\t\tgroup by connectionid, eventclass\r\n) a\r\n\twhere a.eventclass in (1, 2, 15, 16, 9, 10) and not ConnectionID is null\r\n)\r\nand not databasename is null\r\nand eventclass = 42\r\norder by rownumber",
+                                         Properties.Resources.QueryPossibleRunawaySessions,
                                          ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
-
 
             return q;
         }
@@ -519,6 +508,9 @@ namespace SSASDiag
                 ProfilerTraceStatusTextBox.Invoke(new System.Action(()=>
                     ProfilerTraceStatusTextBox.Text = "Importing profiler trace to database [" + AnalysisTraceID + "] on SQL instance: [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]."));
                 string connstr = (e.Argument as object[])[1] as string;
+                if (!connstr.Contains("Initial Catalog")) connstr += (connstr.EndsWith(";") ? "" : ";") + "Initial Catalog=" + AnalysisTraceID + ";";
+                if (connstr.Contains("Initial Catalog=;")) connstr = connstr.Replace("Initial Catalog=;", "Initial Catalog=" + AnalysisTraceID + ";");
+
                 Process p = new Process();
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.CreateNoWindow = true;
@@ -594,7 +586,8 @@ namespace SSASDiag
                 StatusFloater.lblStatus.Text = "Running analysis query...";
                 StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
                 StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
-                StatusFloater.Show(this);
+                if (!StatusFloater.Visible)
+                    StatusFloater.Show(this);
                 this.SuspendLayout();
                 bgLoadProfilerAnalysis.RunWorkerAsync();
             }
@@ -700,12 +693,7 @@ namespace SSASDiag
         }
         private void AttachProfilerTraceDB()
         {
-            //if (InvokeRequired)
-
-                tcAnalysis.Invoke(new System.Action(()=>tcAnalysis.SelectedTab.Controls["ProfilerTraceStatusTextbox"].Text += (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attaching profiler trace database...\r\n"));
-            //else
-            //    tcAnalysis.SelectedTab.Controls["ProfilerTraceStatusTextbox"].Text += (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attaching profiler trace database...\r\n";
-
+            tcAnalysis.Invoke(new System.Action(()=>tcAnalysis.SelectedTab.Controls["ProfilerTraceStatusTextbox"].Text += (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attaching profiler trace database...\r\n"));
             ValidateProfilerTraceDBConnectionStatus();
 
             if (connSqlDb.State == ConnectionState.Open)
@@ -798,7 +786,6 @@ namespace SSASDiag
                 connSqlDb.ChangeDatabase("master");
                 SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connSqlDb);
                 cmd.ExecuteNonQuery();
-                //Thread.Sleep(1000); // Sometimes it fails if we just immediately went to single user mode...  Shouldn't have to but add a tiny wait.
                 cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') EXEC master.dbo.sp_detach_db @dbname = N'" + AnalysisTraceID + "'", connSqlDb);
                 cmd.ExecuteNonQuery();
                 Invoke(new System.Action(() =>
@@ -828,7 +815,8 @@ namespace SSASDiag
                         cmbProfilerAnalyses.Text == "Most collectively expensive commands" ||
                         cmbProfilerAnalyses.Text == "Queries/commands with errors" ||
                         cmbProfilerAnalyses.Text == "Most impactful queries/commands" ||
-                        cmbProfilerAnalyses.Text == "Queries/commands not completed"
+                        cmbProfilerAnalyses.Text == "Queries/commands not completed" ||
+                        cmbProfilerAnalyses.Text == "Formula/Storage engine statistics"
                         )
                     {
                         m.MenuItems.Add(new MenuItem("-"));
@@ -845,9 +833,7 @@ namespace SSASDiag
             string sOut = "";
             int PriorRowNum = -1;
             if ((sender as MenuItem).Text == "Copy")
-            {
-                // This is just placeholder, need to format output...
-                
+            {               
                 List<DataGridViewCell> cells = new List<DataGridViewCell>();
                 foreach (DataGridViewCell c in dgdProfilerAnalyses.SelectedCells)
                     cells.Add(c);
@@ -902,7 +888,15 @@ namespace SSASDiag
                 //string rows = "";
                 List<int?> rows = new List<int?>();
                 foreach (DataGridViewCell c in dgdProfilerAnalyses.SelectedCells)
-                    rows.Add(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["RowNumber"].Value as int?);
+                {
+                    if (dgdProfilerAnalyses.Columns.Contains("RowNumber"))
+                        rows.Add(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["RowNumber"].Value as int?);
+                    else if (dgdProfilerAnalyses.Columns.Contains("EndRow") && dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EndRow"].Value != null)
+                        rows.Add(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EndRow"].Value as int?);
+                    else if (dgdProfilerAnalyses.Columns.Contains("StartRow"))
+                        rows.Add(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["StartRow"].Value as int?);
+
+                }
                 cmbProfilerAnalyses.SelectedIndex = 0;
                 rows = rows.Distinct().ToList();
                 foreach (int row in rows)

@@ -150,11 +150,9 @@ namespace SSASDiag
             txtStatus.Height = this.Height - 315;
             tcCollectionAnalysisTabs.Height = this.Height - 59;
             tcAnalysis.Height = this.Height - 119;
-            //txtProfilerAnalysisQuery.Width = this.Width - 255;
             btnImportProfilerTrace.Left = this.Width / 2 - btnImportProfilerTrace.Width / 2;
             splitProfilerAnalysis.Height = Height - 250;
             txtProfilerAnalysisQuery.Width = Width - 254;
-            //dgdProfilerAnalyses.Height = this.Height - 288;
             if (tcAnalysis.TabPages.ContainsKey("Network Trace") || HiddenTabPages.Where(t => t.Name == "Network Trace").Count() > 0)
             {
                 Button btnAnalyzeNetworkTrace = tcAnalysis.TabPages.ContainsKey("Network Trace") ? 

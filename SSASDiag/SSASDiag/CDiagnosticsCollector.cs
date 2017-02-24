@@ -666,8 +666,8 @@ namespace SSASDiag
         {
             if (bGetProfiler)
             {
-                AddItemToStatus("Preparing to stop profiler trace...");
-                System.Threading.Thread.Sleep(5000); // Wait 5s to allow profiler events to catch up a little bit.
+                AddItemToStatus("Waiting 20s to allow profiler trace to catch up with any lagging events...");
+                System.Threading.Thread.Sleep(20000); // Wait 15s to allow profiler events to catch up a little bit.
                 AddItemToStatus("Executing AS server command to stop profiler trace...");
                 ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
                 AddItemToStatus("Stopped profiler trace.");
@@ -827,7 +827,7 @@ namespace SSASDiag
             try
             {
                 Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
-                s.Connect("Data source=." + (sInstanceName == "" ? "" : "\\" + sInstanceName));
+                s.Connect("Data source=" + Environment.MachineName + (sInstanceName == "" ? "" : "\\" + sInstanceName) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
                 try
                 {
                     XmlaResultCollection results = s.Execute(command);
@@ -854,10 +854,7 @@ namespace SSASDiag
             return ret;
         }
         void AddItemToStatus(string Item, bool bScroll = true, string AtLastLineStartingWith = "")
-        {
-            //bool ShouldScroll = false;
-            //txtStatus.Invoke(new System.Action(() => ShouldScroll = txtStatus.SelectionStart > txtStatus.TextLength - 1));
-            
+        {           
             if (AtLastLineStartingWith == "")
                 slStatus.Insert(slStatus.Count, Item);
             else
@@ -865,15 +862,12 @@ namespace SSASDiag
                     if (slStatus[i].StartsWith(AtLastLineStartingWith))
                         slStatus[i] = Item;
 
-            // Disabling scroll option for now.  While capturing screen will be subject to forced scrolling.  :(  Due to a glitch where non-scrolling lines cause scroll to roll BACK a line, losting the active line...  
-            // Need to fix for UI interactivity to allow copy of text during capture, but also very minor.
-            //if (ShouldScroll)
-                txtStatus.Invoke(new System.Action(() =>
-                {
-                    if (txtStatus.Text.Length > 0)
-                        txtStatus.Select(txtStatus.Text.Length - 1, 1);
-                    txtStatus.ScrollToCaret();
-                }));
+            txtStatus.Invoke(new System.Action(() =>
+            {
+                if (txtStatus.Text.Length > 0)
+                    txtStatus.Select(txtStatus.Text.Length - 1, 1);
+                txtStatus.ScrollToCaret();
+            }));
             txtStatus.Invoke(new System.Action(() => RaisePropertyChanged("Status")));
             return;
         }

@@ -49,7 +49,7 @@ namespace SSASDiag
                 if (s.DisplayName.Contains("SQL Server ("))
                 {
                     string InstanceName = s.DisplayName.Replace("SQL Server (", "").Replace(")", "").Replace("MSSQLSERVER", "");
-                    SqlConnection conn = new SqlConnection("Data Source=." + (InstanceName == "" ? "" : "\\" + InstanceName) + ";Integrated Security=true;Persist Security Info=false;Connection Timeout=1;");
+                    SqlConnection conn = new SqlConnection("Data Source=" + Environment.MachineName + (InstanceName == "" ? "" : "\\" + InstanceName) + ";Integrated Security=true;Persist Security Info=false;Connection Timeout=1;");
                     try {
                         conn.Open();
                         cmbServer.Items.Add(Environment.MachineName + (InstanceName == "" ? "" : "\\" + InstanceName));

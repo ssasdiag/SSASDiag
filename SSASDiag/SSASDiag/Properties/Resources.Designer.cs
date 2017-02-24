@@ -280,6 +280,169 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SELECT * FROM
+        ///(SELECT MIN(StartTime) as [Trace Start Time], MAX(CurrentTime) as [Trace End Time] FROM [Table]) aa,
+        ///(SELECT COUNT(*)[Queries Started] FROM [Table] WHERE EventClass = 9) a,
+        ///(SELECT COUNT(*)[Queries Completed] FROM [Table] WHERE EventClass = 10) b,
+        ///(SELECT SUM(Duration)[Total Query Duration], AVG(Duration)[Average Query Duration] FROM [Table] WHERE EventClass = 10) e,
+        ///(SELECT(
+        ///(SELECT MAX(Duration) FROM
+        ///	(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 10 AND Duration &gt; 0  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string QueryBasicTraceSummary {
+            get {
+                return ResourceManager.GetString("QueryBasicTraceSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT StartRow, EndRow, QueryDuration, StorageEngineTime, QueryDuration - StorageEngineTime FormulaEngineTime, SEPct, 100 - SEPct FEPct, StartRow, EndRow, StartTime, EndTime, ConnectionID, DatabaseName, TextData, RequestParameters, RequestProperties, SPID, NTUserName, NTDomainName
+        ///FROM [Table_QueryStats]
+        ///ORDER BY QueryDuration.
+        /// </summary>
+        internal static string QueryFESEStats {
+            get {
+                return ResourceManager.GetString("QueryFESEStats", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT TOP 100 * FROM
+        ///(
+        ///	SELECT Duration, CPUTime, CONVERT(NVARCHAR(MAX), StartTime, 21) StartTime, CONVERT(NVARCHAR(MAX), CurrentTime, 21) as EndTime, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, RowNumber
+        ///	FROM [Table_v]
+        ///	WHERE EventClass = 16
+        ///	UNION
+        ///	SELECT a.[Time Captured in Trace] Dura [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string QueryLongestRunningCommands {
+            get {
+                return ResourceManager.GetString("QueryLongestRunningCommands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT * FROM
+        ///(
+        ///	SELECT Duration, CPUTime, CONVERT(NVARCHAR(MAX), StartTime, 21) StartTime, CONVERT(NVARCHAR(MAX), CurrentTime, 21) as EndTime, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, RowNumber
+        ///	FROM [Table_v]
+        ///	WHERE EventClass = 10
+        ///	UNION
+        ///	SELECT a.[Time Captured in Trace] Duration, b. [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string QueryLongestRunningQueries {
+            get {
+                return ResourceManager.GetString("QueryLongestRunningQueries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData
+        ///FROM [Table_v]
+        ///WHERE EventClass = 16
+        ///GROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName
+        ///HAVING SUM(Duration) &gt; 0
+        ///ORDER BY SUM(Duration) DESC.
+        /// </summary>
+        internal static string QueryMostCollectivelyExpensiveCommands {
+            get {
+                return ResourceManager.GetString("QueryMostCollectivelyExpensiveCommands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData
+        ///FROM [Table_v]
+        ///WHERE EventClass &lt;&gt; 42-- skip ExistingSession durations
+        ///GROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName
+        ///HAVING SUM(Duration) &gt; 0
+        ///ORDER BY SUM(Duration) DESC.
+        /// </summary>
+        internal static string QueryMostCollectivelyExpensiveEvents {
+            get {
+                return ResourceManager.GetString("QueryMostCollectivelyExpensiveEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData
+        ///FROM [Table_v]
+        ///WHERE EventClass = 10
+        ///GROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName
+        ///HAVING SUM(Duration) &gt; 0
+        ///ORDER BY SUM(Duration) DESC.
+        /// </summary>
+        internal static string QueryMostCollectivelyExpensiveQueries {
+            get {
+                return ResourceManager.GetString("QueryMostCollectivelyExpensiveQueries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to -- Returns a ranking of all queries and commands completed within the trace by the number of other queries and commands that overlap the original query or command in question.
+        ///-- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.
+        ///
+        ///select top 100 b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassName, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string QueryMostImpactfulQueriesCommands {
+            get {
+                return ResourceManager.GetString("QueryMostImpactfulQueriesCommands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to -- These sessions were active when the trace started and never showed any begin or end events.
+        ///-- This can indicate the sessions were already active and remained active without ever completing.
+        ///-- If heavy load isn&apos;t otherwise detectable in a trace, check with users of possible runaway sessions.
+        ///
+        ///select &apos;Existing Session&apos; as EventClassName, StartTime, Duration as [Session Duration at TraceStart], ConnectionID, NTUserName, NTDomainName, DatabaseName, SPID, TextData as [Session Roles], ClientProcessID, Ap [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string QueryPossibleRunawaySessions {
+            get {
+                return ResourceManager.GetString("QueryPossibleRunawaySessions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT a.[Time Captured in Trace], b.RowNumber StartRow, b.EventClassName, b.EventClass, b.StartTime, b.DatabaseName, b.TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ClientProcessID, b.ApplicationName, b.EventSubclassName, b.EventSubclass, SPID, RequestParameters, RequestProperties
+        ///FROM
+        ///(
+        ///	SELECT MAX(RowNumber) RowNumber,
+        ///	DATEDIFF(&quot;ms&quot;, MAX(StartTime),
+        ///		(
+        ///			SELECT MAX(CurrentTime)
+        ///			FROM [Table]
+        ///		)
+        ///	)[Time Captured in Trace]
+        ///	FROM [Table_v] a
+        ///	WHERE EventClass IN(9, 10, 15, 16) A [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string QueryQueriesCommandsNotCompleted {
+            get {
+                return ResourceManager.GetString("QueryQueriesCommandsNotCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT TextData, sys.fn_varbintohexstr(CONVERT(VARBINARY(8), Error)) [Error Code], DatabaseName, EventClass, EventClassName, NTUserName, NTDomainName, a.ConnectionID, ClientProcessID, SPID, ApplicationName, a.RowNumber
+        ///FROM [Table_v] a,
+        ///	(
+        ///		SELECT RowNumber, ConnectionID, StartTime
+        ///		FROM [Table]
+        ///		WHERE EventClass = 17
+        ///	) b
+        ///WHERE EventClass in (9, 10, 15, 16, 17) AND
+        ///	a.ConnectionID = b.ConnectionID AND
+        ///	a.StartTime &gt;= b.StartTime AND
+        ///	a.RowNumber &lt;= b.RowNumber.
+        /// </summary>
+        internal static string QueryQueriesCommandsWithErrors {
+            get {
+                return ResourceManager.GetString("QueryQueriesCommandsWithErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] ResourcesZip {

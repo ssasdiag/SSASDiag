@@ -676,7 +676,7 @@
             this.udRollover.ThousandsSeparator = true;
             this.udRollover.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
             this.udRollover.Value = new decimal(new int[] {
-            128,
+            64,
             0,
             0,
             0});
@@ -922,7 +922,7 @@
             this.dgdProfilerAnalyses.AllowUserToResizeRows = false;
             dataGridViewCellStyle1.BackColor = System.Drawing.Color.AliceBlue;
             this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
-            this.dgdProfilerAnalyses.BackgroundColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.dgdProfilerAnalyses.BackgroundColor = System.Drawing.SystemColors.ControlDark;
             this.dgdProfilerAnalyses.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdProfilerAnalyses.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dgdProfilerAnalyses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;

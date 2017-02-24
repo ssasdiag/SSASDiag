@@ -93,7 +93,7 @@ namespace SSASDiag
                     Server srv = new Server();
                     ComboBoxServiceDetailsItem SelItem = cbInstances.Invoke(new Func<ComboBoxServiceDetailsItem>(() => { return (cbInstances.SelectedItem as ComboBoxServiceDetailsItem); })) as ComboBoxServiceDetailsItem;
                     System.Diagnostics.Trace.WriteLine("Attempting to connect to AS instance for initial details with connection string:\r\n" + "Data source=" + Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text));
-                    srv.Connect("Data source=" + Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text) + ";", true);
+                    srv.Connect("Data source=" + Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
                     System.Diagnostics.Trace.WriteLine("Connected to server.");
                     lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
                     m_instanceType = srv.ServerMode.ToString();
@@ -135,6 +135,7 @@ namespace SSASDiag
                         if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
 
                         string ConfigPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + s.ServiceName, false).GetValue("ImagePath") as string;
+                        System.Diagnostics.Trace.WriteLine("Found AS instance: " + ConfigPath);
                         ConfigPath = ConfigPath.Substring(ConfigPath.IndexOf("-s \"") + "-s \"".Length).TrimEnd('\"');
                         if (s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "").ToUpper() == "MSSQLSERVER")
                             LocalInstances.Insert(0, new ComboBoxServiceDetailsItem() { Text = "Default instance (MSSQLServer)", ConfigPath = ConfigPath, ServiceAccount = sSvcUser });

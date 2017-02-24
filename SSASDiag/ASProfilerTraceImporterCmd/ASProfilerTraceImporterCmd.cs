@@ -134,17 +134,18 @@ namespace ASProfilerTraceImporterCmd
                 for (int i = 0; i <= CurFile; i++)
                 {
                     workers[i].Join();
-                    SetText("Merging file " + (i + 1).ToString() + "...");
+                    if (i == 1)
+                        SetText("Merging file 1...");
                     if (i > 0)
                     {
                         SqlCommandInfiniteConstructor("delete from [##" + Table + "_" + i + "] where eventclass = 65528", conn2).ExecuteNonQuery();
                         SqlCommandInfiniteConstructor("insert into [" + Table + "] (" + cols + ") select " + cols + " from [##" + Table + "_" + i + "]", conn2).ExecuteNonQuery();
+                        SetText("Merging file " + (i + 1) + "...");
                     }
-
                     tfps[i].tIn.Close();
                     tfps[i].tOut.Close();
                     tfps[i].tIn = null;
-                    tfps[i].tOut = null;
+                    tfps[i].tOut = null;                    
                 }
 
                 SetText("Building index and adding views...");
@@ -172,7 +173,7 @@ namespace ASProfilerTraceImporterCmd
                     SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_QueryStats') drop view [" + Table + "_QueryStats];", conn2).ExecuteNonQuery();
                     if (SqlCommandInfiniteConstructor("select count(*) from [" + Table + "] where eventclass = 11", conn2).ExecuteScalar() as int? > 0)
                     {
-                        SqlCommandInfiniteConstructor("create view [" + Table + "_QueryStats] as select e.QueryDuration, e.StorageEngineTime, e.QueryDuration - e.StorageEngineTime FormulaEngineTime, iif(e.QueryDuration > 0, cast(((1.0 * e.StorageEngineTime) / e.QueryDuration) * 100 as decimal(18,2)), 0) SEPct, s.RowNumber StartRow, e.EndRow, s.StartTime, e.EndTime, s.ConnectionID, s.DatabaseName, convert(nvarchar(max), s.Textdata) TextData, s.RequestParameters, s.RequestProperties, s.SPID, s.NTUserName, s.NTDomainName from [" + Table + "] s, (select max(duration) StorageEngineTime, startrow, endrow, d.EndTime, QueryDuration from (select c.Duration QueryDuration, c.StartRow, c.EndRow, d.RowNumber, d.EventClass, d.EventSubClass, d.TextData, d.ConnectionID, d.DatabaseName, d.StartTime, d.CurrentTime, c.EndTime, d.Duration from [" + Table + "] d, (select b.EndRow, b.ConnectionID, b.Duration, a.RowNumber as StartRow, b.EndTime from [" + Table + "] a, (select RowNumber EndRow, connectionid, textdata, starttime, currenttime endtime, duration from [" + Table + "] where eventclass = 10) b where a.eventclass = 9 and a.connectionid = b.connectionid and a.currenttime = b.starttime and convert(nvarchar(max), a.textdata) = convert(nvarchar(max), b.textdata)) c where d.ConnectionID = c.ConnectionID and d.RowNumber >= c.StartRow and d.RowNumber <= c.EndRow) d where eventclass = 11 group by startrow, endrow, connectionid, endtime, QueryDuration) e where s.rownumber = e.StartRow", conn2).ExecuteNonQuery();
+                        SqlCommandInfiniteConstructor("create view [" + Table + "_QueryStats] as select e.StartRow, e.EndRow, e.QueryDuration, e.StorageEngineTime, e.QueryDuration - e.StorageEngineTime FormulaEngineTime, iif(e.QueryDuration > 0, cast(((1.0 * e.StorageEngineTime) / e.QueryDuration) * 100 as decimal(18,2)), 0) SEPct, s.RowNumber StartRow, e.EndRow, s.StartTime, e.EndTime, s.ConnectionID, s.DatabaseName, convert(nvarchar(max), s.Textdata) TextData, s.RequestParameters, s.RequestProperties, s.SPID, s.NTUserName, s.NTDomainName from [" + Table + "] s, (select max(duration) StorageEngineTime, startrow, endrow, d.EndTime, QueryDuration from (select c.Duration QueryDuration, c.StartRow, c.EndRow, d.RowNumber, d.EventClass, d.EventSubClass, d.TextData, d.ConnectionID, d.DatabaseName, d.StartTime, d.CurrentTime, c.EndTime, d.Duration from [" + Table + "] d, (select b.EndRow, b.ConnectionID, b.Duration, a.RowNumber as StartRow, b.EndTime from [" + Table + "] a, (select RowNumber EndRow, connectionid, textdata, starttime, currenttime endtime, duration from [" + Table + "] where eventclass = 10) b where a.eventclass = 9 and a.connectionid = b.connectionid and a.currenttime = b.starttime and convert(nvarchar(max), a.textdata) = convert(nvarchar(max), b.textdata)) c where d.ConnectionID = c.ConnectionID and d.RowNumber >= c.StartRow and d.RowNumber <= c.EndRow) d where eventclass = 11 group by startrow, endrow, connectionid, endtime, QueryDuration) e where s.rownumber = e.StartRow", conn2).ExecuteNonQuery();
                         bStatsViewCreated = true;
                     }
                 }
