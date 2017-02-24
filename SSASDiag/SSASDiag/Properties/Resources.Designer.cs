@@ -382,7 +382,7 @@ namespace SSASDiag.Properties {
         ///   Looks up a localized string similar to -- Returns a ranking of all queries and commands completed within the trace by the number of other queries and commands that overlap the original query or command in question.
         ///-- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.
         ///
-        ///select top 100 b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassName, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, [rest of string was truncated]&quot;;.
+        ///select b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassName, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientP [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryMostImpactfulQueriesCommands {
             get {

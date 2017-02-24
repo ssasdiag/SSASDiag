@@ -767,7 +767,7 @@ ORDER BY SUM(Duration) DESC</value>
     <value>-- Returns a ranking of all queries and commands completed within the trace by the number of other queries and commands that overlap the original query or command in question.
 -- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.
 
-select top 100 b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassName, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientProcessID, ApplicationName from [Table_v] a,
+select b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassName, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientProcessID, ApplicationName from [Table_v] a,
 (
 	select count(*)[Overlapping Query Count], OriginalQueryConnection, OriginalQueryEndRow from
 	(
@@ -784,13 +784,53 @@ select top 100 b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassN
 				or(a.CurrentTime &lt;= b.CurrentTime and a.CurrentTime &gt;= b.StartTime)
 				or(a.StartTime &lt;= b.StartTime and a.CurrentTime &gt;= b.CurrentTime)
 			)
-			and a.ConnectionID&lt;&gt; b.ConnectionID and a.EventClass in (10, 16)
+			and a.ConnectionID&lt;&gt; b.ConnectionID and a.EventClass in (9, 10, 15, 16)
 		)
 	) OverlappingQueries
-	group by OriginalQueryConnection, OriginalQueryEndRow
+	group by OriginalQueryConnection, OriginalQueryEndRow 
 ) b
 where a.RowNumber = b.OriginalQueryEndRow
-order by[Overlapping Query Count] desc</value>
+union
+select b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassName, StartTime, null EndTime, 
+	DATEDIFF("ms", a.StartTime, (SELECT MAX(CurrentTime) FROM [Table])) [Duration],
+	CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientProcessID, ApplicationName from [Table_v] a,
+	(
+		select count(*)[Overlapping Query Count], OriginalQueryConnection, OriginalQueryEndRow from
+		(
+			select a.StartTime, a.CurrentTime EndTime, a.ConnectionID,
+			b.RowNumber OriginalQueryEndRow, b.StartTime OriginalQueryStart, b.CurrentTime OriginalQueryEnd, b.ConnectionID OriginalQueryConnection
+			from [Table] a,
+			(
+				SELECT b.RowNumber, b.ConnectionID, b.StartTime,
+				null CurrentTime
+				FROM
+				(
+					SELECT MAX(RowNumber) RowNumber,
+					DATEDIFF("ms", MAX(StartTime),
+						(
+							SELECT MAX(CurrentTime)
+							FROM [Table]
+						)
+					)[Time Captured in Trace]
+					FROM [Table_v] a
+					WHERE EventClass IN(9, 10, 15, 16) AND NOT StartTime IS NULL
+					GROUP BY a.StartTime, ConnectionID, TextData
+					HAVING COUNT(*) = 1
+				) a,
+				[Table_v] b
+				WHERE b.RowNumber = a.RowNumber
+				AND b.EventClass NOT IN (10, 16)
+			) b
+			where
+			(
+				a.StartTime &gt;= b.StartTime
+				and a.ConnectionID&lt;&gt; b.ConnectionID and a.EventClass in (9, 10, 15, 16)
+			)
+		) OverlappingQueries
+		group by OriginalQueryConnection, OriginalQueryEndRow 
+	) b
+where a.RowNumber = b.OriginalQueryEndRow
+order by [Overlapping Query Count] DESC</value>
   </data>
   <data name="QueryPossibleRunawaySessions" xml:space="preserve">
     <value>-- These sessions were active when the trace started and never showed any begin or end events.

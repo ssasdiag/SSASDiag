@@ -1,4 +1,6 @@
-﻿using Microsoft.AnalysisServices;
+﻿using System.Resources;
+using System.Collections;
+using Microsoft.AnalysisServices;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -80,10 +82,14 @@ namespace SSASDiag
 
             ProfilerTraceAnalysisQueries = InitializeProfilerTraceAnalysisQueries();
             cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries;
-            cmbProfilerAnalyses.DisplayMember = "Key";
+            cmbProfilerAnalyses.DisplayMember = "Name";
 
             txtSaveLocation.Text = Environment.CurrentDirectory;
+
+            AnalysisMessagePumpTimer.Tick += AnalysisMessagePumpTimer_Tick;
+            AnalysisQueryExecutionPumpTimer.Tick += AnalysisQueryExecutionPumpTimer_Tick;
         }
+
         private void SetupDebugTrace()
         {
             System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\SSASDiagDebugTrace_" + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" + ".log"));
@@ -153,6 +159,8 @@ namespace SSASDiag
             btnImportProfilerTrace.Left = this.Width / 2 - btnImportProfilerTrace.Width / 2;
             splitProfilerAnalysis.Height = Height - 250;
             txtProfilerAnalysisQuery.Width = Width - 254;
+            txtProfilerAnalysisDescription.Height = Height - 475;
+            lblProfilerAnalysisStatus.Top = Height - 168; lblProfilerAnalysisStatus.Left = Width - lblProfilerAnalysisStatus.Width - 41;
             if (tcAnalysis.TabPages.ContainsKey("Network Trace") || HiddenTabPages.Where(t => t.Name == "Network Trace").Count() > 0)
             {
                 Button btnAnalyzeNetworkTrace = tcAnalysis.TabPages.ContainsKey("Network Trace") ? 

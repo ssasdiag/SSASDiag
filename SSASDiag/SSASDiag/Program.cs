@@ -35,7 +35,7 @@ namespace SSASDiag
 
                 // Extract all embedded file type (byte[]) resource assemblies and copy self into temp location
                 ResourceManager rm = Properties.Resources.ResourceManager;
-                ResourceSet rs = rm.GetResourceSet(new CultureInfo("en-US"), true, true);
+                ResourceSet rs = rm.GetResourceSet(System.Globalization.CultureInfo.CurrentCulture, true, true);
                 IDictionaryEnumerator de = rs.GetEnumerator();
                 Directory.CreateDirectory(m_strPrivateTempBinPath);
                 while (de.MoveNext() == true)

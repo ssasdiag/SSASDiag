@@ -1,23 +1,17 @@
-﻿using Microsoft.AnalysisServices;
-using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Management;
-using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Threading;
-using System.IO;
 using System.Windows.Forms;
-using System.Security;
-using System.Security.AccessControl;
-using System.Security.Principal;
-using System.Data.SqlClient;
-using System.Configuration;
 
 namespace SSASDiag
 {
@@ -27,6 +21,8 @@ namespace SSASDiag
 
         #region AnalysisLocals
         System.Windows.Forms.Timer AnalysisMessagePumpTimer = new System.Windows.Forms.Timer();
+        System.Windows.Forms.Timer AnalysisQueryExecutionPumpTimer = new System.Windows.Forms.Timer();
+        SqlCommand ProfilerAnalysisQueryCmd;
         bool bProfilerEventClassSublcassViewPresent = false, bProfilerQueryStatsPresent = false;
         #endregion AnalysisLocals
 
@@ -98,7 +94,6 @@ namespace SSASDiag
                 PopulateAnalysisTabs();
             }
             AnalysisMessagePumpTimer.Interval = 1000;
-            AnalysisMessagePumpTimer.Tick += AnalysisMessagePumpTimer_Tick;
         }
         private void AnalysisMessagePumpTimer_Tick(object sender, EventArgs e)
         {
@@ -329,16 +324,18 @@ namespace SSASDiag
         }
         class ProfilerTraceQuery
         {
-            public ProfilerTraceQuery(string key, string value, ProfilerQueryTypes queryType)
-            { Key = key; Value = value; QueryType = queryType; }
+            public ProfilerTraceQuery(string name, string query, string desc, ProfilerQueryTypes queryType)
+            { Name = name; Query = query; QueryType = queryType; Description = desc; }
             public ProfilerTraceQuery(ProfilerTraceQuery p, ProfilerQueryTypes t)
             {
-                Key = p.Key;
-                Value = p.Value;
+                Name = p.Name;
+                Query = p.Query;
+                Description = p.Description;
                 QueryType = t;
             }
-            public string Key { get; set; }
-            public string Value { get; set; }
+            public string Name { get; set; }
+            public string Query { get; set; }
+            public string Description { get; set; } 
             public ProfilerQueryTypes QueryType { get; set; }
         }
         private string ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(string qry)
@@ -348,89 +345,126 @@ namespace SSASDiag
         private List<ProfilerTraceQuery> InitializeProfilerTraceAnalysisQueries()
         {
             List<ProfilerTraceQuery> q = new List<ProfilerTraceQuery>();
-            q.Add(new ProfilerTraceQuery("", "", ProfilerQueryTypes.BaseQuery));
+            q.Add(new ProfilerTraceQuery("", "", "", ProfilerQueryTypes.BaseQuery));
 
             // Basic details
             q.Add(new ProfilerTraceQuery("Basic trace summary",
-                                         Properties.Resources.QueryBasicTraceSummary, ProfilerQueryTypes.BaseQuery));
+                                         Properties.Resources.QueryBasicTraceSummary, 
+                                         "The basic trace summary gives a very high level overview of the contents of the trace.",
+                                         ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
 
             // Query FE/SE Stats
             q.Add(new ProfilerTraceQuery("Formula/Storage engine statistics",
-                                         Properties.Resources.QueryFESEStats, ProfilerQueryTypes.QueriesWithQueryStats));
+                                         Properties.Resources.QueryFESEStats, 
+                                         "Statistics calculated showing percentage of time spent in formula engine (calculations) vs. storage engine (IO) if Query Subcube events available.",
+                                         ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.AllQueries));
 
             // Longest running queries
             q.Add(new ProfilerTraceQuery("Longest running queries captured",
-                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryLongestRunningQueries), ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryLongestRunningQueries),
+                                         "Reports the longest running queries in the trace.  Includes calculated durations for queries started but not completed in the trace, up to the point of capture stop.",
+                                         ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Longest running queries captured",
-                                         Properties.Resources.QueryLongestRunningQueries, ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryLongestRunningQueries,
+                                         "Reports the longest running queries in the trace.  Includes calculated durations for queries started but not completed in the trace, up to the point of capture stop.",
+                                         ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
 
             // Longest running queries
             q.Add(new ProfilerTraceQuery("Longest running commands captured",
-                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryLongestRunningCommands), ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryLongestRunningCommands),
+                                         "Reports the longest running commands in the trace.  Includes calculated durations for commands started but not completed in the trace, up to the point of capture stop.",
+                                         ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Longest running commands captured",
-                                         Properties.Resources.QueryLongestRunningCommands, ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryLongestRunningCommands,
+                                         "Reports the longest running commands in the trace.  Includes calculated durations for commands started but not completed in the trace, up to the point of capture stop.",
+                                         ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
 
             // Most collectively expensive events
             q.Add(new ProfilerTraceQuery("Most collectively expensive events",
-                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostCollectivelyExpensiveEvents), ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostCollectivelyExpensiveEvents),
+                                         "Summarizes identical events' durations to show the most cumulatively expensive type of activity in the trace.",
+                                         ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Most collectively expensive events",
-                                         Properties.Resources.QueryMostCollectivelyExpensiveEvents, ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryMostCollectivelyExpensiveEvents,
+                                         "Summarizes identical events' durations to show the most cumulatively expensive type of activity in the trace.",
+                                         ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Most collectively expensive queries
             q.Add(new ProfilerTraceQuery("Most collectively expensive queries",
-                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostCollectivelyExpensiveQueries), ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostCollectivelyExpensiveQueries),
+                                         "Summarizes identical queries to show the most cummulatively expensive queries in the trace.  Sometimes fast but frequently run queries may still be the culprit in a server encountering degradation.",
+                                         ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Most collectively expensive queries",
-                                         Properties.Resources.QueryMostCollectivelyExpensiveQueries, ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryMostCollectivelyExpensiveQueries,
+                                         "Summarizes identical queries to show the most cummulatively expensive queries in the trace.  Sometimes fast but frequently run queries may still be the culprit in a server encountering degradation.",
+                                         ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Most collectively expensive commands
             q.Add(new ProfilerTraceQuery("Most collectively expensive commands",
-                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostCollectivelyExpensiveCommands), ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostCollectivelyExpensiveCommands),
+                                         "Summarizes identical queries to show the most cummulatively expensive commands in the trace.  Sometimes fast but frequently run jobs may still be the culprit in a server encountering degradation.",
+                                         ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Most collectively expensive commands",
-                                         Properties.Resources.QueryMostCollectivelyExpensiveCommands, ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryMostCollectivelyExpensiveCommands,
+                                         "Summarizes identical queries to show the most cummulatively expensive commands in the trace.  Sometimes fast but frequently run jobs may still be the culprit in a server encountering degradation.",
+                                         ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Errors
             q.Add(new ProfilerTraceQuery("Queries/commands with errors",
-                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryQueriesCommandsWithErrors), ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryQueriesCommandsWithErrors),
+                                         "Reports queries and commands with errors, and related error rows.",
+                                         ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Queries/commands with errors",
-                                         Properties.Resources.QueryQueriesCommandsWithErrors, ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryQueriesCommandsWithErrors,
+                                         "Reports queries and commands with errors, and related error rows.",
+                                         ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Most impactful queries/commands
             q.Add(new ProfilerTraceQuery("Most impactful queries/commands",
-                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostImpactfulQueriesCommands), ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryMostImpactfulQueriesCommands),
+                                         "Calculates the \"most impactful\" queries and commands based on the number of other queries and commands that overlap.  Includes queries and commands that start but do not complete within the trace, or start before the trace but complete during its capture.",
+                                         ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Most impactful queries/commands",
-                                         Properties.Resources.QueryMostImpactfulQueriesCommands, ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryMostImpactfulQueriesCommands,
+                                         "Calculates the \"most impactful\" queries and commands based on the number of other queries and commands that overlap.  Includes queries and commands that start but do not complete within the trace, or start before the trace but complete during its capture.",
+                                         ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Queries/Commands not completed during trace
             q.Add(new ProfilerTraceQuery("Queries/commands not completed",
-                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryQueriesCommandsNotCompleted), ProfilerQueryTypes.BaseQuery));
+                                         ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.QueryQueriesCommandsNotCompleted),
+                                         "Explicitly finds queries and commands started but not completed withing the trace.",
+                                         ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithQueryStats));
             q.Add(new ProfilerTraceQuery("Queries/commands not completed",
-                                         Properties.Resources.QueryQueriesCommandsNotCompleted, ProfilerQueryTypes.AllQueries));
+                                         Properties.Resources.QueryQueriesCommandsNotCompleted,
+                                         "Explicitly finds queries and commands started but not completed withing the trace.",
+                                         ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
 
             // Possible runaway sessions
             q.Add(new ProfilerTraceQuery("Possible runaway sessions",
                                          Properties.Resources.QueryPossibleRunawaySessions,
+                                         "Lists sessions with no command or query begin or end events found in the trace.  These may be executing runaway requests started before the trace and not completed during the trace either.",
                                          ProfilerQueryTypes.AllQueries));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.BaseQuery));
             q.Add(new ProfilerTraceQuery(q.Last(), ProfilerQueryTypes.QueriesWithEventClassSubclassNames));
@@ -576,18 +610,26 @@ namespace SSASDiag
         }
         private void cmbProfilerAnalyses_SelectedIndexChanged(object sender, EventArgs e)
         {
-            txtProfilerAnalysisQuery.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Key == cmbProfilerAnalyses.Text).Value.Replace("[Table", "[" + AnalysisTraceID);
-            
+            txtProfilerAnalysisQuery.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Query.Replace("[Table", "[" + AnalysisTraceID);
+            txtProfilerAnalysisDescription.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Description;
+
             if (txtProfilerAnalysisQuery.Text != "")
             {
+                Enabled = false;
                 BackgroundWorker bgLoadProfilerAnalysis = new BackgroundWorker();
                 bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
                 bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
-                StatusFloater.lblStatus.Text = "Running analysis query...";
+                StatusFloater.lblStatus.Text = "Running analysis query. (Esc to cancel...)";
                 StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
                 StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
+                StatusFloater.lblTime.Visible = true;
+                StatusFloater.lblTime.Text = "00:00";
+                StatusFloater.EscapePressed = false;
+                AnalysisQueryExecutionPumpTimer.Interval = 1000;
+                AnalysisQueryExecutionPumpTimer.Start();
                 if (!StatusFloater.Visible)
                     StatusFloater.Show(this);
+                
                 this.SuspendLayout();
                 bgLoadProfilerAnalysis.RunWorkerAsync();
             }
@@ -597,27 +639,61 @@ namespace SSASDiag
                 dgdProfilerAnalyses.Refresh();
             }
         }
+        private void AnalysisQueryExecutionPumpTimer_Tick(object sender, EventArgs e)
+        {
+            string curTime = StatusFloater.lblTime.Text;
+            string[] timeparts = StatusFloater.lblTime.Text.Split(':');
+            TimeSpan newTime = (TimeSpan.FromMinutes(Convert.ToDouble(timeparts[0])) + TimeSpan.FromSeconds(Convert.ToDouble(timeparts[1])).Add(TimeSpan.FromSeconds(1)));
+            StatusFloater.lblTime.Text = newTime.ToString("mm\\:ss");
+            if (StatusFloater.EscapePressed)
+                ProfilerAnalysisQueryCmd.Cancel();
+        }
         private void BgLoadProfilerAnalysis_DoWork(object sender, DoWorkEventArgs e)
         {
-            connSqlDb.ChangeDatabase(AnalysisTraceID);
-            SqlCommand cmd = new SqlCommand(txtProfilerAnalysisQuery.Text, connSqlDb);
-            SqlDataReader dr = cmd.ExecuteReader();
-            DataTable dt = new DataTable();
-            dt.Load(dr);
-            dgdProfilerAnalyses.Invoke(new System.Action(() =>
+            try
+            {
+                connSqlDb.ChangeDatabase(AnalysisTraceID);
+                ProfilerAnalysisQueryCmd = new SqlCommand(txtProfilerAnalysisQuery.Text, connSqlDb);
+                ProfilerAnalysisQueryCmd.CommandTimeout = 0;
+                SqlDataReader dr = ProfilerAnalysisQueryCmd.ExecuteReader();
+                DataTable dt = new DataTable();
+                dt.Load(dr);
+                dgdProfilerAnalyses.Invoke(new System.Action(() =>
+                    {
+                        dgdProfilerAnalyses.AutoGenerateColumns = true;
+                        dgdProfilerAnalyses.DataSource = null;
+                        dgdProfilerAnalyses.Columns.Clear();
+                        dgdProfilerAnalyses.DataSource = dt;
+                        dgdProfilerAnalyses.Refresh();
+                        lblProfilerAnalysisStatus.Text = dt.Rows.Count + " row" + (dt.Rows.Count > 1 ? "s" : "") + " returned.";
+                        lblProfilerAnalysisStatus.Left = Width - lblProfilerAnalysisStatus.Width - 41;
+                    }));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                if (ex.Message.Contains("cancelled by user"))
                 {
-                    dgdProfilerAnalyses.AutoGenerateColumns = true;
-                    dgdProfilerAnalyses.DataSource = null;
-                    dgdProfilerAnalyses.Columns.Clear();
-                    dgdProfilerAnalyses.DataSource = dt;
-                    dgdProfilerAnalyses.Refresh();
-                }));
+                    connSqlDb.Close();
+                    connSqlDb.Open();
+                }
+            }
         }
         private void BgLoadProfilerAnalysis_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             Invoke(new System.Action(() =>
                 {
+                    if (StatusFloater.EscapePressed)
+                    {
+                        cmbProfilerAnalyses.SelectedIndex = 0;
+                        lblProfilerAnalysisStatus.Text = "Last query was cancelled.";
+                        lblProfilerAnalysisStatus.Left = Width - lblProfilerAnalysisStatus.Width - 41;
+                    }
+                    Enabled = true;
                     StatusFloater.Visible = false;
+                    StatusFloater.lblTime.Visible = false;
+                    StatusFloater.EscapePressed = false;
+                    AnalysisQueryExecutionPumpTimer.Stop();
                     this.ResumeLayout();
                 }));
         }
@@ -686,7 +762,7 @@ namespace SSASDiag
                                                                                                             bProfilerEventClassSublcassViewPresent ? ProfilerQueryTypes.QueriesWithEventClassSubclassNames :
                                                                                                             bProfilerQueryStatsPresent ? ProfilerQueryTypes.QueriesWithQueryStats :
                                                                                                             ProfilerQueryTypes.BaseQuery)
-                                                                                                 || q.Key == "").ToList();
+                                                                                                 || q.Name == "").ToList();
                         cmbProfilerAnalyses.Refresh();
                     }));
             }

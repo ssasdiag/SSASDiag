@@ -10,6 +10,22 @@ using System.Windows.Forms;
 
 namespace SSASDiag
 {
+    public partial class frmStatusFloater : ShadowedForm
+    {
+        public frmStatusFloater()
+        {
+            InitializeComponent();
+        }
+        public bool EscapePressed { get; set; } = false;
+
+        private void frmStatusFloater_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Escape)
+                EscapePressed = true;
+        }
+    }
+
+
     public class ShadowedForm : Form
     {
         protected override CreateParams CreateParams
@@ -21,14 +37,6 @@ namespace SSASDiag
                 cp.ClassStyle |= CS_DROPSHADOW;
                 return cp;
             }
-        }
-    }
-
-    public partial class frmStatusFloater : ShadowedForm
-    {
-        public frmStatusFloater()
-        {
-            InitializeComponent();
         }
     }
 }
