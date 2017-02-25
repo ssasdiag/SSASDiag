@@ -702,6 +702,8 @@
             // chkRollover
             // 
             this.chkRollover.AutoSize = true;
+            this.chkRollover.Checked = true;
+            this.chkRollover.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkRollover.Location = new System.Drawing.Point(8, 112);
             this.chkRollover.Name = "chkRollover";
             this.chkRollover.Size = new System.Drawing.Size(162, 17);

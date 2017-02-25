@@ -1104,7 +1104,10 @@ namespace SSASDiag
                         (
                             (sender as MenuItem).Text.ToLower().Contains("query statistics") &&
                             dgdProfilerAnalyses.Columns.Contains("EventClass") &&
-                            dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value as int? == 9
+                            (dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value as int? == 9 ||
+                            dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value as int? == 10 ||
+                            dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value as int? == 15 ||
+                            dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value as int? == 16)
                         ) ||
                         !(sender as MenuItem).Text.ToLower().Contains("query statistics")
                     )
