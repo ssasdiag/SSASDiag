@@ -23,6 +23,7 @@ namespace SSASDiag
     public partial class frmSSASDiag : Form
     {
         #region locals
+
         string m_instanceVersion, m_instanceType, m_instanceEdition, m_analysisPath = "";
         CDiagnosticsCollector dc;
         frmStatusFloater StatusFloater = new frmStatusFloater();
@@ -30,15 +31,9 @@ namespace SSASDiag
         List<ComboBoxServiceDetailsItem> LocalInstances = new List<ComboBoxServiceDetailsItem>();
         Image imgPlay = Properties.Resources.play, imgPlayLit = Properties.Resources.play_lit, imgPlayHalfLit = Properties.Resources.play_half_lit,
             imgStop = Properties.Resources.stop_button_th, imgStopLit = Properties.Resources.stop_button_lit, imgStopHalfLit = Properties.Resources.stop_button_half_lit;
-
-        bool bClosing = false, bProfilerTraceDbAttached = false;
-
-        DateTime dtLastScrollTime = DateTime.Now;
-        System.Windows.Forms.Timer tmScrollStart = new System.Windows.Forms.Timer();
-        SqlConnection connSqlDb = new SqlConnection();
-        List<TabPage> HiddenTabPages = new List<TabPage>();
-        List<ProfilerTraceQuery> ProfilerTraceAnalysisQueries;
-        #endregion
+        bool bClosing = false;
+        
+        #endregion locals
 
         public frmSSASDiag()
         {
