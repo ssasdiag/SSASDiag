@@ -385,5 +385,13 @@ namespace SSASDiag
                 }
             }
         }
+        private void Panel2_Resize(object sender, System.EventArgs e)
+        {
+            dgdProfilerAnalyses.Height = splitProfilerAnalysis.Panel2.Height - pnlProfilerAnalysisStatus.Height;
+        }
+        private void Panel1_Resize(object sender, System.EventArgs e)
+        {
+            txtProfilerAnalysisDescription.Height = splitProfilerAnalysis.Panel1.Height - 56;
+        }
     }
 }

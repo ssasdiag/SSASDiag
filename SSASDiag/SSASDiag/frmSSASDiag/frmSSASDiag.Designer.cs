@@ -890,6 +890,7 @@ namespace SSASDiag
             this.splitProfilerAnalysis.Panel1.Controls.Add(this.lblAnalysisQueries);
             this.splitProfilerAnalysis.Panel1.Controls.Add(this.txtProfilerAnalysisQuery);
             this.splitProfilerAnalysis.Panel1MinSize = 40;
+            this.splitProfilerAnalysis.Panel1.Resize += Panel1_Resize;
             // 
             // splitProfilerAnalysis.Panel2
             // 
@@ -898,6 +899,7 @@ namespace SSASDiag
             this.splitProfilerAnalysis.Size = new System.Drawing.Size(579, 292);
             this.splitProfilerAnalysis.SplitterDistance = 103;
             this.splitProfilerAnalysis.TabIndex = 28;
+            this.splitProfilerAnalysis.Panel2.Resize += Panel2_Resize;
             // 
             // cmbProfilerAnalyses
             // 
