@@ -18,6 +18,7 @@ using System.Windows.Forms;
 using System.Data.SqlClient;
 using System.Configuration;
 
+
 namespace SSASDiag
 {
     public partial class frmSSASDiag : Form

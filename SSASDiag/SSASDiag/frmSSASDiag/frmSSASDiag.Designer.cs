@@ -1,4 +1,5 @@
-﻿namespace SSASDiag
+﻿using FastColoredTextBoxNS;
+namespace SSASDiag
 {
     partial class frmSSASDiag
     {
@@ -92,7 +93,7 @@
             this.cmbProfilerAnalyses = new System.Windows.Forms.ComboBox();
             this.txtProfilerAnalysisDescription = new System.Windows.Forms.TextBox();
             this.lblAnalysisQueries = new System.Windows.Forms.Label();
-            this.txtProfilerAnalysisQuery = new System.Windows.Forms.TextBox();
+            this.txtProfilerAnalysisQuery = new FastColoredTextBox();
             this.pnlProfilerAnalysisStatus = new System.Windows.Forms.Panel();
             this.lblProfilerAnalysisStatusCenter = new System.Windows.Forms.Label();
             this.lblProfilerAnalysisStatusLeft = new System.Windows.Forms.Label();
@@ -932,13 +933,21 @@
             // 
             // txtProfilerAnalysisQuery
             // 
+            this.txtProfilerAnalysisQuery.Language = Language.SQL;
+            splitProfilerAnalysis.Panel1.Controls.Add(txtProfilerAnalysisQuery);
             this.txtProfilerAnalysisQuery.Dock = System.Windows.Forms.DockStyle.Right;
-            this.txtProfilerAnalysisQuery.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtProfilerAnalysisQuery.ChangeFontSize(-2);
             this.txtProfilerAnalysisQuery.Location = new System.Drawing.Point(216, 0);
             this.txtProfilerAnalysisQuery.Multiline = true;
             this.txtProfilerAnalysisQuery.Name = "txtProfilerAnalysisQuery";
+            this.txtProfilerAnalysisQuery.AutoIndent = true;
+            this.txtProfilerAnalysisQuery.WordWrapMode = WordWrapMode.WordWrapControlWidth;
+            this.txtProfilerAnalysisQuery.ShowLineNumbers = false;
+            this.txtProfilerAnalysisQuery.WordWrapAutoIndent = true;
+            this.txtProfilerAnalysisQuery.WordWrap = true;
+            this.txtProfilerAnalysisQuery.WordWrapIndent = 3;
             this.txtProfilerAnalysisQuery.ReadOnly = true;
-            this.txtProfilerAnalysisQuery.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtProfilerAnalysisQuery.ShowScrollBars = true;
             this.txtProfilerAnalysisQuery.Size = new System.Drawing.Size(363, 103);
             this.txtProfilerAnalysisQuery.TabIndex = 29;
             // 
@@ -1009,9 +1018,11 @@
             // 
             this.dgdProfilerAnalyses.AllowUserToAddRows = false;
             this.dgdProfilerAnalyses.AllowUserToDeleteRows = false;
+            this.dgdProfilerAnalyses.AllowUserToOrderColumns = true;
             this.dgdProfilerAnalyses.AllowUserToResizeRows = false;
             dataGridViewCellStyle1.BackColor = System.Drawing.Color.AliceBlue;
             this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            this.dgdProfilerAnalyses.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
             this.dgdProfilerAnalyses.BackgroundColor = System.Drawing.SystemColors.ControlDark;
             this.dgdProfilerAnalyses.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdProfilerAnalyses.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
@@ -1190,7 +1201,7 @@
         private System.Windows.Forms.SplitContainer splitProfilerAnalysis;
         private System.Windows.Forms.Label lblAnalysisQueries;
         private System.Windows.Forms.ComboBox cmbProfilerAnalyses;
-        private System.Windows.Forms.TextBox txtProfilerAnalysisQuery;
+        private FastColoredTextBox txtProfilerAnalysisQuery;
         private System.Windows.Forms.DataGridView dgdProfilerAnalyses;
         private System.Windows.Forms.TextBox txtProfilerAnalysisDescription;
         private System.Windows.Forms.Label label4;

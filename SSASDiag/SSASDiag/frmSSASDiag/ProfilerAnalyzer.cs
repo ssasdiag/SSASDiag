@@ -33,6 +33,7 @@ namespace SSASDiag
             {
                 txtProfilerAnalysisQuery.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Query.Replace("[Table", "[" + AnalysisTraceID);
                 txtProfilerAnalysisDescription.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Description;
+                txtProfilerAnalysisQuery.ShowLineNumbers = true;
 
                 if (txtProfilerAnalysisQuery.Text != "")
                 {
@@ -57,6 +58,7 @@ namespace SSASDiag
                 }
                 else
                 {
+                    txtProfilerAnalysisQuery.ShowLineNumbers = false;
                     dgdProfilerAnalyses.DataSource = null;
                     dgdProfilerAnalyses.Refresh();
                 }
@@ -82,7 +84,21 @@ namespace SSASDiag
                     dgdProfilerAnalyses.DataSource = null;
                     dgdProfilerAnalyses.Columns.Clear();
                     dgdProfilerAnalyses.DataSource = dt;
+                    dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    foreach (DataGridViewColumn c in dgdProfilerAnalyses.Columns)
+                        if (c.Width > 300)
+                        {
+                            c.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                            c.Width = 300;
+                        }
+                    if (dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode == DataGridViewAutoSizeColumnMode.None)
+                        dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    if (dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width < 80)
+                        dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
                     dgdProfilerAnalyses.Refresh();
+                    int lastCellFullHeaderWidth = dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width;
+                    dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                    dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width = lastCellFullHeaderWidth;
                     lblProfilerAnalysisStatusRight.Text = dt.Rows.Count + " row" + (dt.Rows.Count > 1 ? "s" : "") + " returned.";
                     Int64 TotalDuration = 0;
                     DateTime minStart = DateTime.MaxValue, maxEnd = DateTime.MinValue;
