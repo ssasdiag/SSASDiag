@@ -942,6 +942,7 @@
             // 
             // pnlProfilerAnalysisStatus
             // 
+            this.pnlProfilerAnalysisStatus.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.pnlProfilerAnalysisStatus.Controls.Add(this.lblProfilerAnalysisStatusCenter);
             this.pnlProfilerAnalysisStatus.Controls.Add(this.lblProfilerAnalysisStatusLeft);
             this.pnlProfilerAnalysisStatus.Controls.Add(this.lblProfilerAnalysisStatusRight);
@@ -956,7 +957,8 @@
             // 
             this.lblProfilerAnalysisStatusCenter.AutoSize = true;
             this.lblProfilerAnalysisStatusCenter.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblProfilerAnalysisStatusCenter.Location = new System.Drawing.Point(279, 2);
+            this.lblProfilerAnalysisStatusCenter.ForeColor = System.Drawing.Color.Green;
+            this.lblProfilerAnalysisStatusCenter.Location = new System.Drawing.Point(279, 0);
             this.lblProfilerAnalysisStatusCenter.Name = "lblProfilerAnalysisStatusCenter";
             this.lblProfilerAnalysisStatusCenter.Size = new System.Drawing.Size(0, 12);
             this.lblProfilerAnalysisStatusCenter.TabIndex = 36;
@@ -967,6 +969,7 @@
             this.lblProfilerAnalysisStatusLeft.AutoSize = true;
             this.lblProfilerAnalysisStatusLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.lblProfilerAnalysisStatusLeft.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblProfilerAnalysisStatusLeft.ForeColor = System.Drawing.Color.Green;
             this.lblProfilerAnalysisStatusLeft.Location = new System.Drawing.Point(0, 0);
             this.lblProfilerAnalysisStatusLeft.Name = "lblProfilerAnalysisStatusLeft";
             this.lblProfilerAnalysisStatusLeft.Size = new System.Drawing.Size(0, 12);
@@ -977,7 +980,8 @@
             this.lblProfilerAnalysisStatusRight.AutoSize = true;
             this.lblProfilerAnalysisStatusRight.Dock = System.Windows.Forms.DockStyle.Right;
             this.lblProfilerAnalysisStatusRight.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblProfilerAnalysisStatusRight.Location = new System.Drawing.Point(579, 0);
+            this.lblProfilerAnalysisStatusRight.ForeColor = System.Drawing.Color.Green;
+            this.lblProfilerAnalysisStatusRight.Location = new System.Drawing.Point(575, 0);
             this.lblProfilerAnalysisStatusRight.Name = "lblProfilerAnalysisStatusRight";
             this.lblProfilerAnalysisStatusRight.Size = new System.Drawing.Size(0, 12);
             this.lblProfilerAnalysisStatusRight.TabIndex = 34;
@@ -990,9 +994,10 @@
             this.chkDettachProfilerAnalysisDBWhenDone.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkDettachProfilerAnalysisDBWhenDone.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.chkDettachProfilerAnalysisDBWhenDone.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkDettachProfilerAnalysisDBWhenDone.Location = new System.Drawing.Point(0, 19);
+            this.chkDettachProfilerAnalysisDBWhenDone.Location = new System.Drawing.Point(0, 15);
             this.chkDettachProfilerAnalysisDBWhenDone.Name = "chkDettachProfilerAnalysisDBWhenDone";
-            this.chkDettachProfilerAnalysisDBWhenDone.Size = new System.Drawing.Size(579, 16);
+            this.chkDettachProfilerAnalysisDBWhenDone.Padding = new System.Windows.Forms.Padding(3, 0, 0, 0);
+            this.chkDettachProfilerAnalysisDBWhenDone.Size = new System.Drawing.Size(575, 16);
             this.chkDettachProfilerAnalysisDBWhenDone.TabIndex = 30;
             this.chkDettachProfilerAnalysisDBWhenDone.Text = "Detach trace database imported for analysis when leaving analysis pane or exiting" +
     " tool";
@@ -1017,7 +1022,7 @@
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle2;
-            this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
             this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 0);
             this.dgdProfilerAnalyses.Margin = new System.Windows.Forms.Padding(0);
             this.dgdProfilerAnalyses.Name = "dgdProfilerAnalyses";
@@ -1028,7 +1033,7 @@
             this.dgdProfilerAnalyses.RowTemplate.Height = 18;
             this.dgdProfilerAnalyses.RowTemplate.ReadOnly = true;
             this.dgdProfilerAnalyses.RowTemplate.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdProfilerAnalyses.Size = new System.Drawing.Size(579, 185);
+            this.dgdProfilerAnalyses.Size = new System.Drawing.Size(579, 152);
             this.dgdProfilerAnalyses.TabIndex = 25;
             this.dgdProfilerAnalyses.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgdProfilerAnalyses_CellMouseClick);
             // 

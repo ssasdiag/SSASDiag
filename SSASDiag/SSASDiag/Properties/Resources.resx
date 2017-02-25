@@ -679,7 +679,7 @@ CREATE DATABASE [&lt;dbname/&gt;]
 	) / 2 AS [Median Command Duration]) h</value>
   </data>
   <data name="QueryFESEStats" xml:space="preserve">
-    <value>SELECT StartRow, EndRow, QueryDuration, StorageEngineTime, QueryDuration - StorageEngineTime FormulaEngineTime, SEPct, 100 - SEPct FEPct, StartRow, EndRow, StartTime, EndTime, ConnectionID, DatabaseName, TextData, RequestParameters, RequestProperties, SPID, NTUserName, NTDomainName
+    <value>SELECT StartRow, EndRow, QueryDuration, StorageEngineTime, QueryDuration - StorageEngineTime FormulaEngineTime, SEPct, 100 - SEPct FEPct, StartRow, EndRow, StartTime, EndTime, ConnectionID, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, SPID, NTUserName, NTDomainName
 FROM [Table_QueryStats]
 ORDER BY QueryDuration</value>
   </data>
@@ -885,5 +885,24 @@ WHERE EventClass in (9, 10, 15, 16, 17) AND
 	a.ConnectionID = b.ConnectionID AND
 	a.StartTime &gt;= b.StartTime AND
 	a.RowNumber &lt;= b.RowNumber</value>
+  </data>
+  <data name="DrillThroughQueryAllRowsForQueryOrCommand" xml:space="preserve">
+    <value>select 
+RowNumber, Duration, EventClass, EventClassName, EventSubClass, EventSubClassName, StartTime, CurrentTime, convert(nvarchar(max), TextData) TextData, 
+c.ConnectionID, DatabaseName, NTUserName, NTDomainName, SessionID, NTCanonicalUserName, SPID, ServerName, ActivityID, RequestID, CPUTime, IntegerData, Error, ClientProcessID, 
+ApplicationName, JobID, SessionType, ObjectID, ObjectType, ObjectName, ObjectPath, ObjectReference,
+convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+from [Table_v] c, 
+(
+select 
+case when b.EventClass % 2 = 1 then a.RowNumber else b.RowNumber end as EndRow, 
+case when b.EventClass % 2 = 1 then b.RowNumber else a.RowNumber end as StartRow, 
+a.ConnectionID from [P2980-AS-01_MSSQLSERVER_sp_trace_as1] a,
+(select ConnectionID, StartTime, RowNumber, EventClass from [P2980-AS-01_MSSQLSERVER_sp_trace_as1] where RowNumber = &lt;RowNumber/&gt;) b
+where a.ConnectionID = b.ConnectionID and a.StartTime = b.StartTime and 
+a.EventClass = 
+case when a.EventClass % 2 = 1 then b.EventClass - 1 else b.EventClass + 1 end
+) d
+where c.ConnectionID = d.ConnectionID and c.RowNumber between d.StartRow and d.EndRow</value>
   </data>
 </root>

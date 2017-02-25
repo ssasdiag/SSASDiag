@@ -24,6 +24,7 @@ namespace ASProfilerTraceImporterCmd
         static bool bCancel = false;
         static public SqlConnectionInfo2 cib = new SqlConnectionInfo2();
         static public List<TraceFileProcessor> tfps = new List<TraceFileProcessor>();
+        static public int FileCount = 0;
 
         static void Main(string[] args)
         {
@@ -85,7 +86,7 @@ namespace ASProfilerTraceImporterCmd
 
         public static void UpdateRowCounts()
         {
-            SetText("Loaded " + String.Format("{0:#,##0}", RowCount) + " rows from " + tfps.Count + " files...");
+            SetText("Loaded " + String.Format("{0:#,##0}", RowCount) + " rows from " + tfps.Count + " file" + (tfps.Count == 1 ? "" : "s in parallel") + "...");
         }
 
         public static int RowCount
@@ -124,6 +125,7 @@ namespace ASProfilerTraceImporterCmd
                 files.Sort((x, y) => ExtractNumberPartFromText(x).CompareTo(ExtractNumberPartFromText(y)));
                 if (TraceFilePath != path + trcbase + files[0])
                     files.RemoveRange(0, files.IndexOf(TraceFilePath.Substring((path + trcbase).Length)));
+                FileCount = files.Count;
 
                 List<Thread> workers = new List<Thread>();
                 int CurFile = -1;
@@ -192,19 +194,23 @@ namespace ASProfilerTraceImporterCmd
                         }
                         SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "EventClassIndex') drop view [" + Table + "EventClassIndex];", conn2).ExecuteNonQuery();
                         SqlCommandInfiniteConstructor("create index [" + Table + "EventClassIndex] on [" + Table + "] (EventClass)", conn2).ExecuteNonQuery();
+                        string strQry = "";
                         try
                         {
                             SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_QueryStats') drop view [" + Table + "_QueryStats];", conn2).ExecuteNonQuery();
-                            if (SqlCommandInfiniteConstructor("select count(*) from [" + Table + "] where eventclass = 11", conn2).ExecuteScalar() as int? > 0)
+                            int? QuerySubcubeEvents = SqlCommandInfiniteConstructor("select count(*) from [" + Table + "] where eventclass = 11", conn2).ExecuteScalar() as int?;
+                            if (QuerySubcubeEvents > 0)
                             {
-                                SqlCommandInfiniteConstructor("create view [" + Table + "_QueryStats] as select e.StartRow, e.EndRow, e.QueryDuration, e.StorageEngineTime, e.QueryDuration - e.StorageEngineTime FormulaEngineTime, iif(e.QueryDuration > 0, cast(((1.0 * e.StorageEngineTime) / e.QueryDuration) * 100 as decimal(18,2)), 0) SEPct, s.RowNumber StartRow, e.EndRow, s.StartTime, e.EndTime, s.ConnectionID, s.DatabaseName, convert(nvarchar(max), s.Textdata) TextData, s.RequestParameters, s.RequestProperties, s.SPID, s.NTUserName, s.NTDomainName from [" + Table + "] s, (select max(duration) StorageEngineTime, startrow, endrow, d.EndTime, QueryDuration from (select c.Duration QueryDuration, c.StartRow, c.EndRow, d.RowNumber, d.EventClass, d.EventSubClass, d.TextData, d.ConnectionID, d.DatabaseName, d.StartTime, d.CurrentTime, c.EndTime, d.Duration from [" + Table + "] d, (select b.EndRow, b.ConnectionID, b.Duration, a.RowNumber as StartRow, b.EndTime from [" + Table + "] a, (select RowNumber EndRow, connectionid, textdata, starttime, currenttime endtime, duration from [" + Table + "] where eventclass = 10) b where a.eventclass = 9 and a.connectionid = b.connectionid and a.currenttime = b.starttime and convert(nvarchar(max), a.textdata) = convert(nvarchar(max), b.textdata)) c where d.ConnectionID = c.ConnectionID and d.RowNumber >= c.StartRow and d.RowNumber <= c.EndRow) d where eventclass = 11 group by startrow, endrow, connectionid, endtime, QueryDuration) e where s.rownumber = e.StartRow", conn2).ExecuteNonQuery();
+                                strQry = "create view [" + Table + "_QueryStats] as select e.QueryDuration, e.StorageEngineTime, e.QueryDuration - e.StorageEngineTime FormulaEngineTime, iif(e.QueryDuration > 0, cast(((1.0 * e.StorageEngineTime) / e.QueryDuration) * 100 as decimal(18,2)), 0) SEPct, s.RowNumber StartRow, e.EndRow, s.StartTime, e.EndTime, s.ConnectionID, s.DatabaseName, convert(nvarchar(max), s.Textdata) TextData, s.RequestParameters, s.RequestProperties, s.SPID, s.NTUserName, s.NTDomainName from [" + Table + "] s, (select max(duration) StorageEngineTime, startrow, endrow, d.EndTime, QueryDuration from (select c.Duration QueryDuration, c.StartRow, c.EndRow, d.RowNumber, d.EventClass, d.EventSubClass, d.TextData, d.ConnectionID, d.DatabaseName, d.StartTime, d.CurrentTime, c.EndTime, d.Duration from [" + Table + "] d, (select b.EndRow, b.ConnectionID, b.Duration, a.RowNumber as StartRow, b.EndTime from [" + Table + "] a, (select RowNumber EndRow, connectionid, textdata, starttime, currenttime endtime, duration from [" + Table + "] where eventclass = 10) b where a.eventclass = 9 and a.connectionid = b.connectionid and a.currenttime = b.starttime and convert(nvarchar(max), a.textdata) = convert(nvarchar(max), b.textdata)) c where d.ConnectionID = c.ConnectionID and d.RowNumber >= c.StartRow and d.RowNumber <= c.EndRow) d where eventclass = 11 group by startrow, endrow, connectionid, endtime, QueryDuration) e where s.rownumber = e.StartRow";
+                                SqlCommandInfiniteConstructor(strQry, conn2).ExecuteNonQuery();
                                 bStatsViewCreated = true;
                             }
+                            System.Diagnostics.Trace.WriteLine("QuerySubcube count: " + QuerySubcubeEvents);
                         }
                         catch (Exception ex)
                         {
                             SetText("Exception creating query stats view:\r\n" + ex.Message);
-                            Trace.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
+                            SetText("Query was: " + strQry);
                         }
                         SetText("Merged " + (CurFile + 1).ToString() + " files.");
                         if (!bStatsViewCreated || !bEventViewCreated)
@@ -267,7 +273,7 @@ namespace ASProfilerTraceImporterCmd
                         try
                         {
                             while (tOut.Write() && !bCancel)
-                                if (RowCount++ % 384 == 0) global::ASProfilerTraceImporterCmd.ASProfilerTraceImporterCmd.UpdateRowCounts();
+                                if (RowCount++ % (384 * ((Environment.ProcessorCount > ASProfilerTraceImporterCmd.FileCount / 2) ? ASProfilerTraceImporterCmd.FileCount : Environment.ProcessorCount)) == 0) global::ASProfilerTraceImporterCmd.ASProfilerTraceImporterCmd.UpdateRowCounts();
                         }
                         catch (SqlTraceException ste)
                         {
