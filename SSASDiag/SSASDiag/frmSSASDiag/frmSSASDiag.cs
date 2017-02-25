@@ -135,7 +135,7 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                LogException(ex);
                 // This should never happen but might if we are summarily killing midway through something.  Don't get hung up just close.
             }
             System.Diagnostics.Trace.WriteLine("SSASDiag form closed, Cancel set to: " + e.Cancel);
@@ -151,16 +151,17 @@ namespace SSASDiag
         }
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
-            lkAbout.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = this.Height - 59;
-            txtStatus.Width = this.Width - 30;
-            txtStatus.Height = this.Height - 315;
-            tcCollectionAnalysisTabs.Height = this.Height - 59;
-            tcAnalysis.Height = this.Height - 119;
-            btnImportProfilerTrace.Left = this.Width / 2 - btnImportProfilerTrace.Width / 2;
-            splitProfilerAnalysis.Height = Height - 250;
+            lkAbout.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = Height - 59;
+            txtStatus.Width = Width - 30;
+            txtStatus.Height = Height - 315;
+            tcCollectionAnalysisTabs.Height = Height - 59;
+            tcAnalysis.Height = Height - 119;
+            btnImportProfilerTrace.Left = Width / 2 - btnImportProfilerTrace.Width / 2;
+            splitProfilerAnalysis.Height = Height - 232;
             txtProfilerAnalysisQuery.Width = Width - 254;
             txtProfilerAnalysisDescription.Height = Height - 475;
-            lblProfilerAnalysisStatus.Top = Height - 168; lblProfilerAnalysisStatus.Left = Width - lblProfilerAnalysisStatus.Width - 41;
+            lblProfilerAnalysisStatusCenter.Left = Width / 2 - lblProfilerAnalysisStatusCenter.Width / 2;
+            chkDettachProfilerAnalysisDBWhenDone.Top = lblProfilerAnalysisStatusRight.Top + 22;
             if (tcAnalysis.TabPages.ContainsKey("Network Trace") || HiddenTabPages.Where(t => t.Name == "Network Trace").Count() > 0)
             {
                 Button btnAnalyzeNetworkTrace = tcAnalysis.TabPages.ContainsKey("Network Trace") ? 
@@ -168,6 +169,10 @@ namespace SSASDiag
                     HiddenTabPages.First(t => t.Name == "Network Trace").Controls["btnAnalyzeNetworkTrace"] as Button;
                 btnAnalyzeNetworkTrace.Left = this.Width / 2 - btnAnalyzeNetworkTrace.Width / 2;
             }
+        }
+        public static void LogException(Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
         }
         #endregion frmSSASDiagEvents
 

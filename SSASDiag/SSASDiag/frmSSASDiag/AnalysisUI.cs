@@ -20,9 +20,12 @@ namespace SSASDiag
         #region AnalysisUI
 
         #region AnalysisLocals
+        bool bCancelProfilerImport = false;
         System.Windows.Forms.Timer AnalysisMessagePumpTimer = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer AnalysisQueryExecutionPumpTimer = new System.Windows.Forms.Timer();
+        Process ASProfilerTraceImporterProcess;
         SqlCommand ProfilerAnalysisQueryCmd;
+        DateTime EndOfTrace = DateTime.MinValue;
         bool bProfilerEventClassSublcassViewPresent = false, bProfilerQueryStatsPresent = false;
         #endregion AnalysisLocals
 
@@ -30,13 +33,9 @@ namespace SSASDiag
         {
             if (tcCollectionAnalysisTabs.SelectedIndex == 1 && tbAnalysis.Enabled)
             {
-                if (dc != null)
+                if (dc != null && !bProfilerTraceDbAttached)
                 {
                     AnalysisTraceID = dc.TraceID;
-                    dgdProfilerAnalyses.DataSource = null;
-                    dgdProfilerAnalyses.Columns.Clear();
-                    dgdProfilerAnalyses.Refresh();
-                    cmbProfilerAnalyses.Visible = txtProfilerAnalysisQuery.Visible = false;
                     if (Directory.Exists(Environment.CurrentDirectory + "\\" + dc.TraceID))
                     {
                         m_analysisPath = txtFolderZipForAnalysis.Text = Environment.CurrentDirectory + "\\" + dc.TraceID;
@@ -51,49 +50,128 @@ namespace SSASDiag
                         }
                     }
                 }
-                if (tcAnalysis.SelectedTab != null && tcAnalysis.SelectedTab.Name == "tbProfilerTraces")
-                {
-                    tcAnalysis_SelectedIndexChanged(sender, e);
-                    dgdProfilerAnalyses.DataSource = null;
-                    dgdProfilerAnalyses.Columns.Clear();
-                    dgdProfilerAnalyses.Refresh();
-                    cmbProfilerAnalyses.Visible = txtProfilerAnalysisQuery.Visible = false;
-                }
-            }
-            if (tcCollectionAnalysisTabs.SelectedIndex == 0)
-            {
-                if(bProfilerTraceDbAttached && chkDettachProfilerAnalysisDBWhenDone.Checked && connSqlDb.State == ConnectionState.Open)
-                    new Thread(new ThreadStart(new System.Action(() => DettachProfilerTraceDB()))).Start();
-            }
-        }
-        private void tcAnalysis_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (tcAnalysis.SelectedTab != null)
-            {
-                if (tcAnalysis.SelectedTab.Name == "tbProfilerTraces" && !bProfilerTraceDbAttached && chkDettachProfilerAnalysisDBWhenDone.Checked && !btnImportProfilerTrace.Visible)
-                {
-                    new Thread(new ThreadStart(new System.Action(() => AttachProfilerTraceDB()))).Start();
-                }
-                else if (bProfilerTraceDbAttached && chkDettachProfilerAnalysisDBWhenDone.Checked && connSqlDb.State == ConnectionState.Open)
-                    new Thread(new ThreadStart(new System.Action(() => DettachProfilerTraceDB()))).Start();
-                else if (bProfilerTraceDbAttached && !chkDettachProfilerAnalysisDBWhenDone.Checked && connSqlDb.State == ConnectionState.Open)
-                    bProfilerTraceDbAttached = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = true;
-                else
-                    bProfilerTraceDbAttached = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
             }
         }
         private void btnAnalysisFolder_Click(object sender, EventArgs e)
         {
             BrowseForFolder bff = new BrowseForFolder();
             bff.Filters.Add("zip");
+            bff.Filters.Add("trc");
+            bff.Filters.Add("blg");
+            bff.Filters.Add("mdf");
+            bff.Filters.Add("ini");
+            bff.Filters.Add("evtx");
+            bff.Filters.Add("mdmp");
             string strPath = Environment.CurrentDirectory as string;
-            strPath = bff.SelectFolder("Choose a folder or zip file for analysis:", txtFolderZipForAnalysis.Text == "" ? strPath : txtFolderZipForAnalysis.Text, this.Handle);
+            strPath = bff.SelectFolder("Choose an SSASDiag folder or zip file for analysis of all its components.\r\nOR\r\nChoose an SSAS profiler trace file or database, performance monitor log, crash dump, network trace, or config file.", txtFolderZipForAnalysis.Text == "" ? strPath : txtFolderZipForAnalysis.Text, this.Handle);
             if (strPath != null && strPath != "")
             {
                 txtFolderZipForAnalysis.Text = m_analysisPath = strPath;
                 PopulateAnalysisTabs();
             }
             AnalysisMessagePumpTimer.Interval = 1000;
+        }
+        private void PopulateAnalysisTabs()
+        {
+            if (File.Exists(m_analysisPath))
+                AnalysisTraceID = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf(".")).Substring(m_analysisPath.LastIndexOf("\\") + 1).TrimEnd("0123456789".ToCharArray());
+            else
+                AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
+
+            foreach (TabPage t in tcAnalysis.TabPages)
+            {
+                if (t.Name == "tbProfilerTraces")
+                    HiddenTabPages.Add(t);
+            }
+            tcAnalysis.TabPages.Clear();
+            btnImportProfilerTrace.Visible = true;
+
+            if (m_analysisPath != null)
+            {
+                if (m_analysisPath.EndsWith(".zip"))
+                    SelectivelyExtractAnalysisDataFromZip();
+
+                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith("\\msmdsrv.ini")) || File.Exists(m_analysisPath + "\\msmdsrv.ini"))
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Configuration") { ImageIndex = 0, Name = "Configuration" });
+                    tcAnalysis.TabPages["Configuration"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of configuration details."));
+                }
+                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdmp")) || 
+                    (!File.Exists(m_analysisPath) && Directory.GetFiles(m_analysisPath, "*.mdmp", SearchOption.AllDirectories).Count() > 0))
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Crash Dumps") { ImageIndex = 1, Name = "Crash Dumps" });
+                    tcAnalysis.TabPages["Crash Dumps"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of crash dumps."));
+                }
+                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".evtx")) || 
+                    File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_Application.evtx") ||
+                    File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_System.evtx"))
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Event Logs") { ImageIndex = 2, Name = "Event Logs" });
+                    tcAnalysis.TabPages["Event Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of event logs."));
+                }
+                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".etl")) ||
+                    File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".etl") || 
+                    File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log"))
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Network Trace") { ImageIndex = 3, Name = "Network Trace" });
+                    TextBox txtNetworkAnalysis = GetStatusTextBox();
+                    Button btnAnalyzeNetworkTrace = new Button() { Text = "Analyze Trace", Name = "btnAnalyzeNetworkTrace", Left = tcAnalysis.Width / 2 - 54, Width = 108, Top = 80, Visible = false };
+                    tcAnalysis.TabPages["Network Trace"].Controls.Add(btnAnalyzeNetworkTrace);
+                    btnAnalyzeNetworkTrace.Click += btnAnalyzeNetworkTrace_Click;
+                    tcAnalysis.TabPages["Network Trace"].Controls.Add(txtNetworkAnalysis);
+
+                    if (File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log"))
+                    {
+                        txtNetworkAnalysis.Text = File.ReadAllText(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log");
+                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log");
+                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log");
+                    }
+                    else
+                    {
+                        btnAnalyzeNetworkTrace.Visible = true;
+                    }
+                }
+                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".blg")) || File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".blg"))
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Performance Logs") { ImageIndex = 4, Name = "Performance Logs" });
+                    tcAnalysis.TabPages["Performance Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of performance logs."));
+                }
+                if (
+                        (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".trc")) ||
+                        (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdf")) ||
+                        (
+                            !File.Exists(m_analysisPath) &&
+                            (Directory.GetFiles(m_analysisPath, AnalysisTraceID + "*.trc").Count() > 0 || 
+                             File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
+                        )
+                   )
+                {
+                    btnImportProfilerTrace.Visible = true;
+                    splitProfilerAnalysis.Visible = false;
+                    ProfilerTraceStatusTextBox.Text = "";
+                    tcAnalysis.TabPages.Add(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
+                    HiddenTabPages.Remove(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
+                    string sqlForTraces = Properties.Settings.Default["SqlForProfilerTraceAnalysis"] as string;
+                    string mdfPath = "";
+                    if (m_analysisPath.EndsWith(".trc"))
+                        mdfPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) + "Analysis" + m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\")).Replace(".trc", "").TrimEnd(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) + ".mdf";
+                    else
+                        mdfPath = m_analysisPath;
+                    if (File.Exists(mdfPath) || File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
+                    {   
+                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
+                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
+                        ProfilerTraceStatusTextBox.AppendText("Using trace data loaded into SQL .mdf at " + m_analysisPath + (m_analysisPath.EndsWith(".mdf") ? ".\r\n" : "\\Analysis\\.\r\n"));
+                        new Thread(new ThreadStart(() => AttachProfilerTraceDB())).Start();
+                        splitProfilerAnalysis.Visible = true;
+                        btnImportProfilerTrace.Visible = false;
+                    }
+                    else
+                    {
+                        ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  Import to perform analysis.";
+                    }
+                }
+            }
         }
         private void AnalysisMessagePumpTimer_Tick(object sender, EventArgs e)
         {
@@ -120,7 +198,7 @@ namespace SSASDiag
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                        LogException(ex);
                         // This may fail if a file is locked, but in that case we will skip it.
                     }
                 }
@@ -164,7 +242,7 @@ namespace SSASDiag
                 catch (Exception ex)
                 {
                     // Continue, since if we fail writing these files, it means they do already exist, and we can probably just attach subsequently without failure.
-                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    LogException(ex);
                 }
             }
             else
@@ -193,86 +271,9 @@ namespace SSASDiag
                 z.Entries.Where(f => f.FileName == "msmdsrv.ini").First().Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
             z.Dispose();
         }
-        private void PopulateAnalysisTabs()
-        {
-            AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
-            foreach (TabPage t in tcAnalysis.TabPages)
-                HiddenTabPages.Add(t);
-            tcAnalysis.TabPages.Clear();
-            lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = txtProfilerAnalysisQuery.Visible = false;
-            btnImportProfilerTrace.Visible = true;
-
-            if (m_analysisPath != null)
-            {
-                if (m_analysisPath.EndsWith(".zip"))
-                    SelectivelyExtractAnalysisDataFromZip();
-
-                if (File.Exists(m_analysisPath + "\\msmdsrv.ini"))
-                {
-                    tcAnalysis.TabPages.Add(new TabPage("Configuration") { ImageIndex = 0, Name = "Configuration" });
-                    tcAnalysis.TabPages["Configuration"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of configuration details."));
-                }
-                if (Directory.GetFiles(m_analysisPath, "*.mdmp", SearchOption.AllDirectories).Count() > 0)
-                {
-                    tcAnalysis.TabPages.Add(new TabPage("Crash Dumps") { ImageIndex = 1, Name = "Crash Dumps" });
-                    tcAnalysis.TabPages["Crash Dumps"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of crash dumps."));
-                }
-                if (File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_Application.evtx") ||
-                    File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_System.evtx"))
-                {
-                    tcAnalysis.TabPages.Add(new TabPage("Event Logs") { ImageIndex = 2, Name = "Event Logs" });
-                    tcAnalysis.TabPages["Event Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of event logs."));
-                }
-                if (File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".etl") || File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log"))
-                {
-                    tcAnalysis.TabPages.Add(new TabPage("Network Trace") { ImageIndex = 3, Name = "Network Trace" });
-                    TextBox txtNetworkAnalysis = GetStatusTextBox();
-                    Button btnAnalyzeNetworkTrace = new Button() { Text = "Analyze Trace", Name = "btnAnalyzeNetworkTrace", Left = tcAnalysis.Width / 2 - 54, Width = 108, Top = 80, Visible = false };
-                    tcAnalysis.TabPages["Network Trace"].Controls.Add(btnAnalyzeNetworkTrace);
-                    btnAnalyzeNetworkTrace.Click += btnAnalyzeNetworkTrace_Click;
-                    tcAnalysis.TabPages["Network Trace"].Controls.Add(txtNetworkAnalysis);
-                    
-                    if (File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log"))
-                    {
-                        txtNetworkAnalysis.Text = File.ReadAllText(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log");
-                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log");
-                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log");
-                    }
-                    else
-                    {
-                        btnAnalyzeNetworkTrace.Visible = true;
-                    }
-                }
-                if (File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".blg"))
-                {
-                    tcAnalysis.TabPages.Add(new TabPage("Performance Logs") { ImageIndex = 4, Name = "Performance Logs" });
-                    tcAnalysis.TabPages["Performance Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of performance logs."));
-                }
-                if (Directory.GetFiles(m_analysisPath, AnalysisTraceID + "*.trc").Count() > 0 || File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
-                {
-                    btnImportProfilerTrace.Visible = true;
-                    tcAnalysis.TabPages.Add(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
-                    HiddenTabPages.Remove(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
-                    string sqlForTraces = Properties.Settings.Default["SqlForProfilerTraceAnalysis"] as string;
-
-                    if (File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
-                    {
-                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
-                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
-                        ProfilerTraceStatusTextBox.AppendText("Using trace data loaded into SQL .mdf at " + m_analysisPath + "\\Analysis\\.\r\n");
-                        cmbProfilerAnalyses.Visible = txtProfilerAnalysisQuery.Visible = lblAnalysisQueries.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = true;
-                        btnImportProfilerTrace.Visible = false;
-                    }
-                    else
-                    {
-                        ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  Import to perform analysis.";
-                    }
-                }
-            }
-        }
         private void btnAnalyzeNetworkTrace_Click(object sender, EventArgs e)
         {
-            if (!Directory.Exists(m_analysisPath))
+            if (!File.Exists(m_analysisPath) && !Directory.Exists(m_analysisPath))
                 Directory.CreateDirectory(m_analysisPath);
             if (!Directory.Exists(m_analysisPath + "\\Analysis"))
                 Directory.CreateDirectory(m_analysisPath + "\\Analysis");
@@ -474,37 +475,59 @@ namespace SSASDiag
         }
         private void btnImportProfilerTrace_Click(object sender, EventArgs e)
         {
-            btnImportProfilerTrace.Enabled = false;
-            if (!ValidateProfilerTraceDBConnectionStatus())
+            if (btnImportProfilerTrace.Text == "Import and &Analyze")
             {
-                btnImportProfilerTrace.Enabled = true;
-                return;
-            }
-            AnalysisMessagePumpTimer.Start();
-            try
-            {
-                BackgroundWorker bg = new BackgroundWorker();
-                bg.DoWork += bgImportProfilerTrace;
-                bg.RunWorkerCompleted += bgImportProfilerTraceComplete;
-                bg.RunWorkerAsync(new object[] { ProfilerTraceStatusTextBox, "Initial Catalog=" + AnalysisTraceID + ";Persist Security Info=False;" + connSqlDb.ConnectionString });
-            }
-            catch (SqlException ex)
-            {
-                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
-                if (ex.Message == "ExecuteNonQuery requires an open and available Connection. The connection's current state is closed.")
+                bCancelProfilerImport = false;
+                tbCollection.ForeColor = SystemColors.ControlDark;
+                tcCollectionAnalysisTabs.Refresh();
+                tbCollection.Enabled = false;
+                btnAnalysisFolder.Enabled = false;
+                btnImportProfilerTrace.Text = "&Cancel Import";
+                if (!ValidateProfilerTraceDBConnectionStatus())
                 {
-                    ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  No SQL Server was available to perform import";
-                    btnImportProfilerTrace.Visible = true;
+                    btnImportProfilerTrace.Text = "Import and &Analyze";
+                    return;
                 }
-                else
-                    ProfilerTraceStatusTextBox.Text = "Error loading profiler trace: \r\n" + ex.Message;
+                AnalysisMessagePumpTimer.Interval = 1000;
+                AnalysisMessagePumpTimer.Start();
+                try
+                {
+                    BackgroundWorker bg = new BackgroundWorker();
+                    bg.DoWork += bgImportProfilerTrace;
+                    bg.RunWorkerCompleted += bgImportProfilerTraceComplete;
+                    bg.RunWorkerAsync(new object[] { ProfilerTraceStatusTextBox, "Initial Catalog=" + AnalysisTraceID + ";Persist Security Info=False;" + connSqlDb.ConnectionString });
+                }
+                catch (SqlException ex)
+                {
+                    LogException(ex);
+                    if (ex.Message == "ExecuteNonQuery requires an open and available Connection. The connection's current state is closed.")
+                    {
+                        ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  No SQL Server was available to perform import.";
+                        btnImportProfilerTrace.Visible = true;
+                    }
+                    else
+                        ProfilerTraceStatusTextBox.Text = "Error loading profiler trace: \r\n" + ex.Message;
+                }
+            }
+            else
+            {
+                bCancelProfilerImport = true;
+                btnImportProfilerTrace.Enabled = false;
+                ProfilerTraceStatusTextBox.AppendText("\r\nUser cancelled loading of trace to table.  Dropping trace database...");
+                BackgroundWorker bgCancelTrace = new BackgroundWorker();
+                bgCancelTrace.DoWork += BgCancelTrace_DoWork;
+                bgCancelTrace.RunWorkerCompleted += BgCancelTrace_RunWorkerCompleted;
+                bgCancelTrace.RunWorkerAsync();                
             }
         }
         private void bgImportProfilerTrace(object sender, DoWorkEventArgs e)
         {
             try
             {
-                if (!Directory.Exists(m_analysisPath))
+                if (File.Exists(m_analysisPath))
+                    m_analysisPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\"));
+                        
+                if (!File.Exists(m_analysisPath) && !Directory.Exists(m_analysisPath))
                     Directory.CreateDirectory(m_analysisPath);
                 if (!Directory.Exists(m_analysisPath + "\\Analysis"))
                     Directory.CreateDirectory(m_analysisPath + "\\Analysis");
@@ -527,7 +550,6 @@ namespace SSASDiag
                 DirectorySecurity dirSec = dirInfo.GetAccessControl();
                 dirSec.AddAccessRule(new FileSystemAccessRule(sSvcUser, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
                 dirInfo.SetAccessControl(dirSec);
-                //AddItemToStatus("Added full control for SSAS service account " + sSvcUser + " to the output directory.");
 
                 if (AnalysisTraceID == "")
                     AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
@@ -538,23 +560,22 @@ namespace SSASDiag
                                     , connSqlDb);
                 int ret = cmd.ExecuteNonQuery();
 
-                TextBox ProfilerTraceStatusTextBox = (e.Argument as object[])[0] as TextBox;
                 ProfilerTraceStatusTextBox.Invoke(new System.Action(()=>
                     ProfilerTraceStatusTextBox.Text = "Importing profiler trace to database [" + AnalysisTraceID + "] on SQL instance: [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]."));
                 string connstr = (e.Argument as object[])[1] as string;
                 if (!connstr.Contains("Initial Catalog")) connstr += (connstr.EndsWith(";") ? "" : ";") + "Initial Catalog=" + AnalysisTraceID + ";";
                 if (connstr.Contains("Initial Catalog=;")) connstr = connstr.Replace("Initial Catalog=;", "Initial Catalog=" + AnalysisTraceID + ";");
 
-                Process p = new Process();
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.CreateNoWindow = true;
-                p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ASProfilerTraceImporterCmd.exe";
-                p.StartInfo.Arguments = "\"" + Directory.GetFiles(m_analysisPath, AnalysisTraceID + "*.trc")[0] + "\" \"" + connstr + "\" \"" + AnalysisTraceID + "\"";
-                p.Start();
-                while (!p.HasExited)
+                ASProfilerTraceImporterProcess = new Process();
+                ASProfilerTraceImporterProcess.StartInfo.UseShellExecute = false;
+                ASProfilerTraceImporterProcess.StartInfo.CreateNoWindow = true;
+                ASProfilerTraceImporterProcess.StartInfo.RedirectStandardOutput = true;
+                ASProfilerTraceImporterProcess.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ASProfilerTraceImporterCmd.exe";
+                ASProfilerTraceImporterProcess.StartInfo.Arguments = "\"" + Directory.GetFiles(m_analysisPath, AnalysisTraceID + "*.trc")[0] + "\" \"" + connstr + "\" \"" + AnalysisTraceID + "\"";
+                ASProfilerTraceImporterProcess.Start();
+                while (!ASProfilerTraceImporterProcess.HasExited)
                 {
-                    string sOut = p.StandardOutput.ReadLine();
+                    string sOut = ASProfilerTraceImporterProcess.StandardOutput.ReadLine();
                     System.Diagnostics.Trace.WriteLine(sOut);
                     if (sOut != null)
                         if (sOut.StartsWith("Loaded "))
@@ -567,26 +588,29 @@ namespace SSASDiag
                                     ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + sOut);
                             }
                             ));
-                        else if (sOut == "Database prepared for analysis.")
+                        else if (sOut == "Database prepared for analysis." || sOut == "Import of profiler trace cancelled.")
                             break;
                         else
                             ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + sOut)));
                 }
-                System.Diagnostics.Trace.WriteLine(p.HasExited);
-                ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Adding profiler database to collection data...")));
-                DettachProfilerTraceDB();
-                AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
-                AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
-                if (txtFolderZipForAnalysis.Text.EndsWith(".zip"))
+                if (!bCancelProfilerImport)
                 {
-                    ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText("\r\nDeleting redundant profiler trace files from data extraction location...")));
-                    foreach (string file in Directory.EnumerateFiles(m_analysisPath, AnalysisTraceID + "*.trc"))
-                        File.Delete(file);
+                    ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Adding profiler database to collection data...")));
+                    DettachProfilerTraceDB(false);
+                    AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
+                    AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
+                    if (txtFolderZipForAnalysis.Text.EndsWith(".zip"))
+                    {
+                        ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText("\r\nDeleting redundant profiler trace files from data extraction location...")));
+                        foreach (string file in Directory.EnumerateFiles(m_analysisPath, AnalysisTraceID + "*.trc"))
+                            File.Delete(file);
+                    }
+                    AttachProfilerTraceDB();
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                LogException(ex);
                 if (ex.Message == "ExecuteNonQuery requires an open and available Connection. The connection's current state is closed.")
                 {
                     ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  No SQL Server was available to perform import.\r\n"));
@@ -598,55 +622,94 @@ namespace SSASDiag
         }
         private void bgImportProfilerTraceComplete(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
+            Debug.WriteLine("Import Trace Complete");
+            if (!bCancelProfilerImport)  // We take care of cleanup and completion in cancellation worker if we're cancelled.
             {
-                btnImportProfilerTrace.Visible = false;
-                cmbProfilerAnalyses.Visible = true;
-                txtProfilerAnalysisQuery.Visible = true;
-                tcAnalysis_SelectedIndexChanged(sender, e);
+                if (File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
+                {
+                    btnImportProfilerTrace.Visible = false;
+                    splitProfilerAnalysis.Visible = true;
+                }
+                tbCollection.ForeColor = SystemColors.ControlText;
+                tcCollectionAnalysisTabs.Refresh();
+                tbCollection.Enabled = true;
+                btnAnalysisFolder.Enabled = true;
+                btnImportProfilerTrace.Enabled = true;
+                btnImportProfilerTrace.Text = "Import and &Analyze";
+                AnalysisMessagePumpTimer.Stop();
             }
-            btnImportProfilerTrace.Enabled = true;
-            AnalysisMessagePumpTimer.Stop();
         }
-        private void cmbProfilerAnalyses_SelectedIndexChanged(object sender, EventArgs e)
+        private void BgCancelTrace_DoWork(object sender, DoWorkEventArgs e)
         {
-            txtProfilerAnalysisQuery.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Query.Replace("[Table", "[" + AnalysisTraceID);
-            txtProfilerAnalysisDescription.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Description;
-
-            if (txtProfilerAnalysisQuery.Text != "")
+            EventWaitHandle doneWithInit = new EventWaitHandle(false, EventResetMode.ManualReset, "ASProfilerTraceImporterCmdCancelSignal");
+            doneWithInit.Set();
+            ASProfilerTraceImporterProcess.WaitForExit();
+            connSqlDb.ChangeDatabase("master");
+            doneWithInit.Close();
+            SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') DROP DATABASE [" + AnalysisTraceID + "]", connSqlDb);
+            cmd.ExecuteNonQuery();
+            connSqlDb.Close();
+            if (m_analysisPath.EndsWith(".mdf"))
             {
-                Enabled = false;
-                BackgroundWorker bgLoadProfilerAnalysis = new BackgroundWorker();
-                bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
-                bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
-                StatusFloater.lblStatus.Text = "Running analysis query. (Esc to cancel...)";
-                StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
-                StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
-                StatusFloater.lblTime.Visible = true;
-                StatusFloater.lblTime.Text = "00:00";
-                StatusFloater.EscapePressed = false;
-                AnalysisQueryExecutionPumpTimer.Interval = 1000;
-                AnalysisQueryExecutionPumpTimer.Start();
-                if (!StatusFloater.Visible)
-                    StatusFloater.Show(this);
-                
-                this.SuspendLayout();
-                bgLoadProfilerAnalysis.RunWorkerAsync();
+                File.Delete(m_analysisPath);
+                File.Delete(m_analysisPath.Replace(".mdf", ".ldf"));
             }
             else
             {
-                dgdProfilerAnalyses.DataSource = null;
-                dgdProfilerAnalyses.Refresh();
+                File.Delete(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
+                File.Delete(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
             }
         }
-        private void AnalysisQueryExecutionPumpTimer_Tick(object sender, EventArgs e)
+        private void BgCancelTrace_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            string curTime = StatusFloater.lblTime.Text;
-            string[] timeparts = StatusFloater.lblTime.Text.Split(':');
-            TimeSpan newTime = (TimeSpan.FromMinutes(Convert.ToDouble(timeparts[0])) + TimeSpan.FromSeconds(Convert.ToDouble(timeparts[1])).Add(TimeSpan.FromSeconds(1)));
-            StatusFloater.lblTime.Text = newTime.ToString("mm\\:ss");
-            if (StatusFloater.EscapePressed)
-                ProfilerAnalysisQueryCmd.Cancel();
+            ProfilerTraceStatusTextBox.AppendText("\r\nDropped trace database and deleted files successfully.\r\nTrace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n");
+            AnalysisMessagePumpTimer.Stop();
+            tbCollection.ForeColor = SystemColors.ControlText;
+            tcCollectionAnalysisTabs.Refresh();
+            tbCollection.Enabled = true;
+            btnAnalysisFolder.Enabled = true;
+            btnImportProfilerTrace.Enabled = true;
+            btnImportProfilerTrace.Text = "Import and &Analyze";
+        }
+
+        private void cmbProfilerAnalyses_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                txtProfilerAnalysisQuery.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Query.Replace("[Table", "[" + AnalysisTraceID);
+                txtProfilerAnalysisDescription.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Description;
+
+                if (txtProfilerAnalysisQuery.Text != "")
+                {
+                    Enabled = false;
+                    BackgroundWorker bgLoadProfilerAnalysis = new BackgroundWorker();
+                    bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
+                    bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
+                    StatusFloater.lblStatus.Text = "Running analysis query. (Esc to cancel...)";
+                    StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.lblTime.Visible = true;
+                    StatusFloater.lblTime.Text = "00:00";
+                    StatusFloater.EscapePressed = false;
+                    lblProfilerAnalysisStatusRight.Text = lblProfilerAnalysisStatusLeft.Text = lblProfilerAnalysisStatusCenter.Text = "";
+                    AnalysisQueryExecutionPumpTimer.Interval = 1000;
+                    AnalysisQueryExecutionPumpTimer.Start();
+                    if (!StatusFloater.Visible)
+                        StatusFloater.Show(this);
+
+                    this.SuspendLayout();
+                    bgLoadProfilerAnalysis.RunWorkerAsync();
+                }
+                else
+                {
+                    dgdProfilerAnalyses.DataSource = null;
+                    dgdProfilerAnalyses.Refresh();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogException(ex);
+            }
         }
         private void BgLoadProfilerAnalysis_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -665,19 +728,70 @@ namespace SSASDiag
                         dgdProfilerAnalyses.Columns.Clear();
                         dgdProfilerAnalyses.DataSource = dt;
                         dgdProfilerAnalyses.Refresh();
-                        lblProfilerAnalysisStatus.Text = dt.Rows.Count + " row" + (dt.Rows.Count > 1 ? "s" : "") + " returned.";
-                        lblProfilerAnalysisStatus.Left = Width - lblProfilerAnalysisStatus.Width - 41;
+                        lblProfilerAnalysisStatusRight.Text = dt.Rows.Count + " row" + (dt.Rows.Count > 1 ? "s" : "") + " returned.";
+                        Int64 TotalDuration = 0;
+                        DateTime minStart = DateTime.MaxValue, maxEnd = DateTime.MinValue;
+                        if (dgdProfilerAnalyses.Columns["Duration"] != null || dgdProfilerAnalyses.Columns["StartTime"] != null || dgdProfilerAnalyses.Columns["EndTime"] != null || dgdProfilerAnalyses.Columns["CurrentTime"] != null)
+                        {
+                            foreach (DataGridViewRow r in dgdProfilerAnalyses.Rows)
+                            {
+                                if (dgdProfilerAnalyses.Columns["Duration"] != null) TotalDuration += Convert.ToInt64(r.Cells["Duration"].Value);
+                                if (dgdProfilerAnalyses.Columns["StartTime"] != null)
+                                    if (Convert.ToDateTime(r.Cells["StartTime"].Value) < minStart)
+                                        minStart = Convert.ToDateTime(r.Cells["StartTime"].Value);
+                                DateTime rowTime = DateTime.MinValue;
+                                if (dgdProfilerAnalyses.Columns["EndTime"] != null)
+                                    if (!DateTime.TryParse(r.Cells["EndTime"].Value as string, out rowTime) || rowTime < maxEnd)
+                                        if (rowTime == DateTime.MinValue)  // When we have a row that never finished
+                                        {
+                                            maxEnd = EndOfTrace;
+                                            r.Cells["EndTime"].Style.ForeColor = Color.Red;
+                                            r.Cells["Duration"].Style.ForeColor = Color.Red;
+                                            r.Cells["Duration"].ToolTipText = "This duration is calculated only until the end of the trace since the request never completed.";
+                                        }
+                                        else
+                                            maxEnd = rowTime;
+                                if (dgdProfilerAnalyses.Columns["CurrentTime"] != null)
+                                    if (!DateTime.TryParse(r.Cells["CurrentTime"].Value as string, out rowTime) || rowTime < maxEnd)
+                                        if (rowTime == DateTime.MinValue)  // When we have a row that never finished
+                                        {
+                                            maxEnd = EndOfTrace;
+                                            r.Cells["CurrentTime"].Style.ForeColor = Color.Red;
+                                            r.Cells["Duration"].Style.ForeColor = Color.Red;
+                                            r.Cells["Duration"].ToolTipText = "This duration is calculated only until the end of the trace since the request never completed.";
+                                        }
+                                        else
+                                            maxEnd = rowTime;
+                            }
+                            if (TotalDuration > 0)
+                                lblProfilerAnalysisStatusLeft.Text = "Total time: " + TimeSpan.FromMilliseconds(TotalDuration).ToString("hh\\:mm\\:ss") + ", Avg: " + TimeSpan.FromMilliseconds(Convert.ToDouble(TotalDuration / dt.Rows.Count)).ToString("hh\\:mm\\:ss");
+                            if (minStart < DateTime.MaxValue && maxEnd > DateTime.MinValue)
+                            {
+                                lblProfilerAnalysisStatusCenter.Text = "Covers " + minStart.ToString("yyyy-MM-dd HH:mm:ss") + " to " + maxEnd.ToString("yyyy-MM-dd HH:mm:ss");
+                                lblProfilerAnalysisStatusCenter.Left = Width / 2 - lblProfilerAnalysisStatusCenter.Width / 2;
+                            }
+                        }
+                        lblProfilerAnalysisStatusRight.Left = Width - lblProfilerAnalysisStatusRight.Width - 41;
                     }));
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                LogException(ex);
                 if (ex.Message.Contains("cancelled by user"))
                 {
                     connSqlDb.Close();
                     connSqlDb.Open();
                 }
             }
+        }
+        private void AnalysisQueryExecutionPumpTimer_Tick(object sender, EventArgs e)
+        {
+            string curTime = StatusFloater.lblTime.Text;
+            string[] timeparts = StatusFloater.lblTime.Text.Split(':');
+            TimeSpan newTime = (TimeSpan.FromMinutes(Convert.ToDouble(timeparts[0])) + TimeSpan.FromSeconds(Convert.ToDouble(timeparts[1])).Add(TimeSpan.FromSeconds(1)));
+            StatusFloater.lblTime.Text = newTime.ToString("mm\\:ss");
+            if (StatusFloater.EscapePressed)
+                ProfilerAnalysisQueryCmd.Cancel();
         }
         private void BgLoadProfilerAnalysis_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -686,13 +800,14 @@ namespace SSASDiag
                     if (StatusFloater.EscapePressed)
                     {
                         cmbProfilerAnalyses.SelectedIndex = 0;
-                        lblProfilerAnalysisStatus.Text = "Last query was cancelled.";
-                        lblProfilerAnalysisStatus.Left = Width - lblProfilerAnalysisStatus.Width - 41;
+                        lblProfilerAnalysisStatusRight.Text = "Last query was cancelled.";
+                        lblProfilerAnalysisStatusRight.Left = Width - lblProfilerAnalysisStatusRight.Width - 41;
                     }
                     Enabled = true;
                     StatusFloater.Visible = false;
                     StatusFloater.lblTime.Visible = false;
                     StatusFloater.EscapePressed = false;
+                    dgdProfilerAnalyses.ClearSelection();
                     AnalysisQueryExecutionPumpTimer.Stop();
                     this.ResumeLayout();
                 }));
@@ -712,7 +827,7 @@ namespace SSASDiag
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                        LogException(ex);
                         sqlForTraces = "";
                         exMsg = ex.Message;
                     }
@@ -727,7 +842,7 @@ namespace SSASDiag
                         Properties.Settings.Default.Save();
                         connSqlDb = new SqlConnection("Data Source=" + sqlprompt.cmbServer.Text + ";Integrated Security=true;Persist Security Info=false;");
                         try { connSqlDb.Open(); }
-                        catch (Exception ex) { System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
+                        catch (Exception ex) { LogException(ex); }
                     }
                     else
                     {
@@ -741,44 +856,57 @@ namespace SSASDiag
         
         private void ValidateProfilerTraceViews()
         {
-            if (connSqlDb.State == ConnectionState.Open)
-            {
-                connSqlDb.ChangeDatabase(AnalysisTraceID);
-                SqlCommand cmd = new SqlCommand("SELECT TOP 1 name FROM sys.views WHERE name = N'" + AnalysisTraceID + "_v'", connSqlDb);
-                if (cmd.ExecuteScalar() != null)
-                    bProfilerEventClassSublcassViewPresent = true;
-                else
-                    bProfilerEventClassSublcassViewPresent = false;
-                ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed event class/subclass view is " + (bProfilerEventClassSublcassViewPresent ? "present.\r\n" : "not present.\r\n"))));
-                cmd.CommandText = "SELECT TOP 1 name FROM sys.views WHERE name = N'" + AnalysisTraceID + "_QueryStats'";
-                if (cmd.ExecuteScalar() != null)
-                    bProfilerQueryStatsPresent = true;
-                else
-                    bProfilerQueryStatsPresent = false;
-                Invoke(new System.Action(() =>
-                    {
-                        ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed query statistics view is " + (bProfilerQueryStatsPresent ? "present.\r\n" : "not present.\r\n"))));
-                        cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries.Where(q => q.QueryType == (bProfilerEventClassSublcassViewPresent && bProfilerQueryStatsPresent ? ProfilerQueryTypes.AllQueries :
-                                                                                                            bProfilerEventClassSublcassViewPresent ? ProfilerQueryTypes.QueriesWithEventClassSubclassNames :
-                                                                                                            bProfilerQueryStatsPresent ? ProfilerQueryTypes.QueriesWithQueryStats :
-                                                                                                            ProfilerQueryTypes.BaseQuery)
-                                                                                                 || q.Name == "").ToList();
-                        cmbProfilerAnalyses.Refresh();
-                    }));
-            }
+            SqlConnection conn = new SqlConnection(connSqlDb.ConnectionString.Replace("Connection Timeout=2;", ""));
+            conn.Open();
+            conn.ChangeDatabase(AnalysisTraceID);
+            SqlCommand cmd = new SqlCommand("SELECT TOP 1 name FROM sys.views WHERE name = N'" + AnalysisTraceID + "_v'", conn);
+            if (cmd.ExecuteScalar() != null)
+                bProfilerEventClassSublcassViewPresent = true;
+            else
+                bProfilerEventClassSublcassViewPresent = false;
+            ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith(".") || ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed event class/subclass view is " + (bProfilerEventClassSublcassViewPresent ? "present.\r\n" : "not present."))));
+            cmd.CommandText = "SELECT TOP 1 name FROM sys.views WHERE name = N'" + AnalysisTraceID + "_QueryStats'";
+            if (cmd.ExecuteScalar() != null)
+                bProfilerQueryStatsPresent = true;
+            else
+                bProfilerQueryStatsPresent = false;
+            cmd.CommandText = "SELECT MAX(CurrentTime) FROM [" + AnalysisTraceID + "]";
+            new Thread(new ThreadStart(() =>
+                {
+                    // This isn't immediately required and we save 1-2s by doing it off this thread.
+                    EndOfTrace = Convert.ToDateTime(cmd.ExecuteScalar());
+                    System.Diagnostics.Trace.WriteLine("End of trace [" + AnalysisTraceID + "] noted at " + EndOfTrace);
+                    conn.Close();
+                })).Start(); 
+            Invoke(new System.Action(() =>
+                {
+                    ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed query statistics view is " + (bProfilerQueryStatsPresent ? "present.\r\n" : "not present."))));
+                    cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries.Where(q => q.QueryType == (bProfilerEventClassSublcassViewPresent && bProfilerQueryStatsPresent ? ProfilerQueryTypes.AllQueries :
+                                                                                                        bProfilerEventClassSublcassViewPresent ? ProfilerQueryTypes.QueriesWithEventClassSubclassNames :
+                                                                                                        bProfilerQueryStatsPresent ? ProfilerQueryTypes.QueriesWithQueryStats :
+                                                                                                        ProfilerQueryTypes.BaseQuery)
+                                                                                                || q.Name == "").ToList();
+                    cmbProfilerAnalyses.Refresh();
+                }));
         }
         private void AttachProfilerTraceDB()
         {
-            tcAnalysis.Invoke(new System.Action(()=>tcAnalysis.SelectedTab.Controls["ProfilerTraceStatusTextbox"].Text += (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attaching profiler trace database...\r\n"));
+            splitProfilerAnalysis.Invoke(new System.Action(() => splitProfilerAnalysis.Visible = splitProfilerAnalysis.Enabled = btnAnalysisFolder.Enabled = false));
+            tcAnalysis.Invoke(new System.Action(()=>ProfilerTraceStatusTextBox.Text += (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") || ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + "Attaching profiler trace database...\r\n"));
             ValidateProfilerTraceDBConnectionStatus();
 
+            string mdfPath = m_analysisPath.EndsWith(".mdf") ? 
+                                m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) : 
+                                m_analysisPath.EndsWith(".trc") ?
+                                    mdfPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) + "Analysis\\" :
+                                    m_analysisPath + "\\Analysis\\";
             if (connSqlDb.State == ConnectionState.Open)
             {
                 connSqlDb.ChangeDatabase("master");
                 SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET MULTI_USER", connSqlDb);
                 cmd.ExecuteNonQuery();
-                cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') CREATE DATABASE [" + AnalysisTraceID + "] ON (FILENAME = N'" + m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf'),"
-                                                + "(FILENAME = N'" + m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf') "
+                cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') CREATE DATABASE [" + AnalysisTraceID + "] ON (FILENAME = N'" + mdfPath + AnalysisTraceID + ".mdf'),"
+                                                + "(FILENAME = N'" + mdfPath + AnalysisTraceID + ".ldf') "
                                                 + "FOR ATTACH", connSqlDb);
                 try
                 {
@@ -786,9 +914,9 @@ namespace SSASDiag
                     bProfilerTraceDbAttached = true;
                     Invoke(new System.Action(() =>
                         {
-                            lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = txtProfilerAnalysisQuery.Visible = true;
+                            splitProfilerAnalysis.Visible = true;
                             ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
-                                                                                + ".mdf\r\n\r\nLocated at:\r\n" + m_analysisPath + "\\Analysis\r\n\r\n"
+                                                                                + ".mdf\r\n\r\nLocated at:\r\n" + mdfPath + "\\Analysis\r\n\r\n"
                                                                                 + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
                                                                                 + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
                             ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
@@ -798,7 +926,7 @@ namespace SSASDiag
                 }
                 catch (SqlException ex)
                 {
-                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    LogException(ex);
                     Invoke(new System.Action(() => cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false));
 
                     if (ex.Message.Contains("cannot be opened because it is version"))
@@ -820,9 +948,9 @@ namespace SSASDiag
                                     bProfilerTraceDbAttached = true;
                                     Invoke(new System.Action(() =>
                                         {
-                                            lblAnalysisQueries.Visible = cmbProfilerAnalyses.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = txtProfilerAnalysisQuery.Visible = true;
+                                            splitProfilerAnalysis.Visible = true;
                                             ttStatus.SetToolTip(chkDettachProfilerAnalysisDBWhenDone, "Profiler traces were imported into a trace database in the file:\r\n" + AnalysisTraceID
-                                                                            + ".mdf\r\n\r\nLocated at:\r\n" + m_analysisPath + "\\Analysis\r\n\r\n"
+                                                                            + ".mdf\r\n\r\nLocated at:\r\n" + mdfPath + "\\Analysis\r\n\r\n"
                                                                             + "Uncheck this checkbox if the scenario requires further analysis.\r\n\r\n"
                                                                             + "Note:  While attached the SQL data source at [" + connSqlDb.DataSource + "] locks these files from deletion while started.");
                                             ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
@@ -832,7 +960,7 @@ namespace SSASDiag
                                 }
                                 catch
                                 {
-                                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                                    LogException(ex);
                                     MessageBox.Show("Unable to attach to database since it was created with a later version of SQL than the selected server.", "Select another instance", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 }
                             }
@@ -852,8 +980,9 @@ namespace SSASDiag
                         ProfilerTraceStatusTextBox.Invoke(new System.Action(()=> ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to attach to database due to exception:\r\n" + ex.Message)));
                 }
             }
+            btnAnalysisFolder.Invoke(new System.Action(() => btnAnalysisFolder.Enabled = splitProfilerAnalysis.Enabled = true));
         }
-        private void DettachProfilerTraceDB()
+        private void DettachProfilerTraceDB(bool bClearText = true)
         {
             try
             {
@@ -864,13 +993,16 @@ namespace SSASDiag
                 cmd.ExecuteNonQuery();
                 cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') EXEC master.dbo.sp_detach_db @dbname = N'" + AnalysisTraceID + "'", connSqlDb);
                 cmd.ExecuteNonQuery();
+                connSqlDb.Close();
                 Invoke(new System.Action(() =>
                     {
-                        lblAnalysisQueries.Visible = cmbProfilerAnalyses.Enabled = txtProfilerAnalysisQuery.Enabled = false;
-                        ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Detached trace database [" + AnalysisTraceID + "]\r\nfrom SQL instance [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]\r\nat " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
+                        splitProfilerAnalysis.Visible = false;
+                        btnImportProfilerTrace.Visible = true;
+                        if (bClearText)
+                            ProfilerTraceStatusTextBox.Text = "";
                     }));
             }
-            catch (Exception ex) { System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }  // could fail if service stopped, no biggie just move on...
+            catch (Exception ex) { LogException(ex); }  // could fail if service stopped, no biggie just move on...
         }
         private void dgdProfilerAnalyses_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {

@@ -322,13 +322,13 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT * FROM
+        ///   Looks up a localized string similar to SELECT TOP 100 * FROM
         ///(
         ///	SELECT Duration, CPUTime, CONVERT(NVARCHAR(MAX), StartTime, 21) StartTime, CONVERT(NVARCHAR(MAX), CurrentTime, 21) as EndTime, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, RowNumber
         ///	FROM [Table_v]
         ///	WHERE EventClass = 10
         ///	UNION
-        ///	SELECT a.[Time Captured in Trace] Duration, b. [rest of string was truncated]&quot;;.
+        ///	SELECT a.[Time Captured in Trace] Dura [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryLongestRunningQueries {
             get {

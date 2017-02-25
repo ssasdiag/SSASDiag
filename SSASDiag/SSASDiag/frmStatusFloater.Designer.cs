@@ -84,7 +84,6 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmStatusFloater";
-            this.TopMost = true;
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.frmStatusFloater_KeyPress);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);

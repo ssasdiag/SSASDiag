@@ -31,6 +31,8 @@ namespace SSASDiag
             {
                 if (btnCapture.Image.Tag as string == "Play" || btnCapture.Image.Tag as string == "Play Lit")
                 {
+                    new Thread(new ThreadStart(() => DettachProfilerTraceDB())).Start();  // Dettach any existing data from analysis because we're capturing new data now.
+
                     btnCapture.Click -= btnCapture_Click;
                     btnCapture.Image = imgPlayHalfLit;
                     tbAnalysis.ForeColor = SystemColors.ControlDark;
@@ -106,7 +108,7 @@ namespace SSASDiag
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    LogException(ex);
                     if (!lblInstanceDetails.IsDisposed) lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance details could not be obtained due to failure connecting:\r\n" + ex.Message));
                 }
             })).Start();

@@ -690,7 +690,7 @@ ORDER BY QueryDuration</value>
 	FROM [Table_v]
 	WHERE EventClass = 16
 	UNION
-	SELECT a.[Time Captured in Trace] Duration, b.CPUTime, b.StartTime, 'Command incompleted' EndTime, b.DatabaseName, CONVERT(NVARCHAR(MAX), b.TextData) TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, CONVERT(NVARCHAR(MAX), b.RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), b.RequestProperties) RequestProperties, b.RowNumber
+	SELECT a.[Time Captured in Trace] Duration, b.CPUTime, b.StartTime, 'Command incomplete' EndTime, b.DatabaseName, CONVERT(NVARCHAR(MAX), b.TextData) TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, CONVERT(NVARCHAR(MAX), b.RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), b.RequestProperties) RequestProperties, b.RowNumber
 	FROM
 	(
 		SELECT MAX(RowNumber) RowNumber,
@@ -712,13 +712,13 @@ ORDER BY QueryDuration</value>
 ORDER BY Duration DESC</value>
   </data>
   <data name="QueryLongestRunningQueries" xml:space="preserve">
-    <value>SELECT * FROM
+    <value>SELECT TOP 100 * FROM
 (
 	SELECT Duration, CPUTime, CONVERT(NVARCHAR(MAX), StartTime, 21) StartTime, CONVERT(NVARCHAR(MAX), CurrentTime, 21) as EndTime, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, RowNumber
 	FROM [Table_v]
 	WHERE EventClass = 10
 	UNION
-	SELECT a.[Time Captured in Trace] Duration, b.CPUTime, b.StartTime, 'Query incompleted' EndTime, b.DatabaseName, CONVERT(NVARCHAR(MAX), b.TextData) TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, CONVERT(NVARCHAR(MAX), b.RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), b.RequestProperties) RequestProperties, b.RowNumber
+	SELECT a.[Time Captured in Trace] Duration, b.CPUTime, b.StartTime, 'Query incomplete' EndTime, b.DatabaseName, CONVERT(NVARCHAR(MAX), b.TextData) TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, CONVERT(NVARCHAR(MAX), b.RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), b.RequestProperties) RequestProperties, b.RowNumber
 	FROM
 	(
 		SELECT MAX(RowNumber) RowNumber,

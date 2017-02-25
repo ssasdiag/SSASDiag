@@ -109,11 +109,8 @@ namespace SSASDiag
                             p,
                             GetFolderFilterSiteType());
                             IFolderFilterSite folderFilterSite = (IFolderFilterSite)obj;
-
                             FilterByExtension filter = new FilterByExtension();
-                            
                             filter.ValidExtension = _filters.ToArray();
-
                             folderFilterSite.SetFilter(filter);
                         }
                         break;

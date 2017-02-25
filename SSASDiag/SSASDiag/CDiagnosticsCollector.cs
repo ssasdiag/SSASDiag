@@ -18,7 +18,6 @@ using System.Security.Principal;
 using System.Windows.Forms;
 using System.Xml;
 
-
 namespace SSASDiag
 {
     public class CDiagnosticsCollector : INotifyPropertyChanged
@@ -182,7 +181,7 @@ namespace SSASDiag
                     catch (Exception ex)
                     {
                         AddItemToStatus("Adding access permissions for SSAS service account " + sServiceAccount + " to output folder failed:\n\t" + ex.Message);
-                        System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                        frmSSASDiag.LogException(ex);
                     }
                 }
 
@@ -407,7 +406,7 @@ namespace SSASDiag
                         catch (Exception ex)
                         {
                             MessageBox.Show(ex.Message);
-                            System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                            frmSSASDiag.LogException(ex);
                         }
                         iCurrentTimerTicksSinceLastInterval = 0;
                     }
@@ -500,7 +499,7 @@ namespace SSASDiag
                 }
                 catch (OleDbException ex)
                 {
-                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    frmSSASDiag.LogException(ex);
                     if (ex.Message.StartsWith("Login failed"))
                     {
                         // If it fails the first try, prompt for remote admin
@@ -550,7 +549,7 @@ namespace SSASDiag
                                             pp.lblUserPasswordError.Visible = true;
                                             bAuthenticated = false;
                                             iTries++;
-                                            System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                                            frmSSASDiag.LogException(ex);
                                         }
                                     }
                                 }
@@ -588,7 +587,7 @@ namespace SSASDiag
                 }
                 catch(Exception ex)
                 {
-                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    frmSSASDiag.LogException(ex);
                     if (ex.Message.Contains("Could not find file") && (Domain == srvName || Domain == srvName.Substring(0, srvName.IndexOf(".")) || Domain == "."))
                     {
                         try
@@ -613,7 +612,7 @@ namespace SSASDiag
                         }
                         catch(Exception)
                         {
-                            System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                            frmSSASDiag.LogException(ex);
                             AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ".");
                             AddItemToStatus("\r\nFor local administrator accounts except Administrator to access the remote SQL backup, create a DWORD32 value LocalAccountTokenFilterPolicy=1 in HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Policies\\System on the local server " + srvName + ".\r\n");
                         }
@@ -627,7 +626,7 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                frmSSASDiag.LogException(ex);
                 AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message);
             }
             return true;
@@ -842,13 +841,13 @@ namespace SSASDiag
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    frmSSASDiag.LogException(ex);
                 }
                 finally { s.Disconnect(); }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                frmSSASDiag.LogException(ex);
                 return "Error: " + ex.Message;
             }
             return ret;

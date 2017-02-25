@@ -39,7 +39,6 @@ namespace SSASDiag
             btnCapture.Image = imgStop;
             btnCapture.Click += btnCapture_Click;
             dc.CompletionCallback = callback_StopAndFinalizeAllDiagnosticsComplete;
-
         }
         private void callback_StopAndFinalizeAllDiagnosticsComplete()
         {

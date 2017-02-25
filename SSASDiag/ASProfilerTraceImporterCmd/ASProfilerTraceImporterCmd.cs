@@ -21,6 +21,7 @@ namespace ASProfilerTraceImporterCmd
         static string ConnStr = "";
         static string Table = "";
         static public string cols = "";
+        static bool bCancel = false;
         static public SqlConnectionInfo2 cib = new SqlConnectionInfo2();
         static public List<TraceFileProcessor> tfps = new List<TraceFileProcessor>();
 
@@ -32,7 +33,17 @@ namespace ASProfilerTraceImporterCmd
                 ConnStr = args[1];
                 cib.SetConnectionString(ConnStr);
                 Table = args[2];
+
+                EventWaitHandle waitForSignal = new EventWaitHandle(false, EventResetMode.ManualReset, "ASProfilerTraceImporterCmdCancelSignal");
+                Thread thMonitorCancelFlag = new Thread(new ThreadStart(() =>
+                {
+                    waitForSignal.WaitOne();
+                    SetText("Import of profiler trace cancelled.");
+                    bCancel = true;
+                }));
+                thMonitorCancelFlag.Start();
                 PerformImport();
+                //waitForSignal.Close();
             }
             else
                 return;
@@ -122,79 +133,98 @@ namespace ASProfilerTraceImporterCmd
                 Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
                 foreach (string f in files)
                 {
-                    CurFile++;
-                    TraceFileProcessor tfp = new TraceFileProcessor(CurFile, path + trcbase + f, Table, s, new TraceFile(), new TraceTable());
-                    tfps.Add(tfp);
-                    workers.Add(new Thread(() => tfp.ProcessTraceFile()));
-                    workers.Last().Start();
-                }
-
-                SqlConnection conn2 = new System.Data.SqlClient.SqlConnection(ConnStr);
-                conn2.Open();
-                for (int i = 0; i <= CurFile; i++)
-                {
-                    workers[i].Join();
-                    if (i == 1)
-                        SetText("Merging file 1...");
-                    if (i > 0)
+                    if (!bCancel)
                     {
-                        SqlCommandInfiniteConstructor("delete from [##" + Table + "_" + i + "] where eventclass = 65528", conn2).ExecuteNonQuery();
-                        SqlCommandInfiniteConstructor("insert into [" + Table + "] (" + cols + ") select " + cols + " from [##" + Table + "_" + i + "]", conn2).ExecuteNonQuery();
-                        SetText("Merging file " + (i + 1) + "...");
-                    }
-                    tfps[i].tIn.Close();
-                    tfps[i].tOut.Close();
-                    tfps[i].tIn = null;
-                    tfps[i].tOut = null;                    
-                }
-
-                SetText("Building index and adding views...");
-                SetText("Done loading " + String.Format("{0:#,##0}", (RowCount)) + " rows in " + Math.Round((DateTime.Now - startTime).TotalSeconds, 1) + "s.");
-                cols = SqlCommandInfiniteConstructor("SELECT SUBSTRING((SELECT ', t.' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn2).ExecuteScalar() as string;
-                bool bEventViewCreated = false;
-                bool bStatsViewCreated = false;
-                try
-                {
-                    SqlCommandInfiniteConstructor(Properties.Resources.EventClassSubClassTablesScript, conn2).ExecuteNonQuery();
-                    SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_v') drop view [" + Table + "_v];", conn2).ExecuteNonQuery();
-                    SqlCommandInfiniteConstructor(
-                        "create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from [" + Table + "]  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
-                    bEventViewCreated = true;
-                }
-                catch (Exception ex)
-                {
-                    SetText("Exception creating event class/subclass view:\r\n" + ex.Message);
-                    Trace.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
-                }
-                SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "EventClassIndex') drop view [" + Table + "EventClassIndex];", conn2).ExecuteNonQuery();
-                SqlCommandInfiniteConstructor("create index [" + Table + "EventClassIndex] on [" + Table + "] (EventClass)", conn2).ExecuteNonQuery();
-                try
-                {
-                    SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_QueryStats') drop view [" + Table + "_QueryStats];", conn2).ExecuteNonQuery();
-                    if (SqlCommandInfiniteConstructor("select count(*) from [" + Table + "] where eventclass = 11", conn2).ExecuteScalar() as int? > 0)
-                    {
-                        SqlCommandInfiniteConstructor("create view [" + Table + "_QueryStats] as select e.StartRow, e.EndRow, e.QueryDuration, e.StorageEngineTime, e.QueryDuration - e.StorageEngineTime FormulaEngineTime, iif(e.QueryDuration > 0, cast(((1.0 * e.StorageEngineTime) / e.QueryDuration) * 100 as decimal(18,2)), 0) SEPct, s.RowNumber StartRow, e.EndRow, s.StartTime, e.EndTime, s.ConnectionID, s.DatabaseName, convert(nvarchar(max), s.Textdata) TextData, s.RequestParameters, s.RequestProperties, s.SPID, s.NTUserName, s.NTDomainName from [" + Table + "] s, (select max(duration) StorageEngineTime, startrow, endrow, d.EndTime, QueryDuration from (select c.Duration QueryDuration, c.StartRow, c.EndRow, d.RowNumber, d.EventClass, d.EventSubClass, d.TextData, d.ConnectionID, d.DatabaseName, d.StartTime, d.CurrentTime, c.EndTime, d.Duration from [" + Table + "] d, (select b.EndRow, b.ConnectionID, b.Duration, a.RowNumber as StartRow, b.EndTime from [" + Table + "] a, (select RowNumber EndRow, connectionid, textdata, starttime, currenttime endtime, duration from [" + Table + "] where eventclass = 10) b where a.eventclass = 9 and a.connectionid = b.connectionid and a.currenttime = b.starttime and convert(nvarchar(max), a.textdata) = convert(nvarchar(max), b.textdata)) c where d.ConnectionID = c.ConnectionID and d.RowNumber >= c.StartRow and d.RowNumber <= c.EndRow) d where eventclass = 11 group by startrow, endrow, connectionid, endtime, QueryDuration) e where s.rownumber = e.StartRow", conn2).ExecuteNonQuery();
-                        bStatsViewCreated = true;
+                        CurFile++;
+                        TraceFileProcessor tfp = new TraceFileProcessor(CurFile, path + trcbase + f, Table, s, new TraceFile(), new TraceTable());
+                        tfps.Add(tfp);
+                        workers.Add(new Thread(() => tfp.ProcessTraceFile()));
+                        workers.Last().Start();
                     }
                 }
-                catch (Exception ex)
+
+                if (!bCancel)
                 {
-                    SetText("Exception creating query stats view:\r\n" + ex.Message);
-                    Trace.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
+                    SqlConnection conn2 = new System.Data.SqlClient.SqlConnection(ConnStr);
+                    conn2.Open();
+                    for (int i = 0; i <= CurFile; i++)
+                    {
+                        workers[i].Join();
+                        if (i == 1)
+                            SetText("Merging file 1...");
+                        if (i > 0 && !bCancel)
+                        {
+                            try
+                            {
+                                SqlCommandInfiniteConstructor("delete from [##" + Table + "_" + i + "] where eventclass = 65528", conn2).ExecuteNonQuery();
+                                SqlCommandInfiniteConstructor("insert into [" + Table + "] (" + cols + ") select " + cols + " from [##" + Table + "_" + i + "]", conn2).ExecuteNonQuery();
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Trace.WriteLine("Exception in trace import: \r\n" + ex.Message);
+                            }
+                            SetText("Merging file " + (i + 1) + "...");
+                        }
+                        tfps[i].tIn.Close();
+                        tfps[i].tOut.Close();
+                        tfps[i].tIn = null;
+                        tfps[i].tOut = null;
+                    }
+                    if (!bCancel)
+                    {
+                        SetText("Building index and adding views...");
+                        SetText("Done loading " + String.Format("{0:#,##0}", (RowCount)) + " rows in " + Math.Round((DateTime.Now - startTime).TotalSeconds, 1) + "s.");
+                        cols = SqlCommandInfiniteConstructor("SELECT SUBSTRING((SELECT ', t.' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn2).ExecuteScalar() as string;
+                        bool bEventViewCreated = false;
+                        bool bStatsViewCreated = false;
+                        try
+                        {
+                            SqlCommandInfiniteConstructor(Properties.Resources.EventClassSubClassTablesScript, conn2).ExecuteNonQuery();
+                            SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_v') drop view [" + Table + "_v];", conn2).ExecuteNonQuery();
+                            SqlCommandInfiniteConstructor(
+                                "create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from [" + Table + "]  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
+                            bEventViewCreated = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            SetText("Exception creating event class/subclass view:\r\n" + ex.Message);
+                            Trace.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
+                        }
+                        SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "EventClassIndex') drop view [" + Table + "EventClassIndex];", conn2).ExecuteNonQuery();
+                        SqlCommandInfiniteConstructor("create index [" + Table + "EventClassIndex] on [" + Table + "] (EventClass)", conn2).ExecuteNonQuery();
+                        try
+                        {
+                            SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_QueryStats') drop view [" + Table + "_QueryStats];", conn2).ExecuteNonQuery();
+                            if (SqlCommandInfiniteConstructor("select count(*) from [" + Table + "] where eventclass = 11", conn2).ExecuteScalar() as int? > 0)
+                            {
+                                SqlCommandInfiniteConstructor("create view [" + Table + "_QueryStats] as select e.StartRow, e.EndRow, e.QueryDuration, e.StorageEngineTime, e.QueryDuration - e.StorageEngineTime FormulaEngineTime, iif(e.QueryDuration > 0, cast(((1.0 * e.StorageEngineTime) / e.QueryDuration) * 100 as decimal(18,2)), 0) SEPct, s.RowNumber StartRow, e.EndRow, s.StartTime, e.EndTime, s.ConnectionID, s.DatabaseName, convert(nvarchar(max), s.Textdata) TextData, s.RequestParameters, s.RequestProperties, s.SPID, s.NTUserName, s.NTDomainName from [" + Table + "] s, (select max(duration) StorageEngineTime, startrow, endrow, d.EndTime, QueryDuration from (select c.Duration QueryDuration, c.StartRow, c.EndRow, d.RowNumber, d.EventClass, d.EventSubClass, d.TextData, d.ConnectionID, d.DatabaseName, d.StartTime, d.CurrentTime, c.EndTime, d.Duration from [" + Table + "] d, (select b.EndRow, b.ConnectionID, b.Duration, a.RowNumber as StartRow, b.EndTime from [" + Table + "] a, (select RowNumber EndRow, connectionid, textdata, starttime, currenttime endtime, duration from [" + Table + "] where eventclass = 10) b where a.eventclass = 9 and a.connectionid = b.connectionid and a.currenttime = b.starttime and convert(nvarchar(max), a.textdata) = convert(nvarchar(max), b.textdata)) c where d.ConnectionID = c.ConnectionID and d.RowNumber >= c.StartRow and d.RowNumber <= c.EndRow) d where eventclass = 11 group by startrow, endrow, connectionid, endtime, QueryDuration) e where s.rownumber = e.StartRow", conn2).ExecuteNonQuery();
+                                bStatsViewCreated = true;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SetText("Exception creating query stats view:\r\n" + ex.Message);
+                            Trace.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
+                        }
+                        SetText("Merged " + (CurFile + 1).ToString() + " files.");
+                        if (!bStatsViewCreated || !bEventViewCreated)
+                            SetText(!bStatsViewCreated && !bEventViewCreated ? "Missing QuerySubcube and EventClass or Subclass columns.  Unable to calculate query stats/event names views." :
+                                bStatsViewCreated ? "Created query statistics view [" + Table + "_QueryStats].\r\nMissing EventClass or Subclass columns.  Unable to calculate event names view." :
+                                "Created event names view [" + Table + "_v].\r\nMissing QuerySubcube columns.  Unable to calculate query stats view.");
+                        else
+                            SetText("Created query statitistics view [" + Table + "_QueryStats].\r\nCreated event names view [" + Table + "_v].");
+                    }
+                    conn2.Close();
+                    if (!bCancel)
+                        SetText("Database prepared for analysis.");
                 }
-                SetText("Merged " + (CurFile + 1).ToString() + " files.");
-                if (!bStatsViewCreated || !bEventViewCreated)
-                    SetText(!bStatsViewCreated && !bEventViewCreated ? "Missing QuerySubcube and EventClass or Subclass columns.  Unable to calculate query stats/event names views." :
-                        bStatsViewCreated ? "Created query statistics view [" + Table + "_QueryStats].\r\nMissing EventClass or Subclass columns.  Unable to calculate event names view." :
-                        "Created event names view [" + Table + "_v].\r\nMissing QuerySubcube columns.  Unable to calculate query stats view.");
-                else
-                    SetText("Created query statitistics view [" + Table + "_QueryStats].\r\nCreated event names view [" + Table + "_v].");
-                conn2.Close();
-                SetText("Database prepared for analysis.");
+                if (bCancel)
+                    SetText("Cancelled loading after reading " + String.Format("{0:#,##0}", (RowCount + 1)) + " rows.");
             }
             catch (Exception exc)
             {
-                Console.WriteLine(exc.ToString(), "Oops!  Exception...");
+                if (!bCancel)
+                    Console.WriteLine(exc.ToString(), "Oops!  Exception...");
             }
         }
 
@@ -215,37 +245,41 @@ namespace ASProfilerTraceImporterCmd
             {
                 try
                 {
-                    Sem.WaitOne();  // throttle execution based on semaphore
-                    tIn.InitializeAsReader(FileName);
-                    tOut.InitializeAsWriter(tIn, ASProfilerTraceImporterCmd.cib, CurFile == 0 ? Table : "##" + Table + "_" + CurFile);
-                    SqlConnection conn = new System.Data.SqlClient.SqlConnection(ASProfilerTraceImporterCmd.ConnStr);
-                    conn.Open();
-                    bool bFirstFile = false;
-                    if (cols == "")
+                    if (!bCancel)
                     {
-                        // get column list from first trace file...
-                        cols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
-                        bFirstFile = true;
-                        Sem.Release(System.Environment.ProcessorCount * 2);  // We blocked everything until we got initial cols, now we release them all to run...
+                        Sem.WaitOne();  // throttle execution based on semaphore
+                        tIn.InitializeAsReader(FileName);
+                        tOut.InitializeAsWriter(tIn, ASProfilerTraceImporterCmd.cib, CurFile == 0 ? Table : "##" + Table + "_" + CurFile);
+                        SqlConnection conn = new System.Data.SqlClient.SqlConnection(ASProfilerTraceImporterCmd.ConnStr);
+                        conn.Open();
+                        bool bFirstFile = false;
+                        if (cols == "")
+                        {
+                            // get column list from first trace file...
+                            cols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
+                            bFirstFile = true;
+                            Sem.Release(System.Environment.ProcessorCount * 2);  // We blocked everything until we got initial cols, now we release them all to run...
+                        }
+                        else
+                            if (cols != new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string)
+                            return;  // only happens if there is column mismatch between files - we won't read the whole file, just skip over...
+                        conn.Close();
+                        try
+                        {
+                            while (tOut.Write() && !bCancel)
+                                if (RowCount++ % 384 == 0) global::ASProfilerTraceImporterCmd.ASProfilerTraceImporterCmd.UpdateRowCounts();
+                        }
+                        catch (SqlTraceException ste)
+                        {
+                            string s = ste.Message;
+                        }
+                        if (!bFirstFile) Sem.Release(); // release this code for next thread waiting on the semaphore 
                     }
-                    else
-                        if (cols != new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string)
-                        return;  // only happens if there is column mismatch between files - we won't read the whole file, just skip over...
-                    conn.Close();
-                    try
-                    {
-                        while (tOut.Write())
-                            if (RowCount++ % 384 == 0) global::ASProfilerTraceImporterCmd.ASProfilerTraceImporterCmd.UpdateRowCounts();
-                    }
-                    catch (SqlTraceException ste)
-                    {
-                        string s = ste.Message;
-                    }
-                    if (!bFirstFile) Sem.Release(); // release this code for next thread waiting on the semaphore 
                 }
                 catch (Exception e)
                 {
-                    SetText(e.ToString() + "\r\n\r\nException occurred while loading file " + FileName + ".");
+                    if (!bCancel)
+                        SetText(e.ToString() + "\r\n\r\nException occurred while loading file " + FileName + ".");
                 }
             }
         }

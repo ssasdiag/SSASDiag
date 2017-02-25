@@ -123,7 +123,7 @@ namespace SSASDiag
                     try { AppDomain.Unload(tempDomain); }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                        frmSSASDiag.LogException(ex);
                     }
                 }
                 catch (AppDomainUnloadedException ex)
