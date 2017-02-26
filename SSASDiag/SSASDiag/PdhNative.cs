@@ -871,7 +871,7 @@ namespace PdhNative
 
 
             StringCollection machineNames = new StringCollection();
-            uint res = this.EnumBlgFilesMachines(ref machineNames);
+            uint res = EnumBlgFilesMachines(ref machineNames);
             if (res != 0)
             {
                 return res;
@@ -880,7 +880,7 @@ namespace PdhNative
             foreach (string machine in machineNames)
             {
                 StringCollection counterSets = new StringCollection();
-                res = this.EnumObjects(machine, ref counterSets);
+                res = EnumObjects(machine, ref counterSets);
                 if (res != 0)
                 {
                     return res;
@@ -893,13 +893,13 @@ namespace PdhNative
                     StringCollection counterSetCounters = new StringCollection();
                     StringCollection counterSetInstances = new StringCollection();
 
-                    res = this.EnumObjectItems(machine, counterSet, ref counterSetCounters, ref counterSetInstances);
+                    res = EnumObjectItems(machine, counterSet, ref counterSetCounters, ref counterSetInstances);
                     if (res != 0)
                     {
                         return res;
                     }
 
-                    res = this.GetValidPaths(machine, counterSet, ref counterSetCounters, ref counterSetInstances, ref validPaths);
+                    res = GetValidPaths(machine, counterSet, ref counterSetCounters, ref counterSetInstances, ref validPaths);
                     if (res != 0)
                     {
                         return res;

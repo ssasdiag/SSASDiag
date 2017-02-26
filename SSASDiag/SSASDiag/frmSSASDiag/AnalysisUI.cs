@@ -58,7 +58,7 @@ namespace SSASDiag
             bff.Filters.Add("evtx");
             bff.Filters.Add("mdmp");
             string strPath = Environment.CurrentDirectory as string;
-            strPath = bff.SelectFolder("Choose an SSASDiag folder or zip file for analysis of all its components.\r\nOR\r\nChoose an SSAS profiler trace file or database, performance monitor log, crash dump, network trace, or config file.", txtFolderZipForAnalysis.Text == "" ? strPath : txtFolderZipForAnalysis.Text, this.Handle);
+            strPath = bff.SelectFolder("Choose an SSASDiag folder or zip file for analysis of all its components.\r\nOR\r\nChoose an SSAS profiler trace file or database, performance monitor log, crash dump, network trace, or config file.", txtFolderZipForAnalysis.Text == "" ? strPath : txtFolderZipForAnalysis.Text, Handle);
             if (strPath != null && strPath != "")
             {
                 txtFolderZipForAnalysis.Text = m_analysisPath = strPath;

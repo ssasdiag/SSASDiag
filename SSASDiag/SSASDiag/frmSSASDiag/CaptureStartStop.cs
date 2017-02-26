@@ -52,7 +52,7 @@ namespace SSASDiag
             txtStatus.GotFocus -= txtStatus_GotFocusWhileRunning;
             txtStatus.Cursor = Cursors.Default;
             if (bClosing)
-                this.Close();
+                Close();
             tbAnalysis.ForeColor = SystemColors.ControlText;
             tcCollectionAnalysisTabs.Refresh();
             dc.CompletionCallback = null;

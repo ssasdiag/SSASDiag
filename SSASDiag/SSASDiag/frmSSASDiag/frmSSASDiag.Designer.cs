@@ -1,5 +1,4 @@
-﻿using FastColoredTextBoxNS;
-namespace SSASDiag
+﻿namespace SSASDiag
 {
     partial class frmSSASDiag
     {
@@ -31,8 +30,8 @@ namespace SSASDiag
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSSASDiag));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
@@ -93,7 +92,6 @@ namespace SSASDiag
             this.cmbProfilerAnalyses = new System.Windows.Forms.ComboBox();
             this.txtProfilerAnalysisDescription = new System.Windows.Forms.TextBox();
             this.lblAnalysisQueries = new System.Windows.Forms.Label();
-            this.txtProfilerAnalysisQuery = new FastColoredTextBox();
             this.pnlProfilerAnalysisStatus = new System.Windows.Forms.Panel();
             this.lblProfilerAnalysisStatusCenter = new System.Windows.Forms.Label();
             this.lblProfilerAnalysisStatusLeft = new System.Windows.Forms.Label();
@@ -888,18 +886,17 @@ namespace SSASDiag
             this.splitProfilerAnalysis.Panel1.Controls.Add(this.cmbProfilerAnalyses);
             this.splitProfilerAnalysis.Panel1.Controls.Add(this.txtProfilerAnalysisDescription);
             this.splitProfilerAnalysis.Panel1.Controls.Add(this.lblAnalysisQueries);
-            this.splitProfilerAnalysis.Panel1.Controls.Add(this.txtProfilerAnalysisQuery);
+            this.splitProfilerAnalysis.Panel1.SizeChanged += new System.EventHandler(this.splitProfilerAnalysis_Panel1_SizeChanged);
             this.splitProfilerAnalysis.Panel1MinSize = 40;
-            this.splitProfilerAnalysis.Panel1.Resize += Panel1_Resize;
             // 
             // splitProfilerAnalysis.Panel2
             // 
             this.splitProfilerAnalysis.Panel2.Controls.Add(this.pnlProfilerAnalysisStatus);
             this.splitProfilerAnalysis.Panel2.Controls.Add(this.dgdProfilerAnalyses);
+            this.splitProfilerAnalysis.Panel2.SizeChanged += new System.EventHandler(this.splitProfilerAnalysis_Panel2_SizeChanged);
             this.splitProfilerAnalysis.Size = new System.Drawing.Size(579, 292);
             this.splitProfilerAnalysis.SplitterDistance = 103;
             this.splitProfilerAnalysis.TabIndex = 28;
-            this.splitProfilerAnalysis.Panel2.Resize += Panel2_Resize;
             // 
             // cmbProfilerAnalyses
             // 
@@ -933,28 +930,9 @@ namespace SSASDiag
             this.lblAnalysisQueries.TabIndex = 30;
             this.lblAnalysisQueries.Text = "Choose an analysis query:";
             // 
-            // txtProfilerAnalysisQuery
-            // 
-            this.txtProfilerAnalysisQuery.Language = Language.SQL;
-            splitProfilerAnalysis.Panel1.Controls.Add(txtProfilerAnalysisQuery);
-            this.txtProfilerAnalysisQuery.Dock = System.Windows.Forms.DockStyle.Right;
-            this.txtProfilerAnalysisQuery.ChangeFontSize(-2);
-            this.txtProfilerAnalysisQuery.Location = new System.Drawing.Point(216, 0);
-            this.txtProfilerAnalysisQuery.Multiline = true;
-            this.txtProfilerAnalysisQuery.Name = "txtProfilerAnalysisQuery";
-            this.txtProfilerAnalysisQuery.AutoIndent = true;
-            this.txtProfilerAnalysisQuery.WordWrapMode = WordWrapMode.WordWrapControlWidth;
-            this.txtProfilerAnalysisQuery.ShowLineNumbers = false;
-            this.txtProfilerAnalysisQuery.WordWrapAutoIndent = true;
-            this.txtProfilerAnalysisQuery.WordWrap = true;
-            this.txtProfilerAnalysisQuery.WordWrapIndent = 3;
-            this.txtProfilerAnalysisQuery.ReadOnly = true;
-            this.txtProfilerAnalysisQuery.ShowScrollBars = true;
-            this.txtProfilerAnalysisQuery.Size = new System.Drawing.Size(363, 103);
-            this.txtProfilerAnalysisQuery.TabIndex = 29;
-            // 
             // pnlProfilerAnalysisStatus
             // 
+            this.pnlProfilerAnalysisStatus.BackColor = System.Drawing.Color.Black;
             this.pnlProfilerAnalysisStatus.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.pnlProfilerAnalysisStatus.Controls.Add(this.lblProfilerAnalysisStatusCenter);
             this.pnlProfilerAnalysisStatus.Controls.Add(this.lblProfilerAnalysisStatusLeft);
@@ -969,8 +947,9 @@ namespace SSASDiag
             // lblProfilerAnalysisStatusCenter
             // 
             this.lblProfilerAnalysisStatusCenter.AutoSize = true;
+            this.lblProfilerAnalysisStatusCenter.BackColor = System.Drawing.Color.Transparent;
             this.lblProfilerAnalysisStatusCenter.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblProfilerAnalysisStatusCenter.ForeColor = System.Drawing.Color.Green;
+            this.lblProfilerAnalysisStatusCenter.ForeColor = System.Drawing.Color.LightSkyBlue;
             this.lblProfilerAnalysisStatusCenter.Location = new System.Drawing.Point(279, 0);
             this.lblProfilerAnalysisStatusCenter.Name = "lblProfilerAnalysisStatusCenter";
             this.lblProfilerAnalysisStatusCenter.Size = new System.Drawing.Size(0, 12);
@@ -980,9 +959,10 @@ namespace SSASDiag
             // lblProfilerAnalysisStatusLeft
             // 
             this.lblProfilerAnalysisStatusLeft.AutoSize = true;
+            this.lblProfilerAnalysisStatusLeft.BackColor = System.Drawing.Color.Transparent;
             this.lblProfilerAnalysisStatusLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.lblProfilerAnalysisStatusLeft.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblProfilerAnalysisStatusLeft.ForeColor = System.Drawing.Color.Green;
+            this.lblProfilerAnalysisStatusLeft.ForeColor = System.Drawing.Color.LightSkyBlue;
             this.lblProfilerAnalysisStatusLeft.Location = new System.Drawing.Point(0, 0);
             this.lblProfilerAnalysisStatusLeft.Name = "lblProfilerAnalysisStatusLeft";
             this.lblProfilerAnalysisStatusLeft.Size = new System.Drawing.Size(0, 12);
@@ -991,9 +971,10 @@ namespace SSASDiag
             // lblProfilerAnalysisStatusRight
             // 
             this.lblProfilerAnalysisStatusRight.AutoSize = true;
+            this.lblProfilerAnalysisStatusRight.BackColor = System.Drawing.Color.Transparent;
             this.lblProfilerAnalysisStatusRight.Dock = System.Windows.Forms.DockStyle.Right;
             this.lblProfilerAnalysisStatusRight.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblProfilerAnalysisStatusRight.ForeColor = System.Drawing.Color.Green;
+            this.lblProfilerAnalysisStatusRight.ForeColor = System.Drawing.Color.LightSkyBlue;
             this.lblProfilerAnalysisStatusRight.Location = new System.Drawing.Point(575, 0);
             this.lblProfilerAnalysisStatusRight.Name = "lblProfilerAnalysisStatusRight";
             this.lblProfilerAnalysisStatusRight.Size = new System.Drawing.Size(0, 12);
@@ -1003,10 +984,12 @@ namespace SSASDiag
             // chkDettachProfilerAnalysisDBWhenDone
             // 
             this.chkDettachProfilerAnalysisDBWhenDone.AutoSize = true;
+            this.chkDettachProfilerAnalysisDBWhenDone.BackColor = System.Drawing.Color.Transparent;
             this.chkDettachProfilerAnalysisDBWhenDone.Checked = true;
             this.chkDettachProfilerAnalysisDBWhenDone.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkDettachProfilerAnalysisDBWhenDone.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.chkDettachProfilerAnalysisDBWhenDone.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkDettachProfilerAnalysisDBWhenDone.ForeColor = System.Drawing.Color.LightSkyBlue;
             this.chkDettachProfilerAnalysisDBWhenDone.Location = new System.Drawing.Point(0, 15);
             this.chkDettachProfilerAnalysisDBWhenDone.Name = "chkDettachProfilerAnalysisDBWhenDone";
             this.chkDettachProfilerAnalysisDBWhenDone.Padding = new System.Windows.Forms.Padding(3, 0, 0, 0);
@@ -1022,21 +1005,21 @@ namespace SSASDiag
             this.dgdProfilerAnalyses.AllowUserToDeleteRows = false;
             this.dgdProfilerAnalyses.AllowUserToOrderColumns = true;
             this.dgdProfilerAnalyses.AllowUserToResizeRows = false;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.AliceBlue;
-            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.AliceBlue;
+            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             this.dgdProfilerAnalyses.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
             this.dgdProfilerAnalyses.BackgroundColor = System.Drawing.SystemColors.ControlDark;
             this.dgdProfilerAnalyses.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdProfilerAnalyses.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dgdProfilerAnalyses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle4;
             this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
             this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 0);
             this.dgdProfilerAnalyses.Margin = new System.Windows.Forms.Padding(0);
@@ -1203,7 +1186,6 @@ namespace SSASDiag
         private System.Windows.Forms.SplitContainer splitProfilerAnalysis;
         private System.Windows.Forms.Label lblAnalysisQueries;
         private System.Windows.Forms.ComboBox cmbProfilerAnalyses;
-        private FastColoredTextBox txtProfilerAnalysisQuery;
         private System.Windows.Forms.DataGridView dgdProfilerAnalyses;
         private System.Windows.Forms.TextBox txtProfilerAnalysisDescription;
         private System.Windows.Forms.Label label4;

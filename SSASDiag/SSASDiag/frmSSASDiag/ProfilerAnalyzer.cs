@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FastColoredTextBoxNS;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -24,6 +25,7 @@ namespace SSASDiag
         DateTime EndOfTrace = DateTime.MinValue;
         System.Windows.Forms.Timer AnalysisQueryExecutionPumpTimer = new System.Windows.Forms.Timer();
         List<ProfilerTraceQuery> ProfilerTraceAnalysisQueries;
+        FastColoredTextBox txtProfilerAnalysisQuery = new FastColoredTextBox();
 
         #endregion ProfilerAnalyzerLocals
 
@@ -42,8 +44,8 @@ namespace SSASDiag
                     bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
                     bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
                     StatusFloater.lblStatus.Text = "Running analysis query. (Esc to cancel...)";
-                    StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
-                    StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
                     StatusFloater.lblTime.Visible = true;
                     StatusFloater.lblTime.Text = "00:00";
                     StatusFloater.EscapePressed = false;
@@ -53,7 +55,7 @@ namespace SSASDiag
                     if (!StatusFloater.Visible)
                         StatusFloater.Show(this);
 
-                    this.SuspendLayout();
+                    SuspendLayout();
                     bgLoadProfilerAnalysis.RunWorkerAsync();
                 }
                 else
@@ -194,7 +196,7 @@ namespace SSASDiag
                 StatusFloater.EscapePressed = false;
                 dgdProfilerAnalyses.ClearSelection();
                 AnalysisQueryExecutionPumpTimer.Stop();
-                this.ResumeLayout();
+                ResumeLayout();
             }));
         }
         private void dgdProfilerAnalyses_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
@@ -316,10 +318,10 @@ namespace SSASDiag
                     bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
                     bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
                     StatusFloater.lblStatus.Text = "Running analysis query...";
-                    StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
-                    StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
                     StatusFloater.Show(this);
-                    this.SuspendLayout();
+                    SuspendLayout();
                     bgLoadProfilerAnalysis.RunWorkerAsync();
                 }
                 else
@@ -342,10 +344,10 @@ namespace SSASDiag
                     bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
                     bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
                     StatusFloater.lblStatus.Text = "Running analysis query...";
-                    StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
-                    StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
                     StatusFloater.Show(this);
-                    this.SuspendLayout();
+                    SuspendLayout();
                     bgLoadProfilerAnalysis.RunWorkerAsync();
                 }
                 else
@@ -372,10 +374,10 @@ namespace SSASDiag
                     bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
                     bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
                     StatusFloater.lblStatus.Text = "Running analysis query...";
-                    StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
-                    StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
                     StatusFloater.Show(this);
-                    this.SuspendLayout();
+                    SuspendLayout();
                     bgLoadProfilerAnalysis.RunWorkerAsync();
                 }
                 else
@@ -385,13 +387,42 @@ namespace SSASDiag
                 }
             }
         }
-        private void Panel2_Resize(object sender, System.EventArgs e)
+        private void splitProfilerAnalysis_Panel2_SizeChanged(object sender, System.EventArgs e)
         {
             dgdProfilerAnalyses.Height = splitProfilerAnalysis.Panel2.Height - pnlProfilerAnalysisStatus.Height;
         }
-        private void Panel1_Resize(object sender, System.EventArgs e)
+        private void splitProfilerAnalysis_Panel1_SizeChanged(object sender, System.EventArgs e)
         {
             txtProfilerAnalysisDescription.Height = splitProfilerAnalysis.Panel1.Height - 56;
+        }
+        private void SetupSQLTextbox()
+        {
+            //txtProfilerAnalysisQuery.Language = Language.SQL;
+
+            splitProfilerAnalysis.Panel1.Controls.Add(txtProfilerAnalysisQuery);
+            txtProfilerAnalysisQuery.Dock = System.Windows.Forms.DockStyle.Right;
+            txtProfilerAnalysisQuery.ChangeFontSize(-2);
+            txtProfilerAnalysisQuery.Location = new System.Drawing.Point(216, 0);
+            txtProfilerAnalysisQuery.Multiline = true;
+            txtProfilerAnalysisQuery.BackColor = SystemColors.Control;
+            txtProfilerAnalysisQuery.TextChanged += TxtProfilerAnalysisQuery_TextChanged;
+            txtProfilerAnalysisQuery.WordWrapMode = WordWrapMode.WordWrapControlWidth;
+            txtProfilerAnalysisQuery.ShowLineNumbers = false;
+            txtProfilerAnalysisQuery.WordWrapAutoIndent = true;
+            txtProfilerAnalysisQuery.WordWrap = true;
+            txtProfilerAnalysisQuery.WordWrapIndent = 3;
+            txtProfilerAnalysisQuery.ReadOnly = true;
+            txtProfilerAnalysisQuery.ShowScrollBars = true;
+            txtProfilerAnalysisQuery.Size = new System.Drawing.Size(363, 103);
+            txtProfilerAnalysisQuery.TabIndex = 29;
+        }
+        TextStyle bracketsStyle = new TextStyle(Brushes.Black, Brushes.LightGray, FontStyle.Regular);
+        private void TxtProfilerAnalysisQuery_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            txtProfilerAnalysisQuery.SyntaxHighlighter.SQLSyntaxHighlight(txtProfilerAnalysisQuery.Range);
+            e.ChangedRange.ClearStyle(bracketsStyle);
+            e.ChangedRange.SetStyle(bracketsStyle, "(?<=\\[)(.*?)(?=\\])");
+            txtProfilerAnalysisQuery.Language = Language.SQL | Language.Custom;
         }
     }
 }

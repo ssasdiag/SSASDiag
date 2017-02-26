@@ -84,6 +84,8 @@ namespace SSASDiag
 
             AnalysisMessagePumpTimer.Tick += AnalysisMessagePumpTimer_Tick;
             AnalysisQueryExecutionPumpTimer.Tick += AnalysisQueryExecutionPumpTimer_Tick;
+
+            SetupSQLTextbox();
         }
 
         private void SetupDebugTrace()
@@ -118,10 +120,10 @@ namespace SSASDiag
                 if (bProfilerTraceDbAttached && chkDettachProfilerAnalysisDBWhenDone.Checked)
                 {
                     StatusFloater.lblStatus.Text = "Detaching attached profiler trace database...";
-                    StatusFloater.Left = this.Left + this.Width / 2 - StatusFloater.Width / 2;
-                    StatusFloater.Top = this.Top + this.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
                     StatusFloater.Show(this);
-                    this.Enabled = false;
+                    Enabled = false;
                     BackgroundWorker bgDetachProfilerDB = new BackgroundWorker();
                     bgDetachProfilerDB.DoWork += BgDetachProfilerDB_DoWork; ;
                     bgDetachProfilerDB.RunWorkerCompleted += BgDetachProfilerDB_RunWorkerCompleted;
@@ -143,7 +145,7 @@ namespace SSASDiag
         private void BgDetachProfilerDB_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             StatusFloater.Close();
-            this.Close();
+            Close();
         }
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
@@ -155,16 +157,23 @@ namespace SSASDiag
             btnImportProfilerTrace.Left = Width / 2 - btnImportProfilerTrace.Width / 2;
             splitProfilerAnalysis.Height = Height - 232;
             txtProfilerAnalysisQuery.Width = Width - 254;
-            //txtProfilerAnalysisDescription.Height = Height - 475;
-            //dgdProfilerAnalyses.Height = splitProfilerAnalysis.Panel2.Height - pnlProfilerAnalysisStatus.Height;
             lblProfilerAnalysisStatusCenter.Left = Width / 2 - lblProfilerAnalysisStatusCenter.Width / 2;
             if (tcAnalysis.TabPages.ContainsKey("Network Trace") || HiddenTabPages.Where(t => t.Name == "Network Trace").Count() > 0)
             {
                 Button btnAnalyzeNetworkTrace = tcAnalysis.TabPages.ContainsKey("Network Trace") ? 
                     tcAnalysis.TabPages["Network Trace"].Controls["btnAnalyzeNetworkTrace"] as Button : 
                     HiddenTabPages.First(t => t.Name == "Network Trace").Controls["btnAnalyzeNetworkTrace"] as Button;
-                btnAnalyzeNetworkTrace.Left = this.Width / 2 - btnAnalyzeNetworkTrace.Width / 2;
+                btnAnalyzeNetworkTrace.Left = Width / 2 - btnAnalyzeNetworkTrace.Width / 2;
             }
+            // Expand last column of profiler analysis grid
+            if (dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode == DataGridViewAutoSizeColumnMode.None)
+                dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            if (dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width < 80)
+                dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+            dgdProfilerAnalyses.Refresh();
+            int lastCellFullHeaderWidth = dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width;
+            dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width = lastCellFullHeaderWidth;
         }
         public static void LogException(Exception ex)
         {

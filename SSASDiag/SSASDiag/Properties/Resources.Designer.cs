@@ -293,14 +293,14 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT * FROM
-        ///(SELECT MIN(StartTime) as [Trace Start Time], MAX(CurrentTime) as [Trace End Time] FROM [Table]) aa,
-        ///(SELECT COUNT(*)[Queries Started] FROM [Table] WHERE EventClass = 9) a,
-        ///(SELECT COUNT(*)[Queries Completed] FROM [Table] WHERE EventClass = 10) b,
-        ///(SELECT SUM(Duration)[Total Query Duration], AVG(Duration)[Average Query Duration] FROM [Table] WHERE EventClass = 10) e,
-        ///(SELECT(
-        ///(SELECT MAX(Duration) FROM
-        ///	(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 10 AND Duration &gt; 0  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to select * from
+        ///(select min(StartTime) as [Trace Start Time], max(CurrentTime) as [Trace End Time] from [Table]) aa,
+        ///(select count(*)[Queries Started] from [Table] where EventClass = 9) a,
+        ///(select count(*)[Queries Completed] from [Table] where EventClass = 10) b,
+        ///(select sum(Duration)[Total Query Duration], avg(Duration)[Average Query Duration] from [Table] where EventClass = 10) e,
+        ///(select(
+        ///(select max(Duration) from
+        ///	(select TOP 50 percent Duration from [Table] where EventClass = 10 AND Duration &gt; 0  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryBasicTraceSummary {
             get {

@@ -655,27 +655,27 @@ CREATE DATABASE [&lt;dbname/&gt;]
     <value>..\Resources\package_new.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="QueryBasicTraceSummary" xml:space="preserve">
-    <value>SELECT * FROM
-(SELECT MIN(StartTime) as [Trace Start Time], MAX(CurrentTime) as [Trace End Time] FROM [Table]) aa,
-(SELECT COUNT(*)[Queries Started] FROM [Table] WHERE EventClass = 9) a,
-(SELECT COUNT(*)[Queries Completed] FROM [Table] WHERE EventClass = 10) b,
-(SELECT SUM(Duration)[Total Query Duration], AVG(Duration)[Average Query Duration] FROM [Table] WHERE EventClass = 10) e,
-(SELECT(
-(SELECT MAX(Duration) FROM
-	(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 10 AND Duration &gt; 0 ORDER BY Duration) AS BottomHalf)
+    <value>select * from
+(select min(StartTime) as [Trace Start Time], max(CurrentTime) as [Trace End Time] from [Table]) aa,
+(select count(*)[Queries Started] from [Table] where EventClass = 9) a,
+(select count(*)[Queries Completed] from [Table] where EventClass = 10) b,
+(select sum(Duration)[Total Query Duration], avg(Duration)[Average Query Duration] from [Table] where EventClass = 10) e,
+(select(
+(select max(Duration) from
+	(select TOP 50 percent Duration from [Table] where EventClass = 10 AND Duration &gt; 0 order by Duration) as BottomHalf)
 	+
-	(SELECT MIN(Duration) FROM
-	(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 10 AND Duration &gt; 0 ORDER BY Duration DESC) AS TopHalf)
+	(select min(Duration) from
+	(select TOP 50 percent Duration from [Table] where EventClass = 10 AND Duration &gt; 0 order by Duration desc) as TopHalf)
 )	 / 2 AS [Median Query Duration]) g,
-(SELECT COUNT(*)[Commands Started] FROM [Table] WHERE EventClass = 15) c,
-(SELECT COUNT(*)[Commands Completed] FROM [Table] WHERE EventClass = 16) d,
-(SELECT SUM(Duration) [Total Command Duration], AVG(Duration) [Average Command Duration] FROM [Table] WHERE EventClass = 16) f,
-(SELECT(
-	(SELECT MAX(Duration) FROM
-	(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 16 AND Duration &gt; 0 ORDER BY Duration) AS BottomHalf)
+(select count(*)[Commands Started] from [Table] where EventClass = 15) c,
+(select count(*)[Commands Completed] from [Table] where EventClass = 16) d,
+(select sum(Duration) [Total Command Duration], avg(Duration) [Average Command Duration] from [Table] where EventClass = 16) f,
+(select(
+	(select max(Duration) from
+	(select TOP 50 percent Duration from [Table] where EventClass = 16 AND Duration &gt; 0 order by Duration) as BottomHalf)
 	+
-	(SELECT MIN(Duration) FROM
-	(SELECT TOP 50 PERCENT Duration FROM [Table] WHERE EventClass = 16 AND Duration &gt; 0 ORDER BY Duration DESC) AS TopHalf)
+	(select min(Duration) from
+	(select TOP 50 percent Duration from [Table] where EventClass = 16 AND Duration &gt; 0 order by Duration desc) as TopHalf)
 	) / 2 AS [Median Command Duration]) h</value>
   </data>
   <data name="QueryFESEStats" xml:space="preserve">

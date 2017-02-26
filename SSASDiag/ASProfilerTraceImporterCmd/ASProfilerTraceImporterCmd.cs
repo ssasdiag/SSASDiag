@@ -61,17 +61,17 @@ namespace ASProfilerTraceImporterCmd
             {
                 System.Security.SecureString s = new System.Security.SecureString();
                 foreach (char c in conn) s.AppendChar(c);
-                this.ConnectionStringInternal = s;
+                ConnectionStringInternal = s;
                 foreach (string prop in conn.Split(';'))
                 {
                     string[] kv = prop.Split('=');
-                    if (kv[0].ToLower() == "database" || kv[0].ToLower() == "initial catalog") this.DatabaseName = kv[1];
-                    if (kv[0].ToLower() == "server" || kv[0].ToLower() == "data source") this.ServerName = kv[1];
-                    if (kv[0].ToLower() == "integrated security") this.UseIntegratedSecurity = Convert.ToBoolean(kv[1]);
-                    if (kv[0].ToLower() == "user" || kv[0].ToLower() == "user id" || kv[0].ToLower() == "username") this.UserName = kv[1];
-                    if (kv[0].ToLower() == "password") this.Password = kv[1];
+                    if (kv[0].ToLower() == "database" || kv[0].ToLower() == "initial catalog") DatabaseName = kv[1];
+                    if (kv[0].ToLower() == "server" || kv[0].ToLower() == "data source") ServerName = kv[1];
+                    if (kv[0].ToLower() == "integrated security") UseIntegratedSecurity = Convert.ToBoolean(kv[1]);
+                    if (kv[0].ToLower() == "user" || kv[0].ToLower() == "user id" || kv[0].ToLower() == "username") UserName = kv[1];
+                    if (kv[0].ToLower() == "password") Password = kv[1];
                 }
-                this.RebuildConnectionStringInternal = false;
+                RebuildConnectionStringInternal = false;
             }
         }
 

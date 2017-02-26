@@ -28,72 +28,72 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
-            this.btnOK = new System.Windows.Forms.Button();
-            this.btnCancel = new System.Windows.Forms.Button();
-            this.cmbServer = new System.Windows.Forms.ComboBox();
-            this.SuspendLayout();
+            label1 = new System.Windows.Forms.Label();
+            btnOK = new System.Windows.Forms.Button();
+            btnCancel = new System.Windows.Forms.Button();
+            cmbServer = new System.Windows.Forms.ComboBox();
+            SuspendLayout();
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(22, 30);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(250, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Choose a local SQL instance to process trace data:";
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(22, 30);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(250, 13);
+            label1.TabIndex = 0;
+            label1.Text = "Choose a local SQL instance to process trace data:";
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(116, 88);
-            this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(75, 23);
-            this.btnOK.TabIndex = 2;
-            this.btnOK.Text = "&OK";
-            this.btnOK.UseVisualStyleBackColor = true;
-            this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
+            btnOK.Location = new System.Drawing.Point(116, 88);
+            btnOK.Name = "btnOK";
+            btnOK.Size = new System.Drawing.Size(75, 23);
+            btnOK.TabIndex = 2;
+            btnOK.Text = "&OK";
+            btnOK.UseVisualStyleBackColor = true;
+            btnOK.Click += new System.EventHandler(btnOK_Click);
             // 
             // btnCancel
             // 
-            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(197, 88);
-            this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(75, 23);
-            this.btnCancel.TabIndex = 3;
-            this.btnCancel.Text = "&Cancel";
-            this.btnCancel.UseVisualStyleBackColor = true;
-            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            btnCancel.Location = new System.Drawing.Point(197, 88);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new System.Drawing.Size(75, 23);
+            btnCancel.TabIndex = 3;
+            btnCancel.Text = "&Cancel";
+            btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.Click += new System.EventHandler(btnCancel_Click);
             // 
             // cmbServer
             // 
-            this.cmbServer.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbServer.FormattingEnabled = true;
-            this.cmbServer.Location = new System.Drawing.Point(25, 45);
-            this.cmbServer.Name = "cmbServer";
-            this.cmbServer.Size = new System.Drawing.Size(247, 21);
-            this.cmbServer.TabIndex = 5;
+            cmbServer.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbServer.FormattingEnabled = true;
+            cmbServer.Location = new System.Drawing.Point(25, 45);
+            cmbServer.Name = "cmbServer";
+            cmbServer.Size = new System.Drawing.Size(247, 21);
+            cmbServer.TabIndex = 5;
             // 
             // frmSimpleSQLServerPrompt
             // 
-            this.AcceptButton = this.btnOK;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(299, 123);
-            this.Controls.Add(this.cmbServer);
-            this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.btnOK);
-            this.Controls.Add(this.label1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "frmSimpleSQLServerPrompt";
-            this.ShowInTaskbar = false;
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Analysis requires SQL server";
-            this.Load += new System.EventHandler(this.frmSimpleSQLServerPrompt_Load);
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AcceptButton = btnOK;
+            AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            CancelButton = btnCancel;
+            ClientSize = new System.Drawing.Size(299, 123);
+            Controls.Add(cmbServer);
+            Controls.Add(btnCancel);
+            Controls.Add(btnOK);
+            Controls.Add(label1);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "frmSimpleSQLServerPrompt";
+            ShowInTaskbar = false;
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            Text = "Analysis requires SQL server";
+            Load += new System.EventHandler(frmSimpleSQLServerPrompt_Load);
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 
