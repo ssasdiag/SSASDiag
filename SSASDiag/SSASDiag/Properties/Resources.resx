@@ -659,39 +659,38 @@ CREATE DATABASE [&lt;dbname/&gt;]
 (select min(CurrentTime) as [Trace Start Time], max(CurrentTime) as [Trace End Time] from [Table]) aa,
 (select count(*)[Queries Started] from [Table] where EventClass = 9) a,
 (select count(*)[Queries Completed] from [Table] where EventClass = 10) b,
+(select count(*)[Incomplete Queries] from [Table_QueriesAndCommandsIncludingIncomplete] where EventClass = -10) bb,
 (select sum(Duration)[Total Query Duration], avg(Duration)[Average Query Duration] from [Table] where EventClass = 10) e,
 (select(
-(select max(Duration) from
-    (select TOP 50 percent Duration from (select Duration, EventClass from [Table] where EventClass in (10, -10) AND Duration &gt; 0 
-	 union 
-	 select Duration, EventClass from [Table_IncompleteQueriesAndCommands] where EventClass in (10, -10) AND Duration &gt; 0) a
+	(select max(Duration) from
+    (select TOP 50 percent Duration 
+	 from [Table_QueriesAndCommandsIncludingIncomplete] 
+	 where EventClass in (10, -10) and Duration &gt; 0 
 	 order by Duration) as BottomHalf)
     +
-    (select min(Duration) from
-    (select TOP 50 percent Duration from 
-	(select Duration, EventClass from [Table] where EventClass in (10, -10) AND Duration &gt; 0 
-	 union 
-	 select Duration, EventClass from [Table_IncompleteQueriesAndCommands] where EventClass in (10, -10) AND Duration &gt; 0) a 
+    (select max(Duration) from
+    (select TOP 50 percent Duration 
+	 from [Table_QueriesAndCommandsIncludingIncomplete] 
+	 where EventClass in (10, -10) and Duration &gt; 0 
 	 order by Duration desc) as TopHalf)
-)    / 2 AS [Median Query Duration]) g,
+	 ) / 2 AS [Median Query Duration]) g,
 (select count(*)[Commands Started] from [Table] where EventClass = 15) c,
 (select count(*)[Commands Completed] from [Table] where EventClass = 16) d,
+(select count(*)[Incomplete Commands] from [Table_QueriesAndCommandsIncludingIncomplete] where EventClass = -16) dd,
 (select sum(Duration) [Total Command Duration], avg(Duration) [Average Command Duration] from [Table] where EventClass = 16) f,
 (select(
-    (select max(Duration) from
-    (select TOP 50 percent Duration from 
-	(select Duration, EventClass from [Table] where EventClass in (16, -16) AND Duration &gt; 0 
-	 union 
-	 select Duration, EventClass from [Table_IncompleteQueriesAndCommands] where EventClass in (16, -16) AND Duration &gt; 0) a
+	(select max(Duration) from
+    (select TOP 50 percent Duration 
+	 from [Table_QueriesAndCommandsIncludingIncomplete] 
+	 where EventClass in (16, -16) and Duration &gt; 0 
 	 order by Duration) as BottomHalf)
     +
-    (select min(Duration) from
-    (select TOP 50 percent Duration from 
-	(select Duration, EventClass from [Table] where EventClass in (16, -1) AND Duration &gt; 0 
-	 union 
-	 select Duration, EventClass from [Table_IncompleteQueriesAndCommands] where EventClass in (16, -16) AND Duration &gt; 0) a
+    (select max(Duration) from
+    (select TOP 50 percent Duration 
+	 from [Table_QueriesAndCommandsIncludingIncomplete] 
+	 where EventClass in (16, -16) and Duration &gt; 0 
 	 order by Duration desc) as TopHalf)
-    ) / 2 AS [Median Command Duration]) h</value>
+	 ) / 2 AS [Median Command Duration]) h</value>
   </data>
   <data name="QueryFESEStats" xml:space="preserve">
     <value>SELECT StartRow, EndRow, QueryDuration, StorageEngineTime, QueryDuration - StorageEngineTime FormulaEngineTime, SEPct, 100 - SEPct FEPct, StartRow, EndRow, StartTime, EndTime, ConnectionID, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, SPID, NTUserName, NTDomainName

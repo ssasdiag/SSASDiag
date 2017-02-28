@@ -297,10 +297,9 @@ namespace SSASDiag.Properties {
         ///(select min(CurrentTime) as [Trace Start Time], max(CurrentTime) as [Trace End Time] from [Table]) aa,
         ///(select count(*)[Queries Started] from [Table] where EventClass = 9) a,
         ///(select count(*)[Queries Completed] from [Table] where EventClass = 10) b,
+        ///(select count(*)[Incomplete Queries] from [Table_QueriesAndCommandsIncludingIncomplete] where EventClass = -10) bb,
         ///(select sum(Duration)[Total Query Duration], avg(Duration)[Average Query Duration] from [Table] where EventClass = 10) e,
-        ///(select(
-        ///(select max(Duration) from
-        ///    (select TOP 50 percent Duration from (select Duration, EventClass from [Table]  [rest of string was truncated]&quot;;.
+        ///(sel [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryBasicTraceSummary {
             get {
