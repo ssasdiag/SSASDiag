@@ -436,17 +436,10 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT TextData, sys.fn_varbintohexstr(CONVERT(VARBINARY(8), Error)) [Error Code], DatabaseName, EventClass, EventClassName, NTUserName, NTDomainName, a.ConnectionID, ClientProcessID, SPID, ApplicationName, a.RowNumber
-        ///FROM [Table_v] a,
-        ///	(
-        ///		SELECT RowNumber, ConnectionID, StartTime
-        ///		FROM [Table]
-        ///		WHERE EventClass = 17
-        ///	) b
-        ///WHERE EventClass in (9, 10, 15, 16, 17) AND
-        ///	a.ConnectionID = b.ConnectionID AND
-        ///	a.StartTime &gt;= b.StartTime AND
-        ///	a.RowNumber &lt;= b.RowNumber.
+        ///   Looks up a localized string similar to select a.RowNumber, EventClass, EventClassName, a.ConnectionID, Duration, a.StartTime, a.CurrentTime, upper(sys.fn_varbintohexstr(convert(varbinary(8), Error))) [Error Code], DatabaseName, convert(nvarchar(max), TextData) TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+        ///from [2012CommandsAndQueriesDiscover_v] a,
+        ///    (
+        ///        select RowNumber, ConnectionID, S [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryQueriesCommandsWithErrors {
             get {
