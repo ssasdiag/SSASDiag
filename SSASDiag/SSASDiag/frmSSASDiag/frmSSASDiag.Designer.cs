@@ -983,11 +983,12 @@
             // 
             // chkDettachProfilerAnalysisDBWhenDone
             // 
-            this.chkDettachProfilerAnalysisDBWhenDone.AutoSize = true;
             this.chkDettachProfilerAnalysisDBWhenDone.BackColor = System.Drawing.Color.Transparent;
             this.chkDettachProfilerAnalysisDBWhenDone.Checked = true;
             this.chkDettachProfilerAnalysisDBWhenDone.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkDettachProfilerAnalysisDBWhenDone.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.chkDettachProfilerAnalysisDBWhenDone.FlatAppearance.BorderSize = 0;
+            this.chkDettachProfilerAnalysisDBWhenDone.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.chkDettachProfilerAnalysisDBWhenDone.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chkDettachProfilerAnalysisDBWhenDone.ForeColor = System.Drawing.Color.LightSkyBlue;
             this.chkDettachProfilerAnalysisDBWhenDone.Location = new System.Drawing.Point(0, 15);

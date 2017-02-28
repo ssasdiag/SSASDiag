@@ -68,6 +68,8 @@ namespace SSASDiag
         }
         private void PopulateAnalysisTabs()
         {
+            if (connSqlDb.State != ConnectionState.Closed)
+                connSqlDb.Close();
             if (File.Exists(m_analysisPath))
                 AnalysisTraceID = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf(".")).Substring(m_analysisPath.LastIndexOf("\\") + 1).TrimEnd("0123456789".ToCharArray());
             else

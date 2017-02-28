@@ -44,7 +44,7 @@ namespace ASProfilerTraceImporterCmd
                 }));
                 thMonitorCancelFlag.Start();
                 PerformImport();
-                //waitForSignal.Close();
+                thMonitorCancelFlag.Abort();
             }
             else
                 return;
@@ -183,8 +183,9 @@ namespace ASProfilerTraceImporterCmd
                         {
                             SqlCommandInfiniteConstructor(Properties.Resources.EventClassSubClassTablesScript, conn2).ExecuteNonQuery();
                             SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_v') drop view [" + Table + "_v];", conn2).ExecuteNonQuery();
-                            SqlCommandInfiniteConstructor(
-                                "create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from [" + Table + "]  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
+                            SqlCommandInfiniteConstructor("create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from [" + Table + "]  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
+                            SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_IncompleteQueriesAndCommands') drop view [" + Table + "_IncompleteQueriesAndCommands];", conn2).ExecuteNonQuery();
+                            SqlCommandInfiniteConstructor("create view [" + Table + "_IncompleteQueriesAndCommands] as select RowNumber, Duration, EventClass, ConnectionID, StartTime, CurrentTime from [" + Table + "] where eventclass in (10, 11) union select a.RowNumber, a.[Time Captured in Trace] Duration, -EventClass EventClass, ConnectionID, StartTime, null CurrentTime from (select max(RowNumber) RowNumber, datediff(\"ms\", max(StartTime), ( select max(CurrentTime) from[" + Table + "]))[Time Captured in Trace] from[" + Table + "_v] a where EventClass IN(9, 10, 15, 16) AND NOT StartTime IS NULL group by a.StartTime, ConnectionID, TextData having count(*) = 1) a, [" + Table + "_v] b where b.RowNumber = a.RowNumber and b.EventClass not in (10, 16)", conn2).ExecuteNonQuery();
                             bEventViewCreated = true;
                         }
                         catch (Exception ex)
@@ -218,7 +219,7 @@ namespace ASProfilerTraceImporterCmd
                                 bStatsViewCreated ? "Created query statistics view [" + Table + "_QueryStats].\r\nMissing EventClass or Subclass columns.  Unable to calculate event names view." :
                                 "Created event names view [" + Table + "_v].\r\nMissing QuerySubcube columns.  Unable to calculate query stats view.");
                         else
-                            SetText("Created query statitistics view [" + Table + "_QueryStats].\r\nCreated event names view [" + Table + "_v].");
+                            SetText("Created query statistics view [" + Table + "_QueryStats].\r\nCreated event names view [" + Table + "_v].");
                     }
                     conn2.Close();
                     if (!bCancel)
