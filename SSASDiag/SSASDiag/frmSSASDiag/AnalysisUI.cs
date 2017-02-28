@@ -55,10 +55,12 @@ namespace SSASDiag
             bff.Filters.Add("blg");
             bff.Filters.Add("mdf");
             bff.Filters.Add("ini");
+            bff.Filters.Add("etl");
             bff.Filters.Add("evtx");
             bff.Filters.Add("mdmp");
             string strPath = Environment.CurrentDirectory as string;
-            strPath = bff.SelectFolder("Choose an SSASDiag folder or zip file for analysis of all its components.\r\nOR\r\nChoose an SSAS profiler trace file or database, performance monitor log, crash dump, network trace, or config file.", txtFolderZipForAnalysis.Text == "" ? strPath : txtFolderZipForAnalysis.Text, Handle);
+            strPath = bff.SelectFolder("Choose an SSASDiag folder or zip file for analysis of all its components.\r\nOR\r\n"
+                      + "AS profiler trace file or db, PerfMon log, crash dump, network trace, or config file.", txtFolderZipForAnalysis.Text == "" ? strPath : txtFolderZipForAnalysis.Text, Handle);
             if (strPath != null && strPath != "")
             {
                 txtFolderZipForAnalysis.Text = m_analysisPath = strPath;
@@ -272,8 +274,9 @@ namespace SSASDiag
         {
             if (!File.Exists(m_analysisPath) && !Directory.Exists(m_analysisPath))
                 Directory.CreateDirectory(m_analysisPath);
-            if (!Directory.Exists(m_analysisPath + "\\Analysis"))
-                Directory.CreateDirectory(m_analysisPath + "\\Analysis");
+            string AnalysisDir = m_analysisPath.EndsWith(".etl") ? m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\")) + "\\Analysis\\" : m_analysisPath + "\\Analysis\\";
+            if (!Directory.Exists(AnalysisDir))
+                Directory.CreateDirectory(AnalysisDir);
 
             TextBox txtNetworkAnalysis = tcAnalysis.TabPages["Network Trace"].Controls["StatusTextbox"] as TextBox;
             tcAnalysis.TabPages["Network Trace"].Controls[0].Visible = false;
@@ -288,19 +291,19 @@ namespace SSASDiag
                 p.StartInfo.CreateNoWindow = true;
                 p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\sqlna.exe";
-                p.StartInfo.Arguments = "\"" + m_analysisPath + "\\" + AnalysisTraceID + ".etl\" /output \"" + m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log\"";
+                p.StartInfo.Arguments = "\"" + (m_analysisPath.EndsWith(".etl") ? m_analysisPath + "\\" + (AnalysisTraceID + ".etl") : m_analysisPath) + "\" /output \"" + AnalysisDir + AnalysisTraceID + "_NetworkAnalysis.log\"";
                 p.Start();
                 string sOut = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
-                List<string> sNetworkAnalysis = new List<string>(File.ReadAllLines(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log"));
+                List<string> sNetworkAnalysis = new List<string>(File.ReadAllLines(AnalysisDir + AnalysisTraceID + "_NetworkAnalysis.log"));
                 sNetworkAnalysis.RemoveRange(0, 6);
                 sNetworkAnalysis.RemoveRange(sNetworkAnalysis.Count - 6, 6);
                 for (int i = 0; i < sNetworkAnalysis.Count; i++)
                     sNetworkAnalysis[i] = sNetworkAnalysis[i].TrimStart(' ');
-                File.WriteAllLines(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log", sNetworkAnalysis);
+                File.WriteAllLines(AnalysisDir + AnalysisTraceID + "_NetworkAnalysis.log", sNetworkAnalysis);
                 txtNetworkAnalysis.Invoke(new System.Action(() => txtNetworkAnalysis.Text = string.Join("\r\n", sNetworkAnalysis.ToArray())));
-                AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log");
-                AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log");
+                AddFileFromFolderIfAnlyzingZip(AnalysisDir + AnalysisTraceID + "_NetworkAnalysis.log");
+                AddFileFromFolderIfAnlyzingZip(AnalysisDir + AnalysisTraceID + "_NetworkAnalysis.diag.log");
                 if (txtFolderZipForAnalysis.Text.EndsWith(".zip"))
                 {
                     foreach (string file in Directory.EnumerateFiles(m_analysisPath, AnalysisTraceID + "*.etl"))

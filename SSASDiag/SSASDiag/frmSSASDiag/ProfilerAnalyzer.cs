@@ -104,7 +104,7 @@ namespace SSASDiag
                     lblProfilerAnalysisStatusRight.Text = dt.Rows.Count + " row" + (dt.Rows.Count > 1 ? "s" : "") + " returned.";
                     Int64 TotalDuration = 0;
                     DateTime minStart = DateTime.MaxValue, maxEnd = DateTime.MinValue;
-                    if (dgdProfilerAnalyses.Columns["Duration"] != null || dgdProfilerAnalyses.Columns["StartTime"] != null || dgdProfilerAnalyses.Columns["EndTime"] != null || dgdProfilerAnalyses.Columns["CurrentTime"] != null)
+                    if (dgdProfilerAnalyses.Columns["Duration"] != null || dgdProfilerAnalyses.Columns["StartTime"] != null || dgdProfilerAnalyses.Columns["EndTime"] != null || dgdProfilerAnalyses.Columns["CurrentTime"] != null || dgdProfilerAnalyses.Columns["Requests Completed"] != null)
                     {
                         foreach (DataGridViewRow r in dgdProfilerAnalyses.Rows)
                         {
@@ -124,6 +124,13 @@ namespace SSASDiag
                                     }
                                     else
                                         maxEnd = rowTime;
+                            if (dgdProfilerAnalyses.Columns["Requests Completed"] != null && 
+                                Convert.ToInt32(r.Cells["Requests Completed"].FormattedValue as string) < Convert.ToInt32(r.Cells["Execution Count"].FormattedValue as string))
+                            {
+                                r.Cells["Execution Count"].Style.ForeColor = r.Cells["Requests Completed"].Style.ForeColor = Color.Red;
+                                r.Cells["Total Duration"].Style.ForeColor = Color.Red;
+                                r.Cells["Total Duration"].ToolTipText = "This duration is calculated only until the end of the trace for some requests since not all of these requests completed.";
+                            }
                             if (dgdProfilerAnalyses.Columns["CurrentTime"] != null && r.Cells["CurrentTime"].FormattedValue as string != "")
                                 if (!DateTime.TryParse(r.Cells["CurrentTime"].Value.ToString(), out rowTime) || rowTime != DateTime.MinValue)
                                     if (rowTime == DateTime.MinValue)  // When we have a row that never finished

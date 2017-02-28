@@ -347,12 +347,13 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData
-        ///FROM [Table_v]
-        ///WHERE EventClass = 16
-        ///GROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName
-        ///HAVING SUM(Duration) &gt; 0
-        ///ORDER BY SUM(Duration) DESC.
+        ///   Looks up a localized string similar to select top 100 count(*) as [Execution Count], sum(a.Duration) [Total Duration], convert(nvarchar(max), b.TextData) TextData, sum(RequestCompleted) [Requests Completed]
+        ///from [Table_QueriesAndCommandsIncludingIncomplete] a, 
+        ///[Table_v] b
+        ///where a.EventClass in (16, -15) and (b.RowNumber = a.EndRow or (b.RowNumber = a.StartRow and a.EndRow is null)) and b.StartTime = a.StartTime and b.ConnectionID = a.ConnectionID
+        ///group by convert(nvarchar(max), b.TextData)
+        ///having sum(a.Duration) &gt; 0
+        ///order by sum(a.Duratio [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryMostCollectivelyExpensiveCommands {
             get {
@@ -361,12 +362,12 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData
-        ///FROM [Table_v]
-        ///WHERE EventClass &lt;&gt; 42-- skip ExistingSession durations
-        ///GROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName
-        ///HAVING SUM(Duration) &gt; 0
-        ///ORDER BY SUM(Duration) DESC.
+        ///   Looks up a localized string similar to select top 100 count(*) as ExecutionCount, sum(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData
+        ///from [Table_v]
+        ///where EventClass not in (39, 42) -- skip ExistingSession and Notification durations
+        ///group by TextData, EventClass, EventClassName, EventSubclass, EventSubclassName
+        ///having sum(Duration) &gt; 0
+        ///order by sum(Duration) desc.
         /// </summary>
         internal static string QueryMostCollectivelyExpensiveEvents {
             get {
@@ -375,12 +376,13 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData
-        ///FROM [Table_v]
-        ///WHERE EventClass = 10
-        ///GROUP BY TextData, EventClass, EventClassName, EventSubclass, EventSubclassName
-        ///HAVING SUM(Duration) &gt; 0
-        ///ORDER BY SUM(Duration) DESC.
+        ///   Looks up a localized string similar to select top 100 count(*) as [Execution Count], sum(a.Duration) [Total Duration], convert(nvarchar(max), b.TextData) TextData, sum(RequestCompleted) [Requests Completed]
+        ///from [Table_QueriesAndCommandsIncludingIncomplete] a, 
+        ///[Table_v] b
+        ///where a.EventClass in (10, -9) and (b.RowNumber = a.EndRow or (b.RowNumber = a.StartRow and a.EndRow is null)) and b.StartTime = a.StartTime and b.ConnectionID = a.ConnectionID
+        ///group by convert(nvarchar(max), b.TextData)
+        ///having sum(a.Duration) &gt; 0
+        ///order by sum(a.Duration [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryMostCollectivelyExpensiveQueries {
             get {
