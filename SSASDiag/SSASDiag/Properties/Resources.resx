@@ -693,65 +693,39 @@ CREATE DATABASE [&lt;dbname/&gt;]
 	 ) / 2 AS [Median Command Duration]) h</value>
   </data>
   <data name="QueryFESEStats" xml:space="preserve">
-    <value>SELECT StartRow, EndRow, QueryDuration, StorageEngineTime, QueryDuration - StorageEngineTime FormulaEngineTime, SEPct, 100 - SEPct FEPct, StartRow, EndRow, StartTime, EndTime, ConnectionID, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, SPID, NTUserName, NTDomainName
-FROM [Table_QueryStats]
-ORDER BY QueryDuration</value>
+    <value>select top 100 b.StartRow, b.EndRow, b.Duration, b.Duration - b.[Formula Engine Time] [Storage Engine Time],  b.StartTime, b.RequestCompleted, 
+c.DatabaseName, c.NTUserName, c.NTDomainName, convert(nvarchar(max), c.TextData) TextData, c.SessionID, c.NTCanonicalUserName, c.SPID, c.ServerName, c.ActivityID, c.RequestID, c.ClientProcessID, c.ApplicationName, convert(nvarchar(max), c.RequestParameters) RequestParameters, convert(nvarchar(max), c.RequestProperties) RequestProperties, ClientHostName
+from 
+(
+	select a.*, 
+	(
+		select sum(Duration) 
+		from [Table] 
+		where EventClass = 11 and ConnectionID = a.ConnectionID and RowNumber between a.StartRow and a.EndRow
+	) [Formula Engine Time]
+	from [Table_QueriesAndCommandsIncludingIncomplete] a where EventClass in (10, -10)
+) b,
+[Table] c where c.RowNumber = case when b.EndRow is null then b.StartRow else b.EndRow end order by Duration desc</value>
   </data>
   <data name="QueryLongestRunningCommands" xml:space="preserve">
-    <value>SELECT TOP 100 * FROM
-(
-	SELECT Duration, CPUTime, CONVERT(NVARCHAR(MAX), StartTime, 21) StartTime, CONVERT(NVARCHAR(MAX), CurrentTime, 21) as EndTime, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, RowNumber
-	FROM [Table_v]
-	WHERE EventClass = 16
-	UNION
-	SELECT a.[Time Captured in Trace] Duration, b.CPUTime, b.StartTime, 'Command incomplete' EndTime, b.DatabaseName, CONVERT(NVARCHAR(MAX), b.TextData) TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, CONVERT(NVARCHAR(MAX), b.RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), b.RequestProperties) RequestProperties, b.RowNumber
-	FROM
-	(
-		SELECT MAX(RowNumber) RowNumber,
-		DATEDIFF("ms", MAX(StartTime),
-			(
-				SELECT MAX(CurrentTime)
-				FROM [Table]
-			)
-		)[Time Captured in Trace]
-		FROM [Table_v] a
-		WHERE EventClass IN(15, 16) AND NOT StartTime IS NULL
-		GROUP BY a.StartTime, ConnectionID, TextData
-		HAVING COUNT(*) = 1
-	) a,
-	[Table_v] b
-	WHERE b.RowNumber = a.RowNumber
-	AND b.EventClass &lt;&gt;16
-) r
-ORDER BY Duration DESC</value>
+    <value>select top 100 a.StartRow, a.EndRow, 
+a.Duration, convert(nvarchar(max), a.StartTime, 21) StartTime, 
+case when a.RequestCompleted = 0 then 'Command Incomplete' else convert(nvarchar(max), b.CurrentTime, 21) end EndTime,
+b.DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+from [Table_QueriesAndCommandsIncludingIncomplete] a,
+[Table] b
+where b.ConnectionID = a.ConnectionID and ((b.RowNumber = a.StartRow  and a.EndRow is null) or b.RowNumber = a.EndRow) and a.EventClass in (16, -16)
+order by duration desc</value>
   </data>
   <data name="QueryLongestRunningQueries" xml:space="preserve">
-    <value>SELECT TOP 100 * FROM
-(
-	SELECT Duration, CPUTime, CONVERT(NVARCHAR(MAX), StartTime, 21) StartTime, CONVERT(NVARCHAR(MAX), CurrentTime, 21) as EndTime, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, RowNumber
-	FROM [Table_v]
-	WHERE EventClass = 10
-	UNION
-	SELECT a.[Time Captured in Trace] Duration, b.CPUTime, b.StartTime, 'Query incomplete' EndTime, b.DatabaseName, CONVERT(NVARCHAR(MAX), b.TextData) TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, CONVERT(NVARCHAR(MAX), b.RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), b.RequestProperties) RequestProperties, b.RowNumber
-	FROM
-	(
-		SELECT MAX(RowNumber) RowNumber,
-		DATEDIFF("ms", MAX(StartTime),
-			(
-				SELECT MAX(CurrentTime)
-				FROM [Table]
-			)
-		)[Time Captured in Trace]
-		FROM [Table_v] a
-		WHERE EventClass IN(9, 10) AND NOT StartTime IS NULL
-		GROUP BY a.StartTime, ConnectionID, TextData
-		HAVING COUNT(*) = 1
-	) a,
-	[Table_v] b
-	WHERE b.RowNumber = a.RowNumber
-	AND b.EventClass &lt;&gt;10
-) r
-ORDER BY Duration DESC</value>
+    <value>select top 100 a.StartRow, a.EndRow, 
+a.Duration, convert(nvarchar(max), a.StartTime, 21) StartTime, 
+case when a.RequestCompleted = 0 then 'Query Incomplete' else convert(nvarchar(max), b.CurrentTime, 21) end EndTime,
+b.DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+from [Table_QueriesAndCommandsIncludingIncomplete] a,
+[Table] b
+where b.ConnectionID = a.ConnectionID and ((b.RowNumber = a.StartRow  and a.EndRow is null) or b.RowNumber = a.EndRow) and a.EventClass in (10, -10)
+order by duration desc</value>
   </data>
   <data name="QueryMostCollectivelyExpensiveCommands" xml:space="preserve">
     <value>SELECT TOP 100 COUNT(*) as ExecutionCount, SUM(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData

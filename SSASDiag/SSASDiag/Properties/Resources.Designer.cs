@@ -308,9 +308,11 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT StartRow, EndRow, QueryDuration, StorageEngineTime, QueryDuration - StorageEngineTime FormulaEngineTime, SEPct, 100 - SEPct FEPct, StartRow, EndRow, StartTime, EndTime, ConnectionID, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, SPID, NTUserName, NTDomainName
-        ///FROM [Table_QueryStats]
-        ///ORDER BY QueryDuration.
+        ///   Looks up a localized string similar to select top 100 b.StartRow, b.EndRow, b.Duration, b.Duration - b.[Formula Engine Time] [Storage Engine Time],  b.StartTime, b.RequestCompleted, 
+        ///c.DatabaseName, c.NTUserName, c.NTDomainName, convert(nvarchar(max), c.TextData) TextData, c.SessionID, c.NTCanonicalUserName, c.SPID, c.ServerName, c.ActivityID, c.RequestID, c.ClientProcessID, c.ApplicationName, convert(nvarchar(max), c.RequestParameters) RequestParameters, convert(nvarchar(max), c.RequestProperties) RequestProperties, ClientHostName
+        ///from 
+        ///(
+        ///	 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryFESEStats {
             get {
@@ -319,13 +321,11 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT TOP 100 * FROM
-        ///(
-        ///	SELECT Duration, CPUTime, CONVERT(NVARCHAR(MAX), StartTime, 21) StartTime, CONVERT(NVARCHAR(MAX), CurrentTime, 21) as EndTime, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, RowNumber
-        ///	FROM [Table_v]
-        ///	WHERE EventClass = 16
-        ///	UNION
-        ///	SELECT a.[Time Captured in Trace] Dura [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to select top 100 a.StartRow, a.EndRow, 
+        ///a.Duration, convert(nvarchar(max), a.StartTime, 21) StartTime, 
+        ///case when a.RequestCompleted = 0 then &apos;Command Incomplete&apos; else convert(nvarchar(max), b.CurrentTime, 21) end EndTime,
+        ///b.DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+        ///from [Table_Que [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryLongestRunningCommands {
             get {
@@ -334,13 +334,11 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT TOP 100 * FROM
-        ///(
-        ///	SELECT Duration, CPUTime, CONVERT(NVARCHAR(MAX), StartTime, 21) StartTime, CONVERT(NVARCHAR(MAX), CurrentTime, 21) as EndTime, DatabaseName, CONVERT(NVARCHAR(MAX), TextData) TextData, ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, CONVERT(NVARCHAR(MAX), RequestParameters) RequestParameters, CONVERT(NVARCHAR(MAX), RequestProperties) RequestProperties, RowNumber
-        ///	FROM [Table_v]
-        ///	WHERE EventClass = 10
-        ///	UNION
-        ///	SELECT a.[Time Captured in Trace] Dura [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to select top 100 a.StartRow, a.EndRow, 
+        ///a.Duration, convert(nvarchar(max), a.StartTime, 21) StartTime, 
+        ///case when a.RequestCompleted = 0 then &apos;Query Incomplete&apos; else convert(nvarchar(max), b.CurrentTime, 21) end EndTime,
+        ///b.DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+        ///from [Table_Queri [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryLongestRunningQueries {
             get {
