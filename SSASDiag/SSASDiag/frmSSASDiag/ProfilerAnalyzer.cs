@@ -104,7 +104,8 @@ namespace SSASDiag
                     lblProfilerAnalysisStatusRight.Text = dt.Rows.Count + " row" + (dt.Rows.Count > 1 ? "s" : "") + " returned.";
                     Int64 TotalDuration = 0;
                     DateTime minStart = DateTime.MaxValue, maxEnd = DateTime.MinValue;
-                    if (dgdProfilerAnalyses.Columns["Duration"] != null || dgdProfilerAnalyses.Columns["StartTime"] != null || dgdProfilerAnalyses.Columns["EndTime"] != null || dgdProfilerAnalyses.Columns["CurrentTime"] != null || dgdProfilerAnalyses.Columns["Requests Completed"] != null)
+                    if (dgdProfilerAnalyses.Columns["Duration"] != null || dgdProfilerAnalyses.Columns["StartTime"] != null || dgdProfilerAnalyses.Columns["EndTime"] != null 
+                        || dgdProfilerAnalyses.Columns["CurrentTime"] != null || dgdProfilerAnalyses.Columns["Requests Completed"] != null)
                     {
                         foreach (DataGridViewRow r in dgdProfilerAnalyses.Rows)
                         {

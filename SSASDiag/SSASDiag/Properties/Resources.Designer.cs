@@ -393,8 +393,8 @@ namespace SSASDiag.Properties {
         /// <summary>
         ///   Looks up a localized string similar to -- Returns a ranking of all queries and commands completed within the trace by the number of other queries and commands that overlap the original query or command in question.
         ///-- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.
-        ///
-        ///select b.[Overlapping Query Count], a.RowNumber, EventClass, EventClassName, StartTime, CurrentTime EndTime, Duration, CPUTime, ConnectionID, NTUserName, NTDomainName, DatabaseName, TextData, ClientP [rest of string was truncated]&quot;;.
+        ///-- Using the QueriesAndCommandIncludingIncomplete view exposed in the underlying db, it includes requests that didn&apos;t complete even without their end events, calculating duration
+        ///select top 100 b.[Ove [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryMostImpactfulQueriesCommands {
             get {
@@ -436,10 +436,8 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to select a.RowNumber, EventClass, EventClassName, a.ConnectionID, Duration, a.StartTime, a.CurrentTime, upper(sys.fn_varbintohexstr(convert(varbinary(8), Error))) [Error Code], DatabaseName, convert(nvarchar(max), TextData) TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
-        ///from [2012CommandsAndQueriesDiscover_v] a,
-        ///    (
-        ///        select RowNumber, ConnectionID, S [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to select a.RowNumber, EventClass, EventClassName, a.ConnectionID, Duration, convert(nvarchar(max), a.StartTime, 21) StartTime, convert(nvarchar(max), a.CurrentTime, 21) CurrentTime, upper(sys.fn_varbintohexstr(convert(varbinary(8), Error))) [Error Code], DatabaseName, convert(nvarchar(max), TextData) TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+        ///from [2012Comm [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryQueriesCommandsWithErrors {
             get {
