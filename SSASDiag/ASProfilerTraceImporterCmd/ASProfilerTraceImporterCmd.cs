@@ -177,8 +177,6 @@ namespace ASProfilerTraceImporterCmd
                         SetText("Building index and adding views...");
                         SetText("Done loading " + String.Format("{0:#,##0}", (RowCount)) + " rows in " + Math.Round((DateTime.Now - startTime).TotalSeconds, 1) + "s.");
                         cols = SqlCommandInfiniteConstructor("SELECT SUBSTRING((SELECT ', t.' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn2).ExecuteScalar() as string;
-                        bool bEventViewCreated = false;
-                        bool bStatsViewCreated = false;
                         try
                         {
                             SqlCommandInfiniteConstructor(Properties.Resources.EventClassSubClassTablesScript, conn2).ExecuteNonQuery();
@@ -186,7 +184,6 @@ namespace ASProfilerTraceImporterCmd
                             SqlCommandInfiniteConstructor("create view [" + Table + "_v] as select t.[RowNumber], " + cols.Replace("t.[EventClass]", "c.[Name] as EventClassName, t.EventClass").Replace("t.[EventSubclass]", "s.[Name] as EventSubclassName, t.EventSubclass").Replace("t.[TextData]", "convert(nvarchar(max), t.[TextData]) TextData") + " from [" + Table + "]  t left outer join ProfilerEventClass c on c.EventClassID = t.EventClass left outer join ProfilerEventSubclass s on s.EventClassID = t.EventClass and s.EventSubclassID = t.EventSubclass;", conn2).ExecuteNonQuery();
                             SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "_QueriesAndCommandsIncludingIncomplete') drop view [" + Table + "_IncompleteQueriesAndCommands];", conn2).ExecuteNonQuery();
                             SqlCommandInfiniteConstructor("create view [" + Table + "_QueriesAndCommandsIncludingIncomplete] as select StartRow, EndRow, Duration, EventClass, case when EventClass in (-10, -16) then 0 else 1 end as RequestCompleted, ConnectionID, StartTime from (select min(RowNumber) StartRow, max(RowNumber) EndRow, sum(Duration) Duration, max(EventClass) EventClass, ConnectionID, StartTime from [" + Table + "] where EventClass in (9, 10, 15, 16) group by ConnectionID, StartTime having count(*) = 2 union select StartRow, EndRow, a.[Time Captured in Trace] Duration, -EventClass - (case when EventClass % 2 = 1 then 1 else -1 end) EventClass, ConnectionID, StartTime from(select case when max(EventClass) in (9, 15) then max(RowNumber) else null end StartRow, case when max(EventClass) in (10, 16) then max(RowNumber) else null end EndRow, datediff(\"ms\", max(StartTime),(select max(CurrentTime) from[" + Table + "])) [Time Captured in Trace] from [" + Table + "] a where EventClass in (9, 10, 15, 16) and not StartTime is null group by a.StartTime, ConnectionID having count(*) = 1) a, [" + Table + "] b where b.RowNumber = a.StartRow) a", conn2).ExecuteNonQuery();
-                            bEventViewCreated = true;
                         }
                         catch (Exception ex)
                         {
@@ -195,6 +192,8 @@ namespace ASProfilerTraceImporterCmd
                         }
                         SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "EventClassIndex') drop view [" + Table + "EventClassIndex];", conn2).ExecuteNonQuery();
                         SqlCommandInfiniteConstructor("create index [" + Table + "EventClassIndex] on [" + Table + "] (EventClass)", conn2).ExecuteNonQuery();
+                        SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "ConnectionStarTimeIndex') drop view [" + Table + "ConnectionStarTimeIndex];", conn2).ExecuteNonQuery();
+                        SqlCommandInfiniteConstructor("create nonclustered index [" + Table + "ConnectionStarTimeIndex] on [" + Table + "] (ConnectionID, StartTime)", conn2).ExecuteNonQuery();
                         string strQry = "";
                         try
                         {
@@ -204,7 +203,6 @@ namespace ASProfilerTraceImporterCmd
                             {
                                 strQry = "create view [" + Table + "_QueryStats] as select e.QueryDuration, e.StorageEngineTime, e.QueryDuration - e.StorageEngineTime FormulaEngineTime, iif(e.QueryDuration > 0, cast(((1.0 * e.StorageEngineTime) / e.QueryDuration) * 100 as decimal(18,2)), 0) SEPct, s.RowNumber StartRow, e.EndRow, s.StartTime, e.EndTime, s.ConnectionID, s.DatabaseName, convert(nvarchar(max), s.Textdata) TextData, s.RequestParameters, s.RequestProperties, s.SPID, s.NTUserName, s.NTDomainName from [" + Table + "] s, (select max(duration) StorageEngineTime, startrow, endrow, d.EndTime, QueryDuration from (select c.Duration QueryDuration, c.StartRow, c.EndRow, d.RowNumber, d.EventClass, d.EventSubClass, d.TextData, d.ConnectionID, d.DatabaseName, d.StartTime, d.CurrentTime, c.EndTime, d.Duration from [" + Table + "] d, (select b.EndRow, b.ConnectionID, b.Duration, a.RowNumber as StartRow, b.EndTime from [" + Table + "] a, (select RowNumber EndRow, connectionid, textdata, starttime, currenttime endtime, duration from [" + Table + "] where eventclass = 10) b where a.eventclass = 9 and a.connectionid = b.connectionid and a.currenttime = b.starttime and convert(nvarchar(max), a.textdata) = convert(nvarchar(max), b.textdata)) c where d.ConnectionID = c.ConnectionID and d.RowNumber >= c.StartRow and d.RowNumber <= c.EndRow) d where eventclass = 11 group by startrow, endrow, connectionid, endtime, QueryDuration) e where s.rownumber = e.StartRow";
                                 SqlCommandInfiniteConstructor(strQry, conn2).ExecuteNonQuery();
-                                bStatsViewCreated = true;
                             }
                             System.Diagnostics.Trace.WriteLine("QuerySubcube count: " + QuerySubcubeEvents);
                         }
@@ -214,12 +212,7 @@ namespace ASProfilerTraceImporterCmd
                             SetText("Query was: " + strQry);
                         }
                         SetText("Merged " + (CurFile + 1).ToString() + " files.");
-                        if (!bStatsViewCreated || !bEventViewCreated)
-                            SetText(!bStatsViewCreated && !bEventViewCreated ? "Missing QuerySubcube and EventClass or Subclass columns.  Unable to calculate query stats/event names views." :
-                                bStatsViewCreated ? "Created query statistics view [" + Table + "_QueryStats].\r\nMissing EventClass or Subclass columns.  Unable to calculate event names view." :
-                                "Created event names view [" + Table + "_v].\r\nMissing QuerySubcube columns.  Unable to calculate query stats view.");
-                        else
-                            SetText("Created query statistics view [" + Table + "_QueryStats].\r\nCreated event names view [" + Table + "_v].");
+                        SetText("Created view including incomplete commands and queries at [" + Table + "_QueriesAndCommandsIncludingIncomplete].\r\nCreated event names view [" + Table + "_v].");
                     }
                     conn2.Close();
                     if (!bCancel)

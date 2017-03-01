@@ -173,7 +173,7 @@ namespace SSASDiag
                     {
                         mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("-"));
                         mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem(string.Format("Find all queries/commands overlapping with selection"), ProfilerAnalysisContextMenu_Click));
-                        if (cmbProfilerAnalyses.Text.ToLower().Contains("quer") && bProfilerQueryStatsPresent)
+                        if (cmbProfilerAnalyses.Text.ToLower().Contains("quer"))
                             mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem(string.Format("Lookup query statistics for selected queries"), ProfilerAnalysisContextMenu_Click));
                         mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem(string.Format("Lookup detail rows for selected queries/commands"), ProfilerAnalysisContextMenu_Click));
                     }
@@ -380,10 +380,7 @@ namespace SSASDiag
                 foreach (int row in rows)
                 {
                     string strBase = "";
-                    if (!bProfilerQueryStatsPresent)
-                        strBase = ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.DrillThroughQueryAllRowsForQueryOrCommand).Replace("<RowNumber/>", Convert.ToString(row));
-                    else
-                        strBase = Properties.Resources.DrillThroughQueryAllRowsForQueryOrCommand.Replace("[Table", "[" + AnalysisTraceID).Replace("<RowNumber/>", Convert.ToString(row));
+                    strBase = ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(Properties.Resources.DrillThroughQueryAllRowsForQueryOrCommand).Replace("<RowNumber/>", Convert.ToString(row));
                     strQry += (strQry == "" ? strBase : "\r\nunion\r\n" + strBase);
                 }
                 txtProfilerAnalysisQuery.Text = strQry + "\r\norder by RowNumber";

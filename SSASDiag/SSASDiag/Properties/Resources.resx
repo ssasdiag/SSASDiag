@@ -693,19 +693,27 @@ CREATE DATABASE [&lt;dbname/&gt;]
 	 ) / 2 AS [Median Command Duration]) h</value>
   </data>
   <data name="QueryFESEStats" xml:space="preserve">
-    <value>select top 100 b.StartRow, b.EndRow, b.Duration, b.Duration - b.[Formula Engine Time] [Storage Engine Time],  b.StartTime, b.RequestCompleted, 
-c.DatabaseName, c.NTUserName, c.NTDomainName, convert(nvarchar(max), c.TextData) TextData, c.SessionID, c.NTCanonicalUserName, c.SPID, c.ServerName, c.ActivityID, c.RequestID, c.ClientProcessID, c.ApplicationName, convert(nvarchar(max), c.RequestParameters) RequestParameters, convert(nvarchar(max), c.RequestProperties) RequestProperties, ClientHostName
-from 
+    <value>select a.StartRow, a.EndRow, a.Duration, round(b.[FE], 2) [Formula Engine %], round(b.[SE], 2) [Storage Engine %], convert(nvarchar(max), a.StartTime, 21) StartTime, convert(nvarchar(max), c.CurrentTime, 21) EndTime, DatabaseName, convert(nvarchar(max), c.TextData) TextData, a.ConnectionID, c.NTUserName, c.NTDomainName, c.ApplicationName, c.ClientProcessID, c.SPID, convert(nvarchar(max), c.RequestParameters) RequestParameters, convert(nvarchar(max), c.RequestProperties) RequestProperties
+from [Table_QueriesAndCommandsIncludingIncomplete] a,
 (
-	select a.*, 
-	(
-		select sum(Duration) 
-		from [Table] 
-		where EventClass = 11 and ConnectionID = a.ConnectionID and RowNumber between a.StartRow and a.EndRow
-	) [Formula Engine Time]
-	from [Table_QueriesAndCommandsIncludingIncomplete] a where EventClass in (10, -10)
-) b,
-[Table] c where c.RowNumber = case when b.EndRow is null then b.StartRow else b.EndRow end order by Duration desc</value>
+select ConnectionID, StartTime, isnull(FE, 0)/convert(float, (isnull(SE, 0)+isnull(FE, 0))) * 100 [FE], isnull(SE, 0)/convert(float, (isnull(SE, 0)+isnull(FE, 0))) * 100 [SE] from 
+(
+select sum(duration) Duration, SETime, ConnectionID, StartTime from
+(
+select isnull(sum(b.Duration), 0) Duration, 
+case when b.EventClass in (10, 11) then 'SE' else 'FE' end SETime, 
+a.ConnectionID, a.StartTime from [Table_QueriesAndCommandsIncludingIncomplete] a, [Table] b
+where b.RowNumber &gt; a.StartRow and b.RowNumber &lt; a.EndRow
+and b.ConnectionID = a.ConnectionID 
+group by b.EventClass, a.StartTime, a.ConnectionID
+having sum(b.Duration) &gt; 0
+) a group by SETime, ConnectionID, StartTime
+) p
+pivot (sum(Duration) for SETime in (SE, FE)) pvt
+) b, 
+[Table] c
+where a.ConnectionID = b.ConnectionID and a.StartTime = b.StartTime and c.RowNumber = a.EndRow
+order by Duration desc</value>
   </data>
   <data name="QueryLongestRunningCommands" xml:space="preserve">
     <value>select top 100 a.StartRow, case when a.EndRow is null then 'Command Incomplete' else convert(nvarchar(max), a.EndRow) end EndRow,
