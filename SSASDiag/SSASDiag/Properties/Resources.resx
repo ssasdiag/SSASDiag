@@ -693,7 +693,7 @@ CREATE DATABASE [&lt;dbname/&gt;]
 	 ) / 2 AS [Median Command Duration]) h</value>
   </data>
   <data name="QueryFESEStats" xml:space="preserve">
-    <value>select a.StartRow, a.EndRow, a.Duration, round(b.[FE], 2) [Formula Engine %], round(b.[SE], 2) [Storage Engine %], convert(nvarchar(max), a.StartTime, 21) StartTime, convert(nvarchar(max), c.CurrentTime, 21) EndTime, DatabaseName, convert(nvarchar(max), c.TextData) TextData, a.ConnectionID, c.NTUserName, c.NTDomainName, c.ApplicationName, c.ClientProcessID, c.SPID, convert(nvarchar(max), c.RequestParameters) RequestParameters, convert(nvarchar(max), c.RequestProperties) RequestProperties
+    <value>select top 100 a.StartRow, a.EndRow, a.Duration, round(b.[FE], 2) [Formula Engine %], round(b.[SE], 2) [Storage Engine %], convert(nvarchar(max), a.StartTime, 21) StartTime, convert(nvarchar(max), c.CurrentTime, 21) EndTime, DatabaseName, convert(nvarchar(max), c.TextData) TextData, a.ConnectionID, c.NTUserName, c.NTDomainName, c.ApplicationName, c.ClientProcessID, c.SPID, convert(nvarchar(max), c.RequestParameters) RequestParameters, convert(nvarchar(max), c.RequestProperties) RequestProperties
 from [Table_QueriesAndCommandsIncludingIncomplete] a,
 (
 select ConnectionID, StartTime, isnull(FE, 0)/convert(float, (isnull(SE, 0)+isnull(FE, 0))) * 100 [FE], isnull(SE, 0)/convert(float, (isnull(SE, 0)+isnull(FE, 0))) * 100 [SE] from 

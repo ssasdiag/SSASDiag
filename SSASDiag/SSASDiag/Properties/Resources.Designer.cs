@@ -308,8 +308,8 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to select a.StartRow, a.EndRow, a.Duration, round(b.[FE], 2) [Formula Engine %], round(b.[SE], 2) [Storage Engine %], convert(nvarchar(max), a.StartTime, 21) StartTime, convert(nvarchar(max), c.CurrentTime, 21) EndTime, DatabaseName, convert(nvarchar(max), c.TextData) TextData, a.ConnectionID, c.NTUserName, c.NTDomainName, c.ApplicationName, c.ClientProcessID, c.SPID, convert(nvarchar(max), c.RequestParameters) RequestParameters, convert(nvarchar(max), c.RequestProperties) RequestProperties
-        ///from [Table_Querie [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to select top 100 a.StartRow, a.EndRow, a.Duration, round(b.[FE], 2) [Formula Engine %], round(b.[SE], 2) [Storage Engine %], convert(nvarchar(max), a.StartTime, 21) StartTime, convert(nvarchar(max), c.CurrentTime, 21) EndTime, DatabaseName, convert(nvarchar(max), c.TextData) TextData, a.ConnectionID, c.NTUserName, c.NTDomainName, c.ApplicationName, c.ClientProcessID, c.SPID, convert(nvarchar(max), c.RequestParameters) RequestParameters, convert(nvarchar(max), c.RequestProperties) RequestProperties
+        ///from [Tabl [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryFESEStats {
             get {
