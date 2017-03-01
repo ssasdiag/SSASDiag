@@ -125,6 +125,12 @@ namespace SSASDiag
                                     }
                                     else
                                         maxEnd = rowTime;
+                            if (dgdProfilerAnalyses.Columns["EndRow"] != null && r.Cells["EndRow"].FormattedValue as string == "")
+                            {
+                                maxEnd = EndOfTrace;
+                                r.Cells["Duration"].Style.ForeColor = Color.Red;
+                                r.Cells["Duration"].ToolTipText = "This duration is calculated only until the end of the trace since the request never completed.";
+                            }
                             if (dgdProfilerAnalyses.Columns["Requests Completed"] != null && 
                                 Convert.ToInt32(r.Cells["Requests Completed"].FormattedValue as string) < Convert.ToInt32(r.Cells["Execution Count"].FormattedValue as string))
                             {

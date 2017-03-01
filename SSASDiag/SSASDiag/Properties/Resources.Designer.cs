@@ -406,8 +406,7 @@ namespace SSASDiag.Properties {
         ///   Looks up a localized string similar to -- These sessions were active when the trace started and never showed any begin or end events.
         ///-- This can indicate the sessions were already active and remained active without ever completing.
         ///-- If heavy load isn&apos;t otherwise detectable in a trace, check with users of possible runaway sessions.
-        ///
-        ///select &apos;Existing Session&apos; as EventClassName, StartTime, Duration as [Session Duration at TraceStart], ConnectionID, NTUserName, NTDomainName, DatabaseName, SPID, TextData as [Session Roles], ClientProcessID, Ap [rest of string was truncated]&quot;;.
+        ///select &apos;Existing Session&apos; as EventClassName, convert(nvarchar(max), StartTime, 21) StartTime, Duration as [Session Duration at TraceStart], ConnectionID, NTUserName, NTDomainName, DatabaseName, SPID, TextData as  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryPossibleRunawaySessions {
             get {
@@ -416,18 +415,10 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT a.[Time Captured in Trace], b.RowNumber StartRow, b.EventClassName, b.EventClass, b.StartTime, b.DatabaseName, b.TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ClientProcessID, b.ApplicationName, b.EventSubclassName, b.EventSubclass, SPID, RequestParameters, RequestProperties
-        ///FROM
-        ///(
-        ///	SELECT MAX(RowNumber) RowNumber,
-        ///	DATEDIFF(&quot;ms&quot;, MAX(StartTime),
-        ///		(
-        ///			SELECT MAX(CurrentTime)
-        ///			FROM [Table]
-        ///		)
-        ///	)[Time Captured in Trace]
-        ///	FROM [Table_v] a
-        ///	WHERE EventClass IN(9, 10, 15, 16) A [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to select  StartRow, EndRow, a.Duration, a.StartTime, EndTime, DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+        ///from [Table_QueriesAndCommandsIncludingIncomplete] a,
+        ///[Table] b
+        ///where EndRow is null and b.RowNumber = a.StartRow.
         /// </summary>
         internal static string QueryQueriesCommandsNotCompleted {
             get {

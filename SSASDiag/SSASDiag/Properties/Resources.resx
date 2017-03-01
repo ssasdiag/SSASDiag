@@ -757,42 +757,26 @@ order by sum(a.Duration) desc</value>
     <value>-- These sessions were active when the trace started and never showed any begin or end events.
 -- This can indicate the sessions were already active and remained active without ever completing.
 -- If heavy load isn't otherwise detectable in a trace, check with users of possible runaway sessions.
-
-select 'Existing Session' as EventClassName, StartTime, Duration as [Session Duration at TraceStart], ConnectionID, NTUserName, NTDomainName, DatabaseName, SPID, TextData as [Session Roles], ClientProcessID, ApplicationName, RequestProperties as [Session Properties]
+select 'Existing Session' as EventClassName, convert(nvarchar(max), StartTime, 21) StartTime, Duration as [Session Duration at TraceStart], ConnectionID, NTUserName, NTDomainName, DatabaseName, SPID, TextData as [Session Roles], ClientProcessID, ApplicationName, RequestProperties as [Session Properties]
 from [Table]
 where connectionid not in
 (
-	select connectionid from
+    select connectionid from
 (
-		select connectionID, eventclass from [Table]
-		group by connectionid, eventclass
+        select connectionID, eventclass from [Table]
+        group by connectionid, eventclass
 ) a
-	where a.eventclass in (1, 2, 15, 16, 9, 10) and not ConnectionID is null
+    where a.eventclass in (1, 2, 15, 16, 9, 10) and not ConnectionID is null
 )
 and not databasename is null
 and eventclass = 42
 order by rownumber</value>
   </data>
   <data name="QueryQueriesCommandsNotCompleted" xml:space="preserve">
-    <value>SELECT a.[Time Captured in Trace], b.RowNumber StartRow, b.EventClassName, b.EventClass, b.StartTime, b.DatabaseName, b.TextData, b.ConnectionID, b.NTUserName, b.NTDomainName, b.ClientProcessID, b.ApplicationName, b.EventSubclassName, b.EventSubclass, SPID, RequestParameters, RequestProperties
-FROM
-(
-	SELECT MAX(RowNumber) RowNumber,
-	DATEDIFF("ms", MAX(StartTime),
-		(
-			SELECT MAX(CurrentTime)
-			FROM [Table]
-		)
-	)[Time Captured in Trace]
-	FROM [Table_v] a
-	WHERE EventClass IN(9, 10, 15, 16) AND NOT StartTime IS NULL
-	GROUP BY a.StartTime, ConnectionID, TextData
-	HAVING COUNT(*) = 1
-) a,
-[Table_v] b
-WHERE b.RowNumber = a.RowNumber
-AND b.EventClass NOT IN(10, 16)
-ORDER BY[Time Captured in Trace] DESC</value>
+    <value>select  StartRow, EndRow, a.Duration, a.StartTime, EndTime, DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+from [Table_QueriesAndCommandsIncludingIncomplete] a,
+[Table] b
+where EndRow is null and b.RowNumber = a.StartRow</value>
   </data>
   <data name="QueryQueriesCommandsWithErrors" xml:space="preserve">
     <value>select a.RowNumber, EventClass, EventClassName, a.ConnectionID, Duration, convert(nvarchar(max), a.StartTime, 21) StartTime, convert(nvarchar(max), a.CurrentTime, 21) CurrentTime, upper(sys.fn_varbintohexstr(convert(varbinary(8), Error))) [Error Code], DatabaseName, convert(nvarchar(max), TextData) TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
