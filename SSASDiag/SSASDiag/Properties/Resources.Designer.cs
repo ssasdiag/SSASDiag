@@ -415,7 +415,7 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to select  StartRow, EndRow, a.Duration, a.StartTime, EndTime, DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+        ///   Looks up a localized string similar to select  StartRow, &apos;Request Incomplete&apos; EndRow, a.Duration, a.StartTime, &apos;Request Incomplete&apos; EndTime, DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
         ///from [Table_QueriesAndCommandsIncludingIncomplete] a,
         ///[Table] b
         ///where EndRow is null and b.RowNumber = a.StartRow.

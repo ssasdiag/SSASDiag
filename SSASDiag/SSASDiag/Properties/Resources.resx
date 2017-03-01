@@ -773,7 +773,7 @@ and eventclass = 42
 order by rownumber</value>
   </data>
   <data name="QueryQueriesCommandsNotCompleted" xml:space="preserve">
-    <value>select  StartRow, EndRow, a.Duration, a.StartTime, EndTime, DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+    <value>select  StartRow, 'Request Incomplete' EndRow, a.Duration, a.StartTime, 'Request Incomplete' EndTime, DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
 from [Table_QueriesAndCommandsIncludingIncomplete] a,
 [Table] b
 where EndRow is null and b.RowNumber = a.StartRow</value>
@@ -815,9 +815,9 @@ where c.ConnectionID = d.ConnectionID and c.RowNumber between d.StartRow and d.E
     <value>-- Returns a ranking of all queries and commands completed within the trace by the number of other queries and commands that overlap the original query or command in question.
 -- The highest ranked among these may be likely offending queries or commands that affected other queries or commands on the server.
 -- Using the QueriesAndCommandIncludingIncomplete view exposed in the underlying db, it includes requests that didn't complete even without their end events, calculating duration
-select top 100 b.[Overlapping Query Count], b.OriginalQueryStartRow StartRow, b.OriginalQueryEndRow EndRow, b.OriginalQueryDuration Duration, 
+select top 100 b.[Overlapping Query Count], b.OriginalQueryStartRow StartRow, case when b.OriginalQueryEndRow is null then 'Request Incomplete' else convert(nvarchar(max), b.OriginalQueryEndRow) end EndRow, b.OriginalQueryDuration Duration, 
 case when EventClass in (-9, 9, 10, -10) then 'Query' else 'Command' end RequestType,
-convert(nvarchar(max), StartTime, 21) StartTime, convert(nvarchar(max), CurrentTime, 21) EndTime, DatabaseName, convert(nvarchar(max), TextData) TextData, ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
+convert(nvarchar(max), StartTime, 21) StartTime, case when b.OriginalQueryEndRow is null then 'Request Incomplete' else convert(nvarchar(max), CurrentTime, 21) end EndTime, DatabaseName, convert(nvarchar(max), TextData) TextData, ConnectionID, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
 from [Table_v] a,
 (
     select count(*)[Overlapping Query Count], OriginalQueryStartRow, OriginalQueryEndRow, max(OriginalQueryDuration) OriginalQueryDuration from
