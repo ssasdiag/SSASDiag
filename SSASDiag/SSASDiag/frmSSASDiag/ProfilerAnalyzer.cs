@@ -119,6 +119,8 @@ namespace SSASDiag
                                     if (rowTime == DateTime.MinValue)  // When we have a row that never finished
                                     {
                                         maxEnd = EndOfTrace;
+                                        if (dgdProfilerAnalyses.Columns["EndRow"] != null)
+                                            r.Cells["EndRow"].Style.ForeColor = Color.Red;
                                         r.Cells["EndTime"].Style.ForeColor = Color.Red;
                                         r.Cells["Duration"].Style.ForeColor = Color.Red;
                                         r.Cells["Duration"].ToolTipText = "This duration is calculated only until the end of the trace since the request never completed.";
@@ -309,7 +311,8 @@ namespace SSASDiag
                 {
                     if (dgdProfilerAnalyses.Columns.Contains("RowNumber"))
                         rows.Add(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["RowNumber"].Value as int?);
-                    else if (dgdProfilerAnalyses.Columns.Contains("EndRow") && dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EndRow"].Value != null)
+                    else if (dgdProfilerAnalyses.Columns.Contains("EndRow"))
+                        if (dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EndRow"].Value as int? == null)
                         rows.Add(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EndRow"].Value as int?);
                     else if (dgdProfilerAnalyses.Columns.Contains("StartRow"))
                         rows.Add(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["StartRow"].Value as int?);
@@ -322,7 +325,7 @@ namespace SSASDiag
             cmbProfilerAnalyses.SelectedIndex = 0;
             if ((sender as MenuItem).Text == "Find all queries/commands overlapping with selection")
             {
-                foreach (int row in rows)
+                foreach (int? row in rows)
                 {
                     strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [Table_v] a,\r\n(select StartTime, CurrentTime from [Table] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID)
                                  : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [Table_v] a,\r\n(select StartTime, CurrentTime from [Table] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID));

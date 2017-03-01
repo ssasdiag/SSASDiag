@@ -708,7 +708,7 @@ from
 [Table] c where c.RowNumber = case when b.EndRow is null then b.StartRow else b.EndRow end order by Duration desc</value>
   </data>
   <data name="QueryLongestRunningCommands" xml:space="preserve">
-    <value>select top 100 a.StartRow, a.EndRow, 
+    <value>select top 100 a.StartRow, case when a.EndRow is null then 'Command Incomplete' else convert(nvarchar(max), a.EndRow) end EndRow,
 a.Duration, convert(nvarchar(max), a.StartTime, 21) StartTime, 
 case when a.RequestCompleted = 0 then 'Command Incomplete' else convert(nvarchar(max), b.CurrentTime, 21) end EndTime,
 b.DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
@@ -718,7 +718,7 @@ where b.ConnectionID = a.ConnectionID and ((b.RowNumber = a.StartRow  and a.EndR
 order by duration desc</value>
   </data>
   <data name="QueryLongestRunningQueries" xml:space="preserve">
-    <value>select top 100 a.StartRow, a.EndRow, 
+    <value>select top 100 a.StartRow, case when a.EndRow is null then 'Query Incomplete' else convert(nvarchar(max), a.EndRow) end EndRow, 
 a.Duration, convert(nvarchar(max), a.StartTime, 21) StartTime, 
 case when a.RequestCompleted = 0 then 'Query Incomplete' else convert(nvarchar(max), b.CurrentTime, 21) end EndTime,
 b.DatabaseName, convert(nvarchar(max), TextData) TextData, a.ConnectionID, b.NTUserName, b.NTDomainName, b.ApplicationName, b.ClientProcessID, b.SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
