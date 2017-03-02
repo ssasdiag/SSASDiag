@@ -774,7 +774,7 @@ where connectionid not in
         select connectionID, eventclass from [Table]
         group by connectionid, eventclass
 ) a
-    where a.eventclass in (1, 2, 15, 16, 9, 10) and not ConnectionID is null
+    where a.eventclass in (1, 2, 15, 16, 9, 10, 36, 38) and not ConnectionID is null
 )
 and not databasename is null
 and eventclass = 42

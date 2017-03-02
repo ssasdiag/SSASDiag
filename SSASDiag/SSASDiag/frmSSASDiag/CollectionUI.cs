@@ -84,9 +84,8 @@ namespace SSASDiag
                     ComboBoxServiceDetailsItem SelItem = cbInstances.Invoke(new Func<ComboBoxServiceDetailsItem>(() => { return (cbInstances.SelectedItem as ComboBoxServiceDetailsItem); })) as ComboBoxServiceDetailsItem;
                     if (SelItem != null)
                     {
-                        System.Diagnostics.Trace.WriteLine("Attempting to connect to AS instance for initial details with connection string:\r\n" + "Data source=" + Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text));
                         srv.Connect("Data source=" + Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
-                        System.Diagnostics.Trace.WriteLine("Connected to server.");
+                        System.Diagnostics.Trace.WriteLine("Connected to server with connection string: " + srv.ConnectionString);
                         lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
                         m_instanceType = srv.ServerMode.ToString();
                         m_instanceVersion = srv.Version + " - " + srv.ProductLevel;

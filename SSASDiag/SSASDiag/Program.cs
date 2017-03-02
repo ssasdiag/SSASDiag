@@ -49,11 +49,35 @@ namespace SSASDiag
                 // these may not be loaded initially when are launching the first time outside the sandbox.  So here we will use .NET built in compression, at least always there.
                 foreach (string f in Directory.GetFiles(m_strPrivateTempBinPath))
                     if (f.EndsWith(".zip"))
-                        try
+                    {
+                        int iTries = 0;
+                        while (iTries < 4)
                         {
-                            System.IO.Compression.ZipFile.ExtractToDirectory(f, m_strPrivateTempBinPath);
+                            try
+                            {
+                                System.IO.Compression.ZipFile.ExtractToDirectory(f, m_strPrivateTempBinPath, System.Text.Encoding.ASCII);
+                                break;
+                            }
+                            catch (Exception ex)
+                            {
+                                if (System.Diagnostics.Trace.Listeners.Count == 0)
+                                {
+                                    System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(Environment.CurrentDirectory + "\\SSASDiagDebugTrace_" + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" + ".log"));
+                                    System.Diagnostics.Trace.AutoFlush = true;
+                                    System.Diagnostics.Trace.WriteLine("Started diagnostic trace.");
+                                }
+                                Trace.WriteLine("Error decompressing dependencies for SSASDiag.");
+                                Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                                Trace.WriteLine("Trying again...");
+                                iTries++;
+                            }
                         }
-                        catch (Exception ex) { Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); } // I deliberately ignore this exception.  I may occasionally fail to extract if files are already there due to some prior crashed run or something.  Just move on from it.  If it is truly unrecoverable we will blow up later then.  :)           
+                        if (iTries == 4)
+                            MessageBox.Show("Failure extracting required depenencies to temp folder at " + Environment.GetEnvironmentVariable("temp") +
+                                            "\\SSASDiag.  Unable to start the tool.  Please delete any folders there and try again.", "Error starting SSASDiag",
+                                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    }
                 try
                 {
                     // Initialize the new app domain from temp location...
