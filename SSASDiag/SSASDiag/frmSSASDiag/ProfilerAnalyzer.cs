@@ -50,12 +50,11 @@ namespace SSASDiag
                     StatusFloater.lblTime.Text = "00:00";
                     StatusFloater.EscapePressed = false;
                     lblProfilerAnalysisStatusRight.Text = lblProfilerAnalysisStatusLeft.Text = lblProfilerAnalysisStatusCenter.Text = "";
+                    Enabled = false;
                     AnalysisQueryExecutionPumpTimer.Interval = 1000;
                     AnalysisQueryExecutionPumpTimer.Start();
                     if (!StatusFloater.Visible)
                         StatusFloater.Show(this);
-
-                    SuspendLayout();
                     bgLoadProfilerAnalysis.RunWorkerAsync();
                 }
                 else
@@ -93,6 +92,7 @@ namespace SSASDiag
                             c.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                             c.Width = 300;
                         }
+                    // Ensure last column always fills grid if empty space, but then allows user to change after...
                     if (dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode == DataGridViewAutoSizeColumnMode.None)
                         dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                     if (dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width < 80)
@@ -108,6 +108,7 @@ namespace SSASDiag
                     if (dgdProfilerAnalyses.Columns["Duration"] != null || dgdProfilerAnalyses.Columns["StartTime"] != null || dgdProfilerAnalyses.Columns["EndTime"] != null 
                         || dgdProfilerAnalyses.Columns["CurrentTime"] != null || dgdProfilerAnalyses.Columns["Requests Completed"] != null)
                     {
+                        // This sectino formats rows, calculation total duration, start, end time...
                         foreach (DataGridViewRow r in dgdProfilerAnalyses.Rows)
                         {
                             if (dgdProfilerAnalyses.Columns["Duration"] != null && r.Cells["Duration"].FormattedValue as string != "") TotalDuration += Convert.ToInt64(r.Cells["Duration"].Value);
@@ -164,25 +165,7 @@ namespace SSASDiag
                         }
                     }
                     lblProfilerAnalysisStatusRight.Left = Width - lblProfilerAnalysisStatusRight.Width - 41;
-
-                    // Finally setup context menus after loading analysis query.
-                    mnuProfilerAnalysisContext = new ContextMenu();
-                    mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Copy", ProfilerAnalysisContextMenu_Click));
-                    mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Copy with Headers", ProfilerAnalysisContextMenu_Click));
-
-                    if (dt.Columns.Contains("RowNumber") || dt.Columns.Contains("StartRow") || dt.Columns.Contains("EndRow"))
-                    {
-                        mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("-"));
-                        mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Find all queries/commands overlapping with selection", ProfilerAnalysisContextMenu_Click));
-                        if (cmbProfilerAnalyses.Text.ToLower().Contains("quer") && !cmbProfilerAnalyses.Text.ToLower().Contains("not completed"))
-                            mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Lookup query statistics for selected queries", ProfilerAnalysisContextMenu_Click));
-                        mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Lookup detail rows for selected queries/commands", ProfilerAnalysisContextMenu_Click));
-                    }
-                    if (cmbProfilerAnalyses.Text.Contains("collectively") && !cmbProfilerAnalyses.Text.Contains("events"))
-                    {
-                        mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("-"));
-                        mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Lookup all the specific executions of this request", ProfilerAnalysisContextMenu_Click));
-                    }
+                    SetupContextMenus(dt);                    
                 }));
             }
             catch (Exception ex)
@@ -193,6 +176,26 @@ namespace SSASDiag
                     connSqlDb.Close();
                     connSqlDb.Open();
                 }
+            }
+        }
+        private void SetupContextMenus(DataTable dt)
+        {
+            mnuProfilerAnalysisContext = new ContextMenu();
+            mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Copy", ProfilerAnalysisContextMenu_Click));
+            mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Copy with Headers", ProfilerAnalysisContextMenu_Click));
+
+            if (dt.Columns.Contains("RowNumber") || dt.Columns.Contains("StartRow") || dt.Columns.Contains("EndRow"))
+            {
+                mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("-"));
+                mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Find all queries/commands overlapping with selection", ProfilerAnalysisContextMenu_Click));
+                if (cmbProfilerAnalyses.Text.ToLower().Contains("quer") && !cmbProfilerAnalyses.Text.ToLower().Contains("not completed"))
+                    mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Lookup query statistics for selected queries", ProfilerAnalysisContextMenu_Click));
+                mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Lookup detail rows for selected queries/commands", ProfilerAnalysisContextMenu_Click));
+            }
+            if (cmbProfilerAnalyses.Text.Contains("collectively") && !cmbProfilerAnalyses.Text.Contains("events"))
+            {
+                mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("-"));
+                mnuProfilerAnalysisContext.MenuItems.Add(new MenuItem("Lookup all the specific executions of this request", ProfilerAnalysisContextMenu_Click));
             }
         }
         private void AnalysisQueryExecutionPumpTimer_Tick(object sender, EventArgs e)
@@ -214,12 +217,12 @@ namespace SSASDiag
                     lblProfilerAnalysisStatusRight.Text = "Last query was cancelled.";
                     lblProfilerAnalysisStatusRight.Left = Width - lblProfilerAnalysisStatusRight.Width - 41;
                 }
-                Enabled = true;
                 StatusFloater.Visible = false;
                 StatusFloater.lblTime.Visible = false;
                 StatusFloater.EscapePressed = false;
                 dgdProfilerAnalyses.ClearSelection();
                 AnalysisQueryExecutionPumpTimer.Stop();
+                Enabled = true;
                 ResumeLayout();
             }));
         }
@@ -298,36 +301,10 @@ namespace SSASDiag
         private void ProfilerAnalysisContextMenu_Click(object sender, EventArgs e)
         {
             string QueryName = cmbProfilerAnalyses.Text;
-
             if (ProcessCopyMenuClicks(sender))
                 return;
-            
-            List<int?> rows = new List<int?>();
-            foreach (DataGridViewCell c in dgdProfilerAnalyses.SelectedCells)
-            {
-                if (!(dgdProfilerAnalyses.Columns.Contains("EventClass") &&
-                    ((!(sender as MenuItem).Text.Contains("command") && Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value) != 10)
-                    || ((sender as MenuItem).Text.Contains("command") && Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value) != 10 && Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value) != 16)
-                    )))
-                {
-                    if (dgdProfilerAnalyses.Columns.Contains("RowNumber"))
-                        rows.Add(Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["RowNumber"].Value));
-                    else if (dgdProfilerAnalyses.Columns.Contains("EndRow"))
-                    {
-                        int iRow;
-                        if (Int32.TryParse(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EndRow"].Value.ToString(), out iRow))
-                            rows.Add(iRow);
-                        else if (dgdProfilerAnalyses.Columns.Contains("StartRow"))
-                            rows.Add(-Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["StartRow"].Value));
-                    }
-                }
-                if (QueryName.Contains("collectively expensive"))
-                    rows.Add(Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["LastRow"].Value));
-            }
-            rows = rows.Distinct().ToList();
-
+            List<int?> rows = GetSelectedRowsFromProfilerAnalysisGrid(sender as MenuItem);
             cmbProfilerAnalyses.SelectedIndex = 0;
-
             if (rows.Count == 0 && !QueryName.Contains("collectively expensive"))
             {
                 if ((sender as MenuItem).Text.Contains("command"))
@@ -336,9 +313,7 @@ namespace SSASDiag
                     MessageBox.Show("No row with EventClass=10 (Query End) was found in your selection.  Make a different selection to execute query related context drillthrough commands.", "Query End event required for context drillthrough", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-
             string strQry = "";           
-
             if ((sender as MenuItem).Text == "Find all queries/commands overlapping with selection")
             {
                 foreach (int? row in rows)
@@ -354,7 +329,7 @@ namespace SSASDiag
                                  : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [Table_v] a,\r\n(select StartTime, CurrentTime from [Table] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID));
                 }
                 txtProfilerAnalysisQuery.Text = "--All queries started or finished during the execution of the quer" + (rows.Count > 1 ? "ies" : "y") + " at row" + (rows.Count > 1 ? "s " : " ") + String.Join(", ", rows.ToArray()) + ".\r\n\r\n" + strQry + "\r\norder by duration desc, starttime desc";
-                ExecuteDrillthroughContextQuery();
+                ExecuteProfilerAnalysisDrillthroughContextQuery();
             }
             else if ((sender as MenuItem).Text == "Lookup query statistics for selected queries")
             {
@@ -364,7 +339,7 @@ namespace SSASDiag
                     strQry += (strQry == "" ? strBase : "\r\nunion\r\n" + strBase);
                 }
                 txtProfilerAnalysisQuery.Text = strQry;
-                ExecuteDrillthroughContextQuery();
+                ExecuteProfilerAnalysisDrillthroughContextQuery();
             }
             else if ((sender as MenuItem).Text == "Lookup detail rows for selected queries/commands")
             {
@@ -378,7 +353,7 @@ namespace SSASDiag
                     strQry += (strQry == "" ? strBase : "\r\nunion\r\n" + strBase);
                 }
                 txtProfilerAnalysisQuery.Text = strQry + "\r\norder by RowNumber";
-                ExecuteDrillthroughContextQuery();
+                ExecuteProfilerAnalysisDrillthroughContextQuery();
             }
             else if ((sender as MenuItem).Text == "Lookup all the specific executions of this request")
             {
@@ -389,16 +364,43 @@ namespace SSASDiag
                     strQry += (strQry == "" ? strBase : "\r\nunion\r\n" + strBase);
                 }
                 txtProfilerAnalysisQuery.Text = strQry + "\r\norder by RowNumber";
-                ExecuteDrillthroughContextQuery();
+                ExecuteProfilerAnalysisDrillthroughContextQuery();
             }
         }
-        private void ExecuteDrillthroughContextQuery()
+        private List<int?> GetSelectedRowsFromProfilerAnalysisGrid(MenuItem sender)
+        {
+            List<int?> rows = new List<int?>();
+            foreach (DataGridViewCell c in dgdProfilerAnalyses.SelectedCells)
+            {
+                if (!(dgdProfilerAnalyses.Columns.Contains("EventClass") &&
+                    ((!sender.Text.Contains("command") && Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value) != 10)
+                    || (sender.Text.Contains("command") && Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value) != 10 && Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EventClass"].Value) != 16)
+                    )))
+                {
+                    if (dgdProfilerAnalyses.Columns.Contains("RowNumber"))
+                        rows.Add(Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["RowNumber"].Value));
+                    else if (dgdProfilerAnalyses.Columns.Contains("EndRow"))
+                    {
+                        int iRow;
+                        if (Int32.TryParse(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EndRow"].Value.ToString(), out iRow))
+                            rows.Add(iRow);
+                        else if (dgdProfilerAnalyses.Columns.Contains("StartRow"))
+                            rows.Add(-Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["StartRow"].Value));
+                    }
+                }
+                if (cmbProfilerAnalyses.Text.Contains("collectively expensive"))
+                    rows.Add(Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["LastRow"].Value));
+            }
+            return rows.Distinct().ToList();
+        }
+        private void ExecuteProfilerAnalysisDrillthroughContextQuery()
         {
             if (txtProfilerAnalysisQuery.Text != "")
             {
                 BackgroundWorker bgLoadProfilerAnalysis = new BackgroundWorker();
                 bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
                 bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
+                Enabled = false;
                 StatusFloater.lblStatus.Text = "Running analysis query. (Esc to cancel...)";
                 StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
                 StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
@@ -410,7 +412,6 @@ namespace SSASDiag
                 AnalysisQueryExecutionPumpTimer.Start();
                 if (!StatusFloater.Visible)
                     StatusFloater.Show(this);
-                SuspendLayout();
                 bgLoadProfilerAnalysis.RunWorkerAsync();
             }
             else
