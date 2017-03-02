@@ -448,7 +448,7 @@ namespace SSASDiag
 
         private string ConvertProfilerEventClassSubclassViewQueryToSimpleTableQuery(string qry)
         {
-            return qry.Replace("[Table_v]", "[Table]").Replace("EventClassName, ", "").Replace("EventSubclassName, ", "").Replace("EventClassName", "").Replace("EventSubclassName", "");
+            return qry.Replace("[Table_v]", "[Table]").Replace("EventClassName, ", "").Replace("EventSubclassName, ", "").Replace("EventClassName", "").Replace("EventSubclassName", "").Replace("[Table", "[" + AnalysisTraceID);
         }
         private List<ProfilerTraceQuery> InitializeProfilerTraceAnalysisQueries()
         {

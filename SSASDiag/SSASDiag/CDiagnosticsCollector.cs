@@ -347,7 +347,7 @@ namespace SSASDiag
             p.WaitForExit(500);
             string sOut = p.StandardOutput.ReadToEnd();
             p.WaitForExit();
-            p.StartInfo.Arguments = "trace start fileMode=" + (bRollover ? "circular" : "single") + " capture=yes tracefile=" + Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + ".etl maxSize=" + (bRollover ? iRollover.ToString() : "0");
+            p.StartInfo.Arguments = "trace start fileMode=" + (bRollover ? "circular" : "single") + " capture=yes tracefile=\"" + Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + ".etl\" maxSize=" + (bRollover ? iRollover.ToString() : "0");
             p.Start();
             sOut = p.StandardOutput.ReadToEnd();
             System.Diagnostics.Trace.WriteLine("netsh trace start's output: " + sOut);

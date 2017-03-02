@@ -129,10 +129,10 @@ namespace SSASDiag.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to select 
-        ///RowNumber, Duration, EventClass, EventClassName, EventSubClass, EventSubClassName, StartTime, CurrentTime, convert(nvarchar(max), TextData) TextData, 
-        ///c.ConnectionID, DatabaseName, NTUserName, NTDomainName, SessionID, NTCanonicalUserName, SPID, ServerName, ActivityID, RequestID, CPUTime, IntegerData, Error, ClientProcessID, 
-        ///ApplicationName, JobID, SessionType, ObjectID, ObjectType, ObjectName, ObjectPath, ObjectReference,
-        ///convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvar [rest of string was truncated]&quot;;.
+        ///RowNumber, b.Duration, b.EventClass, EventClassName, EventSubClass, EventSubClassName, b.StartTime, CurrentTime, convert(nvarchar(max), TextData) TextData, 
+        ///b.ConnectionID, DatabaseName, NTUserName, NTDomainName, SessionID, NTCanonicalUserName, SPID, ServerName, ActivityID, RequestID, CPUTime, IntegerData, Error, ClientProcessID, 
+        ///ApplicationName, SessionType, ObjectID, ObjectType, ObjectName, ObjectPath, ObjectReference,
+        ///convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarc [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DrillThroughQueryAllRowsForQueryOrCommand {
             get {
@@ -342,13 +342,12 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to select top 100 count(*) as [Execution Count], sum(a.Duration) [Total Duration], convert(nvarchar(max), b.TextData) TextData, sum(RequestCompleted) [Requests Completed]
+        ///   Looks up a localized string similar to select top 100 max(b.RowNumber) LastRow, count(*) as [Execution Count], sum(a.Duration) [Total Duration], convert(nvarchar(max), b.TextData) TextData, sum(RequestCompleted) [Requests Completed]
         ///from [Table_QueriesAndCommandsIncludingIncomplete] a, 
         ///[Table_v] b
         ///where a.EventClass in (16, -15) and (b.RowNumber = a.EndRow or (b.RowNumber = a.StartRow and a.EndRow is null)) and b.StartTime = a.StartTime and b.ConnectionID = a.ConnectionID
         ///group by convert(nvarchar(max), b.TextData)
-        ///having sum(a.Duration) &gt; 0
-        ///order by sum(a.Duratio [rest of string was truncated]&quot;;.
+        ///having sum(a.Duration) &gt; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryMostCollectivelyExpensiveCommands {
             get {
@@ -359,7 +358,7 @@ namespace SSASDiag.Properties {
         /// <summary>
         ///   Looks up a localized string similar to select top 100 count(*) as ExecutionCount, sum(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData
         ///from [Table_v]
-        ///where EventClass not in (39, 42) -- skip ExistingSession and Notification durations
+        ///where EventClass not in (39, 42, 10, 16) -- skip ExistingSession and Notification durations, query/command end events
         ///group by TextData, EventClass, EventClassName, EventSubclass, EventSubclassName
         ///having sum(Duration) &gt; 0
         ///order by sum(Duration) desc.
@@ -371,13 +370,11 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to select top 100 count(*) as [Execution Count], sum(a.Duration) [Total Duration], convert(nvarchar(max), b.TextData) TextData, sum(RequestCompleted) [Requests Completed]
+        ///   Looks up a localized string similar to select top 100 max(b.RowNumber) LastRow, count(*) as [Execution Count], sum(a.Duration) [Total Duration], convert(nvarchar(max), b.TextData) TextData, sum(RequestCompleted) [Requests Completed], max(b.RowNumber) LastRow
         ///from [Table_QueriesAndCommandsIncludingIncomplete] a, 
         ///[Table_v] b
         ///where a.EventClass in (10, -9) and (b.RowNumber = a.EndRow or (b.RowNumber = a.StartRow and a.EndRow is null)) and b.StartTime = a.StartTime and b.ConnectionID = a.ConnectionID
-        ///group by convert(nvarchar(max), b.TextData)
-        ///having sum(a.Duration) &gt; 0
-        ///order by sum(a.Duration [rest of string was truncated]&quot;;.
+        ///group by convert(nvarchar(max), b.TextData)        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryMostCollectivelyExpensiveQueries {
             get {
@@ -423,7 +420,7 @@ namespace SSASDiag.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to select a.RowNumber, EventClass, EventClassName, a.ConnectionID, Duration, convert(nvarchar(max), a.StartTime, 21) StartTime, convert(nvarchar(max), a.CurrentTime, 21) CurrentTime, upper(sys.fn_varbintohexstr(convert(varbinary(8), Error))) [Error Code], DatabaseName, convert(nvarchar(max), TextData) TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
-        ///from [2012Comm [rest of string was truncated]&quot;;.
+        ///from [Table_v] [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string QueryQueriesCommandsWithErrors {
             get {

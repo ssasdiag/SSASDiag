@@ -736,7 +736,7 @@ where b.ConnectionID = a.ConnectionID and ((b.RowNumber = a.StartRow  and a.EndR
 order by duration desc</value>
   </data>
   <data name="QueryMostCollectivelyExpensiveCommands" xml:space="preserve">
-    <value>select top 100 count(*) as [Execution Count], sum(a.Duration) [Total Duration], convert(nvarchar(max), b.TextData) TextData, sum(RequestCompleted) [Requests Completed]
+    <value>select top 100 max(b.RowNumber) LastRow, count(*) as [Execution Count], sum(a.Duration) [Total Duration], convert(nvarchar(max), b.TextData) TextData, sum(RequestCompleted) [Requests Completed]
 from [Table_QueriesAndCommandsIncludingIncomplete] a, 
 [Table_v] b
 where a.EventClass in (16, -15) and (b.RowNumber = a.EndRow or (b.RowNumber = a.StartRow and a.EndRow is null)) and b.StartTime = a.StartTime and b.ConnectionID = a.ConnectionID
@@ -747,13 +747,13 @@ order by sum(a.Duration) desc</value>
   <data name="QueryMostCollectivelyExpensiveEvents" xml:space="preserve">
     <value>select top 100 count(*) as ExecutionCount, sum(Duration) TotalDuration, EventClass, EventClassName, EventSubclass, EventSubclassName, TextData
 from [Table_v]
-where EventClass not in (39, 42) -- skip ExistingSession and Notification durations
+where EventClass not in (39, 42, 10, 16) -- skip ExistingSession and Notification durations, query/command end events
 group by TextData, EventClass, EventClassName, EventSubclass, EventSubclassName
 having sum(Duration) &gt; 0
 order by sum(Duration) desc</value>
   </data>
   <data name="QueryMostCollectivelyExpensiveQueries" xml:space="preserve">
-    <value>select top 100 count(*) as [Execution Count], sum(a.Duration) [Total Duration], convert(nvarchar(max), b.TextData) TextData, sum(RequestCompleted) [Requests Completed]
+    <value>select top 100 max(b.RowNumber) LastRow, count(*) as [Execution Count], sum(a.Duration) [Total Duration], convert(nvarchar(max), b.TextData) TextData, sum(RequestCompleted) [Requests Completed], max(b.RowNumber) LastRow
 from [Table_QueriesAndCommandsIncludingIncomplete] a, 
 [Table_v] b
 where a.EventClass in (10, -9) and (b.RowNumber = a.EndRow or (b.RowNumber = a.StartRow and a.EndRow is null)) and b.StartTime = a.StartTime and b.ConnectionID = a.ConnectionID
@@ -788,36 +788,29 @@ where EndRow is null and b.RowNumber = a.StartRow</value>
   </data>
   <data name="QueryQueriesCommandsWithErrors" xml:space="preserve">
     <value>select a.RowNumber, EventClass, EventClassName, a.ConnectionID, Duration, convert(nvarchar(max), a.StartTime, 21) StartTime, convert(nvarchar(max), a.CurrentTime, 21) CurrentTime, upper(sys.fn_varbintohexstr(convert(varbinary(8), Error))) [Error Code], DatabaseName, convert(nvarchar(max), TextData) TextData, NTUserName, NTDomainName, ApplicationName, ClientProcessID, SPID, convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
-from [2012CommandsAndQueriesDiscover_v] a,
+from [Table_v] a,
     (
         select RowNumber, ConnectionID, StartTime
         from [Table]
         where EventClass = 17
     ) b
-where EventClass in (9, 10, 15, 16, 17) AND
-    a.ConnectionID = b.ConnectionID AND
-    a.StartTime &gt;= b.StartTime AND
+where EventClass in (9, 10, 15, 16, 17) and
+    a.ConnectionID = b.ConnectionID and
+    a.StartTime &gt;= b.StartTime and
     a.RowNumber &lt;= b.RowNumber
 order by a.ConnectionID, RowNumber</value>
   </data>
   <data name="DrillThroughQueryAllRowsForQueryOrCommand" xml:space="preserve">
     <value>select 
-RowNumber, Duration, EventClass, EventClassName, EventSubClass, EventSubClassName, StartTime, CurrentTime, convert(nvarchar(max), TextData) TextData, 
-c.ConnectionID, DatabaseName, NTUserName, NTDomainName, SessionID, NTCanonicalUserName, SPID, ServerName, ActivityID, RequestID, CPUTime, IntegerData, Error, ClientProcessID, 
-ApplicationName, JobID, SessionType, ObjectID, ObjectType, ObjectName, ObjectPath, ObjectReference,
+RowNumber, b.Duration, b.EventClass, EventClassName, EventSubClass, EventSubClassName, b.StartTime, CurrentTime, convert(nvarchar(max), TextData) TextData, 
+b.ConnectionID, DatabaseName, NTUserName, NTDomainName, SessionID, NTCanonicalUserName, SPID, ServerName, ActivityID, RequestID, CPUTime, IntegerData, Error, ClientProcessID, 
+ApplicationName, SessionType, ObjectID, ObjectType, ObjectName, ObjectPath, ObjectReference,
 convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
-from [Table_v] c, 
-(
-select 
-case when b.EventClass % 2 = 1 then a.RowNumber else b.RowNumber end as EndRow, 
-case when b.EventClass % 2 = 1 then b.RowNumber else a.RowNumber end as StartRow, 
-a.ConnectionID from [P2980-AS-01_MSSQLSERVER_sp_trace_as1] a,
-(select ConnectionID, StartTime, RowNumber, EventClass from [P2980-AS-01_MSSQLSERVER_sp_trace_as1] where RowNumber = &lt;RowNumber/&gt;) b
-where a.ConnectionID = b.ConnectionID and a.StartTime = b.StartTime and 
-a.EventClass = 
-case when a.EventClass % 2 = 1 then b.EventClass - 1 else b.EventClass + 1 end
-) d
-where c.ConnectionID = d.ConnectionID and c.RowNumber between d.StartRow and d.EndRow</value>
+from 
+[Table_QueriesAndCommandsIncludingIncomplete] a,
+[Table_v] b
+where b.ConnectionID = a.ConnectionID and b.RowNumber &gt;= a.StartRow and (b.RowNumber &lt;= a.EndRow or a.EndRow is null) 
+and a.StartRow = &lt;RowNumber/&gt; or a.EndRow = &lt;RowNumber/&gt;</value>
   </data>
   <data name="QueryMostImpactfulQueriesCommands" xml:space="preserve">
     <value>-- Returns a ranking of all queries and commands completed within the trace by the number of other queries and commands that overlap the original query or command in question.
