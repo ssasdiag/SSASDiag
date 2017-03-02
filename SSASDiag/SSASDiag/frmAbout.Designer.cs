@@ -28,51 +28,52 @@
         /// </summary>
         private void InitializeComponent()
         {
-            label1 = new System.Windows.Forms.Label();
-            label2 = new System.Windows.Forms.Label();
-            SuspendLayout();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.SuspendLayout();
             // 
             // label1
             // 
-            label1.AutoSize = true;
-            label1.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            label1.ForeColor = System.Drawing.Color.LightSkyBlue;
-            label1.Location = new System.Drawing.Point(59, 98);
-            label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(194, 180);
-            label1.TabIndex = 0;
-            label1.Text = "Yinn Wong\r\nVan To\r\nSrini Gajella\r\nSamarendra Panda\r\nMalcolm Stewart\r\nJon Burchel";
-            label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.LightSkyBlue;
+            this.label1.Location = new System.Drawing.Point(59, 90);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(194, 210);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Yinn Wong\r\nVan To\r\nSrini Gajella\r\nSamarendra Panda\r\nMalcolm Stewart\r\nJon Burchel\r" +
+    "\nGert Christen";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
             // 
-            label2.AutoSize = true;
-            label2.Font = new System.Drawing.Font("Segoe UI", 32F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            label2.ForeColor = System.Drawing.SystemColors.ControlLight;
-            label2.Location = new System.Drawing.Point(25, 9);
-            label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(263, 59);
-            label2.TabIndex = 1;
-            label2.Text = "Contributors";
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Segoe UI", 32F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.ForeColor = System.Drawing.SystemColors.ControlLight;
+            this.label2.Location = new System.Drawing.Point(25, 9);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(263, 59);
+            this.label2.TabIndex = 1;
+            this.label2.Text = "Contributors";
             // 
             // frmAbout
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            ClientSize = new System.Drawing.Size(312, 335);
-            Controls.Add(label2);
-            Controls.Add(label1);
-            FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            Name = "frmAbout";
-            Opacity = 0D;
-            ShowInTaskbar = false;
-            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            Text = "frmAbout";
-            TopMost = true;
-            Shown += new System.EventHandler(frmAbout_Shown);
-            ResumeLayout(false);
-            PerformLayout();
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.ClientSize = new System.Drawing.Size(312, 335);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Name = "frmAbout";
+            this.Opacity = 0D;
+            this.ShowInTaskbar = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.Text = "frmAbout";
+            this.TopMost = true;
+            this.Shown += new System.EventHandler(this.frmAbout_Shown);
+            this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
