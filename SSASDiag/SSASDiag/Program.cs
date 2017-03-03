@@ -69,14 +69,22 @@ namespace SSASDiag
                                 Trace.WriteLine("Error decompressing dependencies for SSASDiag.");
                                 Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                                 Trace.WriteLine("Trying again...");
+                                foreach (string ff in Directory.GetFiles(m_strPrivateTempBinPath))
+                                    try { File.Delete(ff); }
+                                    catch (Exception ex2)
+                                    {
+                                        Trace.WriteLine("Exception deleting file " + ff + ":\r\n" + ex2.Message);
+                                    }
                                 iTries++;
                             }
                         }
                         if (iTries == 4)
+                        {
                             MessageBox.Show("Failure extracting required depenencies to temp folder at " + Environment.GetEnvironmentVariable("temp") +
                                             "\\SSASDiag.  Unable to start the tool.  Please delete any folders there and try again.", "Error starting SSASDiag",
                                             MessageBoxButtons.OK, MessageBoxIcon.Error);
-
+                            return;
+                        }
                     }
                 try
                 {

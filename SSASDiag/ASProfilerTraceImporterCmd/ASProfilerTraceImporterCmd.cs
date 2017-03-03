@@ -151,11 +151,9 @@ namespace ASProfilerTraceImporterCmd
                     conn2.Open();
                     for (int i = 0; i <= CurFile; i++)
                     {
-                        workers[i].Join();
-                        if (i == 1)
-                            SetText("Merging file 1...");
                         if (i > 0 && !bCancel)
                         {
+                            workers[i].Join();
                             try
                             {
                                 SqlCommandInfiniteConstructor("delete from [##" + Table + "_" + i + "] where eventclass = 65528", conn2).ExecuteNonQuery();
@@ -163,8 +161,10 @@ namespace ASProfilerTraceImporterCmd
                             }
                             catch (Exception ex)
                             {
-                                System.Diagnostics.Trace.WriteLine("Exception in trace import: \r\n" + ex.Message);
+                                SetText("Exception in trace import: \r\n" + ex.Message);
                             }
+                            if (i == 1)
+                                SetText("File 1 saved to base table.");
                             SetText("Merging file " + (i + 1) + "...");
                         }
                         tfps[i].tIn.Close();
@@ -228,45 +228,93 @@ namespace ASProfilerTraceImporterCmd
             {
                 try
                 {
+                    // throttle execution based on semaphore
+                    Sem.WaitOne();
                     if (!bCancel)
                     {
-                        Sem.WaitOne();  // throttle execution based on semaphore
-                        tIn.InitializeAsReader(FileName);
-                        tOut.InitializeAsWriter(tIn, ASProfilerTraceImporterCmd.cib, CurFile == 0 ? Table : "##" + Table + "_" + CurFile);
-                        SqlConnection conn = new System.Data.SqlClient.SqlConnection(ASProfilerTraceImporterCmd.ConnStr);
+
+                        // This is so ugly but TraceFile reader initially sets to null first time it is used.  I don't know why.  Repeating to try again resolved.
+                        // I suspect a bug in the trace library, since there is no documented reason a valid trace file path should ever set the object state to null.
+                        // I think the first time it fails due to relevant aspects of library not being initialized in the process yet or something?  
+                        // Subsequent tries appear to succed, resolving subtle bug where first file would just get skipped...  
+                        // I had to do the same thing with TraceTable after it...  It now reliably loads all files after long frustrating investigation to find this root cause.
+                        while (true)
+                        {
+                            tIn.InitializeAsReader(FileName);
+                            if (tIn == null)
+                                tIn = new TraceFile();
+                            else
+                                break;
+                        }
+                        string tempTable = CurFile == 0 ? Table : "##" + Table + "_" + CurFile;
+                        while (true)
+                        {
+                            try
+                            {
+                                tOut.InitializeAsWriter(tIn, cib, tempTable);
+                                break;
+                            }
+                            catch (Exception e)
+                            {
+                                tOut = new TraceTable();
+                            }
+                        }
+                        SqlConnection conn = new SqlConnection(ConnStr);
                         conn.Open();
                         bool bFirstFile = false;
-                        if (cols == "")
+                        if (cols.Trim() == "")
                         {
                             // get column list from first trace file...
-                            cols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
-                            bFirstFile = true;
-                            Sem.Release(System.Environment.ProcessorCount * 2);  // We blocked everything until we got initial cols, now we release them all to run...
+                            SetText("Retreiving column list from trace file " + FileName + ".");
+                            string c = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
+                            object o = new object();
+                            lock (o)
+                            {
+                                cols = c;
+                                bFirstFile = true;
+                            }
+                            Sem.Release(-1 + System.Environment.ProcessorCount * 2);  // We blocked everything until we got initial cols, now we release them all to run...
                         }
                         else
-                            if (cols != new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string)
-                            return;  // only happens if there is column mismatch between files - we won't read the whole file, just skip over...
+                        {
+                            string newCols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
+                            if (cols != newCols)
+                            {
+                                SetText("File " + FileName + " has mismatched columns from existing columns already defined by the first file found in the rollover trace series.  The columns defined in the current file are:\r\n" + newCols
+                                                + "\r\nThe columns defined in the first trace file encountered were:\r\n" + cols + "\r\nThe trace cannot be loaded and will be cancelled.  Try deleting non-matching file(s) to reload the actual contiguous rollover series.\r\n");
+                                SetText("Columns not matched for file " + FileName + ".  Skipping this file from import.");
+                                Sem.Release(1);
+                                return;  // only happens if there is column mismatch between files - we won't read the whole file, just skip over...
+                            }
+                        }
                         conn.Close();
-                        try
+                        if (!bCancel)
                         {
-                            while (tOut.Write() && !bCancel)
-                                if (RowCount++ % (384 * ((Environment.ProcessorCount > ASProfilerTraceImporterCmd.FileCount / 2) ? ASProfilerTraceImporterCmd.FileCount : Environment.ProcessorCount)) == 0) global::ASProfilerTraceImporterCmd.ASProfilerTraceImporterCmd.UpdateRowCounts();
+                            try
+                            {
+                                while (!bCancel && tOut.Write())
+                                    if (RowCount++ % (384 * ((Environment.ProcessorCount > ASProfilerTraceImporterCmd.FileCount / 2) ? ASProfilerTraceImporterCmd.FileCount : Environment.ProcessorCount)) == 0)
+                                        global::ASProfilerTraceImporterCmd.ASProfilerTraceImporterCmd.UpdateRowCounts();
+                            }
+                            catch (SqlTraceException ste)
+                            {
+                                string s = ste.Message;
+                            }
                         }
-                        catch (SqlTraceException ste)
-                        {
-                            string s = ste.Message;
-                        }
-                        if (!bFirstFile) Sem.Release(); // release this code for next thread waiting on the semaphore 
+                        if (!bFirstFile && !bCancel)
+                            Sem.Release(1); // release this code for next thread waiting on the semaphore 
                     }
                 }
                 catch (Exception e)
                 {
                     if (!bCancel)
-                        SetText(e.ToString() + "\r\n\r\nException occurred while loading file " + FileName + ".");
+                    {
+                        SetText(e.ToString() + "\r\n\r\nException occurred while loading file " + FileName + ".\r\nStack:\r\n" + e.StackTrace + "\r\n\r\n" + e.Source);
+                        bCancel = true;
+                        Sem.Release(Environment.ProcessorCount * 2);
+                    }
                 }
             }
         }
-        
-
     }
 }

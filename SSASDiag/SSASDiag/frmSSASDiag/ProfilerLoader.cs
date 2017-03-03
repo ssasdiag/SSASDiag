@@ -213,7 +213,9 @@ namespace SSASDiag
             ASProfilerTraceImporterProcess.WaitForExit();
             connSqlDb.ChangeDatabase("master");
             doneWithInit.Close();
-            SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') DROP DATABASE [" + AnalysisTraceID + "]", connSqlDb);
+            SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connSqlDb);
+            cmd.ExecuteNonQuery();
+            cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') DROP DATABASE [" + AnalysisTraceID + "]", connSqlDb);
             cmd.ExecuteNonQuery();
             connSqlDb.Close();
             if (m_analysisPath.EndsWith(".mdf"))
@@ -351,7 +353,7 @@ namespace SSASDiag
         private void AttachProfilerTraceDB()
         {
             splitProfilerAnalysis.Invoke(new System.Action(() => splitProfilerAnalysis.Visible = splitProfilerAnalysis.Enabled = btnAnalysisFolder.Enabled = false));
-            tcAnalysis.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.Text += (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") || ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + "Attaching profiler trace database...\r\n"));
+            tcAnalysis.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.Text += (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") || ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + "Attaching profiler trace database..."));
             ValidateProfilerTraceDBConnectionStatus();           
             if (connSqlDb.State == ConnectionState.Open)
             {

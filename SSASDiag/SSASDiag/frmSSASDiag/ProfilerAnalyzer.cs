@@ -39,18 +39,18 @@ namespace SSASDiag
 
                 if (txtProfilerAnalysisQuery.Text != "")
                 {
-                    Enabled = false;
                     BackgroundWorker bgLoadProfilerAnalysis = new BackgroundWorker();
                     bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
                     bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
+                    lblProfilerAnalysisStatusRight.Text = lblProfilerAnalysisStatusLeft.Text = lblProfilerAnalysisStatusCenter.Text = "";
+                    Enabled = false;
+                    SuspendLayout();
                     StatusFloater.lblStatus.Text = "Running analysis query. (Esc to cancel...)";
                     StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
                     StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
                     StatusFloater.lblTime.Visible = true;
                     StatusFloater.lblTime.Text = "00:00";
                     StatusFloater.EscapePressed = false;
-                    lblProfilerAnalysisStatusRight.Text = lblProfilerAnalysisStatusLeft.Text = lblProfilerAnalysisStatusCenter.Text = "";
-                    Enabled = false;
                     AnalysisQueryExecutionPumpTimer.Interval = 1000;
                     AnalysisQueryExecutionPumpTimer.Start();
                     if (!StatusFloater.Visible)
@@ -217,13 +217,14 @@ namespace SSASDiag
                     lblProfilerAnalysisStatusRight.Text = "Last query was cancelled.";
                     lblProfilerAnalysisStatusRight.Left = Width - lblProfilerAnalysisStatusRight.Width - 41;
                 }
-                StatusFloater.Visible = false;
-                StatusFloater.lblTime.Visible = false;
-                StatusFloater.EscapePressed = false;
                 dgdProfilerAnalyses.ClearSelection();
                 AnalysisQueryExecutionPumpTimer.Stop();
                 Enabled = true;
+                Focus();
                 ResumeLayout();
+                StatusFloater.Visible = false;
+                StatusFloater.lblTime.Visible = false;
+                StatusFloater.EscapePressed = false;               
             }));
         }
         private void dgdProfilerAnalyses_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
@@ -322,11 +323,11 @@ namespace SSASDiag
                         strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from [" + AnalysisTraceID + "_v] a, (select * from[" + AnalysisTraceID + "_QueriesAndCommandsIncludingIncomplete] where StartRow > " + -row + " or EndRow > " + -row + " or EndRow is null and StartRow <> " + -row + ") b where (b.EndRow is null and a.RowNumber = b.StartRow) or(not b.EndRow is null and a.RowNumber = b.EndRow)")
                                  : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[" + AnalysisTraceID + "_v] a, (select * from[" + AnalysisTraceID + "_QueriesAndCommandsIncludingIncomplete] where StartRow > " + -row + " or EndRow > " + -row + " or EndRow is null and StartRow <> " + -row + ") b where (b.EndRow is null and a.RowNumber = b.StartRow) or(not b.EndRow is null and a.RowNumber = b.EndRow)"));
                     else if (QueryName.Contains("not completed"))
-                        strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[Table_v] a, (select StartTime from[Table] where RowNumber > " + row + ") b where a.eventclass in (10, 16) and a.CurrentTime >= b.StartTime").Replace("[Table", "[" + AnalysisTraceID)
-                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[Table_v] a, (select StartTime from[Table] where RowNumber > " + row + ") b where a.eventclass in (10, 16) and a.CurrentTime >= b.StartTime").Replace("[Table", "[" + AnalysisTraceID));
+                        strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[" + AnalysisTraceID + "_v] a, (select StartTime from[" + AnalysisTraceID + "] where RowNumber > " + row + ") b where a.eventclass in (10, 16) and a.CurrentTime >= b.StartTime").Replace("[Table", "[" + AnalysisTraceID)
+                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[" + AnalysisTraceID + "_v] a, (select StartTime from[" + AnalysisTraceID + "] where RowNumber > " + row + ") b where a.eventclass in (10, 16) and a.CurrentTime >= b.StartTime").Replace("[Table", "[" + AnalysisTraceID));
                     else
-                        strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [Table_v] a,\r\n(select StartTime, CurrentTime from [Table] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID)
-                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [Table_v] a,\r\n(select StartTime, CurrentTime from [Table] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID));
+                        strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [" + AnalysisTraceID + "_v] a,\r\n(select StartTime, CurrentTime from [" + AnalysisTraceID + "] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID)
+                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [" + AnalysisTraceID + "_v] a,\r\n(select StartTime, CurrentTime from [" + AnalysisTraceID + "] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID));
                 }
                 txtProfilerAnalysisQuery.Text = "--All queries started or finished during the execution of the quer" + (rows.Count > 1 ? "ies" : "y") + " at row" + (rows.Count > 1 ? "s " : " ") + String.Join(", ", rows.ToArray()) + ".\r\n\r\n" + strQry + "\r\norder by duration desc, starttime desc";
                 ExecuteProfilerAnalysisDrillthroughContextQuery();
@@ -400,6 +401,8 @@ namespace SSASDiag
                 BackgroundWorker bgLoadProfilerAnalysis = new BackgroundWorker();
                 bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
                 bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
+                lblProfilerAnalysisStatusRight.Text = lblProfilerAnalysisStatusLeft.Text = lblProfilerAnalysisStatusCenter.Text = "";
+                SuspendLayout();
                 Enabled = false;
                 StatusFloater.lblStatus.Text = "Running analysis query. (Esc to cancel...)";
                 StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
@@ -407,7 +410,6 @@ namespace SSASDiag
                 StatusFloater.lblTime.Visible = true;
                 StatusFloater.lblTime.Text = "00:00";
                 StatusFloater.EscapePressed = false;
-                lblProfilerAnalysisStatusRight.Text = lblProfilerAnalysisStatusLeft.Text = lblProfilerAnalysisStatusCenter.Text = "";
                 AnalysisQueryExecutionPumpTimer.Interval = 1000;
                 AnalysisQueryExecutionPumpTimer.Start();
                 if (!StatusFloater.Visible)
