@@ -129,7 +129,7 @@ namespace ASProfilerTraceImporterCmd
 
                 List<Thread> workers = new List<Thread>();
                 int CurFile = -1;
-                cols = "";
+                cols = String.Empty;
                 tfps = new List<TraceFileProcessor>();
 
                 Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
@@ -172,6 +172,7 @@ namespace ASProfilerTraceImporterCmd
                         tfps[i].tIn = null;
                         tfps[i].tOut = null;
                     }
+                    workers[0].Join();
                     if (!bCancel)
                     {
                         SetText("Building index and adding views...");
@@ -242,7 +243,10 @@ namespace ASProfilerTraceImporterCmd
                         {
                             tIn.InitializeAsReader(FileName);
                             if (tIn == null)
+                            {
                                 tIn = new TraceFile();
+                                tOut = new TraceTable();
+                            }
                             else
                                 break;
                         }
@@ -252,7 +256,10 @@ namespace ASProfilerTraceImporterCmd
                             try
                             {
                                 tOut.InitializeAsWriter(tIn, cib, tempTable);
-                                break;
+                                if (tOut == null)
+                                    tOut = new TraceTable();
+                                else
+                                    break;
                             }
                             catch (Exception e)
                             {
@@ -262,7 +269,7 @@ namespace ASProfilerTraceImporterCmd
                         SqlConnection conn = new SqlConnection(ConnStr);
                         conn.Open();
                         bool bFirstFile = false;
-                        if (cols.Trim() == "")
+                        if (String.IsNullOrEmpty(cols) || String.IsNullOrWhiteSpace(cols))
                         {
                             // get column list from first trace file...
                             SetText("Retreiving column list from trace file " + FileName + ".");
