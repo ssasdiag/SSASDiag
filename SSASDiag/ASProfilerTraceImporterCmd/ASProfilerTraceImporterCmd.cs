@@ -164,15 +164,17 @@ namespace ASProfilerTraceImporterCmd
                                 SetText("Exception in trace import: \r\n" + ex.Message);
                             }
                             if (i == 1)
-                                SetText("File 1 saved to base table.");
+                                SetText("File 1 saved to base table [" + Table + "].\r\nTemp tables generated for other files must be merged serially.");
                             SetText("Merging file " + (i + 1) + "...");
                         }
+                        else
+                            workers[0].Join();
                         tfps[i].tIn.Close();
                         tfps[i].tOut.Close();
                         tfps[i].tIn = null;
                         tfps[i].tOut = null;
                     }
-                    workers[0].Join();
+                    
                     if (!bCancel)
                     {
                         SetText("Building index and adding views...");
