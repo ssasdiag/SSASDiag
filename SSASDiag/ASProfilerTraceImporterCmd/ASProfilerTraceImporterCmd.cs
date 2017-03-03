@@ -263,7 +263,7 @@ namespace ASProfilerTraceImporterCmd
                                 else
                                     break;
                             }
-                            catch (Exception e)
+                            catch
                             {
                                 tOut = new TraceTable();
                             }

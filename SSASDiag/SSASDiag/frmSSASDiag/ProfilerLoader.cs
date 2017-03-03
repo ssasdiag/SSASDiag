@@ -304,7 +304,7 @@ namespace SSASDiag
                 bProfilerEventClassSublcassViewPresent = true;
             else
                 bProfilerEventClassSublcassViewPresent = false;
-            ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith(".") || ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed event class/subclass view is " + (bProfilerEventClassSublcassViewPresent ? "present." : "not present."))));
+            ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed event class/subclass view is " + (bProfilerEventClassSublcassViewPresent ? "present." : "not present."))));
             cmd.CommandText = "SELECT MAX(CurrentTime) FROM [" + AnalysisTraceID + "]";
             new Thread(new ThreadStart(() =>
             {

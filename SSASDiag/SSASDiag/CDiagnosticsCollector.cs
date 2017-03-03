@@ -500,7 +500,7 @@ namespace SSASDiag
                 catch (OleDbException ex)
                 {
                     frmSSASDiag.LogException(ex);
-                    if (ex.Message.StartsWith("Login failed"))
+                    if (ex.Message.StartsWith("Login failed") || ex.Message.Contains("authentication"))
                     {
                         // If it fails the first try, prompt for remote admin
                         frmPasswordPrompt pp = new frmPasswordPrompt();
@@ -544,12 +544,12 @@ namespace SSASDiag
                                             PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, pp.Domain, pp.User);
                                             break;
                                         }
-                                        catch (OleDbException)
+                                        catch (OleDbException ex2)
                                         {
                                             pp.lblUserPasswordError.Visible = true;
                                             bAuthenticated = false;
                                             iTries++;
-                                            frmSSASDiag.LogException(ex);
+                                            frmSSASDiag.LogException(ex2);
                                         }
                                     }
                                 }
@@ -671,7 +671,7 @@ namespace SSASDiag
                 ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
                 AddItemToStatus("Stopped profiler trace.");
 
-                if (bGetXMLA || bGetABF)
+                if (bGetXMLA || bGetABF || bGetBAK)
                 {
                     List<string> dbs = new List<string>();
 
