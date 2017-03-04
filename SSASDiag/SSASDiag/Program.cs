@@ -190,14 +190,17 @@ namespace SSASDiag
                     Process.Start("mailto:jon.burchel@mcirosoft.com?subject=" + "SSASDiag error");
                 }
 
-                // Cleanup temp bin after exit...
-                Process pp = new Process();
-                pp.StartInfo.UseShellExecute = false;
-                pp.StartInfo.CreateNoWindow = true;
-                pp.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                pp.StartInfo.FileName = "cmd.exe";
-                pp.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 500 > nul & del /q /f /s \"" + m_strPrivateTempBinPath.Trim('\\') + "\"";
-                pp.Start();
+                if (Process.GetProcessesByName("ssasdiag").Length == 1)
+                {
+                    // Cleanup temp bin after exit if we are the last instance of the .exe running...
+                    Process pp = new Process();
+                    pp.StartInfo.UseShellExecute = false;
+                    pp.StartInfo.CreateNoWindow = true;
+                    pp.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    pp.StartInfo.FileName = "cmd.exe";
+                    pp.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 500 > nul & del /q /f /s \"" + m_strPrivateTempBinPath.Trim('\\') + "\"";
+                    pp.Start();
+                }
 
                 // After the inner app domain exits
                 Environment.ExitCode = ret;
