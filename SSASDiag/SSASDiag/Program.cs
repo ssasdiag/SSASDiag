@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.IO.Compression;
+using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
@@ -55,27 +56,27 @@ namespace SSASDiag
                         {
                             try
                             {
-                                System.IO.Compression.ZipFile.ExtractToDirectory(f, m_strPrivateTempBinPath, System.Text.Encoding.ASCII);
+                                ZipFile.ExtractToDirectory(f, m_strPrivateTempBinPath, System.Text.Encoding.ASCII);
                                 break;
                             }
                             catch (Exception ex)
                             {
-                                if (System.Diagnostics.Trace.Listeners.Count == 0)
-                                {
-                                    System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(Environment.CurrentDirectory + "\\SSASDiagDebugTrace_" + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" + ".log"));
-                                    System.Diagnostics.Trace.AutoFlush = true;
-                                    System.Diagnostics.Trace.WriteLine("Started diagnostic trace.");
-                                }
-                                Trace.WriteLine("Error decompressing dependencies for SSASDiag.");
-                                Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
-                                Trace.WriteLine("Trying again...");
-                                foreach (string ff in Directory.GetFiles(m_strPrivateTempBinPath))
-                                    try { File.Delete(ff); }
-                                    catch (Exception ex2)
+                                ZipArchive a = ZipFile.OpenRead(f);
+                                foreach (ZipArchiveEntry za in a.Entries)
+                                    if (!File.Exists(m_strPrivateTempBinPath + "\\" + za.FullName))
                                     {
-                                        Trace.WriteLine("Exception deleting file " + ff + ":\r\n" + ex2.Message);
+                                        if (Trace.Listeners.Count == 0)
+                                        {
+                                            Trace.Listeners.Add(new TextWriterTraceListener(Environment.CurrentDirectory + "\\SSASDiagDebugTrace_" + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" + ".log"));
+                                            Trace.AutoFlush = true;
+                                            Trace.WriteLine("Started diagnostic trace.");
+                                        }
+                                        Trace.WriteLine("Error decompressing dependencies for SSASDiag.");
+                                        Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                                        Trace.WriteLine("Trying again...");
+                                        iTries++;
                                     }
-                                iTries++;
+                                break;
                             }
                         }
                         if (iTries == 4)
@@ -129,8 +130,10 @@ namespace SSASDiag
                                     Stream newBin = File.OpenWrite(sNewBin);
                                     req.GetResponse().GetResponseStream().CopyTo(newBin);
                                     newBin.Close();
-                                    if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.OK)
+                                    if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
                                     {
+                                        AppDomain.Unload(tempDomain);
+                                        Thread.Sleep(1000);
                                         Process p = new Process();
                                         p.StartInfo.UseShellExecute = false;
                                         p.StartInfo.CreateNoWindow = true;
@@ -138,7 +141,7 @@ namespace SSASDiag
                                         p.StartInfo.FileName = "cmd.exe";
                                         p.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 1500 > nul & move /y \"" + sNewBin + "\" " + Assembly.GetEntryAssembly().Location + " & " + Assembly.GetEntryAssembly().Location;
                                         p.Start();
-                                        AppDomain.Unload(tempDomain);
+                                        
                                         return;
                                     }
                                 }
