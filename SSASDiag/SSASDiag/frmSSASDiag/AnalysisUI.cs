@@ -145,29 +145,37 @@ namespace SSASDiag
                         )
                    )
                 {
-                    btnImportProfilerTrace.Visible = true;
                     splitProfilerAnalysis.Visible = false;
                     ProfilerTraceStatusTextBox.Text = "";
                     tcAnalysis.TabPages.Add(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
                     HiddenTabPages.Remove(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
-                    string sqlForTraces = Properties.Settings.Default["SqlForProfilerTraceAnalysis"] as string;
-                    string mdfPath = "";
-                    if (m_analysisPath.EndsWith(".trc"))
-                        mdfPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) + "Analysis" + m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\")).Replace(".trc", "").TrimEnd(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) + ".mdf";
-                    else
-                        mdfPath = m_analysisPath;
-                    if (File.Exists(mdfPath) || File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
-                    {   
-                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
-                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
-                        ProfilerTraceStatusTextBox.AppendText("Using trace data loaded into SQL .mdf at " + m_analysisPath + (m_analysisPath.EndsWith(".mdf") ? ".\r\n" : "\\Analysis\\.\r\n"));
-                        new Thread(new ThreadStart(() => AttachProfilerTraceDB())).Start();
-                        splitProfilerAnalysis.Visible = true;
+                    if (!Validate2016ManagementComponents())
+                    {
+                        ProfilerTraceStatusTextBox.Text = "SQL 2016 Management Studio components required.\r\nComplete install from https://go.microsoft.com/fwlink/?LinkID=840946 and then open Profiler Trace Analysis again.";
                         btnImportProfilerTrace.Visible = false;
                     }
                     else
                     {
-                        ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  Import to perform analysis.";
+                        btnImportProfilerTrace.Visible = true;
+                        string sqlForTraces = Properties.Settings.Default["SqlForProfilerTraceAnalysis"] as string;
+                        string mdfPath = "";
+                        if (m_analysisPath.EndsWith(".trc"))
+                            mdfPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) + "Analysis" + m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\")).Replace(".trc", "").TrimEnd(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) + ".mdf";
+                        else
+                            mdfPath = m_analysisPath;
+                        if (File.Exists(mdfPath) || File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
+                        {
+                            AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
+                            AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
+                            ProfilerTraceStatusTextBox.AppendText("Using trace data loaded into SQL .mdf at " + m_analysisPath + (m_analysisPath.EndsWith(".mdf") ? ".\r\n" : "\\Analysis\\.\r\n"));
+                            new Thread(new ThreadStart(() => AttachProfilerTraceDB())).Start();
+                            splitProfilerAnalysis.Visible = true;
+                            btnImportProfilerTrace.Visible = false;
+                        }
+                        else
+                        {
+                            ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  Import to perform analysis.";
+                        }
                     }
                 }
             }

@@ -583,6 +583,15 @@ namespace SSASDiag
 
             return q;
         }
+        private bool Validate2016ManagementComponents()
+        {
+            if (Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\\Classes\\ssms.sql.13.0") != null)
+                return true;
+            else
+                if (MessageBox.Show("Profiler analysis requires SQL 2016 Management Studio Components.  Download now to install?", "SQL 2016 Management Components Missing", MessageBoxButtons.YesNo, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                    Process.Start("https://go.microsoft.com/fwlink/?LinkID=840946");
+            return false;    
+        }
 
         #endregion UtilityTypesAndFunctions
     }
