@@ -1,1 +1,1 @@
-Open SSASDiag.sln in the SSASDiag project with Visual Studio 2015 or later after syncing
+Open SSASDiag.sln in the SSASDiag project with Visual Studio 2015 or later after cloning or downloading zip.  Code should complile directly and is self-explanatory for the most part with liberal comments where necessary.  Documentation pages in Wiki describe the functionality implemented in the code.
