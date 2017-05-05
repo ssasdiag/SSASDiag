@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using Microsoft.Win32;
+using System.IO.Compression;
 using System;
 using System.Collections;
 using System.Diagnostics;
@@ -20,6 +21,15 @@ namespace SSASDiag
         [STAThread]
         public static void Main()
         {
+            // Check for .NET 4.6.1 or later.
+            object ReleaseVer = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, "").OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full").GetValue("Release");
+            if (ReleaseVer == null || Convert.ToInt32(ReleaseVer) <= 394254)
+            {
+                if (MessageBox.Show("SSASDiag requires .NET 4.6.1 or later and will exit now.\r\nInstall the latest .NET release now?", ".NET Update Required", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                    Process.Start("https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/NDP462-KB3151800-x86-x64-AllOS-ENU.exe");
+                return;
+            }
+
             string m_strPrivateTempBinPath = "";
 
             if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
