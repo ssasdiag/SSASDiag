@@ -1099,6 +1099,7 @@
             this.chkAllowUsageStatsCollection.TabIndex = 47;
             this.chkAllowUsageStatsCollection.Text = "Allow collecting anonymous use statistics";
             this.chkAllowUsageStatsCollection.UseVisualStyleBackColor = true;
+            this.chkAllowUsageStatsCollection.CheckedChanged += new System.EventHandler(this.chkAllowUsageStatsCollection_CheckedChanged);
             // 
             // frmSSASDiag
             // 

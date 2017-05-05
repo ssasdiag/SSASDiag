@@ -1,4 +1,6 @@
-﻿using System.Resources;
+﻿using System.Reflection;
+using System.Net;
+using System.Resources;
 using System.Collections;
 using Microsoft.AnalysisServices;
 using Microsoft.Win32;
@@ -17,6 +19,10 @@ using System.IO;
 using System.Windows.Forms;
 using System.Data.SqlClient;
 using System.Configuration;
+using Microsoft.Practices.EnterpriseLibrary.Common.Configuration;
+using Microsoft.Practices.EnterpriseLibrary.Logging;
+using Microsoft.Practices.EnterpriseLibrary.Logging.Configuration;
+using Microsoft.Practices.EnterpriseLibrary.Logging.TraceListeners;
 
 
 namespace SSASDiag
@@ -44,8 +50,7 @@ namespace SSASDiag
         #region frmSSASDiagEvents
         private void frmSSASDiag_Load(object sender, EventArgs e)
         {
-            if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug"))
-                SetupDebugTrace();
+            SetupDebugTrace();
 
             if (!(Environment.OSVersion.Version.Major >= 7 || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)))
             {
@@ -93,6 +98,8 @@ namespace SSASDiag
         {
             if (chkAutoUpdate.Checked)
                 Program.CheckForUpdates(AppDomain.CurrentDomain);
+            Properties.Settings.Default.AutoUpdate = Convert.ToString(chkAutoUpdate.Checked);
+            Properties.Settings.Default.Save();
         }
 
         private void frmSSASDiag_Shown(object sender, EventArgs e)
@@ -112,11 +119,14 @@ namespace SSASDiag
 
             if (bUsageStatsAlreadySet)
             {
-                if (MessageBox.Show("Would you like to enable automatic update checks on startup?", "Enable Update Checking", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                    Properties.Settings.Default.AutoUpdate = "true";
-                else
-                    Properties.Settings.Default.AutoUpdate = "false";
-                Properties.Settings.Default.Save();
+                if (Properties.Settings.Default.AutoUpdate == "")
+                {
+                    if (MessageBox.Show("Would you like to enable automatic update checks on startup?", "Enable Update Checking", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                        Properties.Settings.Default.AutoUpdate = "true";
+                    else
+                        Properties.Settings.Default.AutoUpdate = "false";
+                    Properties.Settings.Default.Save();
+                }
             }
 
             if (Properties.Settings.Default.AutoUpdate!= "true")
@@ -127,10 +137,55 @@ namespace SSASDiag
 
         private void SetupDebugTrace()
         {
-            System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\SSASDiagDebugTrace_" + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" + ".log"));
+            if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug"))
+                System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\SSASDiagDebugTrace_" + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" + ".log"));
+            System.Diagnostics.Trace.Listeners.Add(new UsageStatsCollectorTraceListener(this));
             System.Diagnostics.Trace.AutoFlush = true;
             System.Diagnostics.Trace.WriteLine("Started diagnostic trace.");
         }
+
+        private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.AllowUsageStats = Convert.ToString(chkAllowUsageStatsCollection.Checked);
+            Properties.Settings.Default.Save();
+        }
+
+        [ConfigurationElementType(typeof(CustomTraceListenerData))]
+        public class UsageStatsCollectorTraceListener : CustomTraceListener
+        {
+            frmSSASDiag MainForm;
+            public UsageStatsCollectorTraceListener(frmSSASDiag mainForm) : base() { MainForm = mainForm; }
+            public override void Write(string message)
+            {
+                WriteLine(message);
+            }
+
+            public override void WriteLine(string message)
+            {
+                if (MainForm.chkAllowUsageStatsCollection.Checked)
+                    new Thread(new ThreadStart(() =>
+                    {
+                        WebClient wc = new WebClient();
+                        wc.OpenRead(new Uri("http://jburchelsrv.southcentralus.cloudapp.azure.com/SSASDiagUsageStats.aspx" +
+                                                              "?UsageVersion=" + WebUtility.UrlEncode(FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).FileVersion) +
+                                                              "&UsageAction=" + WebUtility.UrlEncode(message)));
+                    })).Start();
+            }
+
+            public override void TraceData(TraceEventCache eventCache, string source, TraceEventType eventType, int id, object data)
+            {
+                if (data is LogEntry && this.Formatter != null)
+                {
+                    this.WriteLine(this.Formatter.Format(data as LogEntry));
+                }
+                else
+                {
+                    this.WriteLine(data.ToString());
+                }
+            }
+
+        }
+
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
             try

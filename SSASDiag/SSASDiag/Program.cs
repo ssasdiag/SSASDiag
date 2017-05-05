@@ -30,6 +30,7 @@ namespace SSASDiag
                 return;
             }
 
+            // Setup private temp bin location...
             string m_strPrivateTempBinPath = "";
 
             if (!AppDomain.CurrentDomain.IsDefaultAppDomain())

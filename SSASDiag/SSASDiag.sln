@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSASDiag", "SSASDiag\SSASDiag.csproj", "{1E7BBA10-01A8-447C-8F6B-215C65EC75CD}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -12,6 +12,27 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASProfilerTraceImporterCmd", "ASProfilerTraceImporterCmd\ASProfilerTraceImporterCmd.csproj", "{6EF241B1-63F3-4389-BFB1-E973B82FDAF9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractDbNamesFromTraceCmd", "ExtractDbNamesFromTraceCmd\ExtractDbNamesFromTraceCmd.csproj", "{09AB9498-DC20-44BB-9476-5D7B87C78B57}"
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "SSASDiagUpdateSite", "..\SSASDiagUpdateSite\", "{633918FA-37C7-4167-8B86-5E33E010F606}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5.2"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_17039"
+		Debug.AspNetCompiler.PhysicalPath = "..\SSASDiagUpdateSite\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_17039\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_17039"
+		Release.AspNetCompiler.PhysicalPath = "..\SSASDiagUpdateSite\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_17039\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "17039"
+		SlnRelativePath = "..\SSASDiagUpdateSite\"
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,8 +52,15 @@ Global
 		{09AB9498-DC20-44BB-9476-5D7B87C78B57}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09AB9498-DC20-44BB-9476-5D7B87C78B57}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09AB9498-DC20-44BB-9476-5D7B87C78B57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{633918FA-37C7-4167-8B86-5E33E010F606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{633918FA-37C7-4167-8B86-5E33E010F606}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{633918FA-37C7-4167-8B86-5E33E010F606}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{633918FA-37C7-4167-8B86-5E33E010F606}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45;packages\EnterpriseLibrary.Logging.6.0.1304.0\lib\NET45
 	EndGlobalSection
 EndGlobal
