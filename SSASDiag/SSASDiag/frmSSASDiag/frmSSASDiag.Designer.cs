@@ -102,6 +102,8 @@
             this.btnAnalysisFolder = new System.Windows.Forms.Button();
             this.txtFolderZipForAnalysis = new System.Windows.Forms.TextBox();
             this.lblFolderZipPrompt = new System.Windows.Forms.Label();
+            this.chkAutoUpdate = new System.Windows.Forms.CheckBox();
+            this.chkAllowUsageStatsCollection = new System.Windows.Forms.CheckBox();
             this.tcCollectionAnalysisTabs.SuspendLayout();
             this.tbCollection.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -1075,11 +1077,36 @@
             this.lblFolderZipPrompt.TabIndex = 0;
             this.lblFolderZipPrompt.Text = "Analyze Folder/Zip File";
             // 
+            // chkAutoUpdate
+            // 
+            this.chkAutoUpdate.AutoSize = true;
+            this.chkAutoUpdate.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkAutoUpdate.Location = new System.Drawing.Point(456, 2);
+            this.chkAutoUpdate.Name = "chkAutoUpdate";
+            this.chkAutoUpdate.Size = new System.Drawing.Size(142, 16);
+            this.chkAutoUpdate.TabIndex = 46;
+            this.chkAutoUpdate.Text = "Check for updates on startup";
+            this.chkAutoUpdate.UseVisualStyleBackColor = true;
+            this.chkAutoUpdate.CheckedChanged += new System.EventHandler(this.chkAutoUpdate_CheckedChanged);
+            // 
+            // chkAllowUsageStatsCollection
+            // 
+            this.chkAllowUsageStatsCollection.AutoSize = true;
+            this.chkAllowUsageStatsCollection.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkAllowUsageStatsCollection.Location = new System.Drawing.Point(405, 469);
+            this.chkAllowUsageStatsCollection.Name = "chkAllowUsageStatsCollection";
+            this.chkAllowUsageStatsCollection.Size = new System.Drawing.Size(196, 16);
+            this.chkAllowUsageStatsCollection.TabIndex = 47;
+            this.chkAllowUsageStatsCollection.Text = "Allow collecting anonymous use statistics";
+            this.chkAllowUsageStatsCollection.UseVisualStyleBackColor = true;
+            // 
             // frmSSASDiag
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(601, 489);
+            this.Controls.Add(this.chkAllowUsageStatsCollection);
+            this.Controls.Add(this.chkAutoUpdate);
             this.Controls.Add(this.lkAbout);
             this.Controls.Add(this.tcCollectionAnalysisTabs);
             this.Controls.Add(this.lkDiscussion);
@@ -1092,6 +1119,7 @@
             this.Text = "SSAS Diagnostics Tool";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmSSASDiag_FormClosing);
             this.Load += new System.EventHandler(this.frmSSASDiag_Load);
+            this.Shown += new System.EventHandler(this.frmSSASDiag_Shown);
             this.Resize += new System.EventHandler(this.frmSSASDiag_Resize);
             this.tcCollectionAnalysisTabs.ResumeLayout(false);
             this.tbCollection.ResumeLayout(false);
@@ -1196,6 +1224,8 @@
         private System.Windows.Forms.Label lblProfilerAnalysisStatusRight;
         private System.Windows.Forms.CheckBox chkDettachProfilerAnalysisDBWhenDone;
         private System.Windows.Forms.Button btnImportProfilerTrace;
+        private System.Windows.Forms.CheckBox chkAutoUpdate;
+        private System.Windows.Forms.CheckBox chkAllowUsageStatsCollection;
     }
 }
 

@@ -30,8 +30,6 @@ namespace SSASDiag
             // Setup custom app domain to launch real assembly from temp location, and act as singleton also...
             if (AppDomain.CurrentDomain.BaseDirectory != m_strPrivateTempBinPath)
             {
-                string sNewBin = Environment.GetEnvironmentVariable("temp") + "\\ssasdiag\\newbin_tmp";
-
                 int ret = 0;
 
                 // Extract all embedded file type (byte[]) resource assemblies and copy self into temp location
@@ -91,64 +89,15 @@ namespace SSASDiag
                 {
                     // Initialize the new app domain from temp location...
                     var currentAssembly = Assembly.GetExecutingAssembly();
-                    string Case = "";
+                    
 
                     AppDomainSetup ads = new AppDomainSetup();
                     ads.ApplicationBase = m_strPrivateTempBinPath;
                     AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
                     tempDomain.SetData("tempbinlocation", m_strPrivateTempBinPath);
 
-                    // Check for new version but just spawn a new thread to do it without blocking...
-                    new Thread(new ThreadStart(() =>
-                        {
-                            try
-                            {
-                                // This aspx page exposes the version number of the latest current build there to avoid having to download unnecessarily.
-                                WebRequest req = HttpWebRequest.Create(Uri.EscapeUriString("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx")); 
-                                req.Method = "GET";
-                                WebResponse wr = req.GetResponse();
-                                string[] versionInfo = new StreamReader(req.GetResponse().GetResponseStream()).ReadToEnd().Split('\n');
-                                string version = "";
-                                // We also return the case number cached per IP if any prior access to the server was made with QueryString value Case.
-                                // We can use this to send a link to customers including a query string with case number.
-                                // When they download the .exe, the case will be cached in session scope.
-                                // Later when they run it and check version file, their local version will get case number to use locally in logging.
-                                // For now only server guts implemented, and retrieval here, but not doing anything with it until tested further.
-                                
-                                foreach (string v in versionInfo)
-                                {
-                                    if (v.Split('=')[0] == "Version") version = v.Split('=')[1];
-                                    if (v.Split('=')[0] == "Case") Case = v.Split('=')[1];
-                                }
-                                //Properties.Settings.Default.Reload();
-                                //Properties.Settings.Default.Context.Add("Case", Case);  // Persist this for now, but not using yet...
-                                //Properties.Settings.Default.Save();
-                                if (version == "" || ServerFileIsNewer(FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion, version))
-                                {
-                                    req = HttpWebRequest.Create(Uri.EscapeUriString("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagdownload.aspx" + (Case == "" ? "" : "?Case=" + Case)));
-                                    req.Method = "GET";
-                                    Stream newBin = File.OpenWrite(sNewBin);
-                                    req.GetResponse().GetResponseStream().CopyTo(newBin);
-                                    newBin.Close();
-                                    if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
-                                    {
-                                        AppDomain.Unload(tempDomain);
-                                        Thread.Sleep(1000);
-                                        Process p = new Process();
-                                        p.StartInfo.UseShellExecute = false;
-                                        p.StartInfo.CreateNoWindow = true;
-                                        p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                                        p.StartInfo.FileName = "cmd.exe";
-                                        p.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 1500 > nul & move /y \"" + sNewBin + "\" " + Assembly.GetEntryAssembly().Location + " & " + Assembly.GetEntryAssembly().Location;
-                                        p.Start();
-                                        
-                                        return;
-                                    }
-                                }
-                                tempDomain.SetData("Case", Case);
-                            }
-                            catch (Exception ex) { Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
-                        })).Start();
+                    if (Properties.Settings.Default.AutoUpdate == "true")
+                        CheckForUpdates(tempDomain);
                     
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
                     // Execute the domain.
@@ -220,6 +169,52 @@ namespace SSASDiag
                 MessageBox.Show("There was an unexpected exception in the tool:\n\t" + ex.Message);
             }
             System.Diagnostics.Trace.WriteLine("Exiting SSASDiag.");
+        }
+
+        public static void CheckForUpdates(AppDomain tempDomain)
+        {
+            string sNewBin = Environment.GetEnvironmentVariable("temp") + "\\ssasdiag\\newbin_tmp";
+
+            // Check for new version but just spawn a new thread to do it without blocking...
+            new Thread(new ThreadStart(() =>
+            {
+                try
+                {
+                    // This aspx page exposes the version number of the latest current build there to avoid having to download unnecessarily.
+                    WebRequest req = HttpWebRequest.Create(Uri.EscapeUriString("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx"));
+                    req.Method = "GET";
+                    WebResponse wr = req.GetResponse();
+                    string[] versionInfo = new StreamReader(req.GetResponse().GetResponseStream()).ReadToEnd().Split('\n');
+                    string version = "";
+                    foreach (string v in versionInfo)
+                        if (v.Split('=')[0] == "Version") version = v.Split('=')[1];
+
+                    
+                    if (version == "" || ServerFileIsNewer(FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion, version))
+                    {
+                        req = HttpWebRequest.Create(Uri.EscapeUriString("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagdownload.aspx"));
+                        req.Method = "GET";
+                        Stream newBin = File.OpenWrite(sNewBin);
+                        req.GetResponse().GetResponseStream().CopyTo(newBin);
+                        newBin.Close();
+                        if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
+                        {
+                            AppDomain.Unload(tempDomain);
+                            Thread.Sleep(1000);
+                            Process p = new Process();
+                            p.StartInfo.UseShellExecute = false;
+                            p.StartInfo.CreateNoWindow = true;
+                            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                            p.StartInfo.FileName = "cmd.exe";
+                            p.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 1500 > nul & move /y \"" + sNewBin + "\" " + Assembly.GetEntryAssembly().Location + " & " + Assembly.GetEntryAssembly().Location;
+                            p.Start();
+
+                            return;
+                        }
+                    }
+                }
+                catch (Exception ex) { Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
+            })).Start();
         }
 
         private static bool ServerFileIsNewer(string clientFileVersion, string serverFile)

@@ -46,5 +46,29 @@ namespace SSASDiag.Properties {
                 this["SaveLocation"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string AutoUpdate {
+            get {
+                return ((string)(this["AutoUpdate"]));
+            }
+            set {
+                this["AutoUpdate"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string AllowUsageStats {
+            get {
+                return ((string)(this["AllowUsageStats"]));
+            }
+            set {
+                this["AllowUsageStats"] = value;
+            }
+        }
     }
 }

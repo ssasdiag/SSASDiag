@@ -70,7 +70,8 @@ namespace SSASDiag
             cmbProblemType.SelectedIndex = 0;
             tmScrollStart.Interval = 250;
             tmScrollStart.Tick += tmLevelOfDataScroll_Tick;
-            
+            frmSSASDiag_Resize(this, e);
+
             foreach (TabPage t in tcAnalysis.TabPages)
                 HiddenTabPages.Add(t);
             for (int i = 0; i < tcAnalysis.TabPages.Count; i++)
@@ -86,6 +87,42 @@ namespace SSASDiag
             AnalysisQueryExecutionPumpTimer.Tick += AnalysisQueryExecutionPumpTimer_Tick;
 
             SetupSQLTextbox();
+        }
+
+        private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkAutoUpdate.Checked)
+                Program.CheckForUpdates(AppDomain.CurrentDomain);
+        }
+
+        private void frmSSASDiag_Shown(object sender, EventArgs e)
+        {
+            bool bUsageStatsAlreadySet = true;
+
+            if (Properties.Settings.Default.AllowUsageStats == "")
+            {
+                bUsageStatsAlreadySet = false;
+                if (MessageBox.Show("Please help improve SSASDiag by allowing anonymous collection of usage statistics.\r\n\r\nWill you support improvements to the utility to enable now?", "Enable Collection of Anonymous Usage Statistics", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                    Properties.Settings.Default.AllowUsageStats = "true";
+                else
+                    Properties.Settings.Default.AllowUsageStats = "false";
+                Properties.Settings.Default.Save();
+            }
+            chkAllowUsageStatsCollection.Checked = Convert.ToBoolean(Properties.Settings.Default.AllowUsageStats);
+
+            if (bUsageStatsAlreadySet)
+            {
+                if (MessageBox.Show("Would you like to enable automatic update checks on startup?", "Enable Update Checking", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                    Properties.Settings.Default.AutoUpdate = "true";
+                else
+                    Properties.Settings.Default.AutoUpdate = "false";
+                Properties.Settings.Default.Save();
+            }
+
+            if (Properties.Settings.Default.AutoUpdate!= "true")
+                chkAutoUpdate.Checked = false;
+            else
+                chkAutoUpdate.Checked = true;
         }
 
         private void SetupDebugTrace()
@@ -149,7 +186,9 @@ namespace SSASDiag
         }
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
-            lkAbout.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = Height - 59;
+            chkAllowUsageStatsCollection.Top = (lkAbout.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = Height - 59) + 2;
+            chkAllowUsageStatsCollection.Left = Width - chkAllowUsageStatsCollection.Width - 15;
+            chkAutoUpdate.Left = Width - chkAutoUpdate.Width - 15;
             txtStatus.Width = Width - 30;
             txtStatus.Height = Height - 315;
             tcCollectionAnalysisTabs.Height = Height - 59;
