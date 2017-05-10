@@ -102,6 +102,7 @@ namespace SSASDiag
         {
             bool bUsageStatsAlreadySet = true;
 
+            string s = Properties.Settings.Default.AllowUsageStats;
             if (Properties.Settings.Default.AllowUsageStats == "")
             {
                 bUsageStatsAlreadySet = false;
