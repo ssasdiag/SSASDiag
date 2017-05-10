@@ -56,9 +56,26 @@ namespace SSASDiag
                 Directory.CreateDirectory(m_strPrivateTempBinPath);
                 while (de.MoveNext() == true)
                     if (de.Entry.Value is byte[])
-                        try { File.WriteAllBytes(m_strPrivateTempBinPath 
-                                            + de.Key.ToString().Replace('_', '.') + (de.Key.ToString() == "ResourcesZip" ? ".zip" : ".exe"), 
-                                            de.Entry.Value as byte[]); } catch { } // may fail if file is in use, fine...
+                        try {
+                            if (de.Key.ToString() == "ResourcesZip")
+                            {
+                                File.WriteAllBytes(m_strPrivateTempBinPath
+                                            + de.Key.ToString().Replace('_', '.') + ".zip",
+                                            de.Entry.Value as byte[]);
+                            }
+                        } catch { } // may fail if file is in use, fine...
+
+                // Do non-immediately-essential out-of-proc exe resource extractions off thread to speed startup...
+                de.Reset();
+                new Thread(new ThreadStart(() =>
+                {
+                    while (de.MoveNext() == true)
+                        if (de.Entry.Value is byte[] && de.Key.ToString() != "ResourcesZip")
+                            File.WriteAllBytes(m_strPrivateTempBinPath
+                                + de.Key.ToString().Replace('_', '.') + ".exe",
+                                de.Entry.Value as byte[]);
+                })).Start();
+
                 try { File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true); } catch { } // may fail if file is in use, fine...
                 // Now decompress any compressed files we include.  This lets us cram more dependencies in as we add features and still not excessively bloat!  :D
                 // Although in our real compression work in assembling files for upload we will use the more flexible open source Ionic.Zip library included in our depenencies,
@@ -66,40 +83,32 @@ namespace SSASDiag
                 foreach (string f in Directory.GetFiles(m_strPrivateTempBinPath))
                     if (f.EndsWith(".zip"))
                     {
-                        int iTries = 0;
-                        while (iTries < 4)
+                        try
                         {
-                            try
+                            // Extract any dependencies required for initial form display on main thread...
+                            ZipArchive za = ZipFile.OpenRead(f);
+                            za.GetEntry("FastColoredTextBox.dll").ExtractToFile(m_strPrivateTempBinPath + "FastColoredTextBox.dll", false);  // don't overwrite if already found
+
+                            // Extract remainig non-immediate depencies off main thread to improve startup time...
+                            new Thread(new ThreadStart(() =>
                             {
-                                ZipFile.ExtractToDirectory(f, m_strPrivateTempBinPath, System.Text.Encoding.ASCII);
-                                break;
-                            }
-                            catch (Exception ex)
-                            {
-                                ZipArchive a = ZipFile.OpenRead(f);
-                                foreach (ZipArchiveEntry za in a.Entries)
-                                    if (!File.Exists(m_strPrivateTempBinPath + "\\" + za.FullName))
+                                foreach (ZipArchiveEntry ze in za.Entries)
+                                {
+                                    try
                                     {
-                                        if (Trace.Listeners.Count == 0)
-                                        {
-                                            Trace.Listeners.Add(new TextWriterTraceListener(Environment.CurrentDirectory + "\\SSASDiagDebugTrace_" + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" + ".log"));
-                                            Trace.AutoFlush = true;
-                                            Trace.WriteLine("Started diagnostic trace.");
-                                        }
-                                        Trace.WriteLine("Error decompressing dependencies for SSASDiag.");
-                                        Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
-                                        Trace.WriteLine("Trying again...");
-                                        iTries++;
+                                        ze.ExtractToFile(m_strPrivateTempBinPath + ze.Name, false);  // don't overwrite if already found (like on a retry if another one failed)
                                     }
-                                break;
+                                    catch (Exception ex2)
+                                    {
+                                        Trace.WriteLine("Extraction Exception: " + ex2.Message);
+                                    }
+                                }
                             }
+                            )).Start();
                         }
-                        if (iTries == 4)
+                        catch (Exception ex)
                         {
-                            MessageBox.Show("Failure extracting required depenencies to temp folder at " + Environment.GetEnvironmentVariable("temp") +
-                                            "\\SSASDiag.  Unable to start the tool.  Please delete any folders there and try again.", "Error starting SSASDiag",
-                                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
+                            Trace.WriteLine("Extraction Exception: " + ex.Message);
                         }
                     }
                 try

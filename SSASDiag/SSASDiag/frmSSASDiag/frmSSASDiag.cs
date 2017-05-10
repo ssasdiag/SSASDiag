@@ -78,9 +78,7 @@ namespace SSASDiag
             for (int i = 0; i < tcAnalysis.TabPages.Count; i++)
                 tcAnalysis.TabPages.RemoveAt(0);
 
-            ProfilerTraceAnalysisQueries = InitializeProfilerTraceAnalysisQueries();
-            cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries;
-            cmbProfilerAnalyses.DisplayMember = "Name";
+
 
             txtSaveLocation.Text = Environment.CurrentDirectory;
 

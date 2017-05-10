@@ -29,6 +29,14 @@ namespace SSASDiag
             if (tcCollectionAnalysisTabs.SelectedIndex == 1 && tbAnalysis.Enabled)
             {
                 LogFeatureUse("Profiler Analysis", "Opening analysis tab");
+
+                if (ProfilerTraceAnalysisQueries == null)
+                {
+                    ProfilerTraceAnalysisQueries = InitializeProfilerTraceAnalysisQueries();
+                    cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries;
+                    cmbProfilerAnalyses.DisplayMember = "Name";
+                }
+
                 if (dc != null && !bProfilerTraceDbAttached)
                 {
                     AnalysisTraceID = dc.TraceID;
