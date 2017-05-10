@@ -19,10 +19,6 @@ using System.IO;
 using System.Windows.Forms;
 using System.Data.SqlClient;
 using System.Configuration;
-using Microsoft.Practices.EnterpriseLibrary.Common.Configuration;
-using Microsoft.Practices.EnterpriseLibrary.Logging;
-using Microsoft.Practices.EnterpriseLibrary.Logging.Configuration;
-using Microsoft.Practices.EnterpriseLibrary.Logging.TraceListeners;
 
 
 namespace SSASDiag
@@ -110,9 +106,9 @@ namespace SSASDiag
             {
                 bUsageStatsAlreadySet = false;
                 if (MessageBox.Show("Please help improve SSASDiag by allowing anonymous collection of usage statistics.\r\n\r\nWill you support improvements to the utility to enable now?", "Enable Collection of Anonymous Usage Statistics", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                    Properties.Settings.Default.AllowUsageStats = "true";
+                    Properties.Settings.Default.AllowUsageStats = "True";
                 else
-                    Properties.Settings.Default.AllowUsageStats = "false";
+                    Properties.Settings.Default.AllowUsageStats = "False";
                 Properties.Settings.Default.Save();
             }
             chkAllowUsageStatsCollection.Checked = Convert.ToBoolean(Properties.Settings.Default.AllowUsageStats);
@@ -122,9 +118,9 @@ namespace SSASDiag
                 if (Properties.Settings.Default.AutoUpdate == "")
                 {
                     if (MessageBox.Show("Would you like to enable automatic update checks on startup?", "Enable Update Checking", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                        Properties.Settings.Default.AutoUpdate = "true";
+                        Properties.Settings.Default.AutoUpdate = "True";
                     else
-                        Properties.Settings.Default.AutoUpdate = "false";
+                        Properties.Settings.Default.AutoUpdate = "False";
                     Properties.Settings.Default.Save();
                 }
             }
