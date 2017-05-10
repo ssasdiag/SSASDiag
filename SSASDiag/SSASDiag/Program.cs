@@ -163,7 +163,7 @@ namespace SSASDiag
                     pp.StartInfo.CreateNoWindow = true;
                     pp.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                     pp.StartInfo.FileName = "cmd.exe";
-                    pp.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 500 > nul & del /q /f /s \"" + m_strPrivateTempBinPath.Trim('\\') + "\"";
+                    pp.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 2500 > nul & del /q /f /s \"" + m_strPrivateTempBinPath.Trim('\\') + "\"";
                     pp.Start();
                 }
 
@@ -215,16 +215,19 @@ namespace SSASDiag
                         newBin.Close();
                         if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
                         {
-                            AppDomain.Unload(tempDomain);
-                            Thread.Sleep(1000);
+                            //AppDomain.Unload(tempDomain);
+                            //Thread.Sleep(1000);
                             Process p = new Process();
                             p.StartInfo.UseShellExecute = false;
                             p.StartInfo.CreateNoWindow = true;
                             p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                             p.StartInfo.FileName = "cmd.exe";
-                            p.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 1500 > nul & move /y \"" + sNewBin + "\" " + Assembly.GetEntryAssembly().Location + " & " + Assembly.GetEntryAssembly().Location;
+                            string AssemblyLocation = (string)(AppDomain.CurrentDomain.GetData("originalbinlocation") as string != "" ? AppDomain.CurrentDomain.GetData("originalbinlocation") : Assembly.GetExecutingAssembly().Location);
+                            p.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 1500 > nul & move /y \"" + sNewBin + "\" \"" +
+                                                     AssemblyLocation + "\\SSASDiag.exe\" & \"" +
+                                                     AssemblyLocation + "\\SSASDiag.exe\"";
                             p.Start();
-
+                            Application.Exit();
                             return;
                         }
                     }
