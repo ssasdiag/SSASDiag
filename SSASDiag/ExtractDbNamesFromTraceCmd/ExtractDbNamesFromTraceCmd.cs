@@ -1,7 +1,6 @@
 ﻿using Microsoft.SqlServer.Management.Trace;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace ExtractDbNamesFromTraceCmd

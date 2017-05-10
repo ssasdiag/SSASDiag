@@ -16,6 +16,7 @@ namespace SSASDiag
     static class Program
     {
         public static Guid RunID;
+        public static frmSSASDiag MainForm;
 
         /// <summary> /// 
         /// The main entry point for the application.
@@ -177,7 +178,8 @@ namespace SSASDiag
             Application.SetCompatibleTextRenderingDefault(false);
             try
             {
-                Application.Run(new frmSSASDiag());
+                MainForm = new frmSSASDiag();
+                Application.Run(MainForm);
             }
             catch (Exception ex)
             {

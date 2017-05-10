@@ -140,9 +140,9 @@ namespace SSASDiag
             System.Diagnostics.Trace.WriteLine("Started diagnostic trace.");
         }
 
-        public void LogFeatureUse(string FeatureName, string FeatureDetail)
+        public static void LogFeatureUse(string FeatureName, string FeatureDetail)
         {
-            if (chkAllowUsageStatsCollection.Checked)
+            if (Program.MainForm.chkAllowUsageStatsCollection.Checked)
                 new Thread(new ThreadStart(() =>
                 {
                     WebClient wc = new WebClient();
@@ -249,6 +249,7 @@ namespace SSASDiag
         public static void LogException(Exception ex)
         {
             System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+            LogFeatureUse("Exception", "Message:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);   
         }
         #endregion frmSSASDiagEvents
 
