@@ -1081,11 +1081,11 @@
             // 
             this.chkAutoUpdate.AutoSize = true;
             this.chkAutoUpdate.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkAutoUpdate.Location = new System.Drawing.Point(456, 2);
+            this.chkAutoUpdate.Location = new System.Drawing.Point(443, 2);
             this.chkAutoUpdate.Name = "chkAutoUpdate";
-            this.chkAutoUpdate.Size = new System.Drawing.Size(142, 16);
+            this.chkAutoUpdate.Size = new System.Drawing.Size(156, 16);
             this.chkAutoUpdate.TabIndex = 46;
-            this.chkAutoUpdate.Text = "Check for updates on startup";
+            this.chkAutoUpdate.Text = "Automatically check for updates";
             this.chkAutoUpdate.UseVisualStyleBackColor = true;
             this.chkAutoUpdate.CheckedChanged += new System.EventHandler(this.chkAutoUpdate_CheckedChanged);
             // 
@@ -1093,11 +1093,11 @@
             // 
             this.chkAllowUsageStatsCollection.AutoSize = true;
             this.chkAllowUsageStatsCollection.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkAllowUsageStatsCollection.Location = new System.Drawing.Point(405, 469);
+            this.chkAllowUsageStatsCollection.Location = new System.Drawing.Point(412, 469);
             this.chkAllowUsageStatsCollection.Name = "chkAllowUsageStatsCollection";
-            this.chkAllowUsageStatsCollection.Size = new System.Drawing.Size(196, 16);
+            this.chkAllowUsageStatsCollection.Size = new System.Drawing.Size(189, 16);
             this.chkAllowUsageStatsCollection.TabIndex = 47;
-            this.chkAllowUsageStatsCollection.Text = "Allow collecting anonymous use statistics";
+            this.chkAllowUsageStatsCollection.Text = "Allow anonymous usage stats collection";
             this.chkAllowUsageStatsCollection.UseVisualStyleBackColor = true;
             this.chkAllowUsageStatsCollection.CheckedChanged += new System.EventHandler(this.chkAllowUsageStatsCollection_CheckedChanged);
             // 

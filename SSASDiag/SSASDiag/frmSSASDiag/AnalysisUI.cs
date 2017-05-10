@@ -28,6 +28,7 @@ namespace SSASDiag
         {
             if (tcCollectionAnalysisTabs.SelectedIndex == 1 && tbAnalysis.Enabled)
             {
+                LogFeatureUse("Profiler Analysis", "Opening analysis tab");
                 if (dc != null && !bProfilerTraceDbAttached)
                 {
                     AnalysisTraceID = dc.TraceID;
@@ -64,6 +65,7 @@ namespace SSASDiag
             if (strPath != null && strPath != "")
             {
                 txtFolderZipForAnalysis.Text = m_analysisPath = strPath;
+                LogFeatureUse("Analysis File Opened", strPath.Substring(strPath.LastIndexOf("\\") + 1));
                 PopulateAnalysisTabs();
             }
             AnalysisMessagePumpTimer.Interval = 1000;
@@ -294,6 +296,7 @@ namespace SSASDiag
 
             new Thread(new ThreadStart(new System.Action(() =>
             {
+                LogFeatureUse("Network Trace Analysis", "Started");
                 Process p = new Process();
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.CreateNoWindow = true;
@@ -319,8 +322,10 @@ namespace SSASDiag
                     foreach (string file in Directory.EnumerateFiles(m_analysisPath, AnalysisTraceID + "*.cab"))
                         File.Delete(file);
                 }
+                LogFeatureUse("Network Trace Analysis", "Completed");
                 AnalysisMessagePumpTimer.Stop();
             }))).Start();
         }
+        
     }
 }

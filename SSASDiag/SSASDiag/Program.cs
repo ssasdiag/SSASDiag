@@ -15,12 +15,17 @@ namespace SSASDiag
 {
     static class Program
     {
-        /// <summary>
+        public static Guid RunID;
+
+        /// <summary> /// 
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
         public static void Main()
         {
+            // Assign a unique Run ID used to anonymously track usage if user allows
+            RunID = Guid.NewGuid();
+
             // Check for .NET 4.6.1 or later.
             object ReleaseVer = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, "").OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full").GetValue("Release");
             if (ReleaseVer == null || Convert.ToInt32(ReleaseVer) <= 394254)

@@ -36,6 +36,8 @@ namespace SSASDiag
                 txtProfilerAnalysisQuery.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Query.Replace("[Table", "[" + AnalysisTraceID);
                 txtProfilerAnalysisDescription.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Description;
                 txtProfilerAnalysisQuery.ShowLineNumbers = true;
+                if (cmbProfilerAnalyses.Text != "")
+                    LogFeatureUse("Profiler Analysis", "Running analysis query " + cmbProfilerAnalyses.Text);
 
                 if (txtProfilerAnalysisQuery.Text != "")
                 {

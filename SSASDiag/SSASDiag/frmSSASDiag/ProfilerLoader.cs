@@ -39,6 +39,7 @@ namespace SSASDiag
                 tbCollection.Enabled = false;
                 btnAnalysisFolder.Enabled = false;
                 btnImportProfilerTrace.Text = "&Cancel Import";
+                LogFeatureUse("Profiler Analysis", "Started");
                 if (!ValidateProfilerTraceDBConnectionStatus())
                 {
                     tbCollection.ForeColor = SystemColors.ControlText;
@@ -70,6 +71,7 @@ namespace SSASDiag
                         ProfilerTraceStatusTextBox.Text = "Error loading profiler trace: \r\n" + ex.Message;
 
                     ProfilerTraceStatusTextBox.AppendText("\r\nImport trace to database failed.  Dropping trace database...");
+                    LogFeatureUse("Profiler Analysis", "Failed: " + ex.Message);
                     BackgroundWorker bgCancelTrace = new BackgroundWorker();
                     bgCancelTrace.DoWork += BgCancelTrace_DoWork;
                     bgCancelTrace.RunWorkerCompleted += BgCancelTrace_RunWorkerCompleted;
@@ -81,6 +83,7 @@ namespace SSASDiag
                 bCancelProfilerImport = true;
                 btnImportProfilerTrace.Enabled = false;
                 ProfilerTraceStatusTextBox.AppendText("\r\nUser cancelled loading of trace to table.  Dropping trace database...");
+                LogFeatureUse("Profiler Analysis", "User cancelled import");
                 BackgroundWorker bgCancelTrace = new BackgroundWorker();
                 bgCancelTrace.DoWork += BgCancelTrace_DoWork;
                 bgCancelTrace.RunWorkerCompleted += BgCancelTrace_RunWorkerCompleted;
@@ -203,6 +206,7 @@ namespace SSASDiag
                 btnAnalysisFolder.Enabled = true;
                 btnImportProfilerTrace.Enabled = true;
                 btnImportProfilerTrace.Text = "Import and &Analyze";
+                LogFeatureUse("Profiler Analysis", "Completed");
                 AnalysisMessagePumpTimer.Stop();
             }
         }

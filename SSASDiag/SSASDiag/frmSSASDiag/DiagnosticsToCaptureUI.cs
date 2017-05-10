@@ -44,7 +44,7 @@ namespace SSASDiag
                     rtbProblemDescription.Text = "Non-connectivity related errors require minimal collection of config details, performance monitor logs, and basic profiler traces.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
-                    chkGetPerfMon.Checked = chkGetProfiler.Checked = chkGetConfigDetails.Checked = true;
+                    chkGetPerfMon.Checked = chkGetProfiler.Checked = chkGetConfigDetails.Checked = chkXMLA.Checked = true;
                     break;
                 case "Connectivity Failures":
                     rtbProblemDescription.Height = 287;

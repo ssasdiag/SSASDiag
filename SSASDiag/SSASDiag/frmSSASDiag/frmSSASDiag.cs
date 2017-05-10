@@ -96,10 +96,10 @@ namespace SSASDiag
 
         private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
         {
-            if (chkAutoUpdate.Checked)
-                Program.CheckForUpdates(AppDomain.CurrentDomain);
             Properties.Settings.Default.AutoUpdate = Convert.ToString(chkAutoUpdate.Checked);
             Properties.Settings.Default.Save();
+            if (chkAutoUpdate.Checked)
+                Program.CheckForUpdates(AppDomain.CurrentDomain);
         }
 
         private void frmSSASDiag_Shown(object sender, EventArgs e)
@@ -129,7 +129,7 @@ namespace SSASDiag
                 }
             }
 
-            if (Properties.Settings.Default.AutoUpdate!= "true")
+            if (Properties.Settings.Default.AutoUpdate!= "True")
                 chkAutoUpdate.Checked = false;
             else
                 chkAutoUpdate.Checked = true;
@@ -139,51 +139,28 @@ namespace SSASDiag
         {
             if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug"))
                 System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\SSASDiagDebugTrace_" + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" + ".log"));
-            System.Diagnostics.Trace.Listeners.Add(new UsageStatsCollectorTraceListener(this));
             System.Diagnostics.Trace.AutoFlush = true;
             System.Diagnostics.Trace.WriteLine("Started diagnostic trace.");
+        }
+
+        public void LogFeatureUse(string FeatureName, string FeatureDetail)
+        {
+            if (chkAllowUsageStatsCollection.Checked)
+                new Thread(new ThreadStart(() =>
+                {
+                    WebClient wc = new WebClient();
+                    wc.OpenRead(new Uri("http://jburchelsrv.southcentralus.cloudapp.azure.com/SSASDiagUsageStats.aspx" +
+                                                          "?RunID=" + WebUtility.UrlEncode(Program.RunID.ToString()) + 
+                                                          "&UsageVersion=" + WebUtility.UrlEncode(FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).FileVersion) +
+                                                          "&FeatureName=" + WebUtility.UrlEncode(FeatureName)) +
+                                                          "&FeatureDetail=" + WebUtility.UrlEncode(FeatureDetail));
+                })).Start();
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.AllowUsageStats = Convert.ToString(chkAllowUsageStatsCollection.Checked);
             Properties.Settings.Default.Save();
-        }
-
-        [ConfigurationElementType(typeof(CustomTraceListenerData))]
-        public class UsageStatsCollectorTraceListener : CustomTraceListener
-        {
-            frmSSASDiag MainForm;
-            public UsageStatsCollectorTraceListener(frmSSASDiag mainForm) : base() { MainForm = mainForm; }
-            public override void Write(string message)
-            {
-                WriteLine(message);
-            }
-
-            public override void WriteLine(string message)
-            {
-                if (MainForm.chkAllowUsageStatsCollection.Checked)
-                    new Thread(new ThreadStart(() =>
-                    {
-                        WebClient wc = new WebClient();
-                        wc.OpenRead(new Uri("http://jburchelsrv.southcentralus.cloudapp.azure.com/SSASDiagUsageStats.aspx" +
-                                                              "?UsageVersion=" + WebUtility.UrlEncode(FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).FileVersion) +
-                                                              "&UsageAction=" + WebUtility.UrlEncode(message)));
-                    })).Start();
-            }
-
-            public override void TraceData(TraceEventCache eventCache, string source, TraceEventType eventType, int id, object data)
-            {
-                if (data is LogEntry && this.Formatter != null)
-                {
-                    this.WriteLine(this.Formatter.Format(data as LogEntry));
-                }
-                else
-                {
-                    this.WriteLine(data.ToString());
-                }
-            }
-
         }
 
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
