@@ -674,36 +674,12 @@ namespace SSASDiag
                 if (bGetXMLA || bGetABF || bGetBAK)
                 {
                     List<string> dbs = new List<string>();
-
-                    #region X86 TraceFile reader workaround
-                    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // TraceFile binaries for Microsoft.SqlServer.Management.Trace are only available in x86.
-                    // The SSASDiag process needs to be X64 to optimally work with large files.
-                    // Workaround here, costs a few extra seconds to invoke at stop time but worth it
-                    // Call the simple X86 ExtractDbNamesFromTrace process from SSASDiag.  
-
+                    
                     AddItemToStatus("Finding databases with queries/commands started/completed during tracing...");
                     ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
-                    Process p = new Process();
-                    p.StartInfo.UseShellExecute = false;
-                    p.StartInfo.RedirectStandardOutput = true;
-                    p.StartInfo.CreateNoWindow = true;
-                    p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ExtractDbNamesFromTraceCmd.exe";
-                    p.StartInfo.Arguments =
-                        "\"" + Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0] + "\" ";
-                    p.Start();
-                    while (true)
-                    {
-                        string sOut = p.StandardOutput.ReadLine();
-                        if (sOut == "ExtractDbNamesFromTraceCmd finished.")
-                            break;
-                        else
-                            dbs.Add(sOut.TrimEnd(new char[] { '\r', '\n' }));
-                    }
+                    dbs = ExtractDBNamesFromDBNamesTrace(Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0]);
                     if (Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc").Length > 0)
                         File.Delete(Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0]);
-                    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    #endregion X86 TraceFile reader workaround
 
                     if (dbs.Count == 0)
                         AddItemToStatus("There were no databases captured in the profiler trace.  No AS database definitions or backups will be captured.");
@@ -791,6 +767,46 @@ namespace SSASDiag
                 } 
             }
         }
+
+        private List<string> ExtractDBNamesFromDBNamesTrace(string DBNamesTrace)
+        {
+            byte[] b = File.ReadAllBytes(DBNamesTrace);
+            List<string> s = new List<string>();
+
+            // HACK ALERT...
+
+            // The following byte pattern is observed in SQL Profiler traces, when cell text data is about to be presented:
+            // [0][x+10][0][0][0][28][0][x]
+            // x varies across each release but the pattern itself persists, preceding text content.
+            // In the very limited context of a single column trace, this can be used to extract the text.
+            // The trailing bit pattern [41][0][4] was found consistently on all versions tested.
+            // Using this extreme hack can avoid an otherwise unnecessary dependency on the trace reader libraries for data collection in SSASDiag.
+            // Otherwise, unfortunately, the read of profiler traces requires full install of management studio, developer confirms, for the corresponding edition.
+            // One workaround might be to embed numerous copies of the trace reader components, adding several hundred KB minimum to the size of the total .exe payload,
+            // and also involving other possible complications...  For now this hack is a very good way to achieve the simple result required.
+            // We scan for the byte pattern above in the data and when found, read out the string trailed by the known trailing text.
+
+            for (int i = 7; i < b.Length; i++)
+            {
+                // Search for byte pattern [0][x+10][0][0][0][28][0][x]
+                if (b[i - 7] == 0 && (b[i - 6] == b[i] + 10) && b[i - 5] == 0 && b[i - 4] == 0 && b[i - 3] == 0 && b[i - 2] == 28 && b[i - 1] == 0)
+                {
+                    i++;
+                    String sdb = "";
+                    // Terminate on bit pattern [41][0][4]
+                    while (i < b.Length - 3 && !(b[i] == 41 && b[i + 1] == 0 && b[i + 2] == 4))
+                    {
+                        sdb += BitConverter.ToChar(b, i);
+                        i += 2;
+                    }
+
+                    if (sdb.TrimEnd().TrimStart() != "" && !s.Contains(sdb))
+                        s.Add(sdb);
+                }
+            }
+            return s;
+        }
+
         private void bgFinalProfilerAndZipSteps_Completion(object sender, RunWorkerCompletedEventArgs e)
         {
             FinalizeStop();

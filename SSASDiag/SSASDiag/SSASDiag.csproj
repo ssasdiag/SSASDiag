@@ -228,13 +228,11 @@
     <None Include="Resources\play.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\ExtractDbNamesFromTrace.exe" />
     <None Include="Resources\play-lit.png" />
     <None Include="Resources\stop-button-lit.png" />
     <None Include="Resources\play-half-lit.png" />
     <None Include="Resources\stop-button-half-lit.png" />
     <None Include="Resources\ASProfilerTraceImporterCmd.exe" />
-    <None Include="Resources\ExtractDbNamesFromTraceCmd.exe" />
     <None Include="Resources\package_new.ico" />
     <None Include="Resources\package_new.png" />
     <Content Include="Resources\stop-button-th.png" />

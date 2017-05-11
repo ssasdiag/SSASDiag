@@ -418,12 +418,16 @@ namespace SSASDiag
             {
                 bProfilerTraceDbAttached = false;
                 // Dettach without blocking for existing sessions...
-                connSqlDb.ChangeDatabase("master");
-                SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connSqlDb);
-                cmd.ExecuteNonQuery();
-                cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') EXEC master.dbo.sp_detach_db @dbname = N'" + AnalysisTraceID + "'", connSqlDb);
-                cmd.ExecuteNonQuery();
-                connSqlDb.Close();
+                if (connSqlDb.State == ConnectionState.Open)
+
+                {
+                    connSqlDb.ChangeDatabase("master");
+                    SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connSqlDb);
+                    cmd.ExecuteNonQuery();
+                    cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') EXEC master.dbo.sp_detach_db @dbname = N'" + AnalysisTraceID + "'", connSqlDb);
+                    cmd.ExecuteNonQuery();
+                    connSqlDb.Close();
+                }
                 Invoke(new System.Action(() =>
                 {
                     splitProfilerAnalysis.Visible = false;

@@ -7,7 +7,7 @@
         System.Data.SqlClient.SqlCommand cmd =
             new System.Data.SqlClient.SqlCommand("insert into SSASDiagUsageStats Values('" + Request.UserHostAddress + "', '" + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss.fff") +
                                                  "', '" + HttpUtility.UrlDecode(Request.QueryString["RunID"]) + "', '" + HttpUtility.UrlDecode(Request.QueryString["UsageVersion"]) + "', '" +
-                                                 HttpUtility.UrlDecode(Request.QueryString["FeatureName"]) + "', '" + HttpUtility.UrlDecode(Request.QueryString["FeatureDetail"]) + "')", conn);
+                                                 HttpUtility.UrlDecode(Request.QueryString["FeatureName"]) + "', '" + HttpUtility.UrlDecode(Request.QueryString["FeatureDetail"]) + "', '" + (Request.QueryString["MicrosoftInternal"] ) + "')", conn);
         cmd.ExecuteNonQuery();
         conn.Close();
     }

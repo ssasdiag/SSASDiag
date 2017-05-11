@@ -1,24 +1,14 @@
-﻿using System.Reflection;
-using System.Net;
-using System.Resources;
-using System.Collections;
-using Microsoft.AnalysisServices;
-using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Management;
-using System.Runtime.InteropServices;
-using System.ServiceProcess;
+using System.Net;
 using System.Threading;
-using System.IO;
 using System.Windows.Forms;
-using System.Data.SqlClient;
-using System.Configuration;
+using System.DirectoryServices.AccountManagement;
 
 
 namespace SSASDiag
@@ -77,9 +67,7 @@ namespace SSASDiag
                 HiddenTabPages.Add(t);
             for (int i = 0; i < tcAnalysis.TabPages.Count; i++)
                 tcAnalysis.TabPages.RemoveAt(0);
-
-
-
+            
             txtSaveLocation.Text = Environment.CurrentDirectory;
 
             AnalysisMessagePumpTimer.Tick += AnalysisMessagePumpTimer_Tick;
@@ -145,10 +133,11 @@ namespace SSASDiag
                 {
                     WebClient wc = new WebClient();
                     wc.OpenRead(new Uri("http://jburchelsrv.southcentralus.cloudapp.azure.com/SSASDiagUsageStats.aspx" +
-                                                          "?RunID=" + WebUtility.UrlEncode(Program.RunID.ToString()) + 
+                                                          "?RunID=" + WebUtility.UrlEncode(Program.RunID.ToString()) +
                                                           "&UsageVersion=" + WebUtility.UrlEncode(FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).FileVersion) +
                                                           "&FeatureName=" + WebUtility.UrlEncode(FeatureName)) +
-                                                          "&FeatureDetail=" + WebUtility.UrlEncode(FeatureDetail));
+                                                          "&FeatureDetail=" + WebUtility.UrlEncode(FeatureDetail) +
+                                                          (UserPrincipal.Current.UserPrincipalName.ToLower().Contains("microsoft.com") ? "&MicrosoftInternal=" + WebUtility.UrlEncode(Environment.UserName) : ""));
                 })).Start();
         }
 
@@ -247,7 +236,7 @@ namespace SSASDiag
         public static void LogException(Exception ex)
         {
             System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
-            LogFeatureUse("Exception", "Message:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);   
+            LogFeatureUse("Exception", "Message:\n" + ex.Message + "\n at stack:\n" + ex.StackTrace);   
         }
         #endregion frmSSASDiagEvents
 

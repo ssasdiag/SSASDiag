@@ -5,13 +5,10 @@ VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSASDiag", "SSASDiag\SSASDiag.csproj", "{1E7BBA10-01A8-447C-8F6B-215C65EC75CD}"
 	ProjectSection(ProjectDependencies) = postProject
-		{09AB9498-DC20-44BB-9476-5D7B87C78B57} = {09AB9498-DC20-44BB-9476-5D7B87C78B57}
 		{6EF241B1-63F3-4389-BFB1-E973B82FDAF9} = {6EF241B1-63F3-4389-BFB1-E973B82FDAF9}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASProfilerTraceImporterCmd", "ASProfilerTraceImporterCmd\ASProfilerTraceImporterCmd.csproj", "{6EF241B1-63F3-4389-BFB1-E973B82FDAF9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractDbNamesFromTraceCmd", "ExtractDbNamesFromTraceCmd\ExtractDbNamesFromTraceCmd.csproj", "{09AB9498-DC20-44BB-9476-5D7B87C78B57}"
 EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "SSASDiagUpdateSite", "..\SSASDiagUpdateSite\", "{633918FA-37C7-4167-8B86-5E33E010F606}"
 	ProjectSection(WebsiteProperties) = preProject
@@ -48,10 +45,6 @@ Global
 		{6EF241B1-63F3-4389-BFB1-E973B82FDAF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6EF241B1-63F3-4389-BFB1-E973B82FDAF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6EF241B1-63F3-4389-BFB1-E973B82FDAF9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{09AB9498-DC20-44BB-9476-5D7B87C78B57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{09AB9498-DC20-44BB-9476-5D7B87C78B57}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{09AB9498-DC20-44BB-9476-5D7B87C78B57}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{09AB9498-DC20-44BB-9476-5D7B87C78B57}.Release|Any CPU.Build.0 = Release|Any CPU
 		{633918FA-37C7-4167-8B86-5E33E010F606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{633918FA-37C7-4167-8B86-5E33E010F606}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{633918FA-37C7-4167-8B86-5E33E010F606}.Release|Any CPU.ActiveCfg = Debug|Any CPU
