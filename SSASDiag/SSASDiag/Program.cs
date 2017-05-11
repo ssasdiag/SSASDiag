@@ -57,11 +57,16 @@ namespace SSASDiag
                 while (de.MoveNext() == true)
                     if (de.Entry.Value is byte[])
                         try {
+                            
                             if (de.Key.ToString() == "ResourcesZip")
                             {
-                                File.WriteAllBytes(m_strPrivateTempBinPath
-                                            + de.Key.ToString().Replace('_', '.') + ".zip",
-                                            de.Entry.Value as byte[]);
+                                byte[] b = de.Entry.Value as byte[];
+                                if (!File.Exists(m_strPrivateTempBinPath + "Resources.zip") ||
+                                        (File.Exists(m_strPrivateTempBinPath + "Resources.zip") &&
+                                         new FileInfo(m_strPrivateTempBinPath + "Resources.zip").Length != b.Length) 
+                                    )
+                                    File.WriteAllBytes(m_strPrivateTempBinPath + "Resources.zip", b);
+                                break;
                             }
                         } catch { } // may fail if file is in use, fine...
 
@@ -76,7 +81,10 @@ namespace SSASDiag
                                 de.Entry.Value as byte[]);
                 })).Start();
 
-                try { File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true); } catch { } // may fail if file is in use, fine...
+                try {
+                    if (!File.Exists(m_strPrivateTempBinPath + "SSASDiag.exe") || 
+                            (File.Exists(m_strPrivateTempBinPath + "SSASDiag.exe") && new FileInfo(m_strPrivateTempBinPath + "SSASDiag.exe").Length != new FileInfo(Application.ExecutablePath).Length))
+                    File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true); } catch { } // may fail if file is in use, fine...
                 // Now decompress any compressed files we include.  This lets us cram more dependencies in as we add features and still not excessively bloat!  :D
                 // Although in our real compression work in assembling files for upload we will use the more flexible open source Ionic.Zip library included in our depenencies,
                 // these may not be loaded initially when are launching the first time outside the sandbox.  So here we will use .NET built in compression, at least always there.
@@ -87,7 +95,11 @@ namespace SSASDiag
                         {
                             // Extract any dependencies required for initial form display on main thread...
                             ZipArchive za = ZipFile.OpenRead(f);
-                            za.GetEntry("FastColoredTextBox.dll").ExtractToFile(m_strPrivateTempBinPath + "FastColoredTextBox.dll", false);  // don't overwrite if already found
+                            if (!File.Exists(m_strPrivateTempBinPath + za.GetEntry("FastColoredTextBox.dll").Name) || 
+                                   (File.Exists(m_strPrivateTempBinPath + za.GetEntry("FastColoredTextBox.dll").Name) && 
+                                    new FileInfo(m_strPrivateTempBinPath + za.GetEntry("FastColoredTextBox.dll").Name).Length != za.GetEntry("FastColoredTextBox.dll").Length)
+                                )
+                                za.GetEntry("FastColoredTextBox.dll").ExtractToFile(m_strPrivateTempBinPath + "FastColoredTextBox.dll", true);
 
                             // Extract remainig non-immediate depencies off main thread to improve startup time...
                             new Thread(new ThreadStart(() =>
@@ -96,7 +108,10 @@ namespace SSASDiag
                                 {
                                     try
                                     {
-                                        ze.ExtractToFile(m_strPrivateTempBinPath + ze.Name, false);  // don't overwrite if already found (like on a retry if another one failed)
+                                        if (!File.Exists(m_strPrivateTempBinPath + ze.Name) || 
+                                                (File.Exists(m_strPrivateTempBinPath + ze.Name) && new FileInfo(m_strPrivateTempBinPath + ze.Name).Length != ze.Length)
+                                            )
+                                            ze.ExtractToFile(m_strPrivateTempBinPath + ze.Name, true);
                                     }
                                     catch (Exception ex2)
                                     {
@@ -163,18 +178,6 @@ namespace SSASDiag
                                             + ex.InnerException.StackTrace));
 
                     Process.Start("mailto:jon.burchel@mcirosoft.com?subject=" + "SSASDiag error");
-                }
-
-                if (Process.GetProcessesByName("ssasdiag").Length == 1)
-                {
-                    // Cleanup temp bin after exit if we are the last instance of the .exe running...
-                    Process pp = new Process();
-                    pp.StartInfo.UseShellExecute = false;
-                    pp.StartInfo.CreateNoWindow = true;
-                    pp.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                    pp.StartInfo.FileName = "cmd.exe";
-                    pp.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 2500 > nul & del /q /f /s \"" + m_strPrivateTempBinPath.Trim('\\') + "\"";
-                    pp.Start();
                 }
 
                 // After the inner app domain exits
