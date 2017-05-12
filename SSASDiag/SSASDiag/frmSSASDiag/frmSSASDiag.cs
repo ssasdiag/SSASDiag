@@ -87,8 +87,9 @@ namespace SSASDiag
         private void frmSSASDiag_Shown(object sender, EventArgs e)
         {
             bool bUsageStatsAlreadySet = true;
-
             string s = Properties.Settings.Default.AllowUsageStats;
+
+
             if (Properties.Settings.Default.AllowUsageStats == "")
             {
                 bUsageStatsAlreadySet = false;
@@ -116,6 +117,8 @@ namespace SSASDiag
                 chkAutoUpdate.Checked = false;
             else
                 chkAutoUpdate.Checked = true;
+
+            LogFeatureUse("Startup");
         }
 
         private void SetupDebugTrace()
@@ -126,18 +129,22 @@ namespace SSASDiag
             System.Diagnostics.Trace.WriteLine("Started diagnostic trace.");
         }
 
-        public static void LogFeatureUse(string FeatureName, string FeatureDetail)
+        public static void LogFeatureUse(string FeatureName, string FeatureDetail = "")
         {
-            if (Program.MainForm.chkAllowUsageStatsCollection.Checked)
+            // For internal Microsoft users we can collect basic usage data without requiring consent.
+            // For external users, we only collect with full consent.
+            // For internal Microsoft users, we also collect alias to track global usage across teams primarily, and distinguish development use from genuine engineer use.
+            if (Program.MainForm.chkAllowUsageStatsCollection.Checked || UserPrincipal.Current.UserPrincipalName.ToLower().Contains("microsoft.com"))
                 new Thread(new ThreadStart(() =>
                 {
                     WebClient wc = new WebClient();
-                    wc.OpenRead(new Uri("http://jburchelsrv.southcentralus.cloudapp.azure.com/SSASDiagUsageStats.aspx" +
-                                                          "?RunID=" + WebUtility.UrlEncode(Program.RunID.ToString()) +
-                                                          "&UsageVersion=" + WebUtility.UrlEncode(FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).FileVersion) +
-                                                          "&FeatureName=" + WebUtility.UrlEncode(FeatureName)) +
-                                                          "&FeatureDetail=" + WebUtility.UrlEncode(FeatureDetail) +
-                                                          (UserPrincipal.Current.UserPrincipalName.ToLower().Contains("microsoft.com") ? "&MicrosoftInternal=" + WebUtility.UrlEncode(Environment.UserName) : ""));
+                wc.OpenRead(new Uri("http://jburchelsrv.southcentralus.cloudapp.azure.com/SSASDiagUsageStats.aspx" +
+                                                      "?RunID=" + WebUtility.UrlEncode(Program.RunID.ToString()) +
+                                                      "&UsageVersion=" + WebUtility.UrlEncode(FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).FileVersion) +
+                                                      "&FeatureName=" + WebUtility.UrlEncode(FeatureName)) +
+                                                      "&FeatureDetail=" + WebUtility.UrlEncode(FeatureDetail) +
+                                                      "&UpnSuffix=" + WebUtility.UrlEncode(UserPrincipal.Current.UserPrincipalName.Substring(UserPrincipal.Current.UserPrincipalName.IndexOf("@") + 1)) +
+                                                      (UserPrincipal.Current.UserPrincipalName.ToLower().Contains("microsoft.com") ? "&MicrosoftInternal=" + WebUtility.UrlEncode(Environment.UserName) : ""));
                 })).Start();
         }
 
@@ -157,6 +164,17 @@ namespace SSASDiag
         {
             if (WindowState == FormWindowState.Maximized)
                 splitCollectionUI.SplitterDistance = (Height / 4) + 50;
+        }
+
+        private void chkAllowUsageStatsCollection_MouseHover(object sender, EventArgs e)
+        {
+            ttStatus.Show(
+@"Data collected:
+    * External facing IP/domain of client
+    * UTC date and time of feature use
+    * Release version of diagnostic
+    * Name of feature engaged
+    * Options selected for each feature", chkAllowUsageStatsCollection, 5000);
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
