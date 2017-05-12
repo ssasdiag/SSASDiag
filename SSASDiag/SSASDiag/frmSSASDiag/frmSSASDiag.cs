@@ -141,6 +141,24 @@ namespace SSASDiag
                 })).Start();
         }
 
+        int ifrmSSASDiagSizeBeforeResize = 0;
+        private void frmSSASDiag_ResizeBegin(object sender, EventArgs e)
+        {
+            ifrmSSASDiagSizeBeforeResize = Height;
+        }
+
+        private void frmSSASDiag_ResizeEnd(object sender, EventArgs e)
+        {
+            int Change = Height - ifrmSSASDiagSizeBeforeResize;
+            splitCollectionUI.SplitterDistance += (Change / 6);
+        }
+
+        private void frmSSASDiag_SizeChanged(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Maximized)
+                splitCollectionUI.SplitterDistance = (Height / 4) + 50;
+        }
+
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.AllowUsageStats = Convert.ToString(chkAllowUsageStatsCollection.Checked);

@@ -87,6 +87,7 @@ namespace SSASDiag
                     || (File.Exists(m_strPrivateTempBinPath + "SSASDiag.exe") && new FileInfo(m_strPrivateTempBinPath + "SSASDiag.exe").Length != new FileInfo(Application.ExecutablePath).Length) 
                     || Debugger.IsAttached)
                         File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true); } catch { } // may fail if file is in use, fine...
+
                 // Now decompress any compressed files we include.  This lets us cram more dependencies in as we add features and still not excessively bloat!  :D
                 // Although in our real compression work in assembling files for upload we will use the more flexible open source Ionic.Zip library included in our depenencies,
                 // these may not be loaded initially when are launching the first time outside the sandbox.  So here we will use .NET built in compression, at least always there.

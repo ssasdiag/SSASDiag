@@ -197,7 +197,6 @@ namespace SSASDiag
             grpDiagsToCapture.Width = splitCollectionUI.Panel1.Width - grpDiagsToCapture.Left;
             rtbProblemDescription.Width = tabGuided.Width - rtbProblemDescription.Left;
             rtbProblemDescription.Height = tabGuided.Height - rtbProblemDescription.Top;
-            
         }
         private void btnCapture_MouseEnter(object sender, EventArgs e)
         {
