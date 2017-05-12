@@ -33,21 +33,18 @@ namespace SSASDiag
             switch (cmbProblemType.SelectedItem as string)
             {
                 case "Performance":
-                    rtbProblemDescription.Height = 170;
                     rtbProblemDescription.Text = "Performance issues require minimal collection of config details, performance monitor logs, and extended profiler traces including performance relevant details.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
                     chkProfilerPerfDetails.Checked = chkGetProfiler.Checked = chkGetPerfMon.Checked = chkXMLA.Checked = chkGetConfigDetails.Checked = true;
                     break;
                 case "Errors/Hangs (non-connectivity)":
-                    rtbProblemDescription.Height = 170;
                     rtbProblemDescription.Text = "Non-connectivity related errors require minimal collection of config details, performance monitor logs, and basic profiler traces.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
                     chkGetPerfMon.Checked = chkGetProfiler.Checked = chkGetConfigDetails.Checked = chkXMLA.Checked = true;
                     break;
                 case "Connectivity Failures":
-                    rtbProblemDescription.Height = 287;
                     rtbProblemDescription.Text = "Connectivity failures require minimal collection of config details, performance monitor logs, basic profiler traces, and network traces.\r\n\r\n"
                                            + "Network traces should be captured on a failing client, and any middle tier server, for multi-tier scenarios.\r\n\r\n"
                                            + "Service Principle Names registered in Active Directory are captured if the tool is run as a domain administrator.\r\n\r\n"
@@ -56,7 +53,6 @@ namespace SSASDiag
                     chkGetConfigDetails.Checked = chkGetProfiler.Checked = chkGetPerfMon.Checked = chkGetNetwork.Checked = true;
                     break;
                 case "Connectivity (client/middle-tier only)":
-                    rtbProblemDescription.Height = 130;
                     rtbProblemDescription.Text = "Connectivity failures on client and middle tier require collection of network traces.\r\n\r\n"
                                            + "Network traces should be captured on a failing client, and any middle tier server, for multi-tier scenarios.\r\n\r\n"
                                            + "Service Principle Names registered in Active Directory are captured if the tool is run as a domain administrator.";
@@ -64,7 +60,6 @@ namespace SSASDiag
                     chkGetNetwork.Checked = true;
                     break;
                 case "Incorrect Query Results":
-                    rtbProblemDescription.Height = 170;
                     rtbProblemDescription.Text = "Incorrect results require minimal collection of config details and basic profiler traces, as well as full SQL data source backups.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups allows all experimental changes and full reprocessing of data structures.";
@@ -73,7 +68,6 @@ namespace SSASDiag
                     ttStatus.Show("Including SQL data source backups can increase data collection size and time required to stop collection.", tbLevelOfData, 1500);
                     break;
                 case "Data Corruption":
-                    rtbProblemDescription.Height = 210;
                     rtbProblemDescription.Text = "Data corruption issues require minimal collection of config details (including Application and System Event logs), performance monitor logs, basic profiler traces, and AS backups.\r\n\r\n"
                                            + "Including AS backups allows investigation to review corrupt data, in some cases allowing partial or full recovery.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";

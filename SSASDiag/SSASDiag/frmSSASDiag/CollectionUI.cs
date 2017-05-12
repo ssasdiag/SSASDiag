@@ -35,7 +35,7 @@ namespace SSASDiag
                     btnCapture.Image = imgPlayHalfLit;
                     tbAnalysis.ForeColor = SystemColors.ControlDark;
                     tcCollectionAnalysisTabs.Refresh();
-                    txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = groupBox1.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+                    txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
                     ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
                     string TracePrefix = Environment.MachineName + (cbsdi == null ? "" : "_"
                         + (cbInstances.SelectedIndex == 0 ? "" : cbsdi.Text + "_"));
@@ -190,6 +190,14 @@ namespace SSASDiag
                     txtStatus.Invoke(new System.Action(() => ttStatus.SetToolTip(txtStatus, "")));
                 }))).Start();
             }
+        }
+        private void splitCollectionUI_Panel1_Resize(object sender, EventArgs e)
+        {
+            grpDiagsToCapture.Height = splitCollectionUI.Panel1.Height - grpDiagsToCapture.Top;
+            grpDiagsToCapture.Width = splitCollectionUI.Panel1.Width - grpDiagsToCapture.Left;
+            rtbProblemDescription.Width = tabGuided.Width - rtbProblemDescription.Left;
+            rtbProblemDescription.Height = tabGuided.Height - rtbProblemDescription.Top;
+            
         }
         private void btnCapture_MouseEnter(object sender, EventArgs e)
         {

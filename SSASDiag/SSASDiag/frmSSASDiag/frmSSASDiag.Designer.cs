@@ -36,6 +36,10 @@
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
             this.lkDiscussion = new System.Windows.Forms.LinkLabel();
+            this.lkAbout = new System.Windows.Forms.LinkLabel();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtSaveLocation = new System.Windows.Forms.TextBox();
+            this.btnSaveLocation = new System.Windows.Forms.Button();
             this.lblBAK = new System.Windows.Forms.Label();
             this.lblABF = new System.Windows.Forms.Label();
             this.lblXMLA = new System.Windows.Forms.Label();
@@ -45,15 +49,12 @@
             this.chkProfilerPerfDetails = new System.Windows.Forms.CheckBox();
             this.chkGetNetwork = new System.Windows.Forms.CheckBox();
             this.chkXMLA = new System.Windows.Forms.CheckBox();
-            this.txtSaveLocation = new System.Windows.Forms.TextBox();
-            this.btnSaveLocation = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
-            this.lkAbout = new System.Windows.Forms.LinkLabel();
             this.tcCollectionAnalysisTabs = new System.Windows.Forms.TabControl();
             this.tbCollection = new System.Windows.Forms.TabPage();
+            this.splitCollectionUI = new System.Windows.Forms.SplitContainer();
             this.chkDeleteRaw = new System.Windows.Forms.CheckBox();
             this.chkZip = new System.Windows.Forms.CheckBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.grpDiagsToCapture = new System.Windows.Forms.GroupBox();
             this.tcSimpleAdvanced = new System.Windows.Forms.TabControl();
             this.tabGuided = new System.Windows.Forms.TabPage();
             this.pnlSimple = new System.Windows.Forms.Panel();
@@ -79,9 +80,9 @@
             this.lblInstanceDetails = new System.Windows.Forms.Label();
             this.cbInstances = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.txtStatus = new System.Windows.Forms.RichTextBox();
             this.lblInterval = new System.Windows.Forms.Label();
             this.lblInterval2 = new System.Windows.Forms.Label();
+            this.txtStatus = new System.Windows.Forms.RichTextBox();
             this.tbAnalysis = new System.Windows.Forms.TabPage();
             this.tcAnalysis = new System.Windows.Forms.TabControl();
             this.tbProfilerTraces = new System.Windows.Forms.TabPage();
@@ -106,7 +107,11 @@
             this.chkAllowUsageStatsCollection = new System.Windows.Forms.CheckBox();
             this.tcCollectionAnalysisTabs.SuspendLayout();
             this.tbCollection.SuspendLayout();
-            this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitCollectionUI)).BeginInit();
+            this.splitCollectionUI.Panel1.SuspendLayout();
+            this.splitCollectionUI.Panel2.SuspendLayout();
+            this.splitCollectionUI.SuspendLayout();
+            this.grpDiagsToCapture.SuspendLayout();
             this.tcSimpleAdvanced.SuspendLayout();
             this.tabGuided.SuspendLayout();
             this.pnlSimple.SuspendLayout();
@@ -179,6 +184,56 @@
             this.lkDiscussion.Text = "      Discussion/Ideas";
             this.ttStatus.SetToolTip(this.lkDiscussion, "Make it better!");
             this.lkDiscussion.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkDiscussion_LinkClicked);
+            // 
+            // lkAbout
+            // 
+            this.lkAbout.AutoSize = true;
+            this.lkAbout.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lkAbout.ForeColor = System.Drawing.SystemColors.Highlight;
+            this.lkAbout.Image = ((System.Drawing.Image)(resources.GetObject("lkAbout.Image")));
+            this.lkAbout.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lkAbout.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
+            this.lkAbout.Location = new System.Drawing.Point(266, 468);
+            this.lkAbout.Name = "lkAbout";
+            this.lkAbout.Padding = new System.Windows.Forms.Padding(2);
+            this.lkAbout.Size = new System.Drawing.Size(57, 17);
+            this.lkAbout.TabIndex = 22;
+            this.lkAbout.TabStop = true;
+            this.lkAbout.Text = "      About";
+            this.ttStatus.SetToolTip(this.lkAbout, "Who we are");
+            this.lkAbout.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkAbout_LinkClicked);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(2, 47);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(121, 13);
+            this.label3.TabIndex = 66;
+            this.label3.Text = "Data collection location:";
+            this.ttStatus.SetToolTip(this.label3, resources.GetString("label3.ToolTip"));
+            // 
+            // txtSaveLocation
+            // 
+            this.txtSaveLocation.Location = new System.Drawing.Point(26, 63);
+            this.txtSaveLocation.Name = "txtSaveLocation";
+            this.txtSaveLocation.ReadOnly = true;
+            this.txtSaveLocation.Size = new System.Drawing.Size(231, 20);
+            this.txtSaveLocation.TabIndex = 65;
+            this.ttStatus.SetToolTip(this.txtSaveLocation, resources.GetString("txtSaveLocation.ToolTip"));
+            // 
+            // btnSaveLocation
+            // 
+            this.btnSaveLocation.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSaveLocation.Location = new System.Drawing.Point(3, 64);
+            this.btnSaveLocation.Margin = new System.Windows.Forms.Padding(0);
+            this.btnSaveLocation.Name = "btnSaveLocation";
+            this.btnSaveLocation.Size = new System.Drawing.Size(22, 19);
+            this.btnSaveLocation.TabIndex = 64;
+            this.btnSaveLocation.Text = "...";
+            this.ttStatus.SetToolTip(this.btnSaveLocation, resources.GetString("btnSaveLocation.ToolTip"));
+            this.btnSaveLocation.UseVisualStyleBackColor = true;
+            this.btnSaveLocation.Click += new System.EventHandler(this.btnSaveLocation_Click);
             // 
             // lblBAK
             // 
@@ -305,56 +360,6 @@
             this.chkXMLA.UseVisualStyleBackColor = true;
             this.chkXMLA.CheckedChanged += new System.EventHandler(this.chkXMLA_CheckedChanged);
             // 
-            // txtSaveLocation
-            // 
-            this.txtSaveLocation.Location = new System.Drawing.Point(29, 63);
-            this.txtSaveLocation.Name = "txtSaveLocation";
-            this.txtSaveLocation.ReadOnly = true;
-            this.txtSaveLocation.Size = new System.Drawing.Size(231, 20);
-            this.txtSaveLocation.TabIndex = 44;
-            this.ttStatus.SetToolTip(this.txtSaveLocation, resources.GetString("txtSaveLocation.ToolTip"));
-            // 
-            // btnSaveLocation
-            // 
-            this.btnSaveLocation.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSaveLocation.Location = new System.Drawing.Point(6, 64);
-            this.btnSaveLocation.Margin = new System.Windows.Forms.Padding(0);
-            this.btnSaveLocation.Name = "btnSaveLocation";
-            this.btnSaveLocation.Size = new System.Drawing.Size(22, 19);
-            this.btnSaveLocation.TabIndex = 43;
-            this.btnSaveLocation.Text = "...";
-            this.ttStatus.SetToolTip(this.btnSaveLocation, resources.GetString("btnSaveLocation.ToolTip"));
-            this.btnSaveLocation.UseVisualStyleBackColor = true;
-            this.btnSaveLocation.Click += new System.EventHandler(this.btnSaveLocation_Click);
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(5, 47);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(121, 13);
-            this.label3.TabIndex = 45;
-            this.label3.Text = "Data collection location:";
-            this.ttStatus.SetToolTip(this.label3, resources.GetString("label3.ToolTip"));
-            // 
-            // lkAbout
-            // 
-            this.lkAbout.AutoSize = true;
-            this.lkAbout.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lkAbout.ForeColor = System.Drawing.SystemColors.Highlight;
-            this.lkAbout.Image = ((System.Drawing.Image)(resources.GetObject("lkAbout.Image")));
-            this.lkAbout.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lkAbout.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkAbout.Location = new System.Drawing.Point(266, 468);
-            this.lkAbout.Name = "lkAbout";
-            this.lkAbout.Padding = new System.Windows.Forms.Padding(2);
-            this.lkAbout.Size = new System.Drawing.Size(57, 17);
-            this.lkAbout.TabIndex = 22;
-            this.lkAbout.TabStop = true;
-            this.lkAbout.Text = "      About";
-            this.ttStatus.SetToolTip(this.lkAbout, "Who we are");
-            this.lkAbout.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkAbout_LinkClicked);
-            // 
             // tcCollectionAnalysisTabs
             // 
             this.tcCollectionAnalysisTabs.Controls.Add(this.tbCollection);
@@ -373,41 +378,62 @@
             // tbCollection
             // 
             this.tbCollection.BackColor = System.Drawing.SystemColors.Control;
-            this.tbCollection.Controls.Add(this.label3);
-            this.tbCollection.Controls.Add(this.txtSaveLocation);
-            this.tbCollection.Controls.Add(this.btnSaveLocation);
-            this.tbCollection.Controls.Add(this.chkDeleteRaw);
-            this.tbCollection.Controls.Add(this.chkZip);
-            this.tbCollection.Controls.Add(this.groupBox1);
-            this.tbCollection.Controls.Add(this.dtStopTime);
-            this.tbCollection.Controls.Add(this.chkStopTime);
-            this.tbCollection.Controls.Add(this.dtStartTime);
-            this.tbCollection.Controls.Add(this.chkStartTime);
-            this.tbCollection.Controls.Add(this.udInterval);
-            this.tbCollection.Controls.Add(this.udRollover);
-            this.tbCollection.Controls.Add(this.chkAutoRestart);
-            this.tbCollection.Controls.Add(this.chkRollover);
-            this.tbCollection.Controls.Add(this.btnCapture);
-            this.tbCollection.Controls.Add(this.label1);
-            this.tbCollection.Controls.Add(this.lblInstanceDetails);
-            this.tbCollection.Controls.Add(this.cbInstances);
-            this.tbCollection.Controls.Add(this.label2);
-            this.tbCollection.Controls.Add(this.txtStatus);
-            this.tbCollection.Controls.Add(this.lblInterval);
-            this.tbCollection.Controls.Add(this.lblInterval2);
+            this.tbCollection.Controls.Add(this.splitCollectionUI);
             this.tbCollection.Location = new System.Drawing.Point(4, 22);
             this.tbCollection.Name = "tbCollection";
             this.tbCollection.Size = new System.Drawing.Size(593, 439);
             this.tbCollection.TabIndex = 0;
             this.tbCollection.Text = "Collection";
             // 
+            // splitCollectionUI
+            // 
+            this.splitCollectionUI.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitCollectionUI.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
+            this.splitCollectionUI.Location = new System.Drawing.Point(0, 0);
+            this.splitCollectionUI.Name = "splitCollectionUI";
+            this.splitCollectionUI.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitCollectionUI.Panel1
+            // 
+            this.splitCollectionUI.Panel1.Controls.Add(this.label3);
+            this.splitCollectionUI.Panel1.Controls.Add(this.txtSaveLocation);
+            this.splitCollectionUI.Panel1.Controls.Add(this.btnSaveLocation);
+            this.splitCollectionUI.Panel1.Controls.Add(this.chkDeleteRaw);
+            this.splitCollectionUI.Panel1.Controls.Add(this.chkZip);
+            this.splitCollectionUI.Panel1.Controls.Add(this.grpDiagsToCapture);
+            this.splitCollectionUI.Panel1.Controls.Add(this.dtStopTime);
+            this.splitCollectionUI.Panel1.Controls.Add(this.chkStopTime);
+            this.splitCollectionUI.Panel1.Controls.Add(this.dtStartTime);
+            this.splitCollectionUI.Panel1.Controls.Add(this.chkStartTime);
+            this.splitCollectionUI.Panel1.Controls.Add(this.udInterval);
+            this.splitCollectionUI.Panel1.Controls.Add(this.udRollover);
+            this.splitCollectionUI.Panel1.Controls.Add(this.chkAutoRestart);
+            this.splitCollectionUI.Panel1.Controls.Add(this.chkRollover);
+            this.splitCollectionUI.Panel1.Controls.Add(this.btnCapture);
+            this.splitCollectionUI.Panel1.Controls.Add(this.label1);
+            this.splitCollectionUI.Panel1.Controls.Add(this.lblInstanceDetails);
+            this.splitCollectionUI.Panel1.Controls.Add(this.cbInstances);
+            this.splitCollectionUI.Panel1.Controls.Add(this.label2);
+            this.splitCollectionUI.Panel1.Controls.Add(this.lblInterval);
+            this.splitCollectionUI.Panel1.Controls.Add(this.lblInterval2);
+            this.splitCollectionUI.Panel1.Resize += new System.EventHandler(this.splitCollectionUI_Panel1_Resize);
+            this.splitCollectionUI.Panel1MinSize = 224;
+            // 
+            // splitCollectionUI.Panel2
+            // 
+            this.splitCollectionUI.Panel2.Controls.Add(this.txtStatus);
+            this.splitCollectionUI.Size = new System.Drawing.Size(593, 439);
+            this.splitCollectionUI.SplitterDistance = 224;
+            this.splitCollectionUI.SplitterIncrement = 12;
+            this.splitCollectionUI.TabIndex = 46;
+            // 
             // chkDeleteRaw
             // 
             this.chkDeleteRaw.AutoSize = true;
-            this.chkDeleteRaw.Location = new System.Drawing.Point(120, 89);
+            this.chkDeleteRaw.Location = new System.Drawing.Point(117, 89);
             this.chkDeleteRaw.Name = "chkDeleteRaw";
             this.chkDeleteRaw.Size = new System.Drawing.Size(144, 17);
-            this.chkDeleteRaw.TabIndex = 26;
+            this.chkDeleteRaw.TabIndex = 48;
             this.chkDeleteRaw.Text = "Delete raw data after zip.";
             this.chkDeleteRaw.UseVisualStyleBackColor = true;
             this.chkDeleteRaw.CheckedChanged += new System.EventHandler(this.chkDeleteRaw_CheckedChanged);
@@ -417,27 +443,27 @@
             this.chkZip.AutoSize = true;
             this.chkZip.Checked = true;
             this.chkZip.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkZip.Location = new System.Drawing.Point(8, 89);
+            this.chkZip.Location = new System.Drawing.Point(5, 89);
             this.chkZip.Name = "chkZip";
             this.chkZip.Size = new System.Drawing.Size(106, 17);
-            this.chkZip.TabIndex = 25;
+            this.chkZip.TabIndex = 47;
             this.chkZip.Text = "Compress to .zip.";
             this.chkZip.UseVisualStyleBackColor = true;
             this.chkZip.CheckedChanged += new System.EventHandler(this.chkZip_CheckedChanged);
             // 
-            // groupBox1
+            // grpDiagsToCapture
             // 
-            this.groupBox1.Controls.Add(this.tcSimpleAdvanced);
-            this.groupBox1.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox1.Location = new System.Drawing.Point(354, 52);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(0);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(0);
-            this.groupBox1.Size = new System.Drawing.Size(239, 170);
-            this.groupBox1.TabIndex = 35;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Diagnostics to Capture:";
+            this.grpDiagsToCapture.Controls.Add(this.tcSimpleAdvanced);
+            this.grpDiagsToCapture.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.grpDiagsToCapture.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.grpDiagsToCapture.Location = new System.Drawing.Point(351, 52);
+            this.grpDiagsToCapture.Margin = new System.Windows.Forms.Padding(0);
+            this.grpDiagsToCapture.Name = "grpDiagsToCapture";
+            this.grpDiagsToCapture.Padding = new System.Windows.Forms.Padding(0);
+            this.grpDiagsToCapture.Size = new System.Drawing.Size(239, 170);
+            this.grpDiagsToCapture.TabIndex = 57;
+            this.grpDiagsToCapture.TabStop = false;
+            this.grpDiagsToCapture.Text = "Diagnostics to Capture:";
             // 
             // tcSimpleAdvanced
             // 
@@ -601,18 +627,18 @@
             this.dtStopTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
             this.dtStopTime.Enabled = false;
             this.dtStopTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtStopTime.Location = new System.Drawing.Point(79, 157);
+            this.dtStopTime.Location = new System.Drawing.Point(76, 157);
             this.dtStopTime.Name = "dtStopTime";
             this.dtStopTime.Size = new System.Drawing.Size(181, 20);
-            this.dtStopTime.TabIndex = 32;
+            this.dtStopTime.TabIndex = 54;
             // 
             // chkStopTime
             // 
             this.chkStopTime.AutoSize = true;
-            this.chkStopTime.Location = new System.Drawing.Point(8, 158);
+            this.chkStopTime.Location = new System.Drawing.Point(5, 158);
             this.chkStopTime.Name = "chkStopTime";
             this.chkStopTime.Size = new System.Drawing.Size(73, 17);
-            this.chkStopTime.TabIndex = 31;
+            this.chkStopTime.TabIndex = 53;
             this.chkStopTime.Text = "Stop time:";
             this.chkStopTime.UseVisualStyleBackColor = true;
             this.chkStopTime.CheckedChanged += new System.EventHandler(this.chkStopTime_CheckedChanged);
@@ -622,25 +648,25 @@
             this.dtStartTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
             this.dtStartTime.Enabled = false;
             this.dtStartTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtStartTime.Location = new System.Drawing.Point(79, 134);
+            this.dtStartTime.Location = new System.Drawing.Point(76, 134);
             this.dtStartTime.Name = "dtStartTime";
             this.dtStartTime.Size = new System.Drawing.Size(181, 20);
-            this.dtStartTime.TabIndex = 30;
+            this.dtStartTime.TabIndex = 52;
             // 
             // chkStartTime
             // 
             this.chkStartTime.AutoSize = true;
-            this.chkStartTime.Location = new System.Drawing.Point(8, 135);
+            this.chkStartTime.Location = new System.Drawing.Point(5, 135);
             this.chkStartTime.Name = "chkStartTime";
             this.chkStartTime.Size = new System.Drawing.Size(73, 17);
-            this.chkStartTime.TabIndex = 29;
+            this.chkStartTime.TabIndex = 51;
             this.chkStartTime.Text = "Start time:";
             this.chkStartTime.UseVisualStyleBackColor = true;
             this.chkStartTime.CheckedChanged += new System.EventHandler(this.chkStartTime_CheckedChanged);
             // 
             // udInterval
             // 
-            this.udInterval.Location = new System.Drawing.Point(148, 202);
+            this.udInterval.Location = new System.Drawing.Point(145, 202);
             this.udInterval.Maximum = new decimal(new int[] {
             60,
             0,
@@ -653,7 +679,7 @@
             0});
             this.udInterval.Name = "udInterval";
             this.udInterval.Size = new System.Drawing.Size(45, 20);
-            this.udInterval.TabIndex = 34;
+            this.udInterval.TabIndex = 56;
             this.udInterval.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.udInterval.ThousandsSeparator = true;
             this.udInterval.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
@@ -666,7 +692,7 @@
             // udRollover
             // 
             this.udRollover.Enabled = false;
-            this.udRollover.Location = new System.Drawing.Point(168, 110);
+            this.udRollover.Location = new System.Drawing.Point(165, 110);
             this.udRollover.Maximum = new decimal(new int[] {
             2048,
             0,
@@ -679,7 +705,7 @@
             0});
             this.udRollover.Name = "udRollover";
             this.udRollover.Size = new System.Drawing.Size(54, 20);
-            this.udRollover.TabIndex = 28;
+            this.udRollover.TabIndex = 50;
             this.udRollover.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.udRollover.ThousandsSeparator = true;
             this.udRollover.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
@@ -692,10 +718,10 @@
             // chkAutoRestart
             // 
             this.chkAutoRestart.AutoSize = true;
-            this.chkAutoRestart.Location = new System.Drawing.Point(8, 181);
+            this.chkAutoRestart.Location = new System.Drawing.Point(5, 181);
             this.chkAutoRestart.Name = "chkAutoRestart";
             this.chkAutoRestart.Size = new System.Drawing.Size(206, 17);
-            this.chkAutoRestart.TabIndex = 33;
+            this.chkAutoRestart.TabIndex = 55;
             this.chkAutoRestart.Text = "Restart profiler trace if service restarts.";
             this.chkAutoRestart.UseVisualStyleBackColor = true;
             this.chkAutoRestart.CheckedChanged += new System.EventHandler(this.chkAutoRestart_CheckedChanged);
@@ -705,10 +731,10 @@
             this.chkRollover.AutoSize = true;
             this.chkRollover.Checked = true;
             this.chkRollover.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRollover.Location = new System.Drawing.Point(8, 112);
+            this.chkRollover.Location = new System.Drawing.Point(5, 112);
             this.chkRollover.Name = "chkRollover";
             this.chkRollover.Size = new System.Drawing.Size(162, 17);
-            this.chkRollover.TabIndex = 27;
+            this.chkRollover.TabIndex = 49;
             this.chkRollover.Text = "Rollover log/trace/zip files at";
             this.chkRollover.UseVisualStyleBackColor = true;
             this.chkRollover.CheckedChanged += new System.EventHandler(this.chkRollover_CheckedChanged);
@@ -722,11 +748,10 @@
             this.btnCapture.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
             this.btnCapture.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
             this.btnCapture.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnCapture.Image = global::SSASDiag.Properties.Resources.play;
-            this.btnCapture.Location = new System.Drawing.Point(276, 76);
+            this.btnCapture.Location = new System.Drawing.Point(273, 76);
             this.btnCapture.Name = "btnCapture";
             this.btnCapture.Size = new System.Drawing.Size(68, 68);
-            this.btnCapture.TabIndex = 37;
+            this.btnCapture.TabIndex = 58;
             this.btnCapture.UseVisualStyleBackColor = false;
             this.btnCapture.Click += new System.EventHandler(this.btnCapture_Click);
             this.btnCapture.MouseEnter += new System.EventHandler(this.btnCapture_MouseEnter);
@@ -735,72 +760,73 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(5, 5);
+            this.label1.Location = new System.Drawing.Point(2, 5);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(238, 13);
-            this.label1.TabIndex = 40;
+            this.label1.TabIndex = 61;
             this.label1.Text = "Select an SSAS instance from the local machine:";
             // 
             // lblInstanceDetails
             // 
             this.lblInstanceDetails.AutoSize = true;
             this.lblInstanceDetails.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblInstanceDetails.Location = new System.Drawing.Point(274, 20);
+            this.lblInstanceDetails.Location = new System.Drawing.Point(271, 20);
             this.lblInstanceDetails.Name = "lblInstanceDetails";
             this.lblInstanceDetails.Size = new System.Drawing.Size(0, 12);
-            this.lblInstanceDetails.TabIndex = 41;
+            this.lblInstanceDetails.TabIndex = 62;
             // 
             // cbInstances
             // 
             this.cbInstances.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbInstances.FormattingEnabled = true;
-            this.cbInstances.Location = new System.Drawing.Point(8, 23);
+            this.cbInstances.Location = new System.Drawing.Point(5, 23);
             this.cbInstances.Name = "cbInstances";
             this.cbInstances.Size = new System.Drawing.Size(252, 21);
-            this.cbInstances.TabIndex = 24;
+            this.cbInstances.TabIndex = 46;
             this.cbInstances.SelectedIndexChanged += new System.EventHandler(this.cbInstances_SelectedIndexChanged);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(224, 113);
+            this.label2.Location = new System.Drawing.Point(221, 113);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 13);
-            this.label2.TabIndex = 42;
+            this.label2.TabIndex = 63;
             this.label2.Text = "MB.";
+            // 
+            // lblInterval
+            // 
+            this.lblInterval.AutoSize = true;
+            this.lblInterval.Location = new System.Drawing.Point(21, 204);
+            this.lblInterval.Name = "lblInterval";
+            this.lblInterval.Size = new System.Drawing.Size(124, 13);
+            this.lblInterval.TabIndex = 60;
+            this.lblInterval.Text = "Performance log interval:";
+            // 
+            // lblInterval2
+            // 
+            this.lblInterval2.AutoSize = true;
+            this.lblInterval2.Location = new System.Drawing.Point(192, 204);
+            this.lblInterval2.Name = "lblInterval2";
+            this.lblInterval2.Size = new System.Drawing.Size(50, 13);
+            this.lblInterval2.TabIndex = 59;
+            this.lblInterval2.Text = "seconds.";
             // 
             // txtStatus
             // 
             this.txtStatus.BackColor = System.Drawing.Color.Black;
             this.txtStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtStatus.DetectUrls = false;
+            this.txtStatus.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtStatus.Font = new System.Drawing.Font("Consolas", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtStatus.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.txtStatus.Location = new System.Drawing.Point(3, 225);
+            this.txtStatus.Location = new System.Drawing.Point(0, 0);
             this.txtStatus.Name = "txtStatus";
             this.txtStatus.ReadOnly = true;
-            this.txtStatus.Size = new System.Drawing.Size(587, 213);
-            this.txtStatus.TabIndex = 36;
+            this.txtStatus.Size = new System.Drawing.Size(593, 211);
+            this.txtStatus.TabIndex = 37;
             this.txtStatus.Text = "";
             this.txtStatus.MouseDown += new System.Windows.Forms.MouseEventHandler(this.txtStatus_MouseDown);
-            // 
-            // lblInterval
-            // 
-            this.lblInterval.AutoSize = true;
-            this.lblInterval.Location = new System.Drawing.Point(24, 204);
-            this.lblInterval.Name = "lblInterval";
-            this.lblInterval.Size = new System.Drawing.Size(124, 13);
-            this.lblInterval.TabIndex = 39;
-            this.lblInterval.Text = "Performance log interval:";
-            // 
-            // lblInterval2
-            // 
-            this.lblInterval2.AutoSize = true;
-            this.lblInterval2.Location = new System.Drawing.Point(195, 204);
-            this.lblInterval2.Name = "lblInterval2";
-            this.lblInterval2.Size = new System.Drawing.Size(50, 13);
-            this.lblInterval2.TabIndex = 38;
-            this.lblInterval2.Text = "seconds.";
             // 
             // tbAnalysis
             // 
@@ -1124,8 +1150,12 @@
             this.Resize += new System.EventHandler(this.frmSSASDiag_Resize);
             this.tcCollectionAnalysisTabs.ResumeLayout(false);
             this.tbCollection.ResumeLayout(false);
-            this.tbCollection.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
+            this.splitCollectionUI.Panel1.ResumeLayout(false);
+            this.splitCollectionUI.Panel1.PerformLayout();
+            this.splitCollectionUI.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitCollectionUI)).EndInit();
+            this.splitCollectionUI.ResumeLayout(false);
+            this.grpDiagsToCapture.ResumeLayout(false);
             this.tcSimpleAdvanced.ResumeLayout(false);
             this.tabGuided.ResumeLayout(false);
             this.pnlSimple.ResumeLayout(false);
@@ -1161,9 +1191,37 @@
         private System.Windows.Forms.LinkLabel lkDiscussion;
         private System.Windows.Forms.TabControl tcCollectionAnalysisTabs;
         private System.Windows.Forms.TabPage tbCollection;
+        private System.Windows.Forms.TabPage tbAnalysis;
+        private System.Windows.Forms.Button btnAnalysisFolder;
+        private System.Windows.Forms.TextBox txtFolderZipForAnalysis;
+        private System.Windows.Forms.Label lblFolderZipPrompt;
+        private System.Windows.Forms.TabControl tcAnalysis;
+        private System.Windows.Forms.ImageList imgAnalyzerIcons;
+        private System.Windows.Forms.TabPage tbProfilerTraces;
+        private System.Windows.Forms.TextBox ProfilerTraceStatusTextBox;
+        private System.Windows.Forms.LinkLabel lkAbout;
+        private System.Windows.Forms.SplitContainer splitProfilerAnalysis;
+        private System.Windows.Forms.Label lblAnalysisQueries;
+        private System.Windows.Forms.ComboBox cmbProfilerAnalyses;
+        private System.Windows.Forms.DataGridView dgdProfilerAnalyses;
+        private System.Windows.Forms.TextBox txtProfilerAnalysisDescription;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Panel pnlProfilerAnalysisStatus;
+        private System.Windows.Forms.Label lblProfilerAnalysisStatusCenter;
+        private System.Windows.Forms.Label lblProfilerAnalysisStatusLeft;
+        private System.Windows.Forms.Label lblProfilerAnalysisStatusRight;
+        private System.Windows.Forms.CheckBox chkDettachProfilerAnalysisDBWhenDone;
+        private System.Windows.Forms.Button btnImportProfilerTrace;
+        private System.Windows.Forms.CheckBox chkAutoUpdate;
+        private System.Windows.Forms.CheckBox chkAllowUsageStatsCollection;
+        private System.Windows.Forms.SplitContainer splitCollectionUI;
+        private System.Windows.Forms.RichTextBox txtStatus;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtSaveLocation;
+        private System.Windows.Forms.Button btnSaveLocation;
         private System.Windows.Forms.CheckBox chkDeleteRaw;
         private System.Windows.Forms.CheckBox chkZip;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox grpDiagsToCapture;
         private System.Windows.Forms.TabControl tcSimpleAdvanced;
         private System.Windows.Forms.TabPage tabGuided;
         private System.Windows.Forms.Panel pnlSimple;
@@ -1189,7 +1247,6 @@
         private System.Windows.Forms.CheckBox chkStopTime;
         private System.Windows.Forms.DateTimePicker dtStartTime;
         private System.Windows.Forms.CheckBox chkStartTime;
-        private System.Windows.Forms.Label lblInterval2;
         private System.Windows.Forms.NumericUpDown udInterval;
         private System.Windows.Forms.NumericUpDown udRollover;
         private System.Windows.Forms.CheckBox chkAutoRestart;
@@ -1199,34 +1256,8 @@
         private System.Windows.Forms.Label lblInstanceDetails;
         private System.Windows.Forms.ComboBox cbInstances;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.RichTextBox txtStatus;
         private System.Windows.Forms.Label lblInterval;
-        private System.Windows.Forms.TabPage tbAnalysis;
-        private System.Windows.Forms.Button btnAnalysisFolder;
-        private System.Windows.Forms.TextBox txtFolderZipForAnalysis;
-        private System.Windows.Forms.Label lblFolderZipPrompt;
-        private System.Windows.Forms.TabControl tcAnalysis;
-        private System.Windows.Forms.ImageList imgAnalyzerIcons;
-        private System.Windows.Forms.TabPage tbProfilerTraces;
-        private System.Windows.Forms.TextBox ProfilerTraceStatusTextBox;
-        private System.Windows.Forms.TextBox txtSaveLocation;
-        private System.Windows.Forms.Button btnSaveLocation;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.LinkLabel lkAbout;
-        private System.Windows.Forms.SplitContainer splitProfilerAnalysis;
-        private System.Windows.Forms.Label lblAnalysisQueries;
-        private System.Windows.Forms.ComboBox cmbProfilerAnalyses;
-        private System.Windows.Forms.DataGridView dgdProfilerAnalyses;
-        private System.Windows.Forms.TextBox txtProfilerAnalysisDescription;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Panel pnlProfilerAnalysisStatus;
-        private System.Windows.Forms.Label lblProfilerAnalysisStatusCenter;
-        private System.Windows.Forms.Label lblProfilerAnalysisStatusLeft;
-        private System.Windows.Forms.Label lblProfilerAnalysisStatusRight;
-        private System.Windows.Forms.CheckBox chkDettachProfilerAnalysisDBWhenDone;
-        private System.Windows.Forms.Button btnImportProfilerTrace;
-        private System.Windows.Forms.CheckBox chkAutoUpdate;
-        private System.Windows.Forms.CheckBox chkAllowUsageStatsCollection;
+        private System.Windows.Forms.Label lblInterval2;
     }
 }
 
