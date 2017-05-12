@@ -105,7 +105,7 @@ namespace SSASDiag
                 string sSvcUser = "";
                 ServiceController[] services = ServiceController.GetServices();
                 foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
-                    if (s.DisplayName.Contains("SQL Server ("))
+                    if (s.DisplayName.Contains("SQL Server (" + (connSqlDb.DataSource.Contains("\\") ? connSqlDb.DataSource.Substring(connSqlDb.DataSource.IndexOf("\\")) : "MSSQLSERVER")))
                     {
                         SelectQuery sQuery = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\"");
                         ManagementObjectSearcher mgmtSearcher = new ManagementObjectSearcher(sQuery);
