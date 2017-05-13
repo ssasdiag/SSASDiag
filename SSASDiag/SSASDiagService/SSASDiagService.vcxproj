@@ -89,13 +89,13 @@
     <Link>
       <OutputFile>..\SSASDiag\Resources\SSASDiagService.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release/XYNTService.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Release/SSASDiagService.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Release/XYNTService.bsc</OutputFile>
+      <OutputFile>.\Release/SSASDiagService.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
