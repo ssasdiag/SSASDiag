@@ -28,8 +28,6 @@ namespace SSASDiag
         {
             if (tcCollectionAnalysisTabs.SelectedIndex == 1 && tbAnalysis.Enabled)
             {
-                LogFeatureUse("Profiler Analysis", "Opening analysis tab");
-
                 if (ProfilerTraceAnalysisQueries == null)
                 {
                     ProfilerTraceAnalysisQueries = InitializeProfilerTraceAnalysisQueries();
@@ -155,6 +153,8 @@ namespace SSASDiag
                         )
                    )
                 {
+                    SetupSQLTextbox();
+                    LogFeatureUse("Profiler Analysis", "Initializing analysis tab");
                     splitProfilerAnalysis.Visible = false;
                     ProfilerTraceStatusTextBox.Text = "";
                     tcAnalysis.TabPages.Add(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());

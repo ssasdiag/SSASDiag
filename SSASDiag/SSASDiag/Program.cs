@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿
+using Microsoft.Win32;
 using System.IO.Compression;
 using System;
 using System.Collections;
@@ -24,6 +25,9 @@ namespace SSASDiag
         [STAThread]
         public static void Main()
         {
+            if (!Environment.UserInteractive)
+                Application.ApplicationExit += Application_ApplicationExit;
+
             // Assign a unique Run ID used to anonymously track usage if user allows
             RunID = Guid.NewGuid();
 
@@ -31,7 +35,7 @@ namespace SSASDiag
             object ReleaseVer = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, "").OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full").GetValue("Release");
             if (ReleaseVer == null || Convert.ToInt32(ReleaseVer) <= 394254)
             {
-                if (MessageBox.Show("SSASDiag requires .NET 4.6.1 or later and will exit now.\r\nInstall the latest .NET release now?", ".NET Update Required", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                if (Environment.UserInteractive && MessageBox.Show("SSASDiag requires .NET 4.6.1 or later and will exit now.\r\nInstall the latest .NET release now?", ".NET Update Required", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
                     Process.Start("https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/NDP462-KB3151800-x86-x64-AllOS-ENU.exe");
                 return;
             }
@@ -85,7 +89,8 @@ namespace SSASDiag
 
                 if (!File.Exists(m_strPrivateTempBinPath + "SSASDiag.exe") 
                     || (File.Exists(m_strPrivateTempBinPath + "SSASDiag.exe") && new FileInfo(m_strPrivateTempBinPath + "SSASDiag.exe").Length != new FileInfo(Application.ExecutablePath).Length) 
-                    || Debugger.IsAttached)
+                    || Debugger.IsAttached
+                    || !Environment.UserInteractive)
                         File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true); } catch { } // may fail if file is in use, fine...
 
                 // Now decompress any compressed files we include.  This lets us cram more dependencies in as we add features and still not excessively bloat!  :D
@@ -140,14 +145,14 @@ namespace SSASDiag
                     AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
                     tempDomain.SetData("tempbinlocation", m_strPrivateTempBinPath);
 
-                    if (Properties.Settings.Default.AutoUpdate == "true")
+                    if (Properties.Settings.Default.AutoUpdate == "true" && Environment.UserInteractive)
                         CheckForUpdates(tempDomain);
                     
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
                     // Execute the domain.
                     ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName);
 
-                    //  Finally unload our actual executing AppDomain after finished from temp directory, to delete the files there...)
+                    //  Finally unload our actual executing AppDomain after finished from temp directory)
                     try { AppDomain.Unload(tempDomain); }
                     catch (Exception ex)
                     {
@@ -172,15 +177,18 @@ namespace SSASDiag
                         + ex.Message + "\r\n at " + ex.TargetSite + ".";
                     if (ex.InnerException != null) msg += "\r\n\r\n Inner Exception: " + ex.InnerException.Message + "\r\n  at " + ex.InnerException.TargetSite + ".";
 
-                    MessageBox.Show(msg, "Unexpected error in SSAS Diagnostics Collection", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (Environment.UserInteractive)
+                        MessageBox.Show(msg, "Unexpected error in SSAS Diagnostics Collection", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-                    Clipboard.SetData(DataFormats.StringFormat, "Error: " + ex.Message + " at " + ex.TargetSite + "\n"
+                    if (Environment.UserInteractive)
+                        Clipboard.SetData(DataFormats.StringFormat, "Error: " + ex.Message + " at " + ex.TargetSite + "\n"
                                         + ex.StackTrace
                                         + (ex.InnerException == null ? "" :
                                             "\n\n=====================\nInner Exception: " + ex.InnerException.Message + " at " + ex.InnerException.TargetSite + "\n"
                                             + ex.InnerException.StackTrace));
 
-                    Process.Start("mailto:jon.burchel@mcirosoft.com?subject=" + "SSASDiag error");
+                    if (Environment.UserInteractive)
+                        Process.Start("mailto:jon.burchel@mcirosoft.com?subject=" + WebUtility.UrlEncode("SSASDiag error at " + ex.TargetSite));
                 }
 
                 // After the inner app domain exits
@@ -194,14 +202,30 @@ namespace SSASDiag
             try
             {
                 MainForm = new frmSSASDiag();
-                Application.Run(MainForm);
+                Application.Run(MainForm);  
             }
             catch (Exception ex)
             {
                 Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
-                MessageBox.Show("There was an unexpected exception in the tool:\n\t" + ex.Message);
+                if (Environment.UserInteractive)
+                    MessageBox.Show("SSASDiag encountered an unexpected exception:\n\t" + ex.Message + "\n\tat\n" + ex.StackTrace, "SSASDiag Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             System.Diagnostics.Trace.WriteLine("Exiting SSASDiag.");
+        }
+
+        private static void Application_ApplicationExit(object sender, EventArgs e)
+        {
+            Debug.WriteLine("btn: " + MainForm.btnCapture.Image.Tag as string);
+            if (!Environment.UserInteractive && MainForm.btnCapture.Image.Tag as string == "Stop")
+            {
+                MainForm.btnCapture.PerformClick();
+                Debug.WriteLine("btn: " + MainForm.btnCapture.Image.Tag as string);
+                while (MainForm.btnCapture.Image.Tag as string != "Start")
+                {
+                    Debug.WriteLine("btn: " + MainForm.btnCapture.Image.Tag as string);
+                    Thread.Sleep(1000);
+                }
+            }
         }
 
         public static void CheckForUpdates(AppDomain tempDomain)

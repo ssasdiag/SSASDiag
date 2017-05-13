@@ -141,6 +141,7 @@ namespace SSASDiag
                 TraceID = sTracePrefix
                     + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC"
                     + "_SSASDiag";
+                Debug.WriteLine("Starting TraceID: " + TraceID);
                 AddItemToStatus("Initializing SSAS diagnostics collection at " + m_StartTime.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
                 if (AppDomain.CurrentDomain.GetData("Case") != null && (AppDomain.CurrentDomain.GetData("Case") as string).Trim() != "")
                     AddItemToStatus("Diagnostic collection associated with case number: " + AppDomain.CurrentDomain.GetData("Case"));
@@ -159,7 +160,7 @@ namespace SSASDiag
                     Directory.CreateDirectory(TraceID);
                 else
                 {
-                    if (MessageBox.Show("There is an existing output directory found.\r\nDelete these files to start with a fresh output folder?", "Existing output folder found", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    if (!Environment.UserInteractive || MessageBox.Show("There is an existing output directory found.\r\nDelete these files to start with a fresh output folder?", "Existing output folder found", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     {
                         try { Directory.Delete(TraceID, true); } catch { }
                         Directory.CreateDirectory(TraceID);
@@ -363,7 +364,7 @@ namespace SSASDiag
             if (bRollover) AddItemToStatus("Log and trace files rollover after " + iRollover + "MB.");
             if (bUseEnd) AddItemToStatus("Diagnostic collection stops automatically at " + dtEnd.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             m_StartTime = DateTime.Now.AddSeconds(-1);
-            AddItemToStatus("Diagnostics captured for 00:00:00");
+            if (Environment.UserInteractive) AddItemToStatus("Diagnostics captured for 00:00:00");
             CompletionCallback.Invoke();
         }
         #endregion StartCapture
@@ -397,7 +398,7 @@ namespace SSASDiag
                 if (bRunning)
                 {
                     // Update elapsed time.
-                    AddItemToStatus("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss"), false, "Diagnostics captured for ");
+                    if (Environment.UserInteractive) AddItemToStatus("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss"), false, "Diagnostics captured for ");
 
                     if (iCurrentTimerTicksSinceLastInterval >= iInterval && bPerfMonRunning)
                     {
@@ -405,7 +406,6 @@ namespace SSASDiag
                         try { m_PdhHelperInstance.UpdateLog("SSASDiag"); }
                         catch (Exception ex)
                         {
-                            MessageBox.Show(ex.Message);
                             frmSSASDiag.LogException(ex);
                         }
                         iCurrentTimerTicksSinceLastInterval = 0;
@@ -813,8 +813,6 @@ namespace SSASDiag
         }
         private void FinalizeStop()
         {
-            
-
             AddItemToStatus("SSASDiag completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             PerfMonAndUIPumpTimer.Stop();
             bScheduledStartPending = false;
@@ -869,21 +867,26 @@ namespace SSASDiag
             return ret;
         }
         void AddItemToStatus(string Item, bool bScroll = true, string AtLastLineStartingWith = "")
-        {           
-            if (AtLastLineStartingWith == "")
-                slStatus.Insert(slStatus.Count, Item);
-            else
-                for (int i = slStatus.Count - 1; i >= 0; i--)
-                    if (slStatus[i].StartsWith(AtLastLineStartingWith))
-                        slStatus[i] = Item;
-
-            txtStatus.Invoke(new System.Action(() =>
+        {
+            if (Environment.UserInteractive)
             {
-                if (txtStatus.Text.Length > 0)
-                    txtStatus.Select(txtStatus.Text.Length - 1, 1);
-                txtStatus.ScrollToCaret();
-            }));
-            txtStatus.Invoke(new System.Action(() => RaisePropertyChanged("Status")));
+                if (AtLastLineStartingWith == "")
+                    slStatus.Insert(slStatus.Count, Item);
+                else
+                    for (int i = slStatus.Count - 1; i >= 0; i--)
+                        if (slStatus[i].StartsWith(AtLastLineStartingWith))
+                            slStatus[i] = Item;
+
+                txtStatus.Invoke(new System.Action(() =>
+                {
+                    if (txtStatus.Text.Length > 0)
+                        txtStatus.Select(txtStatus.Text.Length - 1, 1);
+                    txtStatus.ScrollToCaret();
+                }));
+                txtStatus.Invoke(new System.Action(() => RaisePropertyChanged("Status")));
+            }
+            else
+                Debug.WriteLine(Item);
             return;
         }
 

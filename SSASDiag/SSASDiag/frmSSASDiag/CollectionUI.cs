@@ -30,7 +30,6 @@ namespace SSASDiag
                 if (btnCapture.Image.Tag as string == "Play" || btnCapture.Image.Tag as string == "Play Lit")
                 {
                     new Thread(new ThreadStart(() => DettachProfilerTraceDB())).Start();  // Dettach any existing data from analysis because we're capturing new data now.
-
                     btnCapture.Click -= btnCapture_Click;
                     btnCapture.Image = imgPlayHalfLit;
                     tbAnalysis.ForeColor = SystemColors.ControlDark;
@@ -82,33 +81,45 @@ namespace SSASDiag
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
             btnCapture.Enabled = false;
-            new Thread(new ThreadStart(() =>
-            {
-                try
-                {
-                    Server srv = new Server();
-                    ComboBoxServiceDetailsItem SelItem = cbInstances.Invoke(new Func<ComboBoxServiceDetailsItem>(() => { return (cbInstances.SelectedItem as ComboBoxServiceDetailsItem); })) as ComboBoxServiceDetailsItem;
-                    if (SelItem != null)
-                    {
-                        srv.Connect("Data source=" + Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
-                        System.Diagnostics.Trace.WriteLine("Connected to server with connection string: " + srv.ConnectionString);
-                        lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
-                        m_instanceType = srv.ServerMode.ToString();
-                        m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
-                        m_instanceEdition = srv.Edition.ToString();
-                        m_LogDir = srv.ServerProperties["LogDir"].Value;
-                        m_ConfigDir = SelItem.ConfigPath;
-                        srv.Disconnect();
-                        btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = true));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogException(ex);
-                    if (!lblInstanceDetails.IsDisposed) lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance details could not be obtained due to failure connecting:\r\n" + ex.Message));
-                }
-            })).Start();
+            BackgroundWorker bgPopulateInstanceDetails = new BackgroundWorker();
+            bgPopulateInstanceDetails.DoWork += BgPopulateInstanceDetails_DoWork;
+            bgPopulateInstanceDetails.RunWorkerCompleted += BgPopulateInstanceDetails_RunWorkerCompleted;
+            bgPopulateInstanceDetails.RunWorkerAsync();            
         }
+
+        private void BgPopulateInstanceDetails_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                Server srv = new Server();
+                ComboBoxServiceDetailsItem SelItem = cbInstances.Invoke(new Func<ComboBoxServiceDetailsItem>(() => { return (cbInstances.SelectedItem as ComboBoxServiceDetailsItem); })) as ComboBoxServiceDetailsItem;
+                if (SelItem != null)
+                {
+                    srv.Connect("Data source=" + Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
+                    System.Diagnostics.Trace.WriteLine("Connected to server with connection string: " + srv.ConnectionString);
+                    lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
+                    m_instanceType = srv.ServerMode.ToString();
+                    m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
+                    m_instanceEdition = srv.Edition.ToString();
+                    m_LogDir = srv.ServerProperties["LogDir"].Value;
+                    m_ConfigDir = SelItem.ConfigPath;
+                    srv.Disconnect();
+                    btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = true));
+                }
+            }
+            catch (Exception ex)
+            {
+                LogException(ex);
+                if (!lblInstanceDetails.IsDisposed) lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance details could not be obtained due to failure connecting:\r\n" + ex.Message));
+            }
+        }
+
+        private void BgPopulateInstanceDetails_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (btnCapture.Enabled && Args.ContainsKey("start") && cbInstances.Items.Count > 0)
+                    btnCapture_Click(sender, e);
+        }
+
         private void PopulateInstanceDropdown()
         {
             BackgroundWorker bg = new BackgroundWorker();
@@ -157,6 +168,15 @@ namespace SSASDiag
             if (cbInstances.Items.Count > 0) cbInstances.SelectedIndex = 0;
             if (LocalInstances.Count == 0)
                 lblInstanceDetails.Text = "There were no Analysis Services instances found on this server.\r\nPlease run on a server with a SQL 2008 or later SSAS instance.";
+            else
+            {
+                if (Args.ContainsKey("instance"))
+                {
+                        int i = LocalInstances.FindIndex(c => c.Text.ToLower() == Args["instance"].ToLower().TrimEnd().TrimStart());
+                        if (i > 0)
+                            cbInstances.SelectedIndex = i;
+                }
+            }
         }
 
         #endregion BlockingUIComponentsBesidesCapture

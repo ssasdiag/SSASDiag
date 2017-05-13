@@ -128,12 +128,15 @@ namespace SSASDiag
                 string baseMsg = "AS .abf backups provide data to execute queries and obtain results, and allow modification of calculation definitions, but not changes "
                                 + "to data definitions requiring reprocessing.  They are the second most optimal dataset to reproduce and investigate issues.\r\n\r\n"
                                 + "However, please note that including database or data source backups may siginificantly increase size of data collected and time required to stop collection.";
-                if (chkXMLA.Checked)
+                if (chkXMLA.Checked && Environment.UserInteractive && bFullyInitialized)
                     MessageBox.Show("AS backups include database definitions.\nDatabase definitions will be unchecked after you click OK.\r\n\r\n"
                                     + baseMsg,
                                   "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 else
-                    MessageBox.Show(baseMsg, "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                {
+                    if (Environment.UserInteractive && bFullyInitialized)
+                        MessageBox.Show(baseMsg, "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
                 chkXMLA.Checked = false;
             }
         }
@@ -157,7 +160,7 @@ namespace SSASDiag
             if (chkProfilerPerfDetails.Checked)
             {
                 chkGetProfiler.Checked = true;
-                if (MessageBox.Show("Adding verbose performance details to profiler traces accumulates data much more quickly than without, and is often not required even to understand many performance issues.\r\n\r\nDo you want to enable verbose tracing anyway?", "Verbose Trace Details Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.No)
+                if (Environment.UserInteractive && bFullyInitialized && MessageBox.Show("Adding verbose performance details to profiler traces accumulates data much more quickly than without, and is often not required even to understand many performance issues.\r\n\r\nDo you want to enable verbose tracing anyway?", "Verbose Trace Details Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.No)
                     chkProfilerPerfDetails.Checked = false;
             }
             UpdateUIIfOnlyNetworkingEnabled();
@@ -184,12 +187,15 @@ namespace SSASDiag
                     string baseMsg = "AS .abf backups provide data to execute queries and obtain results, and allow modification of calculation definitions, but not changes "
                                 + "to data definitions requiring reprocessing.  They are the second most optimal dataset to reproduce and investigate issues.\r\n\r\n"
                                 + "However, please note that including database or data source backups may siginificantly increase size of data collected and time required to stop collection.";
-                    if (chkXMLA.Checked)
+                    if (chkXMLA.Checked && Environment.UserInteractive && bFullyInitialized)
                         MessageBox.Show("AS backups include database definitions.\nDatabase definitions will be unchecked after you click OK.\r\n\r\n"
                                         + baseMsg,
                                       "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     else
-                        MessageBox.Show(baseMsg, "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    {
+                        if (Environment.UserInteractive && bFullyInitialized)
+                            MessageBox.Show(baseMsg, "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
                 }
                 chkXMLA.Checked = false;
                 chkBAK.Checked = false;
@@ -201,9 +207,10 @@ namespace SSASDiag
             if (chkBAK.Checked)
             {
                 chkGetProfiler.Checked = chkXMLA.Checked = true;
-                MessageBox.Show("AS database definitions with SQL data source backups provide the optimal dataset to reproduce and investigate any issue.\r\n"
-                    + "\r\nHowever, please note that including database or data source backups may significantly increase size of data collected and time required to stop collection.",
-                    "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                if (Environment.UserInteractive && bFullyInitialized)
+                    MessageBox.Show("AS database definitions with SQL data source backups provide the optimal dataset to reproduce and investigate any issue.\r\n"
+                        + "\r\nHowever, please note that including database or data source backups may significantly increase size of data collected and time required to stop collection.",
+                        "Backup Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             UpdateUIIfOnlyNetworkingEnabled();
         }
@@ -227,7 +234,7 @@ namespace SSASDiag
             if (chkGetNetwork.Checked && chkRollover.Checked)
                 ttStatus.Show("NOTE: Network traces rollover circularly,\n"
                             + "always deleting older data automatically.", chkGetNetwork, 2000);
-            if (chkGetNetwork.Checked)
+            if (chkGetNetwork.Checked && Environment.UserInteractive && bFullyInitialized)
                 MessageBox.Show("Please note that including network traces may significantly increase size of data collected and time required to stop collection.",
                     "Network Trace Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             UpdateUIIfOnlyNetworkingEnabled();
