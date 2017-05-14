@@ -75,35 +75,35 @@ BOOL StartProcess(int nIndex)
 		char pDomain[nBufferSize+1];
 		GetPrivateProfileString(pItem,"Domain","",pDomain,nBufferSize,pInitFile);
 		BOOL bImpersonate = (::strlen(pUserName)>0&&::strlen(pPassword)>0);
-		char pUserInterface[nBufferSize+1];
-		GetPrivateProfileString(pItem,"UserInterface","N",pUserInterface,nBufferSize,pInitFile);
-		BOOL bUserInterface = (bImpersonate==FALSE)&&(pUserInterface[0]=='y'||pUserInterface[0]=='Y'||pUserInterface[0]=='1')?TRUE:FALSE;
+		//char pUserInterface[nBufferSize+1];
+		//GetPrivateProfileString(pItem,"UserInterface","N",pUserInterface,nBufferSize,pInitFile);
+		//BOOL bUserInterface = (bImpersonate==FALSE)&&(pUserInterface[0]=='y'||pUserInterface[0]=='Y'||pUserInterface[0]=='1')?TRUE:FALSE;
 		char CurrentDesktopName[512];
-		// set the correct desktop for the process to be started
-		if(bUserInterface)
-		{
-			startUpInfo.wShowWindow = SW_SHOW;
-			startUpInfo.lpDesktop = NULL;
-		}
-		else
-		{
+		//// set the correct desktop for the process to be started
+		//if(bUserInterface)
+		//{
+		//	startUpInfo.wShowWindow = SW_SHOW;
+		//	startUpInfo.lpDesktop = NULL;
+		//}
+		//else
+		//{
 			HDESK hCurrentDesktop = GetThreadDesktop(GetCurrentThreadId());
 			DWORD len;
 			GetUserObjectInformation(hCurrentDesktop,UOI_NAME,CurrentDesktopName,MAX_PATH,&len);
 			startUpInfo.wShowWindow = SW_HIDE;
 			startUpInfo.lpDesktop = (bImpersonate==FALSE)?CurrentDesktopName:"";
-		}	
+		//}	
 		if(bImpersonate==FALSE)
 		{
 			
 			// create the process
 			if(CreateProcess(NULL,pCommandLine,NULL,NULL,TRUE,NORMAL_PRIORITY_CLASS,NULL,strlen(pWorkingDir)==0?NULL:pWorkingDir,&startUpInfo,&pProcInfo[nIndex]))
-			{
-				char pPause[nBufferSize+1];
-				GetPrivateProfileString(pItem,"PauseStart","100",pPause,nBufferSize,pInitFile);
-				Sleep(atoi(pPause));
+			//{
+				//char pPause[nBufferSize+1];
+				//GetPrivateProfileString(pItem,"PauseStart","100",pPause,nBufferSize,pInitFile);
+				//Sleep(atoi(pPause));
 				return TRUE;
-			}
+			//}
 			else
 			{
 				long nError = GetLastError();
@@ -119,12 +119,7 @@ BOOL StartProcess(int nIndex)
 			if(LogonUser(pUserName,(::strlen(pDomain)==0)?".":pDomain,pPassword,LOGON32_LOGON_SERVICE,LOGON32_PROVIDER_DEFAULT,&hToken))
 			{
 				if(CreateProcessAsUser(hToken,NULL,pCommandLine,NULL,NULL,TRUE,NORMAL_PRIORITY_CLASS,NULL,(strlen(pWorkingDir)==0)?NULL:pWorkingDir,&startUpInfo,&pProcInfo[nIndex]))
-				{
-						char pPause[nBufferSize+1];
-						GetPrivateProfileString(pItem,"PauseStart","100",pPause,nBufferSize,pInitFile);
-						Sleep(atoi(pPause));
 						return TRUE;
-				}
 				long nError = GetLastError();
 				char pTemp[121];
 				sprintf(pTemp,"Failed to start program '%s' as user '%s', error code = %d", pCommandLine, pUserName, nError); 
@@ -154,8 +149,6 @@ void EndProcess(int nIndex)
 		// post a WM_QUIT message first
 		PostThreadMessage(pProcInfo[nIndex].dwThreadId,WM_QUIT,0,0);
 		WaitForSingleObject(pProcInfo[nIndex].hProcess, nPauseEnd > 0 ? nPauseEnd : 50);
-//		// sleep for a while so that the process has a chance to terminate itself
-//		::Sleep(nPauseEnd>0?nPauseEnd:50);
 		
 		// terminate the process by force
 		TerminateProcess(pProcInfo[nIndex].hProcess,0);
@@ -557,35 +550,23 @@ void WorkerProc(void* pParam)
 			{
 				char pItem[nBufferSize+1];
 				sprintf(pItem,"Process%d\0",i);
-				char pRestart[nBufferSize+1];
-				GetPrivateProfileString(pItem,"Restart","No",pRestart,nBufferSize,pInitFile);
-				if(pRestart[0]=='Y'||pRestart[0]=='y'||pRestart[0]=='1')
+				DWORD dwCode;
+				if(::GetExitCodeProcess(pProcInfo[i].hProcess, &dwCode))
 				{
-					DWORD dwCode;
-					if(::GetExitCodeProcess(pProcInfo[i].hProcess, &dwCode))
+					if(dwCode!=STILL_ACTIVE)
 					{
-						if(dwCode!=STILL_ACTIVE)
+						try // close handles to avoid ERROR_NO_SYSTEM_RESOURCES
 						{
-							try // close handles to avoid ERROR_NO_SYSTEM_RESOURCES
-							{
-								::CloseHandle(pProcInfo[i].hThread);
-								::CloseHandle(pProcInfo[i].hProcess);
-							}
-							catch(...) {}
-							if(StartProcess(i))
-							{
-								char pTemp[121];
-								sprintf(pTemp, "Restarted process %d", i);
-								WriteLog(pTemp);
-							}
+							::CloseHandle(pProcInfo[i].hThread);
+							::CloseHandle(pProcInfo[i].hProcess);
 						}
-					}
-					else
-					{
-						long nError = GetLastError();
-						char pTemp[121];
-						sprintf(pTemp, "GetExitCodeProcess failed, error code = %d", nError);
-						WriteLog(pTemp);
+						catch(...) {}
+						if(StartProcess(i))
+						{
+							char pTemp[121];
+							sprintf(pTemp, "Restarted process %d", i);
+							WriteLog(pTemp);
+						}
 					}
 				}
 			}

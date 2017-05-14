@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.ServiceProcess;
+using System;
 using System.IO;
 using System.Net.Security;
 using System.Collections.Generic;
@@ -137,6 +138,8 @@ namespace SSASDiag
             if (Args.ContainsKey("perfmoninterval"))
                 try { udInterval.Value = Convert.ToInt32(Args["perfmoninterval"]); }
                 catch { }
+
+            chkRunAsService.Checked = (new ServiceController("SSASDiagService") != null) && Environment.UserInteractive;
         }
 
         private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
@@ -224,7 +227,7 @@ namespace SSASDiag
                 tcCollectionAnalysisTabs.SelectedIndex = 1;
             }
 
-            LogFeatureUse("Startup", "Initialization of tool complete");
+            LogFeatureUse("Startup", "Initialization complete.  AutoUpdate=" + chkAutoUpdate.Checked + ",AllowUsageStats=" + chkAllowUsageStatsCollection.Checked);
 
             bFullyInitialized = true;
         }

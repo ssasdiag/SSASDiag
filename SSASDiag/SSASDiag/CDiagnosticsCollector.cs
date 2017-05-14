@@ -500,7 +500,7 @@ namespace SSASDiag
                 catch (OleDbException ex)
                 {
                     frmSSASDiag.LogException(ex);
-                    if (ex.Message.StartsWith("Login failed") || ex.Message.Contains("authentication"))
+                    if (Environment.UserInteractive && (ex.Message.StartsWith("Login failed") || ex.Message.Contains("authentication")))
                     {
                         // If it fails the first try, prompt for remote admin
                         frmPasswordPrompt pp = new frmPasswordPrompt();
@@ -559,7 +559,12 @@ namespace SSASDiag
                         }
                     }
                     else
-                        AddItemToStatus("Error during backup: " + ex.Message);
+                    {
+                        if (Environment.UserInteractive)
+                            AddItemToStatus("Error during backup: " + ex.Message);
+                        else
+                            AddItemToStatus("Unable to collect data source backups in service mode without UI available to prompt, since it required alternate credentials.  Please add datasource .bak manually.");
+                    }
                 }
                 if (!bAuthenticated)
                 {

@@ -30,34 +30,66 @@ namespace SSASDiag
                 if (btnCapture.Image.Tag as string == "Play" || btnCapture.Image.Tag as string == "Play Lit")
                 {
                     new Thread(new ThreadStart(() => DettachProfilerTraceDB())).Start();  // Dettach any existing data from analysis because we're capturing new data now.
+
+                    // Adjust UI to startup.
                     btnCapture.Click -= btnCapture_Click;
                     btnCapture.Image = imgPlayHalfLit;
                     tbAnalysis.ForeColor = SystemColors.ControlDark;
                     tcCollectionAnalysisTabs.Refresh();
-                    txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+                    chkRunAsService.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
                     ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
                     string TracePrefix = Environment.MachineName + (cbsdi == null ? "" : "_"
                         + (cbInstances.SelectedIndex == 0 ? "" : cbsdi.Text + "_"));
-                    dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 || cbsdi == null ? "" : cbsdi.Text, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
-                        txtStatus,
-                        (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
-                        chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked);
-                    LogFeatureUse("Collection", "InstanceVersion=" + m_instanceVersion + ",InstanceType=" + m_instanceType + ",InstanceEdition=" + m_instanceEdition + ",PerfMonInterval=" + udInterval.Value + ",AutoRestartProfiler=" + chkAutoRestart.Checked +
-                                                ",UseZip=" + chkZip.Checked + ",DeleteRawDataAfterZip=" + chkDeleteRaw.Checked + ",IncludeProfilerVerbosePerfDetails=" + chkProfilerPerfDetails.Checked +
-                                                ",IncludeXMLA=" + chkXMLA.Checked + ",IncludeABF=" + chkABF.Checked + ",IncludeBAK=" + chkBAK.Checked + (chkRollover.Checked ? ",RolloverMB=" + udRollover.Value : "") +
-                                                (chkStartTime.Checked ? ",StartTime=" + dtStartTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "") +
-                                                (chkStopTime.Checked ? ",StopTime=" + dtStopTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "")
-                                                + ",ConfigDetails=" + chkGetConfigDetails.Checked + ",Profiler=" + chkGetProfiler.Checked + ",PerfMon=" + chkGetPerfMon.Checked + ",NetworkTrace=" + chkGetNetwork.Checked);
-                    txtStatus.DataBindings.Clear();
-                    txtStatus.DataBindings.Add("Lines", dc, "Status", false, DataSourceUpdateMode.OnPropertyChanged);
-                    dc.CompletionCallback = callback_StartDiagnosticsComplete;
+                    
                     // Unhook the status text area from selection while we are actively using it.
                     // I do allow selection after but it was problematic to scroll correctly while allowing user selection during active collection.
                     // This is functionally good, allows them to copy paths or file names after completion but also gives nice behavior during collection.
                     txtStatus.Cursor = Cursors.Arrow;
                     txtStatus.GotFocus += txtStatus_GotFocusWhileRunning;
                     txtStatus.Enter += txtStatus_EnterWhileRunning;
-                    new Thread(new ThreadStart(() => dc.StartDiagnostics())).Start();
+
+                    if ((Environment.UserInteractive && !chkRunAsService.Checked) || !Environment.UserInteractive)
+                    {
+                        dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 || cbsdi == null ? "" : cbsdi.Text, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
+                            txtStatus,
+                            (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
+                            chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked);
+                        LogFeatureUse("Collection", "InstanceVersion=" + m_instanceVersion + ",InstanceType=" + m_instanceType + ",InstanceEdition=" + m_instanceEdition + ",PerfMonInterval=" + udInterval.Value + ",AutoRestartProfiler=" + chkAutoRestart.Checked +
+                                                    ",UseZip=" + chkZip.Checked + ",DeleteRawDataAfterZip=" + chkDeleteRaw.Checked + ",IncludeProfilerVerbosePerfDetails=" + chkProfilerPerfDetails.Checked +
+                                                    ",IncludeXMLA=" + chkXMLA.Checked + ",IncludeABF=" + chkABF.Checked + ",IncludeBAK=" + chkBAK.Checked + (chkRollover.Checked ? ",RolloverMB=" + udRollover.Value : "") +
+                                                    (chkStartTime.Checked ? ",StartTime=" + dtStartTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "") +
+                                                    (chkStopTime.Checked ? ",StopTime=" + dtStopTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "")
+                                                    + ",ConfigDetails=" + chkGetConfigDetails.Checked + ",Profiler=" + chkGetProfiler.Checked + ",PerfMon=" + chkGetPerfMon.Checked + ",NetworkTrace=" + chkGetNetwork.Checked + ",RunningAsService=" + !Environment.UserInteractive);
+                        dc.CompletionCallback = callback_StartDiagnosticsComplete;
+                        txtStatus.DataBindings.Clear();
+                        txtStatus.DataBindings.Add("Lines", dc, "Status", false, DataSourceUpdateMode.OnPropertyChanged);
+                        new Thread(new ThreadStart(() => dc.StartDiagnostics())).Start();
+                    }
+                    else
+                    {
+                        // Setup the service startup parameters according to user selections
+                        List<string> svcconfig = new List<string>(File.ReadAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini"));
+                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe" +
+                            " /workingdir \"" + txtSaveLocation.Text + "\"" +
+                            (chkZip.Checked ? " /zip" : "") +
+                            (chkDeleteRaw.Checked ? " /deleteraw" : "") +
+                            (chkRollover.Checked ? " /rollover" + udRollover.Value : "") +
+                            (chkStartTime.Checked ? " /starttime \"" + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
+                            (chkStopTime.Checked ? " /stoptime \"" + dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
+                            (chkAutoRestart.Checked ? " /autorestartprofiler" : "") +
+                            " /perfmoninterval " + udInterval.Value +
+                            (chkGetConfigDetails.Checked ? " /config" : "") +
+                            (chkGetPerfMon.Checked ? " /perfmon" : "") +
+                            (chkGetProfiler.Checked ? " /profiler" : "") +
+                            (chkProfilerPerfDetails.Checked ? " /verbose" : "") +
+                            (chkABF.Checked ? " /abf" : "") +
+                            (chkBAK.Checked ? " /bak" : "") +
+                            (chkXMLA.Checked ? " /xmla" : "") +
+                            (chkGetNetwork.Checked ? " /network" : "") +
+                            " /start";
+                        File.WriteAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini", svcconfig.ToArray());
+                        new ServiceController("SSASDiagService").Start();
+                    }
                 }
                 else if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
                 {
@@ -84,7 +116,8 @@ namespace SSASDiag
             BackgroundWorker bgPopulateInstanceDetails = new BackgroundWorker();
             bgPopulateInstanceDetails.DoWork += BgPopulateInstanceDetails_DoWork;
             bgPopulateInstanceDetails.RunWorkerCompleted += BgPopulateInstanceDetails_RunWorkerCompleted;
-            bgPopulateInstanceDetails.RunWorkerAsync();            
+            bgPopulateInstanceDetails.RunWorkerAsync();  
+            
         }
 
         private void BgPopulateInstanceDetails_DoWork(object sender, DoWorkEventArgs e)
@@ -118,6 +151,11 @@ namespace SSASDiag
         {
             if (btnCapture.Enabled && Args.ContainsKey("start") && cbInstances.Items.Count > 0)
                     btnCapture_Click(sender, e);
+            if (chkRunAsService.Checked && cbInstances.SelectedIndex >= 0)
+            {
+                chkRunAsService_CheckedChanged("uninstall", e);
+                chkRunAsService_CheckedChanged(null, e);
+            }
         }
 
         private void PopulateInstanceDropdown()
@@ -297,6 +335,27 @@ namespace SSASDiag
             udRollover.Enabled = chkRollover.Enabled & chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Enabled & chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Enabled & chkStopTime.Checked;
+        }
+        private void chkRunAsService_CheckedChanged(object sender, EventArgs e)
+        {
+            ProcessStartInfo p = new ProcessStartInfo(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.exe");
+            p.CreateNoWindow = true;
+            p.UseShellExecute = false;
+            p.WindowStyle = ProcessWindowStyle.Hidden;
+            
+            if (chkRunAsService.Checked && !(sender as string == "uninstall"))
+            {
+                List<string> svcconfig = new List<string>(File.ReadAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini"));
+                svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceDesc="))] = "ServiceDesc=SQL Server Analysis Services Diagnostic Collection Service for instance (" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) + ").";
+                svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe";
+                svcconfig[svcconfig.FindIndex(s => s.StartsWith("WorkingDir="))] = "WorkingDir=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string);
+                File.WriteAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini", svcconfig.ToArray());
+                p.Arguments = "-i";
+            }
+            else
+                p.Arguments = "-u";
+            Process proc = Process.Start(p);
+            proc.WaitForExit();
         }
 
         #endregion CaptureDetailsUI
