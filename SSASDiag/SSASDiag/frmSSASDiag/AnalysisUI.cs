@@ -309,7 +309,7 @@ namespace SSASDiag
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.CreateNoWindow = true;
                 p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\sqlna.exe";
+                p.StartInfo.FileName = Program.TempPath + "sqlna.exe";
                 p.StartInfo.Arguments = "\"" + (!m_analysisPath.EndsWith(".etl") ? m_analysisPath + "\\" + (AnalysisTraceID + ".etl") : m_analysisPath) + "\" /output \"" + AnalysisDir + AnalysisTraceID + "_NetworkAnalysis.log\"";
                 p.Start();
                 string sOut = p.StandardOutput.ReadToEnd();

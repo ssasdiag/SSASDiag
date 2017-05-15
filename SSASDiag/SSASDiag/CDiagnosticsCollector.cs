@@ -1,4 +1,6 @@
-﻿using Ionic.Zip;
+﻿using Microsoft.Win32;
+using System.IO.MemoryMappedFiles;
+using Ionic.Zip;
 using Microsoft.AnalysisServices;
 using Microsoft.Win32.SafeHandles;
 using PdhNative;
@@ -40,7 +42,9 @@ namespace SSASDiag
         int iInterval = 0, iRollover = 0, iCurrentTimerTicksSinceLastInterval = 0;
         bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetBAK, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true;
         DateTime dtStart, dtEnd;
+        string svcOutputPath = "";
         #endregion toomanylocals
+        
 
         #region Win32
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -89,6 +93,9 @@ namespace SSASDiag
             dtStart = Start; bUseStart = UseStart;
             dtEnd = End; bUseEnd = UseEnd;
             bGetConfigDetails = GetConfigDetails; bGetProfiler = GetProfiler; bGetNetwork = GetNetwork; bGetPerfMon = GetPerfMon;
+            svcOutputPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (InstanceName == "" ? "MSSQLSERVER" : InstanceName)).GetValue("ImagePath") as string;
+            svcOutputPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".exe")) + ".output.log";
+            File.WriteAllText(svcOutputPath, "");
         }
 
         #region Properties
@@ -891,7 +898,9 @@ namespace SSASDiag
                 txtStatus.Invoke(new System.Action(() => RaisePropertyChanged("Status")));
             }
             else
-                Debug.WriteLine(Item);
+            {
+                File.AppendAllText(svcOutputPath, Item + "\r\n");
+            }
             return;
         }
 

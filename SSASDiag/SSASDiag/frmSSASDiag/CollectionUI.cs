@@ -1,4 +1,5 @@
-﻿using Microsoft.AnalysisServices;
+﻿using System.IO.MemoryMappedFiles;
+using Microsoft.AnalysisServices;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,9 @@ namespace SSASDiag
 {
     public partial class frmSSASDiag : Form
     {
+        string svcOutputPath = "";
+        FileSystemWatcher svcOutputWatcher;
+
         private void btnCapture_Click(object sender, EventArgs e)
         {
             // worker we use to launch either start or stop blocking operations to the CDiastnosticsCollector asynchronously
@@ -48,7 +52,7 @@ namespace SSASDiag
                     txtStatus.GotFocus += txtStatus_GotFocusWhileRunning;
                     txtStatus.Enter += txtStatus_EnterWhileRunning;
 
-                    if ((Environment.UserInteractive && !chkRunAsService.Checked) || !Environment.UserInteractive)
+                    if (!Environment.UserInteractive)
                     {
                         dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 || cbsdi == null ? "" : cbsdi.Text, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
                             txtStatus,
@@ -67,11 +71,31 @@ namespace SSASDiag
                     }
                     else
                     {
+                        // Install the service for this instance
+                        string sInstanceServiceConfig = Program.TempPath + "SSASDiagService_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) + ".exe";
+                        File.Copy(Program.TempPath + "SSASDiagService.exe", sInstanceServiceConfig, true);
+                        File.Copy(Program.TempPath + "SSASDiagService.ini", sInstanceServiceConfig.Replace(".exe", ".ini"), true);
+                        List<string> svcconfig = new List<string>(File.ReadAllLines(sInstanceServiceConfig.Replace(".exe", ".ini")));
+                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceName="))] = "ServiceName=SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
+                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceLongName="))] = "ServiceLongName=SQL Server Analysis Services Diagnostic Collection Service (" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) + ")";
+                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceDesc="))] = "ServiceDesc=Provides automated diagnostic collection for SQL Server Analysis Services.  Run SSASDiag.exe to administer collection.";
+                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("WorkingDir="))] = "WorkingDir=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string);
+                        File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
+                        ProcessStartInfo p = new ProcessStartInfo(sInstanceServiceConfig);
+                        p.CreateNoWindow = true;
+                        p.UseShellExecute = false;
+                        p.WindowStyle = ProcessWindowStyle.Hidden;
+                        p.Arguments = "-i";
+                        Process proc = Process.Start(p);
+                        proc.WaitForExit();
+
                         // Setup the service startup parameters according to user selections
-                        List<string> svcconfig = new List<string>(File.ReadAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini"));
-                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe" +
+                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] 
+                            = 
+                            "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe" +
                             " /workingdir \"" + txtSaveLocation.Text + "\"" +
                             (chkZip.Checked ? " /zip" : "") +
+                            " /instance " + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) +
                             (chkDeleteRaw.Checked ? " /deleteraw" : "") +
                             (chkRollover.Checked ? " /rollover" + udRollover.Value : "") +
                             (chkStartTime.Checked ? " /starttime \"" + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
@@ -87,8 +111,16 @@ namespace SSASDiag
                             (chkXMLA.Checked ? " /xmla" : "") +
                             (chkGetNetwork.Checked ? " /network" : "") +
                             " /start";
-                        File.WriteAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini", svcconfig.ToArray());
-                        new ServiceController("SSASDiagService").Start();
+                        File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
+                        ServiceController InstanceCollectionService = new ServiceController("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
+                        InstanceCollectionService.Start();
+                        svcOutputPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text)).GetValue("ImagePath") as string;
+                        svcOutputPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".exe")) + ".output.log";
+                        svcOutputWatcher = new FileSystemWatcher(Path.GetDirectoryName(svcOutputPath), Path.GetFileName(svcOutputPath));
+                        svcOutputWatcher.NotifyFilter = NotifyFilters.Size;
+                        svcOutputWatcher.Changed += svcOutputWatcher_Changed;
+                        svcOutputWatcher.EnableRaisingEvents = true;
+                        txtStatus.Text = String.Join("\r\n", WriteSafeReadAllLines(svcOutputPath));                        
                     }
                 }
                 else if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
@@ -101,7 +133,27 @@ namespace SSASDiag
                 }
             }
         }
-        
+
+        private void svcOutputWatcher_Changed(object sender, FileSystemEventArgs e)
+        {
+            txtStatus.Invoke(new System.Action(() => txtStatus.Text += WriteSafeReadAllLines(svcOutputPath).LastOrDefault() + "\r\n"));
+        }
+        public string[] WriteSafeReadAllLines(String path)
+        {
+            using (var csv = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var sr = new StreamReader(csv))
+            {
+                List<string> file = new List<string>();
+                while (!sr.EndOfStream)
+                {
+                    file.Add(sr.ReadLine());
+                }
+
+                return file.ToArray();
+            }
+        }
+
+
         #region BlockingUIComponentsBesidesCapture
 
         class ComboBoxServiceDetailsItem
@@ -210,9 +262,9 @@ namespace SSASDiag
             {
                 if (Args.ContainsKey("instance"))
                 {
-                        int i = LocalInstances.FindIndex(c => c.Text.ToLower() == Args["instance"].ToLower().TrimEnd().TrimStart());
-                        if (i > 0)
-                            cbInstances.SelectedIndex = i;
+                    int i = LocalInstances.FindIndex(c => c.Text.ToLower() == Args["instance"].ToLower().TrimEnd().TrimStart());
+                    if (i > 0)
+                        cbInstances.SelectedIndex = i;
                 }
             }
         }
@@ -338,24 +390,7 @@ namespace SSASDiag
         }
         private void chkRunAsService_CheckedChanged(object sender, EventArgs e)
         {
-            ProcessStartInfo p = new ProcessStartInfo(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.exe");
-            p.CreateNoWindow = true;
-            p.UseShellExecute = false;
-            p.WindowStyle = ProcessWindowStyle.Hidden;
             
-            if (chkRunAsService.Checked && !(sender as string == "uninstall"))
-            {
-                List<string> svcconfig = new List<string>(File.ReadAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini"));
-                svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceDesc="))] = "ServiceDesc=SQL Server Analysis Services Diagnostic Collection Service for instance (" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) + ").";
-                svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe";
-                svcconfig[svcconfig.FindIndex(s => s.StartsWith("WorkingDir="))] = "WorkingDir=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string);
-                File.WriteAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini", svcconfig.ToArray());
-                p.Arguments = "-i";
-            }
-            else
-                p.Arguments = "-u";
-            Process proc = Process.Start(p);
-            proc.WaitForExit();
         }
 
         #endregion CaptureDetailsUI

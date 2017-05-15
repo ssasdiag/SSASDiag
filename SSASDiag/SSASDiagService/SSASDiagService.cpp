@@ -11,6 +11,7 @@
 
 const int nBufferSize = 500;
 char pServiceName[nBufferSize+1];
+char pServiceLongName[nBufferSize + 1];
 char pServiceDesc[nBufferSize+1];
 char pExeFile[nBufferSize+1];
 char pInitFile[nBufferSize+1];
@@ -75,35 +76,17 @@ BOOL StartProcess(int nIndex)
 		char pDomain[nBufferSize+1];
 		GetPrivateProfileString(pItem,"Domain","",pDomain,nBufferSize,pInitFile);
 		BOOL bImpersonate = (::strlen(pUserName)>0&&::strlen(pPassword)>0);
-		//char pUserInterface[nBufferSize+1];
-		//GetPrivateProfileString(pItem,"UserInterface","N",pUserInterface,nBufferSize,pInitFile);
-		//BOOL bUserInterface = (bImpersonate==FALSE)&&(pUserInterface[0]=='y'||pUserInterface[0]=='Y'||pUserInterface[0]=='1')?TRUE:FALSE;
 		char CurrentDesktopName[512];
-		//// set the correct desktop for the process to be started
-		//if(bUserInterface)
-		//{
-		//	startUpInfo.wShowWindow = SW_SHOW;
-		//	startUpInfo.lpDesktop = NULL;
-		//}
-		//else
-		//{
-			HDESK hCurrentDesktop = GetThreadDesktop(GetCurrentThreadId());
-			DWORD len;
-			GetUserObjectInformation(hCurrentDesktop,UOI_NAME,CurrentDesktopName,MAX_PATH,&len);
-			startUpInfo.wShowWindow = SW_HIDE;
-			startUpInfo.lpDesktop = (bImpersonate==FALSE)?CurrentDesktopName:"";
-		//}	
+		HDESK hCurrentDesktop = GetThreadDesktop(GetCurrentThreadId());
+		DWORD len;
+		GetUserObjectInformation(hCurrentDesktop,UOI_NAME,CurrentDesktopName,MAX_PATH,&len);
+		startUpInfo.wShowWindow = SW_HIDE;
+		startUpInfo.lpDesktop = (bImpersonate==FALSE)?CurrentDesktopName:"";
 		if(bImpersonate==FALSE)
 		{
-			
 			// create the process
 			if(CreateProcess(NULL,pCommandLine,NULL,NULL,TRUE,NORMAL_PRIORITY_CLASS,NULL,strlen(pWorkingDir)==0?NULL:pWorkingDir,&startUpInfo,&pProcInfo[nIndex]))
-			//{
-				//char pPause[nBufferSize+1];
-				//GetPrivateProfileString(pItem,"PauseStart","100",pPause,nBufferSize,pInitFile);
-				//Sleep(atoi(pPause));
 				return TRUE;
-			//}
 			else
 			{
 				long nError = GetLastError();
@@ -308,7 +291,7 @@ BOOL RunService(char* pName, int nArg, char** pArg)
 
 ////////////////////////////////////////////////////////////////////// 
 //
-// This routine gets used to start your service
+// This routine gets used to start the service
 //
 VOID WINAPI SSASDiagServiceMain( DWORD dwArgc, LPTSTR *lpszArgv )
 {
@@ -479,7 +462,7 @@ VOID UnInstall(char* pName)
 //
 // Install
 //
-VOID Install(char* pPath, char* pName) 
+VOID Install(char* pPath, char* pName, char* pLongName) 
 {  
 	SC_HANDLE schSCManager = OpenSCManager( NULL, NULL, SC_MANAGER_CREATE_SERVICE); 
 	if (schSCManager==0) 
@@ -495,10 +478,10 @@ VOID Install(char* pPath, char* pName)
 		( 
 			schSCManager,	/* SCManager database      */ 
 			pName,			/* name of service         */ 
-			pName,			/* service name to display */ 
+			pLongName,			/* service name to display */ 
 			SERVICE_ALL_ACCESS,        /* desired access          */ 
 			SERVICE_WIN32_OWN_PROCESS|SERVICE_INTERACTIVE_PROCESS , /* service type            */ 
-			SERVICE_AUTO_START,      /* start type              */ 
+			SERVICE_DEMAND_START,      /* start type              */ 
 			SERVICE_ERROR_NORMAL,      /* error control type      */ 
 			pPath,			/* service's binary        */ 
 			NULL,                      /* no load ordering group  */ 
@@ -598,14 +581,10 @@ void main(int argc, char *argv[] )
 		printf("Invalid module file name: %s\r\n", pModuleFile);
 		return;
 	}
-	WriteLog(pExeFile);
-	WriteLog(pInitFile);
-	WriteLog(pLogFile);
 	// read service name and desc from .ini file
-	GetPrivateProfileString("Settings","ServiceName","SSASDiagService",pServiceName,nBufferSize,pInitFile);
+	GetPrivateProfileString("Settings","ServiceLongName","SSASDiagService",pServiceLongName,nBufferSize,pInitFile);
+	GetPrivateProfileString("Settings", "ServiceName", "SSASDiagService", pServiceName, nBufferSize, pInitFile);
 	GetPrivateProfileString("Settings", "ServiceDesc", "", pServiceDesc, nBufferSize, pInitFile);
-	WriteLog(pServiceName);
-	WriteLog(pServiceDesc);
 	// uninstall service if switch is "-u"
 	if(argc==2&&_stricmp("-u",argv[1])==0)
 	{
@@ -614,7 +593,7 @@ void main(int argc, char *argv[] )
 	// install service if switch is "-i"
 	else if(argc==2&&_stricmp("-i",argv[1])==0)
 	{			
-		Install(pExeFile, pServiceName);
+		Install(pExeFile, pServiceName, pServiceLongName);
 	}
 	// bounce service if switch is "-b"
 	else if(argc==2&&_stricmp("-b",argv[1])==0)

@@ -140,7 +140,7 @@ namespace SSASDiag
                 ASProfilerTraceImporterProcess.StartInfo.UseShellExecute = false;
                 ASProfilerTraceImporterProcess.StartInfo.CreateNoWindow = true;
                 ASProfilerTraceImporterProcess.StartInfo.RedirectStandardOutput = true;
-                ASProfilerTraceImporterProcess.StartInfo.FileName = Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\ASProfilerTraceImporterCmd.exe";
+                ASProfilerTraceImporterProcess.StartInfo.FileName = Program.TempPath + "ASProfilerTraceImporterCmd.exe";
                 ASProfilerTraceImporterProcess.StartInfo.Arguments = "\"" + Directory.GetFiles(m_analysisPath, AnalysisTraceID + "*.trc")[0] + "\" \"" + connstr + "\" \"" + AnalysisTraceID + "\"";
                 ASProfilerTraceImporterProcess.Start();
                 while (!ASProfilerTraceImporterProcess.HasExited)

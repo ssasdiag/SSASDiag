@@ -60,9 +60,9 @@ namespace SSASDiag
             if (!Environment.UserInteractive)
             {
                 // Reinitialize service config to start with no command options - immediately terminating hereafter in service mode then, until UI configures new settings, should someone try to start manually.
-                List<string> svcconfig = new List<string>(File.ReadAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini"));
+                List<string> svcconfig = new List<string>(File.ReadAllLines(Program.TempPath + "SSASDiagService.ini"));
                 svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe";
-                File.WriteAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini", svcconfig.ToArray());
+                File.WriteAllLines(Program.TempPath + "SSASDiagService.ini", svcconfig.ToArray());
 
                 ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 1500 > nul & net stop SSASDiagService");
                 p.WindowStyle = ProcessWindowStyle.Hidden;

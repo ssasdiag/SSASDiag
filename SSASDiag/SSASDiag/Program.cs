@@ -19,6 +19,7 @@ namespace SSASDiag
     {
         public static Guid RunID;
         public static frmSSASDiag MainForm;
+        public static string TempPath = "";
 
         /// <summary> /// 
         /// The main entry point for the application.
@@ -58,15 +59,15 @@ namespace SSASDiag
             }
 
             // Setup private temp bin location...
-            string m_strPrivateTempBinPath = "";
+            
 
             if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
-                m_strPrivateTempBinPath = AppDomain.CurrentDomain.GetData("tempbinlocation") as string;
+                TempPath = AppDomain.CurrentDomain.GetData("tempbinlocation") as string;
             else
-                m_strPrivateTempBinPath =  new DirectoryInfo(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\").FullName;
+                TempPath =  new DirectoryInfo(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\").FullName;
 
             // Setup custom app domain to launch real assembly from temp location, and act as singleton also...
-            if (AppDomain.CurrentDomain.BaseDirectory != m_strPrivateTempBinPath)
+            if (AppDomain.CurrentDomain.BaseDirectory != TempPath)
             {
                 int ret = 0;
 
@@ -74,7 +75,7 @@ namespace SSASDiag
                 ResourceManager rm = Properties.Resources.ResourceManager;
                 ResourceSet rs = rm.GetResourceSet(System.Globalization.CultureInfo.CurrentCulture, true, true);
                 IDictionaryEnumerator de = rs.GetEnumerator();
-                Directory.CreateDirectory(m_strPrivateTempBinPath);
+                Directory.CreateDirectory(TempPath);
                 while (de.MoveNext() == true)
                     if (de.Entry.Value is byte[])
                         try {
@@ -82,11 +83,11 @@ namespace SSASDiag
                             if (de.Key.ToString() == "ResourcesZip")
                             {
                                 byte[] b = de.Entry.Value as byte[];
-                                if (!File.Exists(m_strPrivateTempBinPath + "Resources.zip") ||
-                                        (File.Exists(m_strPrivateTempBinPath + "Resources.zip") &&
-                                         new FileInfo(m_strPrivateTempBinPath + "Resources.zip").Length != b.Length) 
+                                if (!File.Exists(TempPath + "Resources.zip") ||
+                                        (File.Exists(TempPath + "Resources.zip") &&
+                                         new FileInfo(TempPath + "Resources.zip").Length != b.Length) 
                                     )
-                                    File.WriteAllBytes(m_strPrivateTempBinPath + "Resources.zip", b);
+                                    File.WriteAllBytes(TempPath + "Resources.zip", b);
                                 break;
                             }
                         } catch { } // may fail if file is in use, fine...
@@ -97,15 +98,15 @@ namespace SSASDiag
                 {
                     while (de.MoveNext() == true)
                         if (de.Entry.Value is byte[] && de.Key.ToString() != "ResourcesZip")
-                            File.WriteAllBytes(m_strPrivateTempBinPath
+                            File.WriteAllBytes(TempPath
                                 + de.Key.ToString().Replace('_', '.') + ".exe",
                                 de.Entry.Value as byte[]);
                 })).Start();
 
                 try {
 
-                if (!File.Exists(m_strPrivateTempBinPath + "SSASDiag.exe") 
-                    || (File.Exists(m_strPrivateTempBinPath + "SSASDiag.exe") && new FileInfo(m_strPrivateTempBinPath + "SSASDiag.exe").Length != new FileInfo(Application.ExecutablePath).Length) 
+                if (!File.Exists(TempPath + "SSASDiag.exe") 
+                    || (File.Exists(TempPath + "SSASDiag.exe") && new FileInfo(TempPath + "SSASDiag.exe").Length != new FileInfo(Application.ExecutablePath).Length) 
                     || Debugger.IsAttached
                     || !Environment.UserInteractive)
                         File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true); } catch { } // may fail if file is in use, fine...
@@ -113,18 +114,18 @@ namespace SSASDiag
                 // Now decompress any compressed files we include.  This lets us cram more dependencies in as we add features and still not excessively bloat!  :D
                 // Although in our real compression work in assembling files for upload we will use the more flexible open source Ionic.Zip library included in our depenencies,
                 // these may not be loaded initially when are launching the first time outside the sandbox.  So here we will use .NET built in compression, at least always there.
-                foreach (string f in Directory.GetFiles(m_strPrivateTempBinPath))
+                foreach (string f in Directory.GetFiles(TempPath))
                     if (f.EndsWith(".zip"))
                     {
                         try
                         {
                             // Extract any dependencies required for initial form display on main thread...
                             ZipArchive za = ZipFile.OpenRead(f);
-                            if (!File.Exists(m_strPrivateTempBinPath + za.GetEntry("FastColoredTextBox.dll").Name) || 
-                                   (File.Exists(m_strPrivateTempBinPath + za.GetEntry("FastColoredTextBox.dll").Name) && 
-                                    new FileInfo(m_strPrivateTempBinPath + za.GetEntry("FastColoredTextBox.dll").Name).Length != za.GetEntry("FastColoredTextBox.dll").Length)
+                            if (!File.Exists(TempPath + za.GetEntry("FastColoredTextBox.dll").Name) || 
+                                   (File.Exists(TempPath + za.GetEntry("FastColoredTextBox.dll").Name) && 
+                                    new FileInfo(TempPath + za.GetEntry("FastColoredTextBox.dll").Name).Length != za.GetEntry("FastColoredTextBox.dll").Length)
                                 )
-                                za.GetEntry("FastColoredTextBox.dll").ExtractToFile(m_strPrivateTempBinPath + "FastColoredTextBox.dll", true);
+                                za.GetEntry("FastColoredTextBox.dll").ExtractToFile(TempPath + "FastColoredTextBox.dll", true);
 
                             // Extract remainig non-immediate depencies off main thread to improve startup time...
                             new Thread(new ThreadStart(() =>
@@ -133,10 +134,10 @@ namespace SSASDiag
                                 {
                                     try
                                     {
-                                        if (!File.Exists(m_strPrivateTempBinPath + ze.Name) || 
-                                                (File.Exists(m_strPrivateTempBinPath + ze.Name) && new FileInfo(m_strPrivateTempBinPath + ze.Name).Length != ze.Length)
+                                        if (!File.Exists(TempPath + ze.Name) || 
+                                                (File.Exists(TempPath + ze.Name) && new FileInfo(TempPath + ze.Name).Length != ze.Length)
                                             )
-                                            ze.ExtractToFile(m_strPrivateTempBinPath + ze.Name, true);
+                                            ze.ExtractToFile(TempPath + ze.Name, true);
                                     }
                                     catch (Exception ex2)
                                     {
@@ -158,9 +159,9 @@ namespace SSASDiag
                     
 
                     AppDomainSetup ads = new AppDomainSetup();
-                    ads.ApplicationBase = m_strPrivateTempBinPath;
+                    ads.ApplicationBase = TempPath;
                     AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
-                    tempDomain.SetData("tempbinlocation", m_strPrivateTempBinPath);
+                    tempDomain.SetData("tempbinlocation", TempPath);
 
                     if (Properties.Settings.Default.AutoUpdate == "true" && Environment.UserInteractive)
                         CheckForUpdates(tempDomain);
@@ -232,14 +233,14 @@ namespace SSASDiag
                     Thread.Sleep(1000);
             }
             // Reinitialize service config to start with no command options - immediately terminating hereafter in service mode then, until UI configures new settings, should someone try to start manually.
-            List<string> svcconfig = new List<string>(File.ReadAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini"));
+            List<string> svcconfig = new List<string>(File.ReadAllLines(Program.TempPath + "SSASDiagService.ini"));
             svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe";
-            File.WriteAllLines(Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiagService.ini", svcconfig.ToArray());
+            File.WriteAllLines(Program.TempPath + "SSASDiagService.ini", svcconfig.ToArray());
         }
 
         public static void CheckForUpdates(AppDomain tempDomain)
         {
-            string sNewBin = Environment.GetEnvironmentVariable("temp") + "\\ssasdiag\\newbin_tmp";
+            string sNewBin = Program.TempPath + "newbin_tmp";
 
             // Check for new version but just spawn a new thread to do it without blocking...
             new Thread(new ThreadStart(() =>
