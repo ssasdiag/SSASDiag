@@ -149,9 +149,7 @@ namespace SSASDiag
                     + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC"
                     + "_SSASDiag";
                 Debug.WriteLine("Starting TraceID: " + TraceID);
-                AddItemToStatus("Initializing SSAS diagnostics collection at " + m_StartTime.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-                if (AppDomain.CurrentDomain.GetData("Case") != null && (AppDomain.CurrentDomain.GetData("Case") as string).Trim() != "")
-                    AddItemToStatus("Diagnostic collection associated with case number: " + AppDomain.CurrentDomain.GetData("Case"));
+                
                 AddItemToStatus("Collecting on computer " + Environment.MachineName + ".", true);
                 if (sInstanceVersion != "")  // This occurs when we aren't really capturing instance details with Network only capture.
                 {
@@ -371,7 +369,7 @@ namespace SSASDiag
             if (bRollover) AddItemToStatus("Log and trace files rollover after " + iRollover + "MB.");
             if (bUseEnd) AddItemToStatus("Diagnostic collection stops automatically at " + dtEnd.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             m_StartTime = DateTime.Now.AddSeconds(-1);
-            if (Environment.UserInteractive) AddItemToStatus("Diagnostics captured for 00:00:00");
+            AddItemToStatus("Diagnostics captured for 00:00:00");
             CompletionCallback.Invoke();
         }
         #endregion StartCapture
@@ -393,10 +391,11 @@ namespace SSASDiag
             {
                 if (slStatus.Count > 0)
                 {
+                    // Add ... ... pattern at one char/s to status if we had no new updates to status as we tick.
                     AddItemToStatus(slStatus[slStatus.Count - 1] + (slStatus[slStatus.Count - 1].Length - slStatus[slStatus.Count - 1].LastIndexOf(" ") < 4 ? "." : " "), false, slStatus[slStatus.Count - 1]);
                     if (slStatus[slStatus.Count - 1].StartsWith("Executing AS server command to stop profiler trace... ..."))
                     {
-                        AddItemToStatus("\r\nProfiler tracing usually completes instantly.  Since it has not completed yet, the server may be hung.  "
+                        AddItemToStatus("\r\nStarting of Profiler tracing usually completes instantly.  Since it has not completed yet, the server may be hung.  "
                                       + "You may need to manually stop the SSAS service or kill the msmdsrv.exe process to complete capture of the diagnostic then.  "
                                       + "All other diagnostics have been stopped already, so this may only impact the data not yet flushed to file for the Profiler trace, even in a worst case scenario.\r\n");
                     }
@@ -405,7 +404,7 @@ namespace SSASDiag
                 if (bRunning)
                 {
                     // Update elapsed time.
-                    if (Environment.UserInteractive) AddItemToStatus("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss"), false, "Diagnostics captured for ");
+                    AddItemToStatus("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss"), false, "Diagnostics captured for ");
 
                     if (iCurrentTimerTicksSinceLastInterval >= iInterval && bPerfMonRunning)
                     {
@@ -447,6 +446,7 @@ namespace SSASDiag
                     EvtExportLog(IntPtr.Zero, "System", "*", Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + "_System.evtx", EventExportLogFlags.ChannelPath);
                     AddItemToStatus("Collected Application and System event logs.");
                 }
+                Debug.WriteLine("here");
 
                 if (bGetNetwork)
                 {
@@ -880,28 +880,14 @@ namespace SSASDiag
         }
         void AddItemToStatus(string Item, bool bScroll = true, string AtLastLineStartingWith = "")
         {
-            if (Environment.UserInteractive)
-            {
-                if (AtLastLineStartingWith == "")
-                    slStatus.Insert(slStatus.Count, Item);
-                else
-                    for (int i = slStatus.Count - 1; i >= 0; i--)
-                        if (slStatus[i].StartsWith(AtLastLineStartingWith))
-                            slStatus[i] = Item;
-
-                txtStatus.Invoke(new System.Action(() =>
-                {
-                    if (txtStatus.Text.Length > 0)
-                        txtStatus.Select(txtStatus.Text.Length - 1, 1);
-                    txtStatus.ScrollToCaret();
-                }));
-                txtStatus.Invoke(new System.Action(() => RaisePropertyChanged("Status")));
-            }
+            if (AtLastLineStartingWith == "")
+                slStatus.Insert(slStatus.Count, Item);
             else
-            {
-                File.AppendAllText(svcOutputPath, Item + "\r\n");
-            }
-            return;
+                for (int i = slStatus.Count - 1; i >= 0; i--)
+                    if (slStatus[i].StartsWith(AtLastLineStartingWith))
+                        slStatus[i] = Item;
+            if (!Environment.UserInteractive)
+                File.WriteAllLines(svcOutputPath, slStatus);
         }
 
         #endregion UtilityFunctions

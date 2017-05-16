@@ -27,23 +27,25 @@ namespace SSASDiag
         [STAThread]
         public static void Main()
         {
+            
             if (!Environment.UserInteractive)
             {
                 // In service mode we wipe out command line of startup config after we complete.
                 // If somebody tries to restart the service then, we want to immediately shutdown.
                 // They only way to launch is through the UI.
                 // UI is intended mechanism to shutdown too, but if user shuts down service, we trigger stop of collection properly too.
-                if (Environment.GetCommandLineArgs().Length == 1)
+                if (Environment.GetCommandLineArgs().Length == 3)
                 {
-                    ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 1500 > nul & net stop SSASDiagService");
-                    p.WindowStyle = ProcessWindowStyle.Hidden;
-                    p.UseShellExecute = false;
-                    p.CreateNoWindow = true;
-                    Process.Start(p);
-                    return;
+                    if (Environment.GetCommandLineArgs()[1] == "/instance")
+                    {
+                        ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 1500 > nul & net stop SSASDiag_" + Environment.GetCommandLineArgs()[2]);
+                        p.WindowStyle = ProcessWindowStyle.Hidden;
+                        p.UseShellExecute = false;
+                        p.CreateNoWindow = true;
+                        Process.Start(p);
+                        return;
+                    }
                 }
-                else
-                    Application.ApplicationExit += Application_ApplicationExit;
             }            
 
             // Assign a unique Run ID used to anonymously track usage if user allows
@@ -59,8 +61,6 @@ namespace SSASDiag
             }
 
             // Setup private temp bin location...
-            
-
             if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
                 TempPath = AppDomain.CurrentDomain.GetData("tempbinlocation") as string;
             else
@@ -213,6 +213,7 @@ namespace SSASDiag
             try
             {
                 MainForm = new frmSSASDiag();
+                Application.ApplicationExit += Application_ApplicationExit;
                 Application.Run(MainForm);  
             }
             catch (Exception ex)
@@ -226,16 +227,19 @@ namespace SSASDiag
 
         private static void Application_ApplicationExit(object sender, EventArgs e)
         {
-            if (!Environment.UserInteractive && MainForm != null && MainForm.btnCapture.Image.Tag as string == "Stop")
+            if (!Environment.UserInteractive)
             {
-                MainForm.btnCapture.PerformClick();
-                while (MainForm.btnCapture.Image.Tag as string != "Start")
-                    Thread.Sleep(1000);
+                if (MainForm != null && MainForm.btnCapture.Image.Tag as string == "Stop")
+                {
+                    MainForm.btnCapture.PerformClick();
+                    while (MainForm.btnCapture.Image.Tag as string != "Start")
+                        Thread.Sleep(500000);
+                }
+                // Reinitialize service config to start with only option to specify instance, which will trigger stop of service hereafter in service mode then, until UI configures new settings, should someone try to start manually.
+                List<string> svcconfig = new List<string>(File.ReadAllLines(Program.TempPath + "SSASDiagService_" + (MainForm.cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : MainForm.cbInstances.Text) + ".ini"));
+                svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe /instance " + (MainForm.cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : MainForm.cbInstances.Text);
+                File.WriteAllLines(Program.TempPath + "SSASDiagService_" + (MainForm.cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : MainForm.cbInstances.Text) + ".ini", svcconfig.ToArray());
             }
-            // Reinitialize service config to start with no command options - immediately terminating hereafter in service mode then, until UI configures new settings, should someone try to start manually.
-            List<string> svcconfig = new List<string>(File.ReadAllLines(Program.TempPath + "SSASDiagService.ini"));
-            svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe";
-            File.WriteAllLines(Program.TempPath + "SSASDiagService.ini", svcconfig.ToArray());
         }
 
         public static void CheckForUpdates(AppDomain tempDomain)

@@ -78,7 +78,7 @@ namespace SSASDiag
                         List<string> svcconfig = new List<string>(File.ReadAllLines(sInstanceServiceConfig.Replace(".exe", ".ini")));
                         svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceName="))] = "ServiceName=SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
                         svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceLongName="))] = "ServiceLongName=SQL Server Analysis Services Diagnostic Collection Service (" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) + ")";
-                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceDesc="))] = "ServiceDesc=Provides automated diagnostic collection for SQL Server Analysis Services.  Run SSASDiag.exe to administer collection.";
+                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceDesc="))] = "ServiceDesc=Launch SSASDiag.exe to administer data collection.  SSASDiag provides automated diagnostic collection for SQL Server Analysis Services.";
                         svcconfig[svcconfig.FindIndex(s => s.StartsWith("WorkingDir="))] = "WorkingDir=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string);
                         File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
                         ProcessStartInfo p = new ProcessStartInfo(sInstanceServiceConfig);
@@ -110,25 +110,35 @@ namespace SSASDiag
                             (chkBAK.Checked ? " /bak" : "") +
                             (chkXMLA.Checked ? " /xmla" : "") +
                             (chkGetNetwork.Checked ? " /network" : "") +
+                            (Args.ContainsKey("debug") ? " /debug" : "") +
                             " /start";
                         File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
-                        ServiceController InstanceCollectionService = new ServiceController("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
-                        InstanceCollectionService.Start();
                         svcOutputPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text)).GetValue("ImagePath") as string;
                         svcOutputPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".exe")) + ".output.log";
+                        File.CreateText(svcOutputPath).Close();
                         svcOutputWatcher = new FileSystemWatcher(Path.GetDirectoryName(svcOutputPath), Path.GetFileName(svcOutputPath));
-                        svcOutputWatcher.NotifyFilter = NotifyFilters.Size;
+                        svcOutputWatcher.NotifyFilter = NotifyFilters.LastWrite;
                         svcOutputWatcher.Changed += svcOutputWatcher_Changed;
                         svcOutputWatcher.EnableRaisingEvents = true;
-                        txtStatus.Text = String.Join("\r\n", WriteSafeReadAllLines(svcOutputPath));                        
+                        File.WriteAllText(svcOutputPath, "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                        ServiceController InstanceCollectionService = new ServiceController("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
+                        new Thread(new ThreadStart(() => InstanceCollectionService.Start())).Start();
                     }
                 }
                 else if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
                 {
-                    {
-                        btnCapture.Click -= btnCapture_Click;
-                        btnCapture.Image = imgStopHalfLit;
+                    btnCapture.Click -= btnCapture_Click;
+                    btnCapture.Image = imgStopHalfLit;
+                    if (!Environment.UserInteractive)
                         new Thread(new ThreadStart(() => dc.StopAndFinalizeAllDiagnostics())).Start();
+                    else
+                    {
+                        string sInstance = (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
+                        new Thread(new ThreadStart(() =>
+                            {
+                                new ServiceController("SSASDiag_" + sInstance).Stop();
+                                Invoke(new System.Action(() => callback_StopAndFinalizeAllDiagnosticsComplete()));
+                            })).Start();
                     }
                 }
             }
@@ -136,23 +146,74 @@ namespace SSASDiag
 
         private void svcOutputWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            txtStatus.Invoke(new System.Action(() => txtStatus.Text += WriteSafeReadAllLines(svcOutputPath).LastOrDefault() + "\r\n"));
+            if (txtStatus.InvokeRequired)
+                txtStatus.Invoke(new System.Action(() => ProcessLineUpdateToStatus()));
+            else
+                ProcessLineUpdateToStatus();
         }
-        public string[] WriteSafeReadAllLines(String path)
+
+        private void ProcessLineUpdateToStatus()
         {
-            using (var csv = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (var sr = new StreamReader(csv))
+            string[] lines = WriteSafeReadAllLines(svcOutputPath);
+            bool bScroll = false;
+            if (lines.Count() == txtStatus.Lines.Count())
+                bScroll = true;
+            txtStatus.Text = String.Join("\r\n", lines);
+            if (bScroll)
             {
+                txtStatus.SuspendLayout();
+                txtStatus.Select(0, txtStatus.Text.Length - 1);
+                txtStatus.ScrollToCaret();
+                txtStatus.ResumeLayout();
+            }
+
+            if (lines.Length > 0)
+            {
+                if (lines.Last().StartsWith("Diagnostics captured for ") && btnCapture.Image.Tag != imgStop.Tag && btnCapture.Image.Tag != imgStopLit.Tag)
+                {
+                    btnCapture.Image = imgStop;
+                    btnCapture.Click += btnCapture_Click;
+                }
+            }
+            //    if (txtStatus.Lines.Length > 1)
+            //    {
+            //        if (txtStatus.Lines[txtStatus.Lines.Length - 2].Length > 8 && lines[lines.Length - 1].Length > 8)
+            //        {
+            //            if (txtStatus.Lines[txtStatus.Lines.Length - 2].Substring(0, 7) == lines[lines.Length - 1].Substring(0, 7))
+            //                txtStatus.Text = txtStatus.Text.Substring(0, txtStatus.Text.LastIndexOf(txtStatus.Lines[txtStatus.Lines.Length - 2])) + lines[lines.Length - 1] + "\r\n";
+            //            else
+            //            {
+            //                txtStatus.AppendText(lines.LastOrDefault() + "\r\n");
+            //                txtStatus.ScrollToCaret();
+            //            }
+            //        }
+            //        else
+            //        {
+            //            txtStatus.AppendText(lines.LastOrDefault() + "\r\n");
+            //            txtStatus.ScrollToCaret();
+            //        }
+            //    }
+            //    else
+            //    {
+            //        txtStatus.AppendText(lines.LastOrDefault() + "\r\n");
+            //        txtStatus.ScrollToCaret();
+            //    }
+            //}
+        }
+                
+        private string[] WriteSafeReadAllLines(String path)
+        {
+            if (File.Exists(path))
+            {
+                StreamReader sr = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
                 List<string> file = new List<string>();
                 while (!sr.EndOfStream)
-                {
                     file.Add(sr.ReadLine());
-                }
-
                 return file.ToArray();
             }
+            else
+                return new string[] { "" };
         }
-
 
         #region BlockingUIComponentsBesidesCapture
 
@@ -169,7 +230,6 @@ namespace SSASDiag
             bgPopulateInstanceDetails.DoWork += BgPopulateInstanceDetails_DoWork;
             bgPopulateInstanceDetails.RunWorkerCompleted += BgPopulateInstanceDetails_RunWorkerCompleted;
             bgPopulateInstanceDetails.RunWorkerAsync();  
-            
         }
 
         private void BgPopulateInstanceDetails_DoWork(object sender, DoWorkEventArgs e)

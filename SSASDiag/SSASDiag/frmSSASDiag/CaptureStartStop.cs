@@ -55,7 +55,6 @@ namespace SSASDiag
                 Close();
             tbAnalysis.ForeColor = SystemColors.ControlText;
             tcCollectionAnalysisTabs.Refresh();
-            dc.CompletionCallback = null;
             LogFeatureUse("Collection Stopped", "");
             if (!Environment.UserInteractive)
             {

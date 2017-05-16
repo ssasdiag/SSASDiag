@@ -599,7 +599,7 @@
             this.tabAdvanced.Location = new System.Drawing.Point(4, 22);
             this.tabAdvanced.Margin = new System.Windows.Forms.Padding(0);
             this.tabAdvanced.Name = "tabAdvanced";
-            this.tabAdvanced.Size = new System.Drawing.Size(231, 161);
+            this.tabAdvanced.Size = new System.Drawing.Size(231, 157);
             this.tabAdvanced.TabIndex = 1;
             this.tabAdvanced.Text = "Advanced";
             // 
@@ -619,7 +619,7 @@
             this.pnlDiagnosticsToCollect.Location = new System.Drawing.Point(0, 0);
             this.pnlDiagnosticsToCollect.Margin = new System.Windows.Forms.Padding(0);
             this.pnlDiagnosticsToCollect.Name = "pnlDiagnosticsToCollect";
-            this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(231, 161);
+            this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(231, 157);
             this.pnlDiagnosticsToCollect.TabIndex = 38;
             // 
             // chkGetProfiler
@@ -1272,12 +1272,12 @@
         private System.Windows.Forms.CheckBox chkRollover;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label lblInstanceDetails;
-        private System.Windows.Forms.ComboBox cbInstances;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label lblInterval;
         private System.Windows.Forms.Label lblInterval2;
         public System.Windows.Forms.Button btnCapture;
         private System.Windows.Forms.CheckBox chkRunAsService;
+        public System.Windows.Forms.ComboBox cbInstances;
     }
 }
 
