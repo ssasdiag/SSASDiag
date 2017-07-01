@@ -38,11 +38,12 @@ namespace SSASDiag
         {
             btnCapture.Image = imgStop;
             btnCapture.Click += btnCapture_Click;
-            dc.CompletionCallback = callback_StopAndFinalizeAllDiagnosticsComplete;
+            if (!Environment.UserInteractive)
+                dc.CompletionCallback = callback_StopAndFinalizeAllDiagnosticsComplete;
         }
         private void callback_StopAndFinalizeAllDiagnosticsComplete()
         {
-            chkRunAsService.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+            txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
             udRollover.Enabled = chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Checked;
@@ -59,9 +60,10 @@ namespace SSASDiag
             if (!Environment.UserInteractive)
             {
                 // Reinitialize service config to start with no command options - immediately terminating hereafter in service mode then, until UI configures new settings, should someone try to start manually.
-                List<string> svcconfig = new List<string>(File.ReadAllLines(Program.TempPath + "SSASDiagService.ini"));
+                string svcIniPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".output.log")) + ".ini";
+                List<string> svcconfig = new List<string>(File.ReadAllLines(svcIniPath));
                 svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe";
-                File.WriteAllLines(Program.TempPath + "SSASDiagService.ini", svcconfig.ToArray());
+                File.WriteAllLines(svcIniPath, svcconfig.ToArray());
 
                 ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 1500 > nul & net stop SSASDiagService");
                 p.WindowStyle = ProcessWindowStyle.Hidden;

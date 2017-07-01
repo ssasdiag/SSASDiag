@@ -30,8 +30,8 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSSASDiag));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
@@ -49,7 +49,6 @@
             this.chkProfilerPerfDetails = new System.Windows.Forms.CheckBox();
             this.chkGetNetwork = new System.Windows.Forms.CheckBox();
             this.chkXMLA = new System.Windows.Forms.CheckBox();
-            this.chkRunAsService = new System.Windows.Forms.CheckBox();
             this.chkAllowUsageStatsCollection = new System.Windows.Forms.CheckBox();
             this.tcCollectionAnalysisTabs = new System.Windows.Forms.TabControl();
             this.tbCollection = new System.Windows.Forms.TabPage();
@@ -361,19 +360,6 @@
             this.chkXMLA.UseVisualStyleBackColor = true;
             this.chkXMLA.CheckedChanged += new System.EventHandler(this.chkXMLA_CheckedChanged);
             // 
-            // chkRunAsService
-            // 
-            this.chkRunAsService.AutoSize = true;
-            this.chkRunAsService.Location = new System.Drawing.Point(5, 204);
-            this.chkRunAsService.Name = "chkRunAsService";
-            this.chkRunAsService.Size = new System.Drawing.Size(210, 17);
-            this.chkRunAsService.TabIndex = 67;
-            this.chkRunAsService.Text = "Run SSASDiag collection as a service.";
-            this.ttStatus.SetToolTip(this.chkRunAsService, "Continues even when the user logs off.  Schedule a stop time, or just re-run the " +
-        "application to stop collection later.");
-            this.chkRunAsService.UseVisualStyleBackColor = true;
-            this.chkRunAsService.CheckedChanged += new System.EventHandler(this.chkRunAsService_CheckedChanged);
-            // 
             // chkAllowUsageStatsCollection
             // 
             this.chkAllowUsageStatsCollection.AutoSize = true;
@@ -422,7 +408,6 @@
             // 
             // splitCollectionUI.Panel1
             // 
-            this.splitCollectionUI.Panel1.Controls.Add(this.chkRunAsService);
             this.splitCollectionUI.Panel1.Controls.Add(this.label3);
             this.splitCollectionUI.Panel1.Controls.Add(this.txtSaveLocation);
             this.splitCollectionUI.Panel1.Controls.Add(this.btnSaveLocation);
@@ -445,13 +430,13 @@
             this.splitCollectionUI.Panel1.Controls.Add(this.lblInterval);
             this.splitCollectionUI.Panel1.Controls.Add(this.lblInterval2);
             this.splitCollectionUI.Panel1.Resize += new System.EventHandler(this.splitCollectionUI_Panel1_Resize);
-            this.splitCollectionUI.Panel1MinSize = 242;
+            this.splitCollectionUI.Panel1MinSize = 230;
             // 
             // splitCollectionUI.Panel2
             // 
             this.splitCollectionUI.Panel2.Controls.Add(this.txtStatus);
             this.splitCollectionUI.Size = new System.Drawing.Size(593, 439);
-            this.splitCollectionUI.SplitterDistance = 247;
+            this.splitCollectionUI.SplitterDistance = 230;
             this.splitCollectionUI.SplitterIncrement = 13;
             this.splitCollectionUI.TabIndex = 46;
             // 
@@ -488,7 +473,7 @@
             this.grpDiagsToCapture.Margin = new System.Windows.Forms.Padding(0);
             this.grpDiagsToCapture.Name = "grpDiagsToCapture";
             this.grpDiagsToCapture.Padding = new System.Windows.Forms.Padding(0);
-            this.grpDiagsToCapture.Size = new System.Drawing.Size(239, 196);
+            this.grpDiagsToCapture.Size = new System.Drawing.Size(239, 178);
             this.grpDiagsToCapture.TabIndex = 57;
             this.grpDiagsToCapture.TabStop = false;
             this.grpDiagsToCapture.Text = "Diagnostics to Capture:";
@@ -504,7 +489,7 @@
             this.tcSimpleAdvanced.Name = "tcSimpleAdvanced";
             this.tcSimpleAdvanced.Padding = new System.Drawing.Point(0, 0);
             this.tcSimpleAdvanced.SelectedIndex = 0;
-            this.tcSimpleAdvanced.Size = new System.Drawing.Size(239, 183);
+            this.tcSimpleAdvanced.Size = new System.Drawing.Size(239, 165);
             this.tcSimpleAdvanced.TabIndex = 1;
             // 
             // tabGuided
@@ -514,7 +499,7 @@
             this.tabGuided.Location = new System.Drawing.Point(4, 22);
             this.tabGuided.Margin = new System.Windows.Forms.Padding(0);
             this.tabGuided.Name = "tabGuided";
-            this.tabGuided.Size = new System.Drawing.Size(231, 157);
+            this.tabGuided.Size = new System.Drawing.Size(231, 139);
             this.tabGuided.TabIndex = 0;
             this.tabGuided.Text = "Guided";
             // 
@@ -532,7 +517,7 @@
             this.pnlSimple.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlSimple.Location = new System.Drawing.Point(0, 0);
             this.pnlSimple.Name = "pnlSimple";
-            this.pnlSimple.Size = new System.Drawing.Size(231, 157);
+            this.pnlSimple.Size = new System.Drawing.Size(231, 139);
             this.pnlSimple.TabIndex = 33;
             // 
             // rtbProblemDescription
@@ -694,7 +679,7 @@
             // 
             // udInterval
             // 
-            this.udInterval.Location = new System.Drawing.Point(151, 226);
+            this.udInterval.Location = new System.Drawing.Point(152, 201);
             this.udInterval.Maximum = new decimal(new int[] {
             60,
             0,
@@ -825,7 +810,7 @@
             // lblInterval
             // 
             this.lblInterval.AutoSize = true;
-            this.lblInterval.Location = new System.Drawing.Point(21, 228);
+            this.lblInterval.Location = new System.Drawing.Point(22, 204);
             this.lblInterval.Name = "lblInterval";
             this.lblInterval.Size = new System.Drawing.Size(124, 13);
             this.lblInterval.TabIndex = 60;
@@ -834,7 +819,7 @@
             // lblInterval2
             // 
             this.lblInterval2.AutoSize = true;
-            this.lblInterval2.Location = new System.Drawing.Point(202, 228);
+            this.lblInterval2.Location = new System.Drawing.Point(204, 204);
             this.lblInterval2.Name = "lblInterval2";
             this.lblInterval2.Size = new System.Drawing.Size(50, 13);
             this.lblInterval2.TabIndex = 59;
@@ -851,7 +836,7 @@
             this.txtStatus.Location = new System.Drawing.Point(0, 0);
             this.txtStatus.Name = "txtStatus";
             this.txtStatus.ReadOnly = true;
-            this.txtStatus.Size = new System.Drawing.Size(593, 188);
+            this.txtStatus.Size = new System.Drawing.Size(593, 205);
             this.txtStatus.TabIndex = 37;
             this.txtStatus.Text = "";
             this.txtStatus.MouseDown += new System.Windows.Forms.MouseEventHandler(this.txtStatus_MouseDown);
@@ -1062,21 +1047,21 @@
             this.dgdProfilerAnalyses.AllowUserToDeleteRows = false;
             this.dgdProfilerAnalyses.AllowUserToOrderColumns = true;
             this.dgdProfilerAnalyses.AllowUserToResizeRows = false;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.AliceBlue;
-            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.AliceBlue;
+            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             this.dgdProfilerAnalyses.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
             this.dgdProfilerAnalyses.BackgroundColor = System.Drawing.SystemColors.ControlDark;
             this.dgdProfilerAnalyses.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdProfilerAnalyses.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dgdProfilerAnalyses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle4;
             this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
             this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 0);
             this.dgdProfilerAnalyses.Margin = new System.Windows.Forms.Padding(0);
@@ -1147,7 +1132,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(601, 489);
+            this.ClientSize = new System.Drawing.Size(601, 496);
             this.Controls.Add(this.chkAllowUsageStatsCollection);
             this.Controls.Add(this.chkAutoUpdate);
             this.Controls.Add(this.lkAbout);
@@ -1276,7 +1261,6 @@
         private System.Windows.Forms.Label lblInterval;
         private System.Windows.Forms.Label lblInterval2;
         public System.Windows.Forms.Button btnCapture;
-        private System.Windows.Forms.CheckBox chkRunAsService;
         public System.Windows.Forms.ComboBox cbInstances;
     }
 }

@@ -1,4 +1,7 @@
-﻿using System.ServiceProcess;
+﻿using System.DirectoryServices;
+using System.Text;
+using System.Security.Principal;
+using System.ServiceProcess;
 using System;
 using System.IO;
 using System.Net.Security;
@@ -13,6 +16,7 @@ using System.Net;
 using System.Threading;
 using System.Windows.Forms;
 using System.DirectoryServices.AccountManagement;
+using System.Runtime.InteropServices;
 
 
 namespace SSASDiag
@@ -32,6 +36,49 @@ namespace SSASDiag
         Dictionary<string, string> Args = new Dictionary<string, string>();
 
         #endregion locals
+
+        #region Win32
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern bool GetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation, uint TokenInformationLength, out uint ReturnLength);
+
+        enum TOKEN_INFORMATION_CLASS
+        {
+            /// <summary>
+            /// The buffer receives a TOKEN_USER structure that contains the user account of the token.
+            /// </summary>
+            TokenUser = 1
+        }
+
+        public struct TOKEN_USER
+        {
+            public SID_AND_ATTRIBUTES User;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SID_AND_ATTRIBUTES
+        {
+
+            public IntPtr Sid;
+            public int Attributes;
+        }
+
+        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool LookupAccountSid(string lpSystemName, IntPtr Sid, System.Text.StringBuilder lpName, ref uint cchName, System.Text.StringBuilder ReferencedDomainName, ref uint cchReferencedDomainName, out SID_NAME_USE peUse);
+
+        enum SID_NAME_USE
+        {
+            SidTypeUser = 1,
+            SidTypeGroup,
+            SidTypeDomain,
+            SidTypeAlias,
+            SidTypeWellKnownGroup,
+            SidTypeDeletedAccount,
+            SidTypeInvalid,
+            SidTypeUnknown,
+            SidTypeComputer
+        }
+
+        #endregion Win32
 
         public frmSSASDiag()
         {
@@ -138,8 +185,6 @@ namespace SSASDiag
             if (Args.ContainsKey("perfmoninterval"))
                 try { udInterval.Value = Convert.ToInt32(Args["perfmoninterval"]); }
                 catch { }
-
-            chkRunAsService.Checked = (new ServiceController("SSASDiagService") != null) && Environment.UserInteractive;
         }
 
         private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
@@ -260,23 +305,26 @@ namespace SSASDiag
                             nvc.Add("UsageVersion", WebUtility.UrlEncode(FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).FileVersion));
                             nvc.Add("FeatureName", WebUtility.UrlEncode(FeatureName));
                             nvc.Add("FeatureDetail", WebUtility.UrlEncode(FeatureDetail.Replace("'", "''")));
-                            nvc.Add("UpnSuffix", WebUtility.UrlEncode((Environment.UserInteractive ? UserPrincipal.Current.UserPrincipalName.Substring(UserPrincipal.Current.UserPrincipalName.IndexOf("@") + 1) : "")));
-                            nvc.Add("MicrosoftInternal", WebUtility.UrlEncode((Environment.UserInteractive ? (UserPrincipal.Current.UserPrincipalName.ToLower().Contains("microsoft.com") ? Environment.UserName : "") : "LocalSystem")));
+                            string UserAndDomain = UserPrincipal.Current.UserPrincipalName;
+                            nvc.Add("UpnSuffix", WebUtility.UrlEncode((Environment.UserInteractive ? UserAndDomain.Substring(UserAndDomain.IndexOf("@") + 1) : "")));
+                            //if (UserAndDomain.EndsWith("microsoft.com"))
+                                nvc.Add("MicrosoftInternal", WebUtility.UrlEncode(UserAndDomain.Substring(0, UserAndDomain.IndexOf("@"))));
                             // Skip SSL certificate validation on this private server
                             ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(delegate { return true; });
                             wc.UploadValues("https://jburchelsrv.southcentralus.cloudapp.azure.com/SSASDiagUsageStats.aspx", nvc);
                             // Reset SSL to normal behavior.
                             ServicePointManager.ServerCertificateValidationCallback = null;
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
-                            LogException(ex);
+                            //LogException(ex);
                         }
                     })).Start();
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                LogException(e);
+                // Need to handle, but don't log, since LogException tries to log through feature use also and will create loop...  For now ignoring.
+                //LogException(e);
             }
         }
 

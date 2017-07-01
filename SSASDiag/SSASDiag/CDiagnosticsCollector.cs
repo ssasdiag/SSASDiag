@@ -19,6 +19,9 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Windows.Forms;
 using System.Xml;
+using System.IO.Pipes;
+using NamedPipeWrapper;
+using System.Threading;
 
 namespace SSASDiag
 {
@@ -27,22 +30,25 @@ namespace SSASDiag
         #region publics
         public bool bScheduledStartPending = false, bRunning = false, bPerfMonRunning = false;
         public System.Action CompletionCallback;
-        #endregion publics
-
-        #region publics
+        public NamedPipeServer<string> npServer;
         public string TraceID;
         #endregion publics
 
         #region toomanylocals
+        
         PdhHelper m_PdhHelperInstance = new PdhHelper(false);
         System.Timers.Timer PerfMonAndUIPumpTimer = new System.Timers.Timer();
         RichTextBox txtStatus;
         DateTime m_StartTime = DateTime.Now;
-        string sTracePrefix = "", sInstanceName, sInstanceVersion, sInstanceMode, sInstanceEdition, sLogDir, sConfigDir, sServiceAccount;
+        string sTracePrefix = "", sInstanceName, sInstanceVersion, sInstanceMode, sInstanceEdition, sLogDir, sConfigDir, sServiceAccount, sRemoteAdminUser, sRemoteAdminDomain;
+        SecureString sRemoteAdminPassword;
         int iInterval = 0, iRollover = 0, iCurrentTimerTicksSinceLastInterval = 0;
         bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetBAK, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true;
+        bool bCollectionFullyInitialized = false;
         DateTime dtStart, dtEnd;
         string svcOutputPath = "";
+        Dictionary<int, string> clients = new Dictionary<int, string>();
+        EventWaitHandle clientWaiter = new EventWaitHandle(false, EventResetMode.AutoReset);
         #endregion toomanylocals
         
 
@@ -70,6 +76,9 @@ namespace SSASDiag
             [MarshalAs(UnmanagedType.I4)] EventExportLogFlags flags);
         [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
         public extern static bool CloseHandle(IntPtr handle);
+
+        [DllImport("advapi32.dll")]
+        public static extern int ImpersonateNamedPipeClient(int hNamedPipe);
         #endregion Win32
 
         public CDiagnosticsCollector(
@@ -95,18 +104,68 @@ namespace SSASDiag
             bGetConfigDetails = GetConfigDetails; bGetProfiler = GetProfiler; bGetNetwork = GetNetwork; bGetPerfMon = GetPerfMon;
             svcOutputPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (InstanceName == "" ? "MSSQLSERVER" : InstanceName)).GetValue("ImagePath") as string;
             svcOutputPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".exe")) + ".output.log";
-            File.WriteAllText(svcOutputPath, "");
+            PipeSecurity ps = new PipeSecurity();
+            ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null) as IdentityReference, PipeAccessRights.FullControl, AccessControlType.Allow));
+            npServer = new NamedPipeServer<string>("SSASDiag_" + (InstanceName == "" ? "MSSQLSERVER" : InstanceName), ps);
+            npServer.ClientMessage += npServer_ClientMessage;
+            npServer.Start();
+        }
+
+        private SecureString GetSecureString(string source)
+        {
+            if (string.IsNullOrWhiteSpace(source))
+                return null;
+            else
+            {
+                SecureString result = new SecureString();
+                foreach (char c in source.ToCharArray())
+                    result.AppendChar(c);
+                return result;
+            }
+        }
+
+        String SecureStringToString(SecureString value)
+        {
+            IntPtr valuePtr = IntPtr.Zero;
+            try
+            {
+                valuePtr = Marshal.SecureStringToGlobalAllocUnicode(value);
+                return Marshal.PtrToStringUni(valuePtr);
+            }
+            finally
+            {
+                Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
+            }
+        }
+
+        private void npServer_ClientMessage(NamedPipeConnection<string, string> connection, string message)
+        {
+            if (message.StartsWith("User="))
+            {
+                if (!clients.ContainsKey(connection.Id))
+                    clients.Add(connection.Id, message.Substring("User=".Length));
+                else
+                    clients[connection.Id] = message.Substring("User=".Length);
+            }
+            if (message.StartsWith("Administrator="))
+            {
+                string[] KeyVals = message.Split(';');
+                sRemoteAdminUser = KeyVals[0].Split('=')[1];
+                sRemoteAdminDomain = KeyVals[1].Split('=')[1];
+                sRemoteAdminPassword = GetSecureString(KeyVals[2].Split('=')[1]);
+                clientWaiter.Set();
+            }
+            if (message == "Cancelled by client")
+            {
+                sRemoteAdminUser = "Cancelled by client";
+                sRemoteAdminDomain = "";
+                sRemoteAdminPassword = GetSecureString("");
+                clientWaiter.Set();
+            }
         }
 
         #region Properties
-        private List<string> slStatus = new List<string>();
-        public string[] Status
-        {
-            get
-            {
-                return slStatus.ToArray();
-            }
-        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void RaisePropertyChanged(string propertyName)
         {
@@ -128,6 +187,9 @@ namespace SSASDiag
         #region StartCapture
         public void StartDiagnostics()
         {
+            bCollectionFullyInitialized = false;
+            while (!npServer._connections.Exists(c => c.IsConnected))
+                System.Threading.Thread.Sleep(100);
             m_StartTime = DateTime.Now;
             bScheduledStartPending = false;
             bRunning = true;
@@ -137,9 +199,9 @@ namespace SSASDiag
 
             if (bUseStart && DateTime.Now < dtStart)
             {
-                AddItemToStatus("Scheduled Diagnostic collection starts automatically at " + dtStart.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                SendMessageToClients("Scheduled Diagnostic collection starts automatically at " + dtStart.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
                 TimeSpan ts = dtStart - DateTime.Now;
-                AddItemToStatus("Time remaining until collection starts: " + ts.ToString("hh\\:mm\\:ss"), false);
+                SendMessageToClients("Time remaining until collection starts: " + ts.ToString("hh\\:mm\\:ss"));
                 bScheduledStartPending = true;
                 return;
             }
@@ -149,16 +211,16 @@ namespace SSASDiag
                     + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC"
                     + "_SSASDiag";
                 Debug.WriteLine("Starting TraceID: " + TraceID);
-                
-                AddItemToStatus("Collecting on computer " + Environment.MachineName + ".", true);
+
+                SendMessageToClients("Collecting on computer " + Environment.MachineName + ".");
                 if (sInstanceVersion != "")  // This occurs when we aren't really capturing instance details with Network only capture.
                 {
-                    AddItemToStatus("Collecting for instance " + (sInstanceName == "" ? "Default instance (MSSQLServer)" : sInstanceName) + ".");
-                    AddItemToStatus("The version of the instance is " + sInstanceVersion + ".");
-                    AddItemToStatus("The edition of the instance is " + sInstanceEdition + ".");
-                    AddItemToStatus("The instance mode is " + sInstanceMode + ".");
-                    AddItemToStatus("The OLAP\\LOG folder for the instance is " + sLogDir + ".");
-                    AddItemToStatus("The msmdsrv.ini configuration for the instance at " + sConfigDir + ".");
+                    SendMessageToClients("Collecting for instance " + (sInstanceName == "" ? "Default instance (MSSQLServer)" : sInstanceName) + ".");
+                    SendMessageToClients("The version of the instance is " + sInstanceVersion + ".");
+                    SendMessageToClients("The edition of the instance is " + sInstanceEdition + ".");
+                    SendMessageToClients("The instance mode is " + sInstanceMode + ".");
+                    SendMessageToClients("The OLAP\\LOG folder for the instance is " + sLogDir + ".");
+                    SendMessageToClients("The msmdsrv.ini configuration for the instance at " + sConfigDir + ".");
                 }
 
                 if (!Directory.Exists(TraceID))
@@ -171,7 +233,7 @@ namespace SSASDiag
                         Directory.CreateDirectory(TraceID);
                     }
                 }
-                AddItemToStatus("Created temporary folder " + TraceID + " to collect diagnostic files.");
+                SendMessageToClients("Created temporary folder " + TraceID + " to collect diagnostic files.");
 
                 // Add explicit full control access for AS service account to our temp output location since server trace is written under that identity.
                 if (sInstanceVersion != "")
@@ -182,11 +244,11 @@ namespace SSASDiag
                         DirectorySecurity dirSec = dirInfo.GetAccessControl();
                         dirSec.AddAccessRule(new FileSystemAccessRule(sServiceAccount, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
                         dirInfo.SetAccessControl(dirSec);
-                        AddItemToStatus("Added full control for SSAS service account " + sServiceAccount + " to the output directory.");
+                        SendMessageToClients("Added full control for SSAS service account " + sServiceAccount + " to the output directory.");
                     }
                     catch (Exception ex)
                     {
-                        AddItemToStatus("Adding access permissions for SSAS service account " + sServiceAccount + " to output folder failed:\n\t" + ex.Message);
+                        SendMessageToClients("Adding access permissions for SSAS service account " + sServiceAccount + " to output folder failed:\n\t" + ex.Message + "");
                         frmSSASDiag.LogException(ex);
                     }
                 }
@@ -198,7 +260,7 @@ namespace SSASDiag
                     foreach (string f in Directory.GetFiles(sLogDir))
                         File.Copy(f, TraceID + "\\Log\\" + f.Substring(f.LastIndexOf("\\") + 1));
                     File.Copy(sConfigDir + "\\msmdsrv.ini", TraceID + "\\msmdsrv.ini");
-                    AddItemToStatus("Captured OLAP\\Log contents and msmdsrv.ini config for the instance.");
+                    SendMessageToClients("Captured OLAP\\Log contents and msmdsrv.ini config for the instance.");
 
                     BackgroundWorker bg = new BackgroundWorker();
                     bg.DoWork += bgGetSPNs;
@@ -211,7 +273,8 @@ namespace SSASDiag
         }
         private void bgGetSPNs(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Attempting to capture SPNs for the AS service account " + sServiceAccount + ".");
+            SendMessageToClients("Attempting to capture SPNs for the AS service account " + sServiceAccount + ".");
+            ImpersonateNamedPipeClient(npServer._connections[0].Id);
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -226,13 +289,12 @@ namespace SSASDiag
             if (sErr == "")
             {
                 File.WriteAllText(Environment.CurrentDirectory + "\\" + TraceID + "\\ServiceAccountSPNs.txt", sOut);
-                AddItemToStatus("Captured SPNs defined for service account " + sServiceAccount + ".");
+                SendMessageToClients("Captured SPNs defined for service account " + sServiceAccount + ".");
             }
             else
             {
-                AddItemToStatus("Failed to capture SPNs.  Rerun as a domain administrator if this configuration detail is required.");
+                SendMessageToClients("Failed to capture SPNs.  Rerun as a domain administrator if this configuration detail is required.");
             }
-
         }
         private void bgGetSPNsCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -242,14 +304,14 @@ namespace SSASDiag
 
                 if (r != 0)
                 {
-                    AddItemToStatus("Error starting PerfMon logging: " + r.ToString("X"));
-                    AddItemToStatus("Other diagnostic collection will still be attempted.");
+                    SendMessageToClients("Error starting PerfMon logging: " + r.ToString("X") + "");
+                    SendMessageToClients("Other diagnostic collection will still be attempted.");
                 }
                 else
                 {
                     bPerfMonRunning = true;
-                    AddItemToStatus("Performance logging every " + iInterval + " seconds.");
-                    AddItemToStatus("Performance logging started to file: " + TraceID + ".blg.");
+                    SendMessageToClients("Performance logging every " + iInterval + " seconds.");
+                    SendMessageToClients("Performance logging started to file: " + TraceID + ".blg.");
                 }
             }
 
@@ -268,9 +330,9 @@ namespace SSASDiag
                 string ret = ServerExecute(XMLABatch);
 
                 if (ret.Substring(0, "Success".Length) != "Success")
-                    AddItemToStatus("Error starting profiler trace: " + ret);
+                    SendMessageToClients("Error starting profiler trace: " + ret + "");
                 else
-                    AddItemToStatus("Profiler tracing " + (bPerfEvents ? "(including detailed performance relevant events) " : "") + "started to file: " + TraceID + ".trc.");
+                    SendMessageToClients("Profiler tracing " + (bPerfEvents ? "(including detailed performance relevant events) " : "") + "started to file: " + TraceID + ".trc.");
 
                 if (bGetXMLA || bGetABF)
                 {
@@ -303,7 +365,7 @@ namespace SSASDiag
 
             // Add our PerfMon counters
             System.Collections.Specialized.StringCollection s = new System.Collections.Specialized.StringCollection();
-            s.Add("\\Processor(*)\\*");
+            s.Add("\\Process(*)\\*");
             s.Add("\\Memory\\*");
             s.Add("\\PhysicalDisk(*)\\*");
             s.Add("\\LogicalDisk(*)\\*");
@@ -342,7 +404,7 @@ namespace SSASDiag
         }
         private void bgGetNetworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Starting network trace...");
+            SendMessageToClients("Starting network trace.");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -358,7 +420,7 @@ namespace SSASDiag
             sOut = p.StandardOutput.ReadToEnd();
             System.Diagnostics.Trace.WriteLine("netsh trace start's output: " + sOut);
             p.WaitForExit();
-            AddItemToStatus("Network tracing started to file: " + TraceID + ".etl.");
+            SendMessageToClients("Network tracing started to file: " + TraceID + ".etl.");
         }
         private void bgGetNetworkCompletion(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -366,69 +428,83 @@ namespace SSASDiag
         }
         private void FinalizeStart()
         {
-            if (bRollover) AddItemToStatus("Log and trace files rollover after " + iRollover + "MB.");
-            if (bUseEnd) AddItemToStatus("Diagnostic collection stops automatically at " + dtEnd.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+            if (bRollover) SendMessageToClients("Log and trace files rollover after " + iRollover + "MB.");
+            if (bUseEnd) SendMessageToClients("Diagnostic collection stops automatically at " + dtEnd.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             m_StartTime = DateTime.Now.AddSeconds(-1);
-            AddItemToStatus("Diagnostics captured for 00:00:00");
-            CompletionCallback.Invoke();
+            CompletionCallback();
+
+            bCollectionFullyInitialized = true;
         }
         #endregion StartCapture
+
+        private void SendMessageToClients(string s)
+        {
+            if (s.Length > 1) s = "\r\n" + s;
+            npServer.PushMessage(s);
+            File.AppendAllText(svcOutputPath, s);
+        }
 
         private void CollectorPumpTick(object sender, EventArgs e)
         {
             if (bScheduledStartPending)
             {
                 TimeSpan ts = dtStart - DateTime.Now;
-                AddItemToStatus("Time remaining until collection starts: " + ts.ToString("hh\\:mm\\:ss"), false, "Time remaining until collection starts: ");
-                if (ts.TotalSeconds < 0)
+                SendMessageToClients("Time remaining until collection starts: " + ts.ToString("hh\\:mm\\:ss"));
+                if (ts.TotalSeconds <= 0)
                 {
-                    AddItemToStatus("Scheduled start time reached at " + dtStart.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")
+                    SendMessageToClients("Scheduled start time reached at " + dtStart.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")
                         + ".  Starting diagnostic collection now.");
                     StartDiagnostics();
                 }
             }
             else
             {
-                if (slStatus.Count > 0)
+                //    SendMessageToClients(lines[lines.Count - 2] + (lines[lines.Count - 2].Length - lines[lines.Count - 2].LastIndexOf(" ") < 4 ? "." : " "));
+                //    if (lines[lines.Count - 1].StartsWith("Executing AS server command to stop profiler trace... ..."))
+                //    {
+                //        SendMessageToClients("\r\nStarting of Profiler tracing usually completes instantly.  Since it has not completed yet, the server may be hung.  "
+                //                        + "You may need to manually stop the SSAS service or kill the msmdsrv.exe process to complete capture of the diagnostic then.  "
+                //                        + "All other diagnostics have been stopped already, so this may only impact the data not yet flushed to file for the Profiler trace, even in a worst case scenario.\r\n");
+                //    }
+                //}
+                if (!bCollectionFullyInitialized)
                 {
-                    // Add ... ... pattern at one char/s to status if we had no new updates to status as we tick.
-                    AddItemToStatus(slStatus[slStatus.Count - 1] + (slStatus[slStatus.Count - 1].Length - slStatus[slStatus.Count - 1].LastIndexOf(" ") < 4 ? "." : " "), false, slStatus[slStatus.Count - 1]);
-                    if (slStatus[slStatus.Count - 1].StartsWith("Executing AS server command to stop profiler trace... ..."))
-                    {
-                        AddItemToStatus("\r\nStarting of Profiler tracing usually completes instantly.  Since it has not completed yet, the server may be hung.  "
-                                      + "You may need to manually stop the SSAS service or kill the msmdsrv.exe process to complete capture of the diagnostic then.  "
-                                      + "All other diagnostics have been stopped already, so this may only impact the data not yet flushed to file for the Profiler trace, even in a worst case scenario.\r\n");
-                    }
-                }
-
-                if (bRunning)
-                {
-                    // Update elapsed time.
-                    AddItemToStatus("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss"), false, "Diagnostics captured for ");
-
-                    if (iCurrentTimerTicksSinceLastInterval >= iInterval && bPerfMonRunning)
-                    {
-                        // If perfmon logging failed we still want to tick our timer so just fail past this with try/catch anything...
-                        try { m_PdhHelperInstance.UpdateLog("SSASDiag"); }
-                        catch (Exception ex)
-                        {
-                            frmSSASDiag.LogException(ex);
-                        }
-                        iCurrentTimerTicksSinceLastInterval = 0;
-                    }
+                    // output a "... ... ... " pattern as sign of life while starting/stopping stuff
+                    int s = DateTime.Now.Second;
+                    if (s % 4 != 0)
+                        SendMessageToClients(".");
                     else
-                        iCurrentTimerTicksSinceLastInterval++;
-
-                    if (DateTime.Now > dtEnd && bUseEnd)
-                        StopAndFinalizeAllDiagnostics();
-
+                        SendMessageToClients(" ");
                 }
+                else
+                {
+                    SendMessageToClients("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss"));
+                }
+
+
+                if (iCurrentTimerTicksSinceLastInterval >= iInterval && bPerfMonRunning)
+                {
+                    // If perfmon logging failed we still want to tick our timer so just fail past this with try/catch anything...
+                    try { m_PdhHelperInstance.UpdateLog("SSASDiag" + sInstanceName); }
+                    catch (Exception ex)
+                    {
+                        frmSSASDiag.LogException(ex);
+                    }
+                    iCurrentTimerTicksSinceLastInterval = 0;
+                }
+                else
+                    iCurrentTimerTicksSinceLastInterval++;
+
+                if (DateTime.Now > dtEnd && bUseEnd)
+                    StopAndFinalizeAllDiagnostics();
             }
         }
 
         #region EndCapture
         public void StopAndFinalizeAllDiagnostics()
         {
+            bCollectionFullyInitialized = false;
+            SendMessageToClients("");
             if (bRunning)
             {
                 bRunning = false;
@@ -436,7 +512,7 @@ namespace SSASDiag
                 {
                     m_PdhHelperInstance.Dispose();
                     bPerfMonRunning = false;
-                    AddItemToStatus("Stopped performance monitor logging.");
+                    SendMessageToClients("Stopped performance monitor logging.");
                 }
 
                 if (bGetConfigDetails)
@@ -444,7 +520,7 @@ namespace SSASDiag
                     // Grab event logs post repro
                     EvtExportLog(IntPtr.Zero, "Application", "*", Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + "_Application.evtx", EventExportLogFlags.ChannelPath);
                     EvtExportLog(IntPtr.Zero, "System", "*", Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + "_System.evtx", EventExportLogFlags.ChannelPath);
-                    AddItemToStatus("Collected Application and System event logs.");
+                    SendMessageToClients("Collected Application and System event logs.");
                 }
                 Debug.WriteLine("here");
 
@@ -492,7 +568,7 @@ namespace SSASDiag
                 if (cs.Contains("Password"))
                 cs = cs.Remove(cs.IndexOf("Password="), cs.IndexOf(";", cs.IndexOf("Password=")));
 
-                AddItemToStatus("Starting SQL datasource backup for AS database " + db + ", data source name " + ds.Name + ", SQL database " + sqlDbName + " on server " + (srvName == "." ? Environment.MachineName : srvName) + "...");
+                SendMessageToClients("Starting SQL datasource backup for AS database " + db + ", data source name " + ds.Name + ", SQL database " + sqlDbName + " on server " + (srvName == "." ? Environment.MachineName : srvName) + "...");
 
                 OleDbConnection conn = new OleDbConnection(cs);
                 bool bAuthenticated = false;
@@ -507,37 +583,45 @@ namespace SSASDiag
                 catch (OleDbException ex)
                 {
                     frmSSASDiag.LogException(ex);
-                    if (Environment.UserInteractive && (ex.Message.StartsWith("Login failed") || ex.Message.Contains("authentication")))
+                    if (ex.Message.StartsWith("Login failed") || ex.Message.Contains("authentication"))
                     {
                         // If it fails the first try, prompt for remote admin
-                        frmPasswordPrompt pp = new frmPasswordPrompt();
-                        pp.UserMessage = "Windows Administrator required for remote server:\r\n" + srvName
-                            + "\r\n\r\nFor data source name:\r\n" + ds.Name
-                            + "\r\n\r\nIn AS database:\r\n" + db;
+
+                        //frmPasswordPrompt pp = new frmPasswordPrompt();
+                        //pp.UserMessage = "Windows Administrator required for remote server:\r\n" + srvName
+                        //    + "\r\n\r\nFor data source name:\r\n" + ds.Name
+                        //    + "\r\n\r\nIn AS database:\r\n" + db;
 
                         int iTries = 0;
                         while (!bAuthenticated && iTries < 3)
                         {
-                            Form f = Application.OpenForms["frmSSASDiag"];  // need a better way to center in this parent cross-thread but for now this will achieve it...
-                            txtStatus.Invoke(new System.Action(() =>
+                            SendMessageToClients("Waiting for client interaction:\r\n"
+                                + "Windows Administrator required for remote server:\r\n" + srvName
+                                + "\r\n\r\nFor data source name:\r\n" + ds.Name
+                                + "\r\n\r\nIn AS database:\r\n" + db);
+                            clientWaiter.WaitOne();
+                            //Form f = Application.OpenForms["frmSSASDiag"];  // need a better way to center in this parent cross-thread but for now this will achieve it...
+                            //txtStatus.Invoke(new System.Action(() =>
+                            //{
+                            //    pp.Top = f.Top + f.Height / 2 - pp.Height / 2;
+                            //    pp.Left = f.Left + f.Width / 2 - pp.Width / 2;
+                            //}));
+                            //txtStatus.Invoke(new System.Action(() => Application.OpenForms["frmSSASDiag"].Enabled = false));
+                            //pp.ShowDialog();
+                            //if (Application.OpenForms["frmSSASDiag"] != null)
+                            //    txtStatus.Invoke(new System.Action(() => Application.OpenForms["frmSSASDiag"].Enabled = true));
+                            if (sRemoteAdminUser != "Cancelled by client") //pp.DialogResult == DialogResult.OK)
                             {
-                                pp.Top = f.Top + f.Height / 2 - pp.Height / 2;
-                                pp.Left = f.Left + f.Width / 2 - pp.Width / 2;
-                            }));
-                            txtStatus.Invoke(new System.Action(() => Application.OpenForms["frmSSASDiag"].Enabled = false));
-                            pp.ShowDialog();
-                            if (Application.OpenForms["frmSSASDiag"] != null)
-                                txtStatus.Invoke(new System.Action(() => Application.OpenForms["frmSSASDiag"].Enabled = true));
-                            if (pp.DialogResult == DialogResult.OK)
-                            {
+                                SendMessageToClients("Attempting to authenticate user " + sRemoteAdminDomain + "\\" + sRemoteAdminUser + " on remote server " + srvName + ".");
+
                                 // Impersonate user remotely
                                 SafeTokenHandle safeTokenHandle;
                                 const int LOGON32_PROVIDER_DEFAULT = 0;
                                 const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
-                                bAuthenticated = LogonUser(pp.User, pp.Domain, pp.Password, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, out safeTokenHandle);
+                                bAuthenticated = LogonUser(sRemoteAdminUser, sRemoteAdminDomain, SecureStringToString(sRemoteAdminPassword), LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, out safeTokenHandle);
                                 if (!bAuthenticated)
                                 {
-                                    pp.lblUserPasswordError.Visible = true;
+                                    //pp.lblUserPasswordError.Visible = true;
                                     iTries++;
                                 }
                                 else
@@ -548,12 +632,12 @@ namespace SSASDiag
                                         {
                                             conn.Open();
                                             bAuthenticated = true;
-                                            PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, pp.Domain, pp.User);
+                                            PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, sRemoteAdminDomain, sRemoteAdminUser);
                                             break;
                                         }
                                         catch (OleDbException ex2)
                                         {
-                                            pp.lblUserPasswordError.Visible = true;
+                                            //pp.lblUserPasswordError.Visible = true;
                                             bAuthenticated = false;
                                             iTries++;
                                             frmSSASDiag.LogException(ex2);
@@ -566,16 +650,11 @@ namespace SSASDiag
                         }
                     }
                     else
-                    {
-                        if (Environment.UserInteractive)
-                            AddItemToStatus("Error during backup: " + ex.Message);
-                        else
-                            AddItemToStatus("Unable to collect data source backups in service mode without UI available to prompt, since it required alternate credentials.  Please add datasource .bak manually.");
-                    }
+                        SendMessageToClients("Error during backup: " + ex.Message + "");
                 }
                 if (!bAuthenticated)
                 {
-                    AddItemToStatus("Unable to login to backup SQL data source " + ds.Name + " in database " + db + ".");
+                    SendMessageToClients("Unable to login to backup SQL data source " + ds.Name + " in database " + db + ".");
                 }
             }
         }
@@ -588,11 +667,11 @@ namespace SSASDiag
                 OleDbDataReader rdr = cmd.ExecuteReader();
                 while (rdr.Read())
                     BackupDir = rdr["Data"] as string;
-                AddItemToStatus("Initiating backup of relational database " + SQLDBName + ".bak on SQL server " + srvName + ".");
+                SendMessageToClients("Initiating backup of relational database " + SQLDBName + ".bak on SQL server " + srvName + ".");
                 cmd = new OleDbCommand(@"BACKUP DATABASE [" + SQLDBName + "] TO  DISK = N'" + BackupDir + "\\SSASDiag_" + SQLDBName + ".bak' WITH NOFORMAT, INIT, NAME = N'SSASDag_" + SQLDBName + "-Full Database Backup', SKIP, NOREWIND, NOUNLOAD, COMPRESSION, STATS = 10", conn);
                 int ret = cmd.ExecuteNonQuery();
-                AddItemToStatus("Database backup completed.");
-                AddItemToStatus("Moving SQL backup to local capture directory...");
+                SendMessageToClients("Database backup completed.");
+                SendMessageToClients("Moving SQL backup to local capture directory...");
                 try
                 {
                     CopyBAKLocal(srvName, BackupDir, SQLDBName);
@@ -607,8 +686,8 @@ namespace SSASDiag
                             cmd.CommandText = @"EXEC xp_regwrite @rootkey='HKEY_LOCAL_MACHINE', @key='Software\Microsoft\Windows\CurrentVersion\Policies\System', @value_name='LocalAccountTokenFilterPolicy', @type='REG_DWORD', @value=1";
                             if (cmd.ExecuteNonQuery() != 0)
                             {
-                                AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ".");
-                                AddItemToStatus("\r\nFor local administrator accounts except Administrator to access the remote SQL backup, create a DWORD32 value LocalAccountTokenFilterPolicy=1 in HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Policies\\System on the local server " + srvName + ".\r\n");
+                                SendMessageToClients("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ".");
+                                SendMessageToClients("For local administrator accounts except Administrator to access the remote SQL backups, create a DWORD32 value LocalAccountTokenFilterPolicy=1 in HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Policies\\System on the server " + srvName + ".");
                             }
                             else
                             {
@@ -618,28 +697,28 @@ namespace SSASDiag
                                 }
                                 catch (Exception ex2)
                                 {
-                                    AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex2.Message);
+                                    SendMessageToClients("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex2.Message);
                                 }
                             }
                         }
                         catch(Exception)
                         {
                             frmSSASDiag.LogException(ex);
-                            AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ".");
-                            AddItemToStatus("\r\nFor local administrator accounts except Administrator to access the remote SQL backup, create a DWORD32 value LocalAccountTokenFilterPolicy=1 in HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Policies\\System on the local server " + srvName + ".\r\n");
+                            SendMessageToClients("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ".");
+                            SendMessageToClients("For local administrator accounts except Administrator to access the remote SQL backups, create a DWORD32 value LocalAccountTokenFilterPolicy=1 in HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Policies\\System on the server " + srvName + ".");
                         }
                     }
                     else
-                        AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message);
-                    AddItemToStatus("Please collect .bak manually from " + BackupDir + " on server " + srvName + ".");
+                        SendMessageToClients("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message + "");
+                    SendMessageToClients("Please collect .bak manually from " + BackupDir + " on server " + srvName + ".");
                     return false;
                 }
-                AddItemToStatus("Collected SQL data source .bak backup for data source " + dsName + " in database " + ASdbName + ".");
+                SendMessageToClients("Collected SQL data source .bak backup for data source " + dsName + " in database " + ASdbName + ".");
             }
             catch (Exception ex)
             {
                 frmSSASDiag.LogException(ex);
-                AddItemToStatus("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message);
+                SendMessageToClients("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message + "");
             }
             return true;
         }
@@ -652,7 +731,7 @@ namespace SSASDiag
         }
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
-            AddItemToStatus("Stopping network trace.  This may take a while...");
+            SendMessageToClients("Stopping network trace.  This may take a while...");
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
@@ -663,7 +742,7 @@ namespace SSASDiag
             string sOut = p.StandardOutput.ReadToEnd();
             System.Diagnostics.Trace.WriteLine("netsh trace stop output: " + sOut);
             if (sOut == "There is no trace session currently in progress.")
-                AddItemToStatus("Network trace failed to capture for unknown reason.  Manual collection may be necessary.");
+                SendMessageToClients("Network trace failed to capture for unknown reason.  Manual collection may be necessary.");
             p.WaitForExit();
         }
         private void bgStopNetworkComplete(object sender, RunWorkerCompletedEventArgs e)
@@ -677,24 +756,24 @@ namespace SSASDiag
         {
             if (bGetProfiler)
             {
-                AddItemToStatus("Waiting 20s to allow profiler trace to catch up with any lagging events...");
+                SendMessageToClients("Waiting 20s to allow profiler trace to catch up with any lagging events...");
                 System.Threading.Thread.Sleep(20000); // Wait 15s to allow profiler events to catch up a little bit.
-                AddItemToStatus("Executing AS server command to stop profiler trace...");
+                SendMessageToClients("Executing AS server command to stop profiler trace...");
                 ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
-                AddItemToStatus("Stopped profiler trace.");
+                SendMessageToClients("Stopped profiler trace.");
 
                 if (bGetXMLA || bGetABF || bGetBAK)
                 {
                     List<string> dbs = new List<string>();
                     
-                    AddItemToStatus("Finding databases with queries/commands started/completed during tracing...");
+                    SendMessageToClients("Finding databases with queries/commands started/completed during tracing...");
                     ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
                     dbs = ExtractDBNamesFromDBNamesTrace(Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0]);
                     if (Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc").Length > 0)
                         File.Delete(Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0]);
 
                     if (dbs.Count == 0)
-                        AddItemToStatus("There were no databases captured in the profiler trace.  No AS database definitions or backups will be captured.");
+                        SendMessageToClients("There were no databases captured in the profiler trace.  No AS database definitions or backups will be captured.");
                     else
                     {
                         Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
@@ -707,7 +786,7 @@ namespace SSASDiag
                         {
                             if (bGetXMLA)
                             {
-                                AddItemToStatus("Extracting database definition XMLA script for " + db + ".");
+                                SendMessageToClients("Extracting database definition XMLA script for " + db + ".");
                                 MajorObject[] mo = { s.Databases.FindByName(db) };
 
                                 XmlWriter output = XmlWriter.Create(Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
@@ -720,14 +799,14 @@ namespace SSASDiag
                             }
                             if (bGetABF)
                             {
-                                AddItemToStatus("Backing up AS database .abf for " + db + ".");
+                                SendMessageToClients("Backing up AS database .abf for " + db + ".");
                                 string batch = Properties.Resources.BackupDbXMLA
                                     .Replace("<DatabaseID/>", "<DatabaseID>" + s.Databases.FindByName(db).ID + "</DatabaseID>")
                                     .Replace("<File/>", "<File>" + Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + db + ".abf</File>")
                                     .Replace("<AllowOverwrite/>", "<AllowOverwrite>true</AllowOverwrite>");
                                 string ret = ServerExecute(batch);
                                 if (ret != "Success!")
-                                    AddItemToStatus("Error backing up AS database for " + db + ":\n\t" + ret);
+                                    SendMessageToClients("Error backing up AS database for " + db + ":\n\t" + ret + "");
                             }
                         }
                     }
@@ -736,19 +815,12 @@ namespace SSASDiag
 
             // Just before zip, write out last line of this capture log and save that file...
             // The last line captured in text file here:
-            AddItemToStatus("Stoppped SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-            // And save the log:
-            string logtext = "";
-            int i = slStatus.Count - 1;
-            for (; i > 0; i--)
-                if (slStatus != null && slStatus[i].StartsWith("Initializing")) break;
-            for (; i < slStatus.Count - 1; i++)
-                logtext += slStatus[i] + "\r\n";
-            File.WriteAllText(TraceID + "\\SSASDiag.log", logtext);
+            SendMessageToClients("Stoppped SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+            File.Copy(svcOutputPath, TraceID + "\\SSASDiag.log");
 
             if (bCompress)
             {
-                AddItemToStatus("Creating zip file of output: " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
+                SendMessageToClients("Creating zip file of output: " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
 
                 // Zip up all output into a single zip file.
                 ZipFile z = new ZipFile();
@@ -760,7 +832,7 @@ namespace SSASDiag
                 z.CodecBufferSize = 1000000;
                 z.Save(TraceID + ".zip");
 
-                AddItemToStatus("Created zip file.");
+                SendMessageToClients("Created zip file.");
             }
 
             if (bDeleteRaw)
@@ -768,16 +840,23 @@ namespace SSASDiag
                 try
                 {
                     Directory.Delete(TraceID, true);
-                    AddItemToStatus("Deleted capture output folder.");
+                    SendMessageToClients("Deleted capture output folder.");
                 }
                 catch
                 {
-                    AddItemToStatus("Failed to delete output folder:\n"
+                    SendMessageToClients("Failed to delete output folder:\n"
                         + "\tThis could be due to locked files in the folder and suggests possible failure stopping a trace.\n"
                         + "\tPlease review the contents of the folder " + TraceID + "\n."
                         + "\tIt was created in the same location where you ran this utility.");
                 } 
             }
+
+            for (int i = 0; i < npServer._connections.ToArray().Length; i++)
+            {
+                clients.Remove(npServer._connections[i].Id);
+                npServer._connections[i].Close();
+            }
+
         }
 
         private List<string> ExtractDBNamesFromDBNamesTrace(string DBNamesTrace)
@@ -825,7 +904,7 @@ namespace SSASDiag
         }
         private void FinalizeStop()
         {
-            AddItemToStatus("SSASDiag completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+            SendMessageToClients("SSASDiag completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             PerfMonAndUIPumpTimer.Stop();
             bScheduledStartPending = false;
             txtStatus.Invoke(new System.Action(() => CompletionCallback()));
@@ -877,17 +956,6 @@ namespace SSASDiag
                 return "Error: " + ex.Message;
             }
             return ret;
-        }
-        void AddItemToStatus(string Item, bool bScroll = true, string AtLastLineStartingWith = "")
-        {
-            if (AtLastLineStartingWith == "")
-                slStatus.Insert(slStatus.Count, Item);
-            else
-                for (int i = slStatus.Count - 1; i >= 0; i--)
-                    if (slStatus[i].StartsWith(AtLastLineStartingWith))
-                        slStatus[i] = Item;
-            if (!Environment.UserInteractive)
-                File.WriteAllLines(svcOutputPath, slStatus);
         }
 
         #endregion UtilityFunctions

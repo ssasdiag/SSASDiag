@@ -16,13 +16,18 @@ using System.IO;
 using System.Windows.Forms;
 using System.Data.SqlClient;
 using System.Configuration;
+using System.IO.Pipes;
+using NamedPipeWrapper;
 
 namespace SSASDiag
 {
     public partial class frmSSASDiag : Form
     {
         string svcOutputPath = "";
-        FileSystemWatcher svcOutputWatcher;
+        NamedPipeClient<string> npClient;
+
+        [DllImport("advapi32.dll")]
+        public static extern int ImpersonateNamedPipeClient(int hNamedPipe);
 
         private void btnCapture_Click(object sender, EventArgs e)
         {
@@ -40,7 +45,7 @@ namespace SSASDiag
                     btnCapture.Image = imgPlayHalfLit;
                     tbAnalysis.ForeColor = SystemColors.ControlDark;
                     tcCollectionAnalysisTabs.Refresh();
-                    chkRunAsService.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+                    txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
                     ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
                     string TracePrefix = Environment.MachineName + (cbsdi == null ? "" : "_"
                         + (cbInstances.SelectedIndex == 0 ? "" : cbsdi.Text + "_"));
@@ -58,6 +63,10 @@ namespace SSASDiag
                             txtStatus,
                             (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
                             chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked);
+                        while (!dc.npServer._connections.Exists(c=>c.IsConnected))
+                            Thread.Sleep(100);
+                        ImpersonateNamedPipeClient(dc.npServer._connections[0].Id);
+                        
                         LogFeatureUse("Collection", "InstanceVersion=" + m_instanceVersion + ",InstanceType=" + m_instanceType + ",InstanceEdition=" + m_instanceEdition + ",PerfMonInterval=" + udInterval.Value + ",AutoRestartProfiler=" + chkAutoRestart.Checked +
                                                     ",UseZip=" + chkZip.Checked + ",DeleteRawDataAfterZip=" + chkDeleteRaw.Checked + ",IncludeProfilerVerbosePerfDetails=" + chkProfilerPerfDetails.Checked +
                                                     ",IncludeXMLA=" + chkXMLA.Checked + ",IncludeABF=" + chkABF.Checked + ",IncludeBAK=" + chkBAK.Checked + (chkRollover.Checked ? ",RolloverMB=" + udRollover.Value : "") +
@@ -65,8 +74,6 @@ namespace SSASDiag
                                                     (chkStopTime.Checked ? ",StopTime=" + dtStopTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "")
                                                     + ",ConfigDetails=" + chkGetConfigDetails.Checked + ",Profiler=" + chkGetProfiler.Checked + ",PerfMon=" + chkGetPerfMon.Checked + ",NetworkTrace=" + chkGetNetwork.Checked + ",RunningAsService=" + !Environment.UserInteractive);
                         dc.CompletionCallback = callback_StartDiagnosticsComplete;
-                        txtStatus.DataBindings.Clear();
-                        txtStatus.DataBindings.Add("Lines", dc, "Status", false, DataSourceUpdateMode.OnPropertyChanged);
                         new Thread(new ThreadStart(() => dc.StartDiagnostics())).Start();
                     }
                     else
@@ -111,18 +118,21 @@ namespace SSASDiag
                             (chkXMLA.Checked ? " /xmla" : "") +
                             (chkGetNetwork.Checked ? " /network" : "") +
                             (Args.ContainsKey("debug") ? " /debug" : "") +
+                            (chkAllowUsageStatsCollection.Checked  ? " /reportusage" : "") +
                             " /start";
                         File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
                         svcOutputPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text)).GetValue("ImagePath") as string;
                         svcOutputPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".exe")) + ".output.log";
                         File.CreateText(svcOutputPath).Close();
-                        svcOutputWatcher = new FileSystemWatcher(Path.GetDirectoryName(svcOutputPath), Path.GetFileName(svcOutputPath));
-                        svcOutputWatcher.NotifyFilter = NotifyFilters.LastWrite;
-                        svcOutputWatcher.Changed += svcOutputWatcher_Changed;
-                        svcOutputWatcher.EnableRaisingEvents = true;
-                        File.WriteAllText(svcOutputPath, "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                        string sMsg = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".";
+                        File.WriteAllText(svcOutputPath, sMsg);
+                        txtStatus.Text = sMsg;
                         ServiceController InstanceCollectionService = new ServiceController("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
                         new Thread(new ThreadStart(() => InstanceCollectionService.Start())).Start();
+                        npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
+                        npClient.ServerMessage += NpClient_ServerMessage;
+                        npClient.Start();
+                        npClient.PushMessage("User=" + System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName);
                     }
                 }
                 else if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
@@ -136,69 +146,61 @@ namespace SSASDiag
                         string sInstance = (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
                         new Thread(new ThreadStart(() =>
                             {
-                                new ServiceController("SSASDiag_" + sInstance).Stop();
-                                Invoke(new System.Action(() => callback_StopAndFinalizeAllDiagnosticsComplete()));
+                                ServiceController sc = new ServiceController("SSASDiag_" + sInstance);
+                                try { sc.Stop(); } catch { }
+                                while (sc.Status != ServiceControllerStatus.Stopped)
+                                    Thread.Sleep(100);
+                                Invoke(new System.Action(() =>
+                                {
+                                    callback_StopAndFinalizeAllDiagnosticsComplete();
+                                    npClient.ServerMessage -= NpClient_ServerMessage;
+                                }));
                             })).Start();
                     }
                 }
             }
         }
 
-        private void svcOutputWatcher_Changed(object sender, FileSystemEventArgs e)
+        private void NpClient_ServerMessage(NamedPipeConnection<string, string> connection, string message)
         {
-            if (txtStatus.InvokeRequired)
-                txtStatus.Invoke(new System.Action(() => ProcessLineUpdateToStatus()));
-            else
-                ProcessLineUpdateToStatus();
-        }
-
-        private void ProcessLineUpdateToStatus()
-        {
-            string[] lines = WriteSafeReadAllLines(svcOutputPath);
-            bool bScroll = false;
-            if (lines.Count() == txtStatus.Lines.Count())
-                bScroll = true;
-            txtStatus.Text = String.Join("\r\n", lines);
-            if (bScroll)
+            string LastStatusLine = "";
+            txtStatus.Invoke(new System.Action(() => LastStatusLine = txtStatus.Lines.Last()));
+            if ((message.StartsWith("\r\nDiagnostics captured for ") && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
+                (message.StartsWith("\r\nTime remaining until collection starts: ") && LastStatusLine.StartsWith("Time remaining until collection starts: ")))
             {
-                txtStatus.SuspendLayout();
-                txtStatus.Select(0, txtStatus.Text.Length - 1);
-                txtStatus.ScrollToCaret();
-                txtStatus.ResumeLayout();
-            }
-
-            if (lines.Length > 0)
-            {
-                if (lines.Last().StartsWith("Diagnostics captured for ") && btnCapture.Image.Tag != imgStop.Tag && btnCapture.Image.Tag != imgStopLit.Tag)
+                btnCapture.Invoke(new System.Action(() =>
                 {
-                    btnCapture.Image = imgStop;
-                    btnCapture.Click += btnCapture_Click;
+                    if (btnCapture.Image.Tag as string == "Play Half Lit")
+                    {
+                        btnCapture.Image = imgStop;
+                        btnCapture.Click += btnCapture_Click;
+                    }
+                }));
+                txtStatus.Invoke(new System.Action(() => txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""))));
+            }
+            else if (message.StartsWith("\r\nWaiting for client interaction:\r\n"))
+            {
+                string uiMsg = message.Replace("\r\nWaiting for client interaction:\r\n", "");
+                if (uiMsg.StartsWith("Windows Administrator required for remote server:\r\n"))
+                {
+                    frmPasswordPrompt pp = new frmPasswordPrompt();
+                    pp.UserMessage = uiMsg;
+                    Invoke(new System.Action(() =>
+                    {
+                        pp.Top = Top + Height / 2 - pp.Height / 2;
+                        pp.Left = Left + Width / 2 - pp.Width / 2;
+                    }));
+                    Invoke(new System.Action(() => Enabled = false));
+                    pp.ShowDialog();
+                    Invoke(new System.Action(() => Enabled = true));
+                    if (pp.DialogResult == DialogResult.OK)
+                        npClient.PushMessage("Administrator=" + pp.User.Trim() + ";Domain=" + pp.Domain.Trim() + ";Password=" + pp.Password.Trim());
+                    else
+                        npClient.PushMessage("Cancelled by client");
                 }
             }
-            //    if (txtStatus.Lines.Length > 1)
-            //    {
-            //        if (txtStatus.Lines[txtStatus.Lines.Length - 2].Length > 8 && lines[lines.Length - 1].Length > 8)
-            //        {
-            //            if (txtStatus.Lines[txtStatus.Lines.Length - 2].Substring(0, 7) == lines[lines.Length - 1].Substring(0, 7))
-            //                txtStatus.Text = txtStatus.Text.Substring(0, txtStatus.Text.LastIndexOf(txtStatus.Lines[txtStatus.Lines.Length - 2])) + lines[lines.Length - 1] + "\r\n";
-            //            else
-            //            {
-            //                txtStatus.AppendText(lines.LastOrDefault() + "\r\n");
-            //                txtStatus.ScrollToCaret();
-            //            }
-            //        }
-            //        else
-            //        {
-            //            txtStatus.AppendText(lines.LastOrDefault() + "\r\n");
-            //            txtStatus.ScrollToCaret();
-            //        }
-            //    }
-            //    else
-            //    {
-            //        txtStatus.AppendText(lines.LastOrDefault() + "\r\n");
-            //        txtStatus.ScrollToCaret();
-            //    }
-            //}
+            else
+                txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(message)));
         }
                 
         private string[] WriteSafeReadAllLines(String path)
@@ -263,7 +265,7 @@ namespace SSASDiag
         {
             if (btnCapture.Enabled && Args.ContainsKey("start") && cbInstances.Items.Count > 0)
                     btnCapture_Click(sender, e);
-            if (chkRunAsService.Checked && cbInstances.SelectedIndex >= 0)
+            if (cbInstances.SelectedIndex >= 0)
             {
                 chkRunAsService_CheckedChanged("uninstall", e);
                 chkRunAsService_CheckedChanged(null, e);
