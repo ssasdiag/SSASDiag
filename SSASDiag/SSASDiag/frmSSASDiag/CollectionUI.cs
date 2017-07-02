@@ -25,6 +25,7 @@ namespace SSASDiag
     {
         string svcOutputPath = "";
         NamedPipeClient<string> npClient;
+        frmPasswordPrompt pp = new frmPasswordPrompt();
 
         [DllImport("advapi32.dll")]
         public static extern int ImpersonateNamedPipeClient(int hNamedPipe);
@@ -144,18 +145,8 @@ namespace SSASDiag
                     else
                     {
                         string sInstance = (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
-                        new Thread(new ThreadStart(() =>
-                            {
-                                ServiceController sc = new ServiceController("SSASDiag_" + sInstance);
-                                try { sc.Stop(); } catch { }
-                                while (sc.Status != ServiceControllerStatus.Stopped)
-                                    Thread.Sleep(100);
-                                Invoke(new System.Action(() =>
-                                {
-                                    callback_StopAndFinalizeAllDiagnosticsComplete();
-                                    npClient.ServerMessage -= NpClient_ServerMessage;
-                                }));
-                            })).Start();
+                        npClient.PushMessage("Stop");
+
                     }
                 }
             }
@@ -163,32 +154,47 @@ namespace SSASDiag
 
         private void NpClient_ServerMessage(NamedPipeConnection<string, string> connection, string message)
         {
-            string LastStatusLine = "";
-            txtStatus.Invoke(new System.Action(() => LastStatusLine = txtStatus.Lines.Last()));
-            if ((message.StartsWith("\r\nDiagnostics captured for ") && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
-                (message.StartsWith("\r\nTime remaining until collection starts: ") && LastStatusLine.StartsWith("Time remaining until collection starts: ")))
+            //string LastStatusLine = "";
+            //txtStatus.Invoke(new System.Action(() => LastStatusLine = txtStatus.Lines.Last()));
+            if (message.StartsWith("\r\nDiagnostics captured for ") || // && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
+                message.StartsWith("\r\nTime remaining until collection starts: ")) //&& LastStatusLine.StartsWith("Time remaining until collection starts: ")))
             {
-                btnCapture.Invoke(new System.Action(() =>
+                string LastStatusLine = "";
+                txtStatus.Invoke(new System.Action(() => LastStatusLine = txtStatus.Lines.Last()));
+                if (LastStatusLine.StartsWith(message.Substring(2, 20)))
                 {
-                    if (btnCapture.Image.Tag as string == "Play Half Lit")
+                    txtStatus.Invoke(new System.Action(() => txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""))));
+
+                }
+                else
+                {
+                    Invoke(new System.Action(() =>
                     {
-                        btnCapture.Image = imgStop;
-                        btnCapture.Click += btnCapture_Click;
-                    }
-                }));
-                txtStatus.Invoke(new System.Action(() => txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""))));
+                        if (btnCapture.Image.Tag as string == "Play Half Lit")
+                        {
+                            btnCapture.Image = imgStop;
+                            btnCapture.Click += btnCapture_Click;
+                        }
+                    }));
+                    txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(message)));
+                }
             }
             else if (message.StartsWith("\r\nWaiting for client interaction:\r\n"))
             {
                 string uiMsg = message.Replace("\r\nWaiting for client interaction:\r\n", "");
-                if (uiMsg.StartsWith("Windows Administrator required for remote server:\r\n"))
+                if (uiMsg.StartsWith("Windows Administrator required for remote server:"))
                 {
-                    frmPasswordPrompt pp = new frmPasswordPrompt();
+                    if (uiMsg.EndsWith("TryingAgain"))
+                    {
+                        uiMsg = uiMsg.Replace("TryingAgain", "");
+                        pp.lblUserPasswordError.Visible = true;
+                    }
                     pp.UserMessage = uiMsg;
                     Invoke(new System.Action(() =>
                     {
                         pp.Top = Top + Height / 2 - pp.Height / 2;
                         pp.Left = Left + Width / 2 - pp.Width / 2;
+                        pp.TopMost = true;
                     }));
                     Invoke(new System.Action(() => Enabled = false));
                     pp.ShowDialog();
@@ -199,8 +205,38 @@ namespace SSASDiag
                         npClient.PushMessage("Cancelled by client");
                 }
             }
+            else if (message == "\r\nStop")
+            {
+                Invoke(new System.Action(() =>
+                {
+                    callback_StopAndFinalizeAllDiagnosticsComplete();
+                    ServiceController sc = new ServiceController("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
+                    try { sc.Stop(); } catch { }
+                    // Unhook pipe to service.
+                    npClient.ServerMessage -= NpClient_ServerMessage;
+                    // Uninstall service.
+                    ProcessStartInfo p = new ProcessStartInfo(Program.TempPath + "SSASDiagService_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) + ".exe");
+                    p.CreateNoWindow = true;
+                    p.UseShellExecute = false;
+                    p.WindowStyle = ProcessWindowStyle.Hidden;
+                    p.Arguments = "-u";
+                    Process proc = Process.Start(p);
+                    proc.WaitForExit();
+                }));
+            }
             else
                 txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(message)));
+
+            if (message.StartsWith("\r\nWindows authentication for remote SQL data source "))
+                pp.lblUserPasswordError.Text = "Incorrect user name or password";
+            if (message.StartsWith("\r\nAuthenticated user "))
+                pp.lblUserPasswordError.Text = "User unauthorized to database ";
+            if (message.StartsWith("\r\nRemote file share access failed for user "))
+                pp.lblUserPasswordError.Text = "User unauthorized to remote share";
+            if (pp != null)
+                pp.lblUserPasswordError.Left = pp.Width / 2 - pp.lblUserPasswordError.Width / 2;       
+
+
         }
                 
         private string[] WriteSafeReadAllLines(String path)
