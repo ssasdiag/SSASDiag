@@ -746,7 +746,7 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
-                if (ex.Message.StartsWith("Remote file share access for user "))
+                if (ex.Message.StartsWith("Remote file share access failed for user "))
                     throw ex;
                 frmSSASDiag.LogException(ex);
                 SendMessageToClients("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message + "");

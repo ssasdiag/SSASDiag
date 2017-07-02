@@ -127,13 +127,20 @@ namespace SSASDiag
                         File.CreateText(svcOutputPath).Close();
                         string sMsg = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".";
                         File.WriteAllText(svcOutputPath, sMsg);
-                        txtStatus.Text = sMsg;
-                        ServiceController InstanceCollectionService = new ServiceController("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
-                        new Thread(new ThreadStart(() => InstanceCollectionService.Start())).Start();
-                        npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
-                        npClient.ServerMessage += NpClient_ServerMessage;
-                        npClient.Start();
-                        npClient.PushMessage("User=" + System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName);
+                        txtStatus.Text = sMsg;                        
+                        tPumpUIUpdatesPreServiceStart.Interval = 1000;
+                        tPumpUIUpdatesPreServiceStart.Tick += TPumpUIUpdatesPreServiceStart_Tick;
+                        tPumpUIUpdatesPreServiceStart.Start();
+                        ServiceController InstanceCollectionService = null;
+                        string svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
+                        InstanceCollectionService = new ServiceController(svcName);
+                        new Thread(new ThreadStart(() => {
+                            InstanceCollectionService.Start();
+                            npClient = new NamedPipeClient<string>(svcName);
+                            npClient.ServerMessage += NpClient_ServerMessage;
+                            npClient.Start();
+                            npClient.PushMessage("User=" + System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName);
+                        })).Start();
                     }
                 }
                 else if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
@@ -152,8 +159,17 @@ namespace SSASDiag
             }
         }
 
+        System.Windows.Forms.Timer tPumpUIUpdatesPreServiceStart = new System.Windows.Forms.Timer();
+
+        private void TPumpUIUpdatesPreServiceStart_Tick(object sender, EventArgs e)
+        {
+            txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(".")));
+        }
+
         private void NpClient_ServerMessage(NamedPipeConnection<string, string> connection, string message)
         {
+            if (tPumpUIUpdatesPreServiceStart.Enabled == true)
+                tPumpUIUpdatesPreServiceStart.Stop();
             //string LastStatusLine = "";
             //txtStatus.Invoke(new System.Action(() => LastStatusLine = txtStatus.Lines.Last()));
             if (message.StartsWith("\r\nDiagnostics captured for ") || // && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
@@ -235,8 +251,6 @@ namespace SSASDiag
                 pp.lblUserPasswordError.Text = "User unauthorized to remote share";
             if (pp != null)
                 pp.lblUserPasswordError.Left = pp.Width / 2 - pp.lblUserPasswordError.Width / 2;       
-
-
         }
                 
         private string[] WriteSafeReadAllLines(String path)
