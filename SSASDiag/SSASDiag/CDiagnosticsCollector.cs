@@ -640,7 +640,7 @@ namespace SSASDiag
                         bAuthenticated = true;
                         PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         SendMessageToClients("Failure backing up dateabase as connected client user " + clients[npConn.Id] + ".");
                     }
@@ -661,6 +661,7 @@ namespace SSASDiag
                         clientWaiter.WaitOne();
                         if (sRemoteAdminUser != "Cancelled by client") 
                         {
+                            SafeTokenHandle safeTokenHandle = null;
                             if (sRemoteAdminUser == "")
                             {
                                 // This happens if a new client connected rather than anybody entering credentials directly.
@@ -672,7 +673,7 @@ namespace SSASDiag
                             {
                                 SendMessageToClients("Attempting to authenticate user " + sRemoteAdminDomain + "\\" + sRemoteAdminUser + " on remote server " + srvName + ".");
                                 // Impersonate user remotely
-                                SafeTokenHandle safeTokenHandle;
+                                
                                 const int LOGON32_PROVIDER_DEFAULT = 0;
                                 const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
                                 bAuthenticated = LogonUser(sRemoteAdminUser, sRemoteAdminDomain, SecureStringToString(sRemoteAdminPassword), LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, out safeTokenHandle);
@@ -683,23 +684,23 @@ namespace SSASDiag
                                     return;
                                 }
                             }
-                            using (WindowsImpersonationContext impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle()))
+                            WindowsImpersonationContext impersonatedUser = null;
+                            if (safeTokenHandle != null)
+                                impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle());
+                            try
                             {
-                                try
-                                {
-                                    conn.Open();
-                                    bAuthenticated = true;
-                                    bSuspendUITicking = false;
-                                    PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, sRemoteAdminDomain, sRemoteAdminUser);
-                                    break;
-                                }
-                                catch (Exception ex2)
-                                {
-                                    bAuthenticated = false;
-                                    iTries++;
-                                    frmSSASDiag.LogException(ex2);
-                                    SendMessageToClients(ex2.Message);
-                                }
+                                conn.Open();
+                                bAuthenticated = true;
+                                bSuspendUITicking = false;
+                                PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, sRemoteAdminDomain, sRemoteAdminUser);
+                                break;
+                            }
+                            catch (Exception ex2)
+                            {
+                                bAuthenticated = false;
+                                if (sRemoteAdminUser != "") iTries++;
+                                frmSSASDiag.LogException(ex2);
+                                SendMessageToClients(ex2.Message);
                             }
                         }
                         else

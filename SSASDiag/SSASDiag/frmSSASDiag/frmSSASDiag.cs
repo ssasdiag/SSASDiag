@@ -357,6 +357,15 @@ namespace SSASDiag
     * Options selected for each feature", chkAllowUsageStatsCollection, 5000);
         }
 
+        private void txtStatus_SizeChanged(object sender, EventArgs e)
+        {
+            int lineHeight = txtStatus.Font.Height;
+            if (splitCollectionUI.SplitterDistance > splitCollectionUI.Panel1MinSize + lineHeight + 2 )
+                splitCollectionUI.SplitterDistance -= (lineHeight - (txtStatus.Height % lineHeight)) + 2;
+            else
+                splitCollectionUI.SplitterDistance += (txtStatus.Height % lineHeight) - 2;
+        }
+
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.AllowUsageStats = Convert.ToString(chkAllowUsageStatsCollection.Checked);
@@ -422,8 +431,6 @@ namespace SSASDiag
             chkAllowUsageStatsCollection.Top = (lkAbout.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = Height - 59) + 2;
             chkAllowUsageStatsCollection.Left = Width - chkAllowUsageStatsCollection.Width - 15;
             chkAutoUpdate.Left = Width - chkAutoUpdate.Width - 15;
-            txtStatus.Width = Width - 30;
-            txtStatus.Height = Height - 315;
             tcCollectionAnalysisTabs.Height = Height - 59;
             tcAnalysis.Height = Height - 119;
             btnImportProfilerTrace.Left = Width / 2 - btnImportProfilerTrace.Width / 2;

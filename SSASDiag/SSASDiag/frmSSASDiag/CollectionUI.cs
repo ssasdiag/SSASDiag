@@ -177,12 +177,16 @@ namespace SSASDiag
                     tPumpUIUpdatesPreServiceStart.Stop();
 
                 string svcName = "";
-                Invoke(new System.Action(() =>
-                                            {
-                                                if (!Disposing)
-                                                    svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
-                                            }
-                                            ));
+                try
+                {
+                    Invoke(new System.Action(() =>
+                                              {
+                                                  if (!Disposing)
+                                                      svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
+                                              }
+                                              ));
+                }
+                catch { }
 
                 if (message.StartsWith("\r\nDiagnostics captured for ") || // && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
                     message.StartsWith("\r\nTime remaining until collection starts: ")) //&& LastStatusLine.StartsWith("Time remaining until collection starts: ")))
@@ -250,22 +254,25 @@ namespace SSASDiag
                         ProcessStartInfo p = null;
                         try
                         {
-                        // Stop the service via command line.
-                        p = new ProcessStartInfo("cmd.exe", "/c net stop " + svcName);
+                            // Stop the service via command line.
+                            p = new ProcessStartInfo("cmd.exe", "/c net stop " + svcName);
                             p.WindowStyle = ProcessWindowStyle.Hidden;
                             p.UseShellExecute = false;
                             p.CreateNoWindow = true;
                             Process.Start(p);
-                        // Unhook pipe to service.
-                        if (npClient != null)
+                            // Unhook pipe to service.
+                            if (npClient != null)
                                 npClient.ServerMessage -= NpClient_ServerMessage;
-                        // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
-                        string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
-                            p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & " + SvcPath + " -u");
-                            p.WindowStyle = ProcessWindowStyle.Hidden;
-                            p.UseShellExecute = false;
-                            p.CreateNoWindow = true;
-                            Process.Start(p);
+                            if (Environment.UserInteractive)
+                            {
+                                // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
+                                string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
+                                p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & " + SvcPath + " -u");
+                                p.WindowStyle = ProcessWindowStyle.Hidden;
+                                p.UseShellExecute = false;
+                                p.CreateNoWindow = true;
+                                Process.Start(p);
+                            }
                         }
                         catch (Exception e)
                         { LogException(e); }
@@ -339,7 +346,7 @@ namespace SSASDiag
                     m_ConfigDir = SelItem.ConfigPath;
                     srv.Disconnect();
 
-                    btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = true));
+                    
                     // Does the instance already have an existing data collection in progress??
                     try
                     {
@@ -446,6 +453,7 @@ namespace SSASDiag
                     {
                         LogException(ex);
                     }
+                    btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = true));
                 }
             }
             catch (Exception ex)
