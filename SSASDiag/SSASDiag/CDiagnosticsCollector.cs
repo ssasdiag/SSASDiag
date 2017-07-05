@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.ServiceProcess;
+using System.Reflection;
 using Microsoft.Win32;
 using System.IO.MemoryMappedFiles;
 using Ionic.Zip;
@@ -148,7 +149,12 @@ namespace SSASDiag
             if (message.StartsWith("User="))
             {
                 if (!clients.ContainsKey(connection.Id))
+                {
                     clients.Add(connection.Id, message.Substring("User=".Length));
+                    string[] lines = File.ReadAllLines(svcOutputPath);
+                    if (lines.Length > 3 && lines[lines.Length - 3] == "Waiting for client interaction:")
+                        clientWaiter.Set();
+                }
                 else
                     clients[connection.Id] = message.Substring("User=".Length);
             }
@@ -280,33 +286,49 @@ namespace SSASDiag
                     bgGetSPNsCompleted(null, null);
             }                   
         }
+
+        bool ImpersonateNamedPipeConnection(NamedPipeConnection<string, string> conn)
+        {
+            NamedPipeWrapper.IO.PipeStreamWrapper<string, string> pipe = GetPrivateField<NamedPipeWrapper.IO.PipeStreamWrapper<string, string>>(conn, "_streamWrapper");
+            int h = pipe.BaseStream.SafePipeHandle.DangerousGetHandle().ToInt32();
+            RevertToSelf();
+            if (ImpersonateNamedPipeClient(h) != 0)
+                return true;
+            else
+                return false;
+        }
+
         private void bgGetSPNs(object sender, DoWorkEventArgs e)
         {
             SendMessageToClients("Attempting to capture SPNs for the AS service account " + sServiceAccount + ".");
-            NamedPipeWrapper.IO.PipeStreamWrapper<string, string> pipe = GetPrivateField<NamedPipeWrapper.IO.PipeStreamWrapper<string, string>>(npServer._connections[0], "_streamWrapper");
-            int hConnection = pipe.BaseStream.SafePipeHandle.DangerousGetHandle().ToInt32();
-            RevertToSelf();
-            ImpersonateNamedPipeClient(hConnection);
-            Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.FileName = "setspn";
-            p.StartInfo.Arguments = "-l \"" + sServiceAccount + "\"";
-            p.Start();
-            string sOut = p.StandardOutput.ReadToEnd();
-            string sErr = p.StandardError.ReadToEnd();
-            p.WaitForExit();
-            if (sErr == "")
+            string sErr = "";
+            foreach (NamedPipeConnection<string, string> conn in npServer._connections)
             {
-                File.WriteAllText(Environment.CurrentDirectory + "\\" + TraceID + "\\ServiceAccountSPNs.txt", sOut);
-                SendMessageToClients("Captured SPNs defined for service account " + sServiceAccount + ".");
+                ImpersonateNamedPipeConnection(npServer._connections[0]);
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.RedirectStandardError = true;
+                p.StartInfo.FileName = "setspn";
+                p.StartInfo.Arguments = "-l \"" + sServiceAccount + "\"";
+                p.Start();
+                string sOut = p.StandardOutput.ReadToEnd();
+                sErr = p.StandardError.ReadToEnd();
+                p.WaitForExit();
+                if (sErr == "")
+                {
+                    File.WriteAllText(Environment.CurrentDirectory + "\\" + TraceID + "\\ServiceAccountSPNs.txt", sOut);
+                    SendMessageToClients("Captured SPNs defined for service account " + sServiceAccount + ".");
+                    break;
+                }
+                else
+                {
+                    SendMessageToClients("Failed to capture SPNs impersonating connected client " + clients[conn.Id] + ".");
+                }
             }
-            else
-            {
-                SendMessageToClients("Failed to capture SPNs.  Rerun as a domain administrator if this configuration detail is required.");
-            }
+            if (sErr != "")
+                SendMessageToClients("Rerun SSASDiag as a domain administrator if this configuration detail is required.");
         }
         private void bgGetSPNsCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -453,7 +475,19 @@ namespace SSASDiag
         {
             if (s.Length > 1) s = "\r\n" + s;
             npServer.PushMessage(s);
-            File.AppendAllText(svcOutputPath, s);
+            if (s.StartsWith("\r\nTime remaining until collection starts: ") || s.StartsWith("\r\nDiagnostics captured for "))
+            {
+                string[] lines = File.ReadAllLines(svcOutputPath);
+                if (lines[lines.Length - 1].StartsWith(s.Substring(2, 14)))
+                {
+                    lines[lines.Length - 1] = s.Trim(new char[] { '\r', '\n' }) ;
+                    File.WriteAllText(svcOutputPath, String.Join("\r\n", lines).TrimEnd(new char[] { '\r', '\n' }));
+                }
+                else
+                    File.AppendAllText(svcOutputPath, s);
+            }
+            else
+                File.AppendAllText(svcOutputPath, s);
         }
 
         private void CollectorPumpTick(object sender, EventArgs e)
@@ -597,38 +631,46 @@ namespace SSASDiag
                 SendMessageToClients("Starting SQL datasource backup for AS database " + db + ", data source name " + ds.Name + ", SQL database " + sqlDbName + " on server " + (srvName == "." ? Environment.MachineName : srvName) + "...");
                 OleDbConnection conn = new OleDbConnection(cs);
                 bool bAuthenticated = false;               
-                try
+                foreach (NamedPipeConnection<string, string> npConn in npServer._connections)
                 {
-                    // Try first just with our current credentials as local administrator.
-                    // This will work of course with local dbs, and with remote if we are admins there too.
-                    RevertToSelf();
-                    NamedPipeWrapper.IO.PipeStreamWrapper<string, string> p = GetPrivateField<NamedPipeWrapper.IO.PipeStreamWrapper<string, string>>(npServer._connections[0], "_streamWrapper");
-                    int hConnection = p.BaseStream.SafePipeHandle.DangerousGetHandle().ToInt32();
-                    int ret = ImpersonateNamedPipeClient(hConnection);
-                    conn.Open();
-                    bAuthenticated = true;
-                    PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName);
+                    try
+                    {
+                        ImpersonateNamedPipeConnection(npConn);
+                        conn.Open();
+                        bAuthenticated = true;
+                        PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName);
+                    }
+                    catch (Exception ex)
+                    {
+                        SendMessageToClients("Failure backing up dateabase as connected client user " + clients[npConn.Id] + ".");
+                    }
                 }
-                catch (Exception ex)
+                if (!bAuthenticated)
                 {
                     bSuspendUITicking = true;
-                    frmSSASDiag.LogException(ex);
-                    if (ex.Message.StartsWith("Login failed") || ex.Message.Contains("authentication") || ex.Message == "testing")
+                    // If it fails the first try, prompt for remote admin
+                    int iTries = 0;
+                    while (!bAuthenticated && iTries < 3)
                     {
-                        // If it fails the first try, prompt for remote admin
-                        int iTries = 0;
-                        while (!bAuthenticated && iTries < 3)
+                        SendMessageToClients("Waiting for client interaction:\r\n"
+                            + "Windows Administrator required for remote server: " + srvName
+                            + "\r\nFor data source name: " + ds.Name
+                            + "\r\nIn AS database: " + db
+                            + ((iTries > 0) ? "TryingAgain" : ""));
+                        sRemoteAdminUser = "";
+                        clientWaiter.WaitOne();
+                        if (sRemoteAdminUser != "Cancelled by client") 
                         {
-                            SendMessageToClients("Waiting for client interaction:\r\n"
-                                + "Windows Administrator required for remote server: " + srvName
-                                + "\r\nFor data source name: " + ds.Name
-                                + "\r\nIn AS database: " + db
-                                + ((iTries > 0) ? "TryingAgain" : ""));
-                            clientWaiter.WaitOne();
-                            if (sRemoteAdminUser != "Cancelled by client") 
+                            if (sRemoteAdminUser == "")
+                            {
+                                // This happens if a new client connected rather than anybody entering credentials directly.
+                                NamedPipeConnection<string, string> npConn = npServer._connections[npServer._connections.ToArray().Length - 1];
+                                ImpersonateNamedPipeConnection(npConn);
+                                SendMessageToClients("Attempting to authenticate newly connected client user " + clients[npConn.Id] + " on remote server + " + srvName + ".");
+                            }
+                            else
                             {
                                 SendMessageToClients("Attempting to authenticate user " + sRemoteAdminDomain + "\\" + sRemoteAdminUser + " on remote server " + srvName + ".");
-
                                 // Impersonate user remotely
                                 SafeTokenHandle safeTokenHandle;
                                 const int LOGON32_PROVIDER_DEFAULT = 0;
@@ -638,39 +680,31 @@ namespace SSASDiag
                                 {
                                     iTries++;
                                     SendMessageToClients("Windows authentication for remote SQL data source " + ds.Name + " on server " + srvName + " failed.");
-                                }
-                                else
-                                {
-                                    using (WindowsImpersonationContext impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle()))
-                                    {
-                                        try
-                                        {
-                                            conn.Open();
-                                            bAuthenticated = true;
-                                            bSuspendUITicking = false;
-                                            PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, sRemoteAdminDomain, sRemoteAdminUser);
-                                            break;
-                                        }
-                                        catch (Exception ex2)
-                                        {
-                                            bAuthenticated = false;
-                                            iTries++;
-                                            frmSSASDiag.LogException(ex2);
-                                            SendMessageToClients(ex2.Message);
-                                            //if (ex2 is OleDbException)
-                                            //    SendMessageToClients("Authenticated user " + sRemoteAdminDomain + "\\" + sRemoteAdminUser + " was unauthorized to the database [" + sqlDbName + "] on remote server " + srvName + ".");
-                                            //else
-                                            //    SendMessageToClients(ex2.Message);
-                                        }
-                                    }
+                                    return;
                                 }
                             }
-                            else
-                                break;
+                            using (WindowsImpersonationContext impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle()))
+                            {
+                                try
+                                {
+                                    conn.Open();
+                                    bAuthenticated = true;
+                                    bSuspendUITicking = false;
+                                    PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, sRemoteAdminDomain, sRemoteAdminUser);
+                                    break;
+                                }
+                                catch (Exception ex2)
+                                {
+                                    bAuthenticated = false;
+                                    iTries++;
+                                    frmSSASDiag.LogException(ex2);
+                                    SendMessageToClients(ex2.Message);
+                                }
+                            }
                         }
+                        else
+                            break;
                     }
-                    else
-                        SendMessageToClients("Error during backup: " + ex.Message + "");
                 }
                 if (!bAuthenticated)
                 {
@@ -788,8 +822,8 @@ namespace SSASDiag
         {
             if (bGetProfiler)
             {
-                //SendMessageToClients("Waiting 20s to allow profiler trace to catch up with any lagging events...");
-                //System.Threading.Thread.Sleep(20000); // Wait 15s to allow profiler events to catch up a little bit.
+                SendMessageToClients("Waiting 20s to allow profiler trace to catch up with any lagging events...");
+                System.Threading.Thread.Sleep(20000); // Wait 15s to allow profiler events to catch up a little bit.
                 SendMessageToClients("Executing AS server command to stop profiler trace...");
                 ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
                 SendMessageToClients("Stopped profiler trace.");
@@ -799,9 +833,11 @@ namespace SSASDiag
                     List<string> dbs = new List<string>();
                     SendMessageToClients("Finding databases with queries/commands started/completed during tracing...");
                     ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>dbsOnly" + TraceID + "</TraceID>"));
-                    dbs = ExtractDBNamesFromDBNamesTrace(Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0]);
+                    string[] dbNamesTrace = Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc");
+                    if (dbNamesTrace.Length > 0)
+                        dbs = ExtractDBNamesFromDBNamesTrace(dbNamesTrace[0]);
                     if (Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc").Length > 0)
-                        File.Delete(Directory.GetFiles(Environment.CurrentDirectory as string, TraceID + "\\DatabaseNamesOnly_" + TraceID + "*.trc")[0]);
+                        File.Delete(dbNamesTrace[0]);
 
                     if (dbs.Count == 0)
                         SendMessageToClients("There were no databases captured in the profiler trace.  No AS database definitions or backups will be captured.");
@@ -942,12 +978,12 @@ namespace SSASDiag
             SendMessageToClients("Stop");
             PerfMonAndUIPumpTimer.Stop();
             bScheduledStartPending = false;
-            txtStatus.Invoke(new System.Action(() => CompletionCallback()));
             for (int i = 0; i < npServer._connections.ToArray().Length; i++)
             {
                 clients.Remove(npServer._connections[i].Id);
                 npServer._connections[i].Close();
             }
+            CompletionCallback();
         }
         #endregion EndCapture
 

@@ -264,15 +264,20 @@ namespace SSASDiag
         }
         private void EnsureSomethingToCapture()
         {
-            btnCapture.Enabled = false;
-            if (chkGetConfigDetails.Checked || chkGetPerfMon.Checked || chkGetProfiler.Checked)
+            if (cbInstances.DisplayMember == "Text") // only do this if we are already showing instance members, not during initialization of form leave it alone to prevent strobing...
             {
-                btnCapture.Enabled = true;
-                cbInstances_SelectedIndexChanged(null, null);
+                btnCapture.SuspendLayout();
+                btnCapture.Enabled = false;
+                if (chkGetConfigDetails.Checked || chkGetPerfMon.Checked || chkGetProfiler.Checked)
+                {
+                    btnCapture.Enabled = true;
+                    cbInstances_SelectedIndexChanged(null, null);
+                }
+                else
+                    if (chkGetNetwork.Checked)
+                    btnCapture.Enabled = true;
+                btnCapture.ResumeLayout();
             }
-            else
-                if (chkGetNetwork.Checked)
-                btnCapture.Enabled = true;
         }
 
         #endregion AdvandedDiagnosticsUI

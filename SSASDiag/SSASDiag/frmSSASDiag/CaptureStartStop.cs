@@ -38,7 +38,7 @@ namespace SSASDiag
         {
             btnCapture.Image = imgStop;
             btnCapture.Click += btnCapture_Click;
-            if (!Environment.UserInteractive)
+            if (dc != null)
                 dc.CompletionCallback = callback_StopAndFinalizeAllDiagnosticsComplete;
         }
         private void callback_StopAndFinalizeAllDiagnosticsComplete()
@@ -56,22 +56,30 @@ namespace SSASDiag
                 Close();
             tbAnalysis.ForeColor = SystemColors.ControlText;
             tcCollectionAnalysisTabs.Refresh();
-            LogFeatureUse("Collection Stopped", "");
             if (!Environment.UserInteractive)
             {
-                // Reinitialize service config to start with no command options - immediately terminating hereafter in service mode then, until UI configures new settings, should someone try to start manually.
-                string svcIniPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".output.log")) + ".ini";
-                List<string> svcconfig = new List<string>(File.ReadAllLines(svcIniPath));
-                svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe";
-                File.WriteAllLines(svcIniPath, svcconfig.ToArray());
+                try
+                {
+                    // Reinitialize service config to start with no command options - immediately terminating hereafter in service mode then, until UI configures new settings, should someone try to start manually.
+                    string svcIniPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".output.log")) + ".ini";
+                    List<string> svcconfig = new List<string>(File.ReadAllLines(svcIniPath));
+                    string svcName = svcIniPath.Substring(svcIniPath.LastIndexOf("\\") + 1).Replace(".ini", "");
+                    svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe";
+                    File.WriteAllLines(svcIniPath, svcconfig.ToArray());
 
-                ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 1500 > nul & net stop SSASDiagService");
-                p.WindowStyle = ProcessWindowStyle.Hidden;
-                p.UseShellExecute = false;
-                p.CreateNoWindow = true;
-                Process.Start(p);
+                    ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & net stop " + svcName);
+                    p.WindowStyle = ProcessWindowStyle.Hidden;
+                    p.UseShellExecute = false;
+                    p.CreateNoWindow = true;
+                    Process.Start(p);
+                }
+                catch (Exception e)
+                { LogException(e); }
                 Application.Exit();
             }
+            if (bExitAfterStop)
+                Close();
+            LogFeatureUse("Collection " + (Environment.UserInteractive ? "stopped and delivered to client." : "service stopped."));
         }
         #endregion CaptureStartAndStop
     }

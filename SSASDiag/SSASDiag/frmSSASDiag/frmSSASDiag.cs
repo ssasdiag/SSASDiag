@@ -363,25 +363,24 @@ namespace SSASDiag
             if (Environment.UserInteractive) Properties.Settings.Default.Save();
         }
 
+        bool bExitAfterStop = false;
         private void frmSSASDiag_FormClosing(object sender, FormClosingEventArgs e)
         {
             try
             {
-                if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
+                if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit" || ((string)btnCapture.Image.Tag as string) == ("Play Half Lit"))
                 {
-                    if (!Environment.UserInteractive || MessageBox.Show("Capture in progress, exiting will stop.\r\nExit anyway?", "Capture in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+                    if (!Environment.UserInteractive || MessageBox.Show("Continue collecting data as a service until SSASDiag runs again to stop manually " + (chkStopTime.Checked ? "or the automatic stop time is reached" : "") + "?\r\n\r\nIf you select No, SSASDiag will close after collection stops immediately.", "Data collection in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
                     {
-                        bClosing = true;
-                        btnCapture_Click(sender, e);
-                    }
-                    e.Cancel = true;
-                }
-                else if (((string)btnCapture.Image.Tag as string).Contains("Half Lit"))
-                {
-                    if (!Environment.UserInteractive || MessageBox.Show("Diagnostic Capture is in a blocking state.\nForcing exit now may leave locked files and traces in progress.\n\nExit anyway?", "Capture in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
-                    {
+                        btnCapture_Click(null, null);
+                        bExitAfterStop = true;
                         e.Cancel = true;
                     }
+                }
+                else if (((string)btnCapture.Image.Tag as string) == ("Stop Half Lit"))
+                {
+                    if (!Environment.UserInteractive || MessageBox.Show("Disconnect this SSASDiag client from the in-progress shutdown?\r\n\r\nShutdown will continue but may take time to complete.\r\nRerun SSASDiag to monitor shutdown.", "Diagnostic shutdown in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
+                        e.Cancel = true;
                     else
                     {
                         if (Application.OpenForms.Count > 1)
