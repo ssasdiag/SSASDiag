@@ -229,6 +229,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Resources.zip" />
+    <None Include="Resources\RunAsTestUser.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Resources\SHELL32_324.ico" />
   </ItemGroup>
   <ItemGroup>

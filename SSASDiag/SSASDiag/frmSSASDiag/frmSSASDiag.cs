@@ -129,7 +129,14 @@ namespace SSASDiag
 
             imgPlay.Tag = "Play"; imgPlayLit.Tag = "Play Lit"; imgPlayHalfLit.Tag = "Play Half Lit"; imgStop.Tag = "Stop"; imgStopLit.Tag = "Stop Lit"; imgStopHalfLit.Tag = "Stop Half Lit";
             btnCapture.Image = imgPlay;
-            Environment.CurrentDirectory = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
+            if (AppDomain.CurrentDomain.GetData("originalbinlocation") as string != null)
+                Environment.CurrentDirectory = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
+            else
+            {
+                Hide();
+                MessageBox.Show("The tool cannot run from its own temp directory, used internally.  Please run from another location.", "App cannot run from its own temp location - by design", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Application.Exit();
+            }
             if (!Args.ContainsKey("outputdir") && Properties.Settings.Default["SaveLocation"] as string != Environment.CurrentDirectory && Properties.Settings.Default["SaveLocation"] as string != "")
                 Environment.CurrentDirectory = Properties.Settings.Default["SaveLocation"] as string;
             if (Args.ContainsKey("outputdir"))

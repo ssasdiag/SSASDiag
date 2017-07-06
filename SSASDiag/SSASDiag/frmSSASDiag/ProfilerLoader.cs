@@ -337,6 +337,13 @@ namespace SSASDiag
                                     mdfPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) + "Analysis\\" :
                                     m_analysisPath + "\\Analysis\\";
 
+            cmd = new SqlCommand("SELECT COUNT(*) FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "'", connSqlDb);
+            if (Convert.ToInt32(cmd.ExecuteScalar()) == 1)
+                // The database was already attached - change default to leave as it was before.
+                chkDettachProfilerAnalysisDBWhenDone.Checked = false;
+            else
+                chkDettachProfilerAnalysisDBWhenDone.Checked = true;
+
             cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') CREATE DATABASE [" + AnalysisTraceID + "] ON (FILENAME = N'" + mdfPath + AnalysisTraceID + ".mdf'),"
                                                 + "(FILENAME = N'" + mdfPath + AnalysisTraceID + ".ldf') "
                                                 + "FOR ATTACH", connSqlDb);
