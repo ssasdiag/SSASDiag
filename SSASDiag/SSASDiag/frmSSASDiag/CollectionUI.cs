@@ -123,8 +123,7 @@ namespace SSASDiag
                             (chkAllowUsageStatsCollection.Checked  ? " /reportusage" : "") +
                             " /start";
                         File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
-                        svcOutputPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text)).GetValue("ImagePath") as string;
-                        svcOutputPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".exe")) + ".output.log";
+                        svcOutputPath = sInstanceServiceConfig.Substring(0, sInstanceServiceConfig.IndexOf(".exe")) + ".output.log";
                         File.CreateText(svcOutputPath).Close();
                         string sMsg = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".";
                         File.WriteAllText(svcOutputPath, sMsg);
@@ -142,7 +141,6 @@ namespace SSASDiag
                             npClient = new NamedPipeClient<string>(svcName);
                             npClient.ServerMessage += NpClient_ServerMessage;
                             npClient.Start();
-                            npClient.PushMessage("User=" + System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName);
                         })).Start();
                     }
                 }
@@ -166,73 +164,83 @@ namespace SSASDiag
 
         private void TPumpUIUpdatesPreServiceStart_Tick(object sender, EventArgs e)
         {
-            txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(".")));
+            Invoke(new System.Action(() =>
+                    {
+                        if (txtStatus.Lines.Count() < 2)
+                        {
+                            if (txtStatus.Text.Substring(txtStatus.TextLength - 2) != "..")
+                                txtStatus.AppendText(".");
+                            else
+                                txtStatus.AppendText("\r\nCollection service SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) + " started.");
+                        }
+                        else
+                            txtStatus.AppendText(".");
+                    }
+                ));
         }
 
         private void NpClient_ServerMessage(NamedPipeConnection<string, string> connection, string message)
         {
-            if (!Disposing)
-            {
-                if (tPumpUIUpdatesPreServiceStart.Enabled == true)
-                    tPumpUIUpdatesPreServiceStart.Stop();
+            if (tPumpUIUpdatesPreServiceStart.Enabled == true)
+                tPumpUIUpdatesPreServiceStart.Stop();
 
-                string svcName = "";
-                try
+            string svcName = "";
+            try
+            { Invoke(new System.Action(() => svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text))); }
+            catch { }
+
+            if (message == "Request User ID")
+            {
+                npClient.PushMessage("User=" + Environment.UserDomainName + "\\" + Environment.UserName);
+                return;
+            }
+
+            if (message.StartsWith("\r\nDiagnostics captured for ") || // && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
+                message.StartsWith("\r\nTime remaining until collection starts: ")) //&& LastStatusLine.StartsWith("Time remaining until collection starts: ")))
+            {
+                string LastStatusLine = "";
+                txtStatus.Invoke(new System.Action(() =>
+                                                        {
+                                                            if (txtStatus.Text.Length > 0)
+                                                                LastStatusLine = txtStatus.Lines.Last();
+                                                        }));
+                if (LastStatusLine.StartsWith(message.Substring(2, 20)))
+                    txtStatus.Invoke(new System.Action(() => txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""))));
+                else
                 {
                     Invoke(new System.Action(() =>
-                                              {
-                                                  if (!Disposing)
-                                                      svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
-                                              }
-                                              ));
-                }
-                catch { }
-
-                if (message.StartsWith("\r\nDiagnostics captured for ") || // && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
-                    message.StartsWith("\r\nTime remaining until collection starts: ")) //&& LastStatusLine.StartsWith("Time remaining until collection starts: ")))
-                {
-                    string LastStatusLine = "";
-                    txtStatus.Invoke(new System.Action(() =>
-                                                            {
-                                                                if (txtStatus.Text.Length > 0)
-                                                                    LastStatusLine = txtStatus.Lines.Last();
-                                                            }));
-                    if (LastStatusLine.StartsWith(message.Substring(2, 20)))
-                        txtStatus.Invoke(new System.Action(() => txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""))));
-                    else
                     {
-                        Invoke(new System.Action(() =>
+                        if (btnCapture.Image.Tag as string == "Play Half Lit")
                         {
-                            if (btnCapture.Image.Tag as string == "Play Half Lit")
-                            {
-                                btnCapture.Image = imgStop;
-                                btnCapture.Click += btnCapture_Click;
-                            }
-                        }));
-                        txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(message)));
-                    }
-                }
-                else if (message.StartsWith("\r\nWaiting for client interaction:\r\n"))
-                {
-                    string uiMsg = message.Replace("\r\nWaiting for client interaction:\r\n", "");
-                    if (uiMsg.StartsWith("Windows Administrator required for remote server:"))
-                    {
-                        if (uiMsg.EndsWith("TryingAgain"))
-                        {
-                            uiMsg = uiMsg.Replace("TryingAgain", "");
-                            pp.lblUserPasswordError.Visible = true;
+                            btnCapture.Image = imgStop;
+                            btnCapture.Click += btnCapture_Click;
                         }
-                        pp.UserMessage = uiMsg;
-                        Invoke(new System.Action(() =>
-                        {
-                            pp.Top = Top + Height / 2 - pp.Height / 2;
-                            pp.Left = Left + Width / 2 - pp.Width / 2;
-                            pp.TopMost = true;
-                        }));
-                        Invoke(new System.Action(() => Enabled = false));
-                        pp.ShowDialog();
-                        Invoke(new System.Action(() => Enabled = true));
-                        if (pp.DialogResult != DialogResult.Abort)
+                    }));
+                    txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(message)));
+                }
+            }
+            else if (message.StartsWith("\r\nWaiting for client interaction:\r\n"))
+            {
+                string uiMsg = message.Replace("\r\nWaiting for client interaction:\r\n", "");
+                if (uiMsg.StartsWith("Windows Administrator required for remote server:"))
+                {
+                    if (uiMsg.EndsWith("TryingAgain"))
+                    {
+                        uiMsg = uiMsg.Replace("TryingAgain", "");
+                        pp.lblUserPasswordError.Visible = true;
+                    }
+                    pp.UserMessage = uiMsg;
+                    Invoke(new System.Action(() =>
+                    {
+                        pp.Top = Top + Height / 2 - pp.Height / 2;
+                        pp.Left = Left + Width / 2 - pp.Width / 2;
+                    }));
+                    Invoke(new System.Action(() => Enabled = false));
+                    pp.ShowDialog();
+                    Invoke(new System.Action(() => Enabled = true));
+                    if (pp.DialogResult != DialogResult.Abort)
+                    {
+                        try
                         {
                             // We will get our dialog closed by notifcation from the service if another client gives credentials before we complete ourselves...
                             string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
@@ -240,56 +248,62 @@ namespace SSASDiag
                             CurrentStatus = CurrentStatus.GetRange(0, CurrentStatus.Count - 4);
                             File.WriteAllLines(svcOutputPath, CurrentStatus);
                         }
-                        if (pp.DialogResult == DialogResult.OK)
-                            npClient.PushMessage("Administrator=" + pp.User.Trim() + ";Domain=" + pp.Domain.Trim() + ";Password=" + pp.Password.Trim());
-                        else
-                            npClient.PushMessage("Cancelled by client");
+                        catch(Exception e) { LogException(e); }
                     }
+                    if (pp.DialogResult == DialogResult.OK)
+                        npClient.PushMessage("Administrator=" + pp.User.Trim() + ";Domain=" + pp.Domain.Trim() + ";Password=" + pp.Password.Trim());
+                    else
+                        npClient.PushMessage("Cancelled by client");
                 }
-                else if (message == "\r\nStop")
+            }
+            else if (message == "\r\nStop")
+            {
+                Invoke(new System.Action(() =>
                 {
-                    Invoke(new System.Action(() =>
+                    callback_StopAndFinalizeAllDiagnosticsComplete();
+                    ProcessStartInfo p = null;
+                    try
                     {
-                        callback_StopAndFinalizeAllDiagnosticsComplete();
-                        ProcessStartInfo p = null;
-                        try
-                        {
                             // Stop the service via command line.
                             p = new ProcessStartInfo("cmd.exe", "/c net stop " + svcName);
+                        p.WindowStyle = ProcessWindowStyle.Hidden;
+                        p.UseShellExecute = false;
+                        p.CreateNoWindow = true;
+                        Process.Start(p);
+                            // Unhook pipe to service.
+                            if (npClient != null)
+                            npClient.ServerMessage -= NpClient_ServerMessage;
+                        if (Environment.UserInteractive)
+                        {
+                                // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
+                                string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
+                            p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & " + SvcPath + " -u");
                             p.WindowStyle = ProcessWindowStyle.Hidden;
                             p.UseShellExecute = false;
                             p.CreateNoWindow = true;
                             Process.Start(p);
-                            // Unhook pipe to service.
-                            if (npClient != null)
-                                npClient.ServerMessage -= NpClient_ServerMessage;
-                            if (Environment.UserInteractive)
-                            {
-                                // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
-                                string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
-                                p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & " + SvcPath + " -u");
-                                p.WindowStyle = ProcessWindowStyle.Hidden;
-                                p.UseShellExecute = false;
-                                p.CreateNoWindow = true;
-                                Process.Start(p);
-                            }
                         }
-                        catch (Exception e)
-                        { LogException(e); }
-                    }));
-                }
-                else
-                    txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(message)));
-
-                if (message.StartsWith("\r\nWindows authentication for remote SQL data source "))
-                    pp.lblUserPasswordError.Text = "Incorrect user name or password";
-                if (message.StartsWith("\r\nAuthenticated user "))
-                    pp.lblUserPasswordError.Text = "User unauthorized to database ";
-                if (message.StartsWith("\r\nRemote file share access failed for user "))
-                    pp.lblUserPasswordError.Text = "User unauthorized to remote share";
-                if (pp != null)
-                    pp.lblUserPasswordError.Left = pp.Width / 2 - pp.lblUserPasswordError.Width / 2;
+                    }
+                    catch (Exception e)
+                    { LogException(e); }
+                }));
             }
+            else
+                txtStatus.Invoke(new System.Action(() =>
+                {
+                    txtStatus.AppendText(message);
+                    txtStatus.SelectionStart = txtStatus.TextLength;
+                    txtStatus.ScrollToCaret();
+                }));
+
+            if (message.StartsWith("\r\nWindows authentication for remote SQL data source "))
+                pp.lblUserPasswordError.Text = "Incorrect user name or password";
+            if (message.StartsWith("\r\nAuthenticated user "))
+                pp.lblUserPasswordError.Text = "User unauthorized to database ";
+            if (message.StartsWith("\r\nRemote file share access failed for user "))
+                pp.lblUserPasswordError.Text = "User unauthorized to remote share";
+            if (pp != null)
+                pp.lblUserPasswordError.Left = pp.Width / 2 - pp.lblUserPasswordError.Width / 2;
         }
                 
         private string[] WriteSafeReadAllLines(String path)
@@ -346,112 +360,93 @@ namespace SSASDiag
                     m_ConfigDir = SelItem.ConfigPath;
                     srv.Disconnect();
 
-                    
-                    // Does the instance already have an existing data collection in progress??
-                    try
+                    if (Environment.UserInteractive)
                     {
-                        ServiceController InstanceCollectionService = null;
-                        string svcName = "";
-                        cbInstances.Invoke(new System.Action(() => svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text)));
-                        InstanceCollectionService = new ServiceController(svcName);
-                        if (InstanceCollectionService != null)
+                        // Does the instance already have an existing data collection in progress??
+                        try
                         {
-                            string svcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName).GetValue("ImagePath") as string;
-                            svcOutputPath = svcPath.Substring(0, svcPath.Length - 4) + ".output.log";
-                            List<string> CurrentStatus = File.ReadLines(svcOutputPath).ToList();
-                            string RawStatusText = String.Join("\r\n", CurrentStatus.ToArray());
-                            // If we encounter a stopped service, this indicates unexpected halt in prior state.  Report and deliver service log to output directory, then clean up old service.
-                            if (InstanceCollectionService.Status == ServiceControllerStatus.Stopped)
+                            ServiceController InstanceCollectionService = null;
+                            string svcName = "";
+                            cbInstances.Invoke(new System.Action(() => svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text)));
+                            InstanceCollectionService = new ServiceController(svcName);
+                            RegistryKey svcKey = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName);
+                            if (InstanceCollectionService != null &&  svcKey != null)
                             {
-                                if (CurrentStatus.Count > 0 && CurrentStatus.Last() == "Stop")
+                                string svcPath = svcKey.GetValue("ImagePath") as string;
+                                svcOutputPath = svcPath.Substring(0, svcPath.Length - 4) + ".output.log";
+                                List<string> CurrentStatus = File.ReadLines(svcOutputPath).ToList();
+                                string RawStatusText = String.Join("\r\n", CurrentStatus.ToArray());
+                                // If we encounter a stopped service, this indicates unexpected halt in prior state.  Report and deliver service log to output directory, then clean up old service.
+                                if (InstanceCollectionService.Status == ServiceControllerStatus.Stopped)
                                 {
-                                    // Service stopped normally and is just awaiting cleanup by any client.  
-                                    // Display its status log and go through normal stop/cleanup procedure for this, the first client to connect since it stopped.
-                                    // In the future it would be better to not use strings but constants for different message types (control/status/etc.) and send a message class through the pipe.
-                                    // But this is simpler and easier and low priority.  Later if we try to localize or whatnot we could have a little work to fix it up though...
-                                    CurrentStatus.RemoveAt(CurrentStatus.Count - 1);
-                                    RawStatusText = String.Join("\r\n", CurrentStatus.ToArray());
-                                    txtStatus.Invoke(new System.Action(() => txtStatus.Text = RawStatusText));
-                                    NpClient_ServerMessage(null, "\r\nStop");
-                                    MessageBox.Show("Status log displayed for the last collection since no clients were connected when it completed.",
-                                                    "Prior collection completed" + CurrentStatus.Last().Replace("SSASDiag completed", "").TrimEnd('.') + ".",
-                                                    MessageBoxButtons.OK,
-                                                    MessageBoxIcon.Information);
-                                }
-                                else
-                                {
-                                    // This state should only be reached if there was an unexpected interruption like service or server crash...
-                                    txtStatus.Invoke(new System.Action(() => txtStatus.Text = RawStatusText));
-                                    NpClient_ServerMessage(null, "\r\nStop");
-                                    MessageBox.Show("Partial log displayed for the last collection,\r\nwhich terminated unexpectedly.",
-                                                    "Prior collection terminated without complete shutdown",
-                                                    MessageBoxButtons.OK,
-                                                    MessageBoxIcon.Warning);
-                                }
-                            }
-                            // If we are running, starting or stopping, get current status and connect pipe to continue monitoring.
-                            else
-                            {
-                                
-                                npClient = new NamedPipeClient<string>(svcName);
-                                npClient.ServerMessage += NpClient_ServerMessage;
-                                npClient.Start();
-                                npClient.PushMessage("User=" + System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName);
-                                callback_StartDiagnosticsComplete();
-                                Invoke(new System.Action(() => txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false));
-                                if (RawStatusText.Contains("Diagnostics captured for") && !CurrentStatus.Last().Contains("Diagnostics captured for"))
-                                    // We're stopping...
-                                    btnCapture.Image = imgStopHalfLit;
-                                if (!RawStatusText.Contains("Diagnostics captured for"))
-                                    // We're starting up still...
-                                    btnCapture.Image = imgPlayHalfLit;
-                                if (CurrentStatus.Count > 0 && CurrentStatus[CurrentStatus.Count - 4] == "Waiting for client interaction:")
-                                {
-                                    string uiMsg = String.Join("\r\n", CurrentStatus.GetRange(CurrentStatus.Count - 3, 3)).Replace("TryingAgain", "");
-                                    CurrentStatus = CurrentStatus.GetRange(0, CurrentStatus.Count - 4);
-                                    txtStatus.Invoke(new System.Action(() => txtStatus.Text = String.Join("\r\n", CurrentStatus).TrimEnd(new char[] { '\r', '\n' })));
-                                    MessageBox.Show("Connecting to the in-progress data capture running for this instance.\r\nThe data capture is currently awaiting user interaction.",
-                                                    "Existing data capture in-progress",
-                                                    MessageBoxButtons.OK,
-                                                    MessageBoxIcon.Information);
-
-                                    if (uiMsg.StartsWith("Windows Administrator required for remote server:"))
+                                    if (CurrentStatus.Count > 0 && CurrentStatus.Last() == "Stop")
                                     {
-                                        pp.UserMessage = uiMsg;
-                                        Invoke(new System.Action(() =>
-                                        {
-                                            pp.Top = Top + Height / 2 - pp.Height / 2;
-                                            pp.Left = Left + Width / 2 - pp.Width / 2;
-                                            pp.TopMost = true;
-                                        }));
-                                        Invoke(new System.Action(() => Enabled = false));
-                                        pp.ShowDialog();
-                                        Invoke(new System.Action(() => Enabled = true));
-                                        if (pp.DialogResult != DialogResult.Abort)
-                                            // We will get our dialog closed by Abort notifcation from the service when a DIFFERENT client gives credentials before we complete ourselves...
-                                            // Otherwise if we completed waiting due to our user's own OK or Cancel, then remove the waiting control message from log...
-                                            File.WriteAllText(svcOutputPath, String.Join("\r\n", CurrentStatus).TrimEnd(new char[] { '\r', '\n' }));
-                                        if (pp.DialogResult == DialogResult.OK)
-                                            npClient.PushMessage("Administrator=" + pp.User.Trim() + ";Domain=" + pp.Domain.Trim() + ";Password=" + pp.Password.Trim());
-                                        else if (pp.DialogResult == DialogResult.Cancel)
-                                            npClient.PushMessage("Cancelled by client");
+                                        // Service stopped normally and is just awaiting cleanup by any client.  
+                                        // Display its status log and go through normal stop/cleanup procedure for this, the first client to connect since it stopped.
+                                        // In the future it would be better to not use strings but constants for different message types (control/status/etc.) and send a message class through the pipe.
+                                        // But this is simpler and easier and low priority.  Later if we try to localize or whatnot we could have a little work to fix it up though...
+                                        CurrentStatus.RemoveAt(CurrentStatus.Count - 1);
+                                        RawStatusText = String.Join("\r\n", CurrentStatus.ToArray());
+                                        txtStatus.Invoke(new System.Action(() => txtStatus.Text = RawStatusText));
+                                        NpClient_ServerMessage(null, "\r\nStop");
+                                        MessageBox.Show("Status log displayed for the last collection since no clients were connected when it completed.",
+                                                        "Prior collection completed" + CurrentStatus.Last().Replace("SSASDiag completed", "").TrimEnd('.') + ".",
+                                                        MessageBoxButtons.OK,
+                                                        MessageBoxIcon.Information);
+                                    }
+                                    else
+                                    {
+                                        // This state should only be reached if there was an unexpected interruption like service or server crash...
+                                        txtStatus.Invoke(new System.Action(() => txtStatus.Text = RawStatusText));
+                                        NpClient_ServerMessage(null, "\r\nStop");
+                                        MessageBox.Show("Partial log displayed for the last collection,\r\nwhich terminated unexpectedly.",
+                                                        "Prior collection terminated without complete shutdown",
+                                                        MessageBoxButtons.OK,
+                                                        MessageBoxIcon.Warning);
                                     }
                                 }
+                                // If we are running, starting or stopping, get current status and connect pipe to continue monitoring.
                                 else
                                 {
-                                    txtStatus.Invoke(new System.Action(() => txtStatus.Text = RawStatusText));
-                                    // If we aren't waiting for client interaction but service is not in a stoped state, then just update the status and continue monitoring as a newly connected client.
-                                    MessageBox.Show("Connecting to the in-progress data capture running for this instance.",
-                                                    "Existing data capture in-progress",
-                                                    MessageBoxButtons.OK,
-                                                    MessageBoxIcon.Information);
+
+                                    npClient = new NamedPipeClient<string>(svcName);
+                                    npClient.ServerMessage += NpClient_ServerMessage;
+                                    npClient.Start();
+                                    npClient.PushMessage("User=" + Environment.UserDomainName + "\\" + Environment.UserName);
+                                    callback_StartDiagnosticsComplete();
+                                    Invoke(new System.Action(() => txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false));
+                                    if (RawStatusText.Contains("Diagnostics captured for") && !CurrentStatus.Last().Contains("Diagnostics captured for"))
+                                        // We're stopping...
+                                        btnCapture.Image = imgStopHalfLit;
+                                    if (!RawStatusText.Contains("Diagnostics captured for"))
+                                        // We're starting up still...
+                                        btnCapture.Image = imgPlayHalfLit;
+                                    if (CurrentStatus.Count > 0 && CurrentStatus[CurrentStatus.Count - 4] == "Waiting for client interaction:")
+                                    {
+                                        string uiMsg = String.Join("\r\n", CurrentStatus.GetRange(CurrentStatus.Count - 3, 3)).Replace("TryingAgain", "");
+                                        CurrentStatus = CurrentStatus.GetRange(0, CurrentStatus.Count - 4);
+                                        txtStatus.Invoke(new System.Action(() => txtStatus.Text = String.Join("\r\n", CurrentStatus).TrimEnd(new char[] { '\r', '\n' })));
+                                        MessageBox.Show("Connecting to the in-progress data capture running for this instance.\r\nThe data capture is currently awaiting user interaction.",
+                                                        "Existing data capture in-progress",
+                                                        MessageBoxButtons.OK,
+                                                        MessageBoxIcon.Information);
+                                    }
+                                    else
+                                    {
+                                        txtStatus.Invoke(new System.Action(() => txtStatus.Text = RawStatusText));
+                                        // If we aren't waiting for client interaction but service is not in a stoped state, then just update the status and continue monitoring as a newly connected client.
+                                        MessageBox.Show("Connecting to the in-progress data capture running for this instance.",
+                                                        "Existing data capture in-progress",
+                                                        MessageBoxButtons.OK,
+                                                        MessageBoxIcon.Information);
+                                    }
                                 }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        LogException(ex);
+                        catch (Exception ex)
+                        {
+                            LogException(ex);
+                        }
                     }
                     btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = true));
                 }

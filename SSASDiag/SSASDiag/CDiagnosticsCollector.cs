@@ -114,7 +114,13 @@ namespace SSASDiag
             ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null) as IdentityReference, PipeAccessRights.FullControl, AccessControlType.Allow));
             npServer = new NamedPipeServer<string>("SSASDiag_" + (InstanceName == "" ? "MSSQLSERVER" : InstanceName), ps);
             npServer.ClientMessage += npServer_ClientMessage;
+            npServer.ClientConnected += NpServer_ClientConnected;
             npServer.Start();
+        }
+
+        private void NpServer_ClientConnected(NamedPipeConnection<string, string> connection)
+        {
+            connection.PushMessage("Request User ID");
         }
 
         private SecureString GetSecureString(string source)
@@ -151,9 +157,8 @@ namespace SSASDiag
                 if (!clients.ContainsKey(connection.Id))
                 {
                     clients.Add(connection.Id, message.Substring("User=".Length));
-                    string[] lines = File.ReadAllLines(svcOutputPath);
-                    if (lines.Length > 3 && lines[lines.Length - 3] == "Waiting for client interaction:")
-                        clientWaiter.Set();
+                    Debug.WriteLine("Client user " + clients[connection.Id] + " connected.");
+                    clientWaiter.Set();
                 }
                 else
                     clients[connection.Id] = message.Substring("User=".Length);
@@ -464,7 +469,7 @@ namespace SSASDiag
         {
             if (bRollover) SendMessageToClients("Log and trace files rollover after " + iRollover + "MB.");
             if (bUseEnd) SendMessageToClients("Diagnostic collection stops automatically at " + dtEnd.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-            m_StartTime = DateTime.Now.AddSeconds(-1);
+            m_StartTime = DateTime.Now;
             CompletionCallback();
 
             bCollectionFullyInitialized = true;
@@ -628,21 +633,27 @@ namespace SSASDiag
                     cs += "Persist Security Info=false;";
                 cs = cs.ToLower().Replace("integrated security=sspi;", "");
 
-                SendMessageToClients("Starting SQL datasource backup for AS database " + db + ", data source name " + ds.Name + ", SQL database " + sqlDbName + " on server " + (srvName == "." ? Environment.MachineName : srvName) + "...");
                 OleDbConnection conn = new OleDbConnection(cs);
-                bool bAuthenticated = false;               
+                bool bAuthenticated = false;
+                SendMessageToClients("Starting SQL datasource backup for AS database " + db + ", data source name " + ds.Name + ", SQL database " + sqlDbName + " on server " + (srvName == "." ? Environment.MachineName : srvName) + "...");
+
                 foreach (NamedPipeConnection<string, string> npConn in npServer._connections)
                 {
-                    try
+                    if (clients.ContainsKey(npConn.Id))
                     {
-                        ImpersonateNamedPipeConnection(npConn);
-                        conn.Open();
-                        bAuthenticated = true;
-                        PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName);
-                    }
-                    catch (Exception)
-                    {
-                        SendMessageToClients("Failure backing up dateabase as connected client user " + clients[npConn.Id] + ".");
+                        try
+                        {
+                            SendMessageToClients("Attempting impersonation as " + clients[npConn.Id] + ": " + (ImpersonateNamedPipeConnection(npConn) ? "Suceeded" : "Failed"));
+                            conn.Open();
+                            PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName);
+                            bAuthenticated = true;
+                        }
+                        catch (Exception e)
+                        {
+                            SendMessageToClients(e.Message);
+                            //if (clients[npConn.Id] != null)
+                            //    SendMessageToClients("Failure backing up dateabase as connected client user " + clients[npConn.Id] + ".");
+                        }
                     }
                 }
                 if (!bAuthenticated)
@@ -652,59 +663,65 @@ namespace SSASDiag
                     int iTries = 0;
                     while (!bAuthenticated && iTries < 3)
                     {
-                        SendMessageToClients("Waiting for client interaction:\r\n"
-                            + "Windows Administrator required for remote server: " + srvName
-                            + "\r\nFor data source name: " + ds.Name
-                            + "\r\nIn AS database: " + db
-                            + ((iTries > 0) ? "TryingAgain" : ""));
-                        sRemoteAdminUser = "";
-                        clientWaiter.WaitOne();
-                        if (sRemoteAdminUser != "Cancelled by client") 
-                        {
-                            SafeTokenHandle safeTokenHandle = null;
-                            if (sRemoteAdminUser == "")
+                        try
+                        { 
+                            SendMessageToClients("Waiting for client interaction:\r\n"
+                                + "Windows Administrator required for remote server: " + srvName
+                                + "\r\nFor data source name: " + ds.Name
+                                + "\r\nIn AS database: " + db
+                                + ((iTries > 0) ? "TryingAgain" : ""));
+                            sRemoteAdminUser = "";
+                            clientWaiter.WaitOne();
+                            if (sRemoteAdminUser != "Cancelled by client")
                             {
-                                // This happens if a new client connected rather than anybody entering credentials directly.
-                                NamedPipeConnection<string, string> npConn = npServer._connections[npServer._connections.ToArray().Length - 1];
-                                ImpersonateNamedPipeConnection(npConn);
-                                SendMessageToClients("Attempting to authenticate newly connected client user " + clients[npConn.Id] + " on remote server + " + srvName + ".");
-                            }
-                            else
-                            {
-                                SendMessageToClients("Attempting to authenticate user " + sRemoteAdminDomain + "\\" + sRemoteAdminUser + " on remote server " + srvName + ".");
-                                // Impersonate user remotely
-                                
-                                const int LOGON32_PROVIDER_DEFAULT = 0;
-                                const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
-                                bAuthenticated = LogonUser(sRemoteAdminUser, sRemoteAdminDomain, SecureStringToString(sRemoteAdminPassword), LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, out safeTokenHandle);
-                                if (!bAuthenticated)
+                                SafeTokenHandle safeTokenHandle = null;
+                                if (sRemoteAdminUser == "")
                                 {
-                                    iTries++;
-                                    SendMessageToClients("Windows authentication for remote SQL data source " + ds.Name + " on server " + srvName + " failed.");
-                                    return;
+                                    // This happens if a new client connected rather than anybody entering credentials directly.
+                                    npServer._connections.Sort();
+                                    NamedPipeConnection<string, string> npConn = npServer._connections[npServer._connections.ToArray().Length - 2];
+                                    ImpersonateNamedPipeConnection(npConn);
+                                    SendMessageToClients("Attempting to authenticate newly connected client user " + clients[npConn.Id] + " on remote server " + srvName + ".");
+                                }
+                                else
+                                {
+                                    SendMessageToClients("Attempting to authenticate user " + sRemoteAdminDomain + "\\" + sRemoteAdminUser + " on remote server " + srvName + ".");
+                                    // Impersonate user remotely
+
+                                    const int LOGON32_PROVIDER_DEFAULT = 0;
+                                    const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
+                                    bAuthenticated = LogonUser(sRemoteAdminUser, sRemoteAdminDomain, SecureStringToString(sRemoteAdminPassword), LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, out safeTokenHandle);
+                                    if (!bAuthenticated)
+                                    {
+                                        iTries++;
+                                        SendMessageToClients("Windows authentication for remote SQL data source " + ds.Name + " on server " + srvName + " failed.");
+                                        return;
+                                    }
+                                }
+                                WindowsImpersonationContext impersonatedUser = null;
+                                if (safeTokenHandle != null)
+                                    impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle());
+                                try
+                                {
+                                    conn.Open();
+                                    bAuthenticated = true;
+                                    bSuspendUITicking = false;
+                                    PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, sRemoteAdminDomain, sRemoteAdminUser);
+                                    break;
+                                }
+                                catch (Exception ex2)
+                                {
+                                    bAuthenticated = false;
+                                    if (sRemoteAdminUser != "") iTries++;
+                                    frmSSASDiag.LogException(ex2);
+                                    SendMessageToClients(ex2.Message);
                                 }
                             }
-                            WindowsImpersonationContext impersonatedUser = null;
-                            if (safeTokenHandle != null)
-                                impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle());
-                            try
-                            {
-                                conn.Open();
-                                bAuthenticated = true;
-                                bSuspendUITicking = false;
-                                PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, sRemoteAdminDomain, sRemoteAdminUser);
+                            else
                                 break;
-                            }
-                            catch (Exception ex2)
-                            {
-                                bAuthenticated = false;
-                                if (sRemoteAdminUser != "") iTries++;
-                                frmSSASDiag.LogException(ex2);
-                                SendMessageToClients(ex2.Message);
-                            }
                         }
-                        else
-                            break;
+                        catch (Exception)
+                        { SendMessageToClients("Failure backing up dateabase as connected client user " + sRemoteAdminDomain + "\\" + sRemoteAdminUser + "."); }
                     }
                 }
                 if (!bAuthenticated)

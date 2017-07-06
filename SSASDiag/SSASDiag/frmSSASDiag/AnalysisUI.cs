@@ -117,6 +117,7 @@ namespace SSASDiag
                     tcAnalysis.TabPages["Event Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of event logs."));
                 }
                 if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".etl")) ||
+                    (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".cap")) ||
                     File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".etl") || 
                     File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log"))
                 {
@@ -292,7 +293,7 @@ namespace SSASDiag
         {
             if (!File.Exists(m_analysisPath) && !Directory.Exists(m_analysisPath))
                 Directory.CreateDirectory(m_analysisPath);
-            string AnalysisDir = m_analysisPath.EndsWith(".etl") ? m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\")) + "\\Analysis\\" : m_analysisPath + "\\Analysis\\";
+            string AnalysisDir = m_analysisPath.EndsWith(".etl") || m_analysisPath.EndsWith(".cap") ? m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\")) + "\\Analysis\\" : m_analysisPath + "\\Analysis\\";
             if (!Directory.Exists(AnalysisDir))
                 Directory.CreateDirectory(AnalysisDir);
 
@@ -310,7 +311,7 @@ namespace SSASDiag
                 p.StartInfo.CreateNoWindow = true;
                 p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.FileName = Program.TempPath + "sqlna.exe";
-                p.StartInfo.Arguments = "\"" + (!m_analysisPath.EndsWith(".etl") ? m_analysisPath + "\\" + (AnalysisTraceID + ".etl") : m_analysisPath) + "\" /output \"" + AnalysisDir + AnalysisTraceID + "_NetworkAnalysis.log\"";
+                p.StartInfo.Arguments = "\"" + (!(m_analysisPath.EndsWith(".etl") || m_analysisPath.EndsWith(".cap")) ? m_analysisPath + "\\" + (AnalysisTraceID + ".etl") : m_analysisPath) + "\" /output \"" + AnalysisDir + AnalysisTraceID + "_NetworkAnalysis.log\"";
                 p.Start();
                 string sOut = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();

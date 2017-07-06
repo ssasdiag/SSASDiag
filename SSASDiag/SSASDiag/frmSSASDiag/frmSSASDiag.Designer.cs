@@ -430,13 +430,14 @@
             this.splitCollectionUI.Panel1.Controls.Add(this.lblInterval);
             this.splitCollectionUI.Panel1.Controls.Add(this.lblInterval2);
             this.splitCollectionUI.Panel1.Resize += new System.EventHandler(this.splitCollectionUI_Panel1_Resize);
-            this.splitCollectionUI.Panel1MinSize = 230;
+            this.splitCollectionUI.Panel1MinSize = 228;
             // 
             // splitCollectionUI.Panel2
             // 
             this.splitCollectionUI.Panel2.Controls.Add(this.txtStatus);
+            this.splitCollectionUI.Panel2MinSize = 26;
             this.splitCollectionUI.Size = new System.Drawing.Size(593, 439);
-            this.splitCollectionUI.SplitterDistance = 230;
+            this.splitCollectionUI.SplitterDistance = 228;
             this.splitCollectionUI.SplitterIncrement = 13;
             this.splitCollectionUI.TabIndex = 46;
             // 
@@ -473,7 +474,7 @@
             this.grpDiagsToCapture.Margin = new System.Windows.Forms.Padding(0);
             this.grpDiagsToCapture.Name = "grpDiagsToCapture";
             this.grpDiagsToCapture.Padding = new System.Windows.Forms.Padding(0);
-            this.grpDiagsToCapture.Size = new System.Drawing.Size(239, 178);
+            this.grpDiagsToCapture.Size = new System.Drawing.Size(239, 177);
             this.grpDiagsToCapture.TabIndex = 57;
             this.grpDiagsToCapture.TabStop = false;
             this.grpDiagsToCapture.Text = "Diagnostics to Capture:";
@@ -489,7 +490,7 @@
             this.tcSimpleAdvanced.Name = "tcSimpleAdvanced";
             this.tcSimpleAdvanced.Padding = new System.Drawing.Point(0, 0);
             this.tcSimpleAdvanced.SelectedIndex = 0;
-            this.tcSimpleAdvanced.Size = new System.Drawing.Size(239, 165);
+            this.tcSimpleAdvanced.Size = new System.Drawing.Size(239, 164);
             this.tcSimpleAdvanced.TabIndex = 1;
             // 
             // tabGuided
@@ -499,7 +500,7 @@
             this.tabGuided.Location = new System.Drawing.Point(4, 22);
             this.tabGuided.Margin = new System.Windows.Forms.Padding(0);
             this.tabGuided.Name = "tabGuided";
-            this.tabGuided.Size = new System.Drawing.Size(231, 139);
+            this.tabGuided.Size = new System.Drawing.Size(231, 138);
             this.tabGuided.TabIndex = 0;
             this.tabGuided.Text = "Guided";
             // 
@@ -517,7 +518,7 @@
             this.pnlSimple.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlSimple.Location = new System.Drawing.Point(0, 0);
             this.pnlSimple.Name = "pnlSimple";
-            this.pnlSimple.Size = new System.Drawing.Size(231, 139);
+            this.pnlSimple.Size = new System.Drawing.Size(231, 138);
             this.pnlSimple.TabIndex = 33;
             // 
             // rtbProblemDescription
@@ -584,7 +585,7 @@
             this.tabAdvanced.Location = new System.Drawing.Point(4, 22);
             this.tabAdvanced.Margin = new System.Windows.Forms.Padding(0);
             this.tabAdvanced.Name = "tabAdvanced";
-            this.tabAdvanced.Size = new System.Drawing.Size(231, 139);
+            this.tabAdvanced.Size = new System.Drawing.Size(231, 138);
             this.tabAdvanced.TabIndex = 1;
             this.tabAdvanced.Text = "Advanced";
             // 
@@ -604,7 +605,7 @@
             this.pnlDiagnosticsToCollect.Location = new System.Drawing.Point(0, 0);
             this.pnlDiagnosticsToCollect.Margin = new System.Windows.Forms.Padding(0);
             this.pnlDiagnosticsToCollect.Name = "pnlDiagnosticsToCollect";
-            this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(231, 139);
+            this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(231, 138);
             this.pnlDiagnosticsToCollect.TabIndex = 38;
             // 
             // chkGetProfiler
@@ -836,7 +837,7 @@
             this.txtStatus.Location = new System.Drawing.Point(0, 0);
             this.txtStatus.Name = "txtStatus";
             this.txtStatus.ReadOnly = true;
-            this.txtStatus.Size = new System.Drawing.Size(593, 205);
+            this.txtStatus.Size = new System.Drawing.Size(593, 207);
             this.txtStatus.TabIndex = 37;
             this.txtStatus.Text = "";
             this.txtStatus.SizeChanged += new System.EventHandler(this.txtStatus_SizeChanged);

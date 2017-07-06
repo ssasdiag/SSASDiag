@@ -1,4 +1,5 @@
-﻿using System.DirectoryServices;
+﻿using Microsoft.Win32;
+using System.DirectoryServices;
 using System.Text;
 using System.Security.Principal;
 using System.ServiceProcess;
@@ -77,6 +78,9 @@ namespace SSASDiag
             SidTypeUnknown,
             SidTypeComputer
         }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
         #endregion Win32
 
@@ -195,6 +199,30 @@ namespace SSASDiag
                 Program.CheckForUpdates(AppDomain.CurrentDomain);
         }
 
+        public static void SetAssociation(string Extension, string KeyName, string OpenWith, string FileDescription)
+        {
+            RegistryKey BaseKey;
+            RegistryKey OpenMethod;
+            RegistryKey Shell;
+            RegistryKey CurrentUser;
+
+            BaseKey = Registry.ClassesRoot.CreateSubKey(Extension);
+            BaseKey.SetValue("", KeyName);
+
+            OpenMethod = Registry.ClassesRoot.CreateSubKey(KeyName);
+            OpenMethod.SetValue("", FileDescription);
+            OpenMethod.CreateSubKey("DefaultIcon").SetValue("", "\"" + OpenWith + "\",0");
+            Shell = OpenMethod.CreateSubKey("Shell");
+            Shell.CreateSubKey("edit").CreateSubKey("command").SetValue("", "\"" + OpenWith + "\"" + " \"%1\"");
+            Shell.CreateSubKey("open").CreateSubKey("command").SetValue("", "\"" + OpenWith + "\"" + " \"%1\"");
+            BaseKey.Close();
+            OpenMethod.Close();
+            Shell.Close();
+            
+            // Tell explorer the file association has been changed
+            SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
+        }
+
         private void frmSSASDiag_Shown(object sender, EventArgs e)
         {
             bool bUsageStatsAlreadySet = true;
@@ -275,6 +303,10 @@ namespace SSASDiag
             LogFeatureUse("Startup", "Initialization complete.  AutoUpdate=" + chkAutoUpdate.Checked + ",AllowUsageStats=" + chkAllowUsageStatsCollection.Checked);
 
             bFullyInitialized = true;
+
+            SetAssociation(".trc", "SSASDiag Profiler Trace Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
+            SetAssociation(".etl", "SSASDiag Network Trace Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
+            SetAssociation(".cap", "SSASDiag Network Trace Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
         }
 
         private void SetupDebugTrace()
@@ -359,11 +391,24 @@ namespace SSASDiag
 
         private void txtStatus_SizeChanged(object sender, EventArgs e)
         {
-            int lineHeight = txtStatus.Font.Height;
-            if (splitCollectionUI.SplitterDistance > splitCollectionUI.Panel1MinSize + lineHeight + 2 )
-                splitCollectionUI.SplitterDistance -= (lineHeight - (txtStatus.Height % lineHeight)) + 2;
-            else
-                splitCollectionUI.SplitterDistance += (txtStatus.Height % lineHeight) - 2;
+            //if (txtStatus.Text != "")
+            //{
+            //    int lineHeight;
+            //    using (Graphics g = txtStatus.CreateGraphics())
+            //    {
+            //        lineHeight = TextRenderer.MeasureText(g, txtStatus.Lines.Last(), txtStatus.Font).Height;
+            //    }
+            //    if (lineHeight > 0)
+            //    {
+            //        if (splitCollectionUI.SplitterDistance >= splitCollectionUI.Panel1MinSize + lineHeight)
+            //            splitCollectionUI.SplitterDistance -= lineHeight - (txtStatus.Height % lineHeight);
+            //        else
+            //            splitCollectionUI.SplitterDistance += txtStatus.Height % lineHeight;
+            //    }
+                
+            //    //txtStatus.SelectionStart = txtStatus.TextLength;
+            //    //txtStatus.ScrollToCaret();
+            //}
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
