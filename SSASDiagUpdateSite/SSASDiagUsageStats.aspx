@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true" CodeFile="SSASDiagUsageStats.aspx.cs" Inherits="SSASDiagUsageStats"  EnableSessionState="True" %>
+<%@ Page Language="C#" AutoEventWireup="true" CodeFile="SSASDiagUsageStats.aspx.cs" Inherits="SSASDiagUsageStats"  EnableSessionState="False" %>
 <%
     if (Request.Form["UsageVersion"] != null && Request.Form["FeatureName"] != null && Request.Form["RunID"] != null)
     {

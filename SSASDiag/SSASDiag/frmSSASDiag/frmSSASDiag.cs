@@ -337,19 +337,23 @@ namespace SSASDiag
                             nvc.Add("UsageVersion", WebUtility.UrlEncode(FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).FileVersion));
                             nvc.Add("FeatureName", WebUtility.UrlEncode(FeatureName));
                             nvc.Add("FeatureDetail", WebUtility.UrlEncode(FeatureDetail.Replace("'", "''")));
-                            string UserAndDomain = UserPrincipal.Current.UserPrincipalName;
-                            nvc.Add("UpnSuffix", WebUtility.UrlEncode((Environment.UserInteractive ? UserAndDomain.Substring(UserAndDomain.IndexOf("@") + 1) : "")));
-                            //if (UserAndDomain.EndsWith("microsoft.com"))
-                                nvc.Add("MicrosoftInternal", WebUtility.UrlEncode(UserAndDomain.Substring(0, UserAndDomain.IndexOf("@"))));
-                            // Skip SSL certificate validation on this private server
-                            ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(delegate { return true; });
-                            wc.UploadValues("https://jburchelsrv.southcentralus.cloudapp.azure.com/SSASDiagUsageStats.aspx", nvc);
-                            // Reset SSL to normal behavior.
-                            ServicePointManager.ServerCertificateValidationCallback = null;
+                            try
+                            {
+                                string UserAndDomain = UserPrincipal.Current.UserPrincipalName;
+                                nvc.Add("UpnSuffix", WebUtility.UrlEncode((Environment.UserInteractive ? UserAndDomain.Substring(UserAndDomain.IndexOf("@") + 1) : "")));
+                                if (UserAndDomain.EndsWith("microsoft.com"))
+                                    nvc.Add("MicrosoftInternal", WebUtility.UrlEncode(UserAndDomain.Substring(0, UserAndDomain.IndexOf("@"))));
+                            }
+                            catch
+                            {
+                                /* This may occur if user isn't domain user. No easy way to check that I could find so just eat exception and move on...  */
+                                nvc.Add("UpnSuffix", "unknown");
+                            }
+                            wc.UploadValues("http://jburchelsrv.southcentralus.cloudapp.azure.com/SSASDiagUsageStats.aspx", nvc);
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
-                            //LogException(ex);
+                            Debug.WriteLine("Exception during feature logging: " + e.Message);
                         }
                     })).Start();
             }
