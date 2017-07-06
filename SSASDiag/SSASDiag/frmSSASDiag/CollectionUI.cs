@@ -549,10 +549,17 @@ namespace SSASDiag
             if (e.Button == MouseButtons.Right)
             {
                 string sOut = "";
-                foreach (string s in txtStatus.Lines)
-                    sOut += s + "\r\n";
+                if (txtStatus.SelectedText.Length == 0)
+                {
+                    sOut += txtStatus.Text;
+                    ttStatus.Show("Output window text copied to clipboard.", txtStatus, 2500);
+                }
+                else
+                {
+                    ttStatus.Show("Selection text copied to clipboard.", txtStatus, 2500);
+                    sOut = txtStatus.SelectedText;
+                }
                 Clipboard.SetData(DataFormats.StringFormat, sOut);
-                ttStatus.Show("Output window text copied to clipboard.", txtStatus, 2500);
                 new Thread(new ThreadStart(new System.Action(() =>
                 {
                     Thread.Sleep(2500);

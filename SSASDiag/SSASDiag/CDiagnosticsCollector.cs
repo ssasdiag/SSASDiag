@@ -151,6 +151,7 @@ namespace SSASDiag
 
         private void npServer_ClientMessage(NamedPipeConnection<string, string> connection, string message)
         {
+            
             if (message.StartsWith("User="))
             {
                 if (!clients.ContainsKey(connection.Id))
@@ -229,7 +230,7 @@ namespace SSASDiag
                 TraceID = sTracePrefix
                     + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC"
                     + "_SSASDiag";
-                Debug.WriteLine("Starting TraceID: " + TraceID);
+                SendMessageToClients("Initialized service for trace with ID: " + TraceID);
 
                 SendMessageToClients("Collecting on computer " + Environment.MachineName + ".");
                 if (sInstanceVersion != "")  // This occurs when we aren't really capturing instance details with Network only capture.

@@ -81,9 +81,12 @@ namespace SSASDiag
             if (connSqlDb.State != ConnectionState.Closed)
                 connSqlDb.Close();
             if (File.Exists(m_analysisPath))
-                AnalysisTraceID = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf(".")).Substring(m_analysisPath.LastIndexOf("\\") + 1).TrimEnd("0123456789".ToCharArray());
+            {
+                if (!m_analysisPath.EndsWith(".zip"))
+                    AnalysisTraceID = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf(".")).Substring(m_analysisPath.LastIndexOf("\\") + 1).TrimEnd("0123456789".ToCharArray());
+            }
             else
-                AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
+                AnalysisTraceID = GetAnalysisIDFromLog();
 
             foreach (TabPage t in tcAnalysis.TabPages)
             {
@@ -191,6 +194,21 @@ namespace SSASDiag
                 }
             }
         }
+
+        string GetAnalysisIDFromLog()
+        {
+            if (File.Exists(m_analysisPath + "\\SSASDiag.log"))
+            {
+                string[] lines = File.ReadAllLines(m_analysisPath + "\\SSASDiag.log");
+                if (lines.Length >= 2 && lines[1].StartsWith("Initialized service for trace with ID: "))
+                    return lines[1].Substring("Initialized service for trace with ID: ".Length);
+                else
+                    return m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
+            }
+            else
+                return m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
+        }
+
         private void AnalysisMessagePumpTimer_Tick(object sender, EventArgs e)
         {
             if (tcAnalysis.SelectedTab.Name == "tbProfilerTraces")
@@ -249,6 +267,10 @@ namespace SSASDiag
                 Directory.CreateDirectory(m_analysisPath);
             if (!Directory.Exists(m_analysisPath + "\\Analysis"))
                 Directory.CreateDirectory(m_analysisPath + "\\Analysis");
+
+            if (z["SSASDiag.log"] != null)
+                z["SSASDiag.log"].Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+            AnalysisTraceID = GetAnalysisIDFromLog();
 
             if (z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").Count() > 0)
             {
