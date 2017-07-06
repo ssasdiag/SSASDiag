@@ -52,7 +52,6 @@ namespace SSASDiag
         Dictionary<int, string> clients = new Dictionary<int, string>();
         EventWaitHandle clientWaiter = new EventWaitHandle(false, EventResetMode.AutoReset);
         #endregion toomanylocals
-        
 
         #region Win32
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -435,8 +434,8 @@ namespace SSASDiag
                             strSaveAs,
                             PdhLogFileType.PDH_LOG_TYPE_BINARY,
                             true,
-                            bRollover ? (uint)iRollover : 0,
-                            bRollover ? true : false,
+                            0,
+                            false,
                             "SSAS Diagnostics Performance Monitor Log");
 
             return ret;
@@ -535,7 +534,6 @@ namespace SSASDiag
                     }
                 }
 
-
                 if (iCurrentTimerTicksSinceLastInterval >= iInterval && bPerfMonRunning)
                 {
                     // If perfmon logging failed we still want to tick our timer so just fail past this with try/catch anything...
@@ -545,6 +543,16 @@ namespace SSASDiag
                         frmSSASDiag.LogException(ex);
                     }
                     iCurrentTimerTicksSinceLastInterval = 0;
+                    if (bRollover)
+                    {
+                        if (new FileInfo(m_PdhHelperInstance.LogName).Length > this.iRollover * 1024 * 1024)
+                        {
+                            string sCurFile = m_PdhHelperInstance.LogName.Substring(m_PdhHelperInstance.LogName.LastIndexOf(TraceID) + TraceID.Length).Replace(".blg", "");
+                            int iCurFile = sCurFile == "" ? 0 : Convert.ToInt32(sCurFile);
+                            m_PdhHelperInstance.Dispose();
+                            InitializePerfLog(TraceID + "\\" + TraceID.Replace(".blg", "") + (iCurFile + 1) + ".blg");
+                        }
+                    }
                 }
                 else
                     iCurrentTimerTicksSinceLastInterval++;

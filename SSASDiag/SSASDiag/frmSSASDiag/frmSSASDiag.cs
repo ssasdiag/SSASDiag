@@ -204,7 +204,6 @@ namespace SSASDiag
             RegistryKey BaseKey;
             RegistryKey OpenMethod;
             RegistryKey Shell;
-            RegistryKey CurrentUser;
 
             BaseKey = Registry.ClassesRoot.CreateSubKey(Extension);
             BaseKey.SetValue("", KeyName);
@@ -392,24 +391,25 @@ namespace SSASDiag
 
         private void txtStatus_SizeChanged(object sender, EventArgs e)
         {
-            //if (txtStatus.Text != "")
-            //{
-            //    int lineHeight;
-            //    using (Graphics g = txtStatus.CreateGraphics())
-            //    {
-            //        lineHeight = TextRenderer.MeasureText(g, txtStatus.Lines.Last(), txtStatus.Font).Height;
-            //    }
-            //    if (lineHeight > 0)
-            //    {
-            //        if (splitCollectionUI.SplitterDistance >= splitCollectionUI.Panel1MinSize + lineHeight)
-            //            splitCollectionUI.SplitterDistance -= lineHeight - (txtStatus.Height % lineHeight);
-            //        else
-            //            splitCollectionUI.SplitterDistance += txtStatus.Height % lineHeight;
-            //    }
+            if (txtStatus.Text != "")
+            {
+                int lineHeight;
+                using (Graphics g = txtStatus.CreateGraphics())
+                {
+                    lineHeight = TextRenderer.MeasureText(g, txtStatus.Lines.Last(), txtStatus.Font).Height;
+                }
+                if (lineHeight > 0)
+                {
+                    if (splitCollectionUI.SplitterDistance >= splitCollectionUI.Panel1MinSize + lineHeight)
+                        splitCollectionUI.SplitterDistance -= (txtStatus.Height % lineHeight) - 5;
+                    else
+                        splitCollectionUI.SplitterDistance += lineHeight - (txtStatus.Height % lineHeight) + 5;
+                }
+
+                txtStatus.SelectionStart = txtStatus.TextLength;
+                txtStatus.ScrollToCaret();
                 
-            //    //txtStatus.SelectionStart = txtStatus.TextLength;
-            //    //txtStatus.ScrollToCaret();
-            //}
+            }
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)

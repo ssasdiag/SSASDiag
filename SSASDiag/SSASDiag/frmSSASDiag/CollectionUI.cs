@@ -106,7 +106,7 @@ namespace SSASDiag
                             (chkZip.Checked ? " /zip" : "") +
                             " /instance " + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) +
                             (chkDeleteRaw.Checked ? " /deleteraw" : "") +
-                            (chkRollover.Checked ? " /rollover" + udRollover.Value : "") +
+                            (chkRollover.Checked ? " /rollover " + udRollover.Value : "") +
                             (chkStartTime.Checked ? " /starttime \"" + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
                             (chkStopTime.Checked ? " /stoptime \"" + dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
                             (chkAutoRestart.Checked ? " /autorestartprofiler" : "") +

@@ -208,7 +208,6 @@ namespace PdhNative
             _isPreVista = isPreVista;
         }
 
-
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         private struct PDH_COUNTER_PATH_ELEMENTS
         {
@@ -681,8 +680,11 @@ namespace PdhNative
                 return PdhOpenQueryW(null, IntPtr.Zero, out _hQuery);
         }
 
+        public string LogName = "";
+
         public uint OpenLogForWriting(string logName, PdhLogFileType logFileType, bool bOverwrite, UInt32 maxSize, bool bCircular, string caption)
         {
+            LogName = logName;
             Debug.Assert(_hQuery != null);
 
             UInt32 accessFlags = PdhLogAccess.PDH_LOG_WRITE_ACCESS;

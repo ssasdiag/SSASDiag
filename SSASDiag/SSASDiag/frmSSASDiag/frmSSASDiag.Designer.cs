@@ -713,7 +713,7 @@
             0,
             0});
             this.udRollover.Minimum = new decimal(new int[] {
-            16,
+            1,
             0,
             0,
             0});
