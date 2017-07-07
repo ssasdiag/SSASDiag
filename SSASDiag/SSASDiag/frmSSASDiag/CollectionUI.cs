@@ -304,6 +304,9 @@ namespace SSASDiag
                 pp.lblUserPasswordError.Text = "User unauthorized to remote share";
             if (pp != null)
                 pp.lblUserPasswordError.Left = pp.Width / 2 - pp.lblUserPasswordError.Width / 2;
+
+            if (message.StartsWith("\r\nStopping collection at "))
+                btnCapture.Image = imgStopHalfLit;
         }
                 
         private string[] WriteSafeReadAllLines(String path)

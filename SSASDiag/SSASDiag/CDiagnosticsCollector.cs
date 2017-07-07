@@ -567,7 +567,7 @@ namespace SSASDiag
         public void StopAndFinalizeAllDiagnostics()
         {
             bCollectionFullyInitialized = false;
-            SendMessageToClients("");
+            SendMessageToClients("Stopping collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             if (bRunning)
             {
                 bRunning = false;
