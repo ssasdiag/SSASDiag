@@ -42,11 +42,7 @@ namespace SSASDiag
                     new Thread(new ThreadStart(() => DettachProfilerTraceDB())).Start();  // Dettach any existing data from analysis because we're capturing new data now.
 
                     // Adjust UI to startup.
-                    btnCapture.Click -= btnCapture_Click;
-                    btnCapture.Image = imgPlayHalfLit;
-                    tbAnalysis.ForeColor = SystemColors.ControlDark;
-                    tcCollectionAnalysisTabs.Refresh();
-                    txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+                    InitializeCaptureUI();
                     ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
                     string TracePrefix = Environment.MachineName + (cbsdi == null ? "" : "_"
                         + (cbInstances.SelectedIndex == 0 ? "" : cbsdi.Text + "_"));
@@ -138,9 +134,6 @@ namespace SSASDiag
                             p.UseShellExecute = false;
                             p.CreateNoWindow = true;
                             Process.Start(p);
-                            npClient = new NamedPipeClient<string>(svcName);
-                            npClient.ServerMessage += NpClient_ServerMessage;
-                            npClient.Start();
                         })).Start();
                     }
                 }
@@ -179,6 +172,15 @@ namespace SSASDiag
                 ));
         }
 
+        private void InitializeCaptureUI()
+        {
+            btnCapture.Image = imgPlayHalfLit;
+            btnCapture.Click -= btnCapture_Click;
+            tbAnalysis.ForeColor = SystemColors.ControlDark;
+            tcCollectionAnalysisTabs.Refresh();
+            txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+        }
+
         private void NpClient_ServerMessage(NamedPipeConnection<string, string> connection, string message)
         {
             if (tPumpUIUpdatesPreServiceStart.Enabled == true)
@@ -189,10 +191,14 @@ namespace SSASDiag
             { Invoke(new System.Action(() => svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text))); }
             catch { }
 
-            if (message == "Request User ID")
+            if (message.StartsWith("\r\nInitialized service for trace with ID: "))
             {
-                npClient.PushMessage("User=" + Environment.UserDomainName + "\\" + Environment.UserName);
-                return;
+                Invoke(new System.Action(() =>
+                {
+                    txtStatus.Text = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n"
+                                    + "Collection service SSASDiag_MSSQLSERVER started.";
+                    InitializeCaptureUI();
+                }));   
             }
 
             if (message.StartsWith("\r\nDiagnostics captured for ") || // && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
@@ -270,9 +276,6 @@ namespace SSASDiag
                         p.UseShellExecute = false;
                         p.CreateNoWindow = true;
                         Process.Start(p);
-                            // Unhook pipe to service.
-                            if (npClient != null)
-                            npClient.ServerMessage -= NpClient_ServerMessage;
                         if (Environment.UserInteractive)
                         {
                                 // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
@@ -412,10 +415,6 @@ namespace SSASDiag
                                 else
                                 {
 
-                                    npClient = new NamedPipeClient<string>(svcName);
-                                    npClient.ServerMessage += NpClient_ServerMessage;
-                                    npClient.Start();
-                                    npClient.PushMessage("User=" + Environment.UserDomainName + "\\" + Environment.UserName);
                                     callback_StartDiagnosticsComplete();
                                     Invoke(new System.Action(() => txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false));
                                     if (RawStatusText.Contains("Diagnostics captured for") && !CurrentStatus.Last().Contains("Diagnostics captured for"))
@@ -463,13 +462,13 @@ namespace SSASDiag
 
         private void BgPopulateInstanceDetails_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+
             if (btnCapture.Enabled && Args.ContainsKey("start") && cbInstances.Items.Count > 0)
                     btnCapture_Click(sender, e);
-            if (cbInstances.SelectedIndex >= 0)
-            {
-                chkRunAsService_CheckedChanged("uninstall", e);
-                chkRunAsService_CheckedChanged(null, e);
-            }
+            npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
+            npClient.ServerMessage += NpClient_ServerMessage;
+            npClient.Start();
+            npClient.PushMessage("User=" + Environment.UserDomainName + "\\" + Environment.UserName);
         }
 
         private void PopulateInstanceDropdown()
@@ -656,10 +655,6 @@ namespace SSASDiag
             udRollover.Enabled = chkRollover.Enabled & chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Enabled & chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Enabled & chkStopTime.Checked;
-        }
-        private void chkRunAsService_CheckedChanged(object sender, EventArgs e)
-        {
-            
         }
 
         #endregion CaptureDetailsUI

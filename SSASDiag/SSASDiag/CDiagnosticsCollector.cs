@@ -49,7 +49,6 @@ namespace SSASDiag
         bool bCollectionFullyInitialized = false, bSuspendUITicking = false;
         DateTime dtStart, dtEnd;
         string svcOutputPath = "";
-        Dictionary<int, string> clients = new Dictionary<int, string>();
         EventWaitHandle clientWaiter = new EventWaitHandle(false, EventResetMode.AutoReset);
         #endregion toomanylocals
 
@@ -113,13 +112,7 @@ namespace SSASDiag
             ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null) as IdentityReference, PipeAccessRights.FullControl, AccessControlType.Allow));
             npServer = new NamedPipeServer<string>("SSASDiag_" + (InstanceName == "" ? "MSSQLSERVER" : InstanceName), ps);
             npServer.ClientMessage += npServer_ClientMessage;
-            npServer.ClientConnected += NpServer_ClientConnected;
             npServer.Start();
-        }
-
-        private void NpServer_ClientConnected(NamedPipeConnection<string, string> connection)
-        {
-            connection.PushMessage("Request User ID");
         }
 
         private SecureString GetSecureString(string source)
@@ -151,18 +144,6 @@ namespace SSASDiag
 
         private void npServer_ClientMessage(NamedPipeConnection<string, string> connection, string message)
         {
-            
-            if (message.StartsWith("User="))
-            {
-                if (!clients.ContainsKey(connection.Id))
-                {
-                    clients.Add(connection.Id, message.Substring("User=".Length));
-                    Debug.WriteLine("Client user " + clients[connection.Id] + " connected.");
-                    clientWaiter.Set();
-                }
-                else
-                    clients[connection.Id] = message.Substring("User=".Length);
-            }
             if (message.StartsWith("Administrator="))
             {
                 string[] KeyVals = message.Split(';');
@@ -329,7 +310,7 @@ namespace SSASDiag
                 }
                 else
                 {
-                    SendMessageToClients("Failed to capture SPNs impersonating connected client " + clients[conn.Id] + ".");
+                    SendMessageToClients("Failed to capture SPNs.");
                 }
             }
             if (sErr != "")
@@ -648,21 +629,17 @@ namespace SSASDiag
 
                 foreach (NamedPipeConnection<string, string> npConn in npServer._connections)
                 {
-                    if (clients.ContainsKey(npConn.Id))
+                    try
                     {
-                        try
-                        {
-                            SendMessageToClients("Attempting impersonation as " + clients[npConn.Id] + ": " + (ImpersonateNamedPipeConnection(npConn) ? "Suceeded" : "Failed"));
-                            conn.Open();
-                            PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName);
-                            bAuthenticated = true;
-                        }
-                        catch (Exception e)
-                        {
-                            SendMessageToClients(e.Message);
-                            //if (clients[npConn.Id] != null)
-                            //    SendMessageToClients("Failure backing up dateabase as connected client user " + clients[npConn.Id] + ".");
-                        }
+                        ImpersonateNamedPipeConnection(npConn);
+                        SendMessageToClients("Attempting to connect to data source as client " + Environment.UserDomainName + "\\" + Environment.UserName);
+                        conn.Open();
+                        PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName);
+                        bAuthenticated = true;
+                    }
+                    catch (Exception e)
+                    {
+                        SendMessageToClients(e.Message);
                     }
                 }
                 if (!bAuthenticated)
@@ -690,7 +667,7 @@ namespace SSASDiag
                                     npServer._connections.Sort();
                                     NamedPipeConnection<string, string> npConn = npServer._connections[npServer._connections.ToArray().Length - 2];
                                     ImpersonateNamedPipeConnection(npConn);
-                                    SendMessageToClients("Attempting to authenticate newly connected client user " + clients[npConn.Id] + " on remote server " + srvName + ".");
+                                    SendMessageToClients("Attempting to connect to data source as client " + Environment.UserDomainName + "\\" + Environment.UserName);
                                 }
                                 else
                                 {
@@ -1005,11 +982,6 @@ namespace SSASDiag
             SendMessageToClients("Stop");
             PerfMonAndUIPumpTimer.Stop();
             bScheduledStartPending = false;
-            for (int i = 0; i < npServer._connections.ToArray().Length; i++)
-            {
-                clients.Remove(npServer._connections[i].Id);
-                npServer._connections[i].Close();
-            }
             CompletionCallback();
         }
         #endregion EndCapture
