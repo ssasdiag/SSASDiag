@@ -874,10 +874,11 @@ namespace SSASDiag
                             Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
                             // Previously we connected before iterating through each db to be processed, but found if some misbehaving Cx databases were running, this leads to connection hangs!
                             // Now we connect directly to each database we need to capture, so other issues on the server may not impact then with locking conflicts to enumerate metadata on dbs not under consideration.
-                            try { s.Connect("Data source=" + Environment.MachineName + (sInstanceName == "" ? "" : "\\" + sInstanceName) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;Initial Catalog=" + db + ";"); }
+                            string sConn = "Data source=" + Environment.MachineName + (sInstanceName == "" ? "" : "\\" + sInstanceName) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;Initial Catalog=" + db + ";";
+                            try { s.Connect(sConn); }
                             catch (Exception ex)
                             {
-                                SendMessageToClients("Exception " + ex.Message);
+                                SendMessageToClients("Exception connecting to SSAS database: " + ex.Message + "\r\nConnection string used was: " + sConn);
                             }
 
                             if (bGetXMLA)

@@ -184,13 +184,8 @@ namespace SSASDiag
         string svcName = "";
         private void NpClient_ServerMessage(NamedPipeConnection<string, string> connection, string message)
         {
-            if (tPumpUIUpdatesPreServiceStart.Enabled == true)
+            if (tPumpUIUpdatesPreServiceStart != null && tPumpUIUpdatesPreServiceStart.Enabled == true)
                 tPumpUIUpdatesPreServiceStart.Stop();
-
-            
-            try
-            { Invoke(new System.Action(() => svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text))); }
-            catch { }
 
             if (message == "Initialize pipe")
             {
@@ -491,6 +486,11 @@ namespace SSASDiag
                     btnCapture_Click(sender, e);
             if (Environment.UserInteractive)
             {
+                if (npClient != null)
+                {
+                    npClient.ServerMessage -= NpClient_ServerMessage;
+                    npClient = null;
+                }
                 npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
                 npClient.ServerMessage += NpClient_ServerMessage;
                 npClient.Start();
@@ -539,6 +539,7 @@ namespace SSASDiag
         }
         private void bgPopulateInstanceDropdownComplete(object sender, RunWorkerCompletedEventArgs e)
         {
+            svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text); 
             cbInstances.DataSource = LocalInstances;
             cbInstances.DisplayMember = "Text";
             cbInstances.Refresh();
