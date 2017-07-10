@@ -57,5 +57,10 @@ namespace SSASDiag
             else
                 btnOK.Enabled = false;
         }
+
+        private void frmPasswordPrompt_Load(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+        }
     }
 }

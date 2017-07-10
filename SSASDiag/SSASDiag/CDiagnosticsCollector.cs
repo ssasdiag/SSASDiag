@@ -112,7 +112,13 @@ namespace SSASDiag
             ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null) as IdentityReference, PipeAccessRights.FullControl, AccessControlType.Allow));
             npServer = new NamedPipeServer<string>("SSASDiag_" + (InstanceName == "" ? "MSSQLSERVER" : InstanceName), ps);
             npServer.ClientMessage += npServer_ClientMessage;
+            npServer.ClientConnected += NpServer_ClientConnected;
             npServer.Start();
+        }
+
+        private void NpServer_ClientConnected(NamedPipeConnection<string, string> connection)
+        {
+            connection.PushMessage("Initialize pipe");
         }
 
         private SecureString GetSecureString(string source)
@@ -144,6 +150,11 @@ namespace SSASDiag
 
         private void npServer_ClientMessage(NamedPipeConnection<string, string> connection, string message)
         {
+            if (message == "Initialize pipe")
+            {
+                ImpersonateNamedPipeConnection(connection);
+                clientWaiter.Set();
+            }
             if (message.StartsWith("Administrator="))
             {
                 string[] KeyVals = message.Split(';');
@@ -154,6 +165,7 @@ namespace SSASDiag
             }
             if (message == "Cancelled by client")
             {
+                SendMessageToClients("Cancelled by client");
                 sRemoteAdminUser = "Cancelled by client";
                 sRemoteAdminDomain = "";
                 sRemoteAdminPassword = GetSecureString("");
@@ -281,7 +293,10 @@ namespace SSASDiag
             if (ImpersonateNamedPipeClient(h) != 0)
                 return true;
             else
+            {
+                SendMessageToClients("Failure impersonating client connection.  Win32 error code was: " + GetLastError());
                 return false;
+            }
         }
 
         private void bgGetSPNs(object sender, DoWorkEventArgs e)
@@ -661,13 +676,11 @@ namespace SSASDiag
                             if (sRemoteAdminUser != "Cancelled by client")
                             {
                                 SafeTokenHandle safeTokenHandle = null;
+                                WindowsImpersonationContext impersonatedUser = null;
                                 if (sRemoteAdminUser == "")
                                 {
                                     // This happens if a new client connected rather than anybody entering credentials directly.
-                                    npServer._connections.Sort();
-                                    NamedPipeConnection<string, string> npConn = npServer._connections[npServer._connections.ToArray().Length - 2];
-                                    ImpersonateNamedPipeConnection(npConn);
-                                    SendMessageToClients("Attempting to connect to data source as client " + Environment.UserDomainName + "\\" + Environment.UserName);
+                                    SendMessageToClients("Attempting to connect to data source as client " + Environment.UserDomainName + "\\" + Environment.UserName + ".");
                                 }
                                 else
                                 {
@@ -681,19 +694,23 @@ namespace SSASDiag
                                     {
                                         iTries++;
                                         SendMessageToClients("Windows authentication for remote SQL data source " + ds.Name + " on server " + srvName + " failed.");
-                                        return;
+                                        break;
                                     }
+                                    if (safeTokenHandle != null)
+                                        impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle());
                                 }
-                                WindowsImpersonationContext impersonatedUser = null;
-                                if (safeTokenHandle != null)
-                                    impersonatedUser = WindowsIdentity.Impersonate(safeTokenHandle.DangerousGetHandle());
                                 try
                                 {
                                     conn.Open();
                                     bAuthenticated = true;
                                     bSuspendUITicking = false;
-                                    PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, sRemoteAdminDomain, sRemoteAdminUser);
-                                    break;
+                                    if (PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName, impersonatedUser, sRemoteAdminDomain, sRemoteAdminUser))
+                                        break;
+                                    else
+                                    {
+                                        bAuthenticated = false;
+                                        if (sRemoteAdminUser != "") iTries++;
+                                    }
                                 }
                                 catch (Exception ex2)
                                 {
@@ -707,7 +724,7 @@ namespace SSASDiag
                                 break;
                         }
                         catch (Exception)
-                        { SendMessageToClients("Failure backing up dateabase as connected client user " + sRemoteAdminDomain + "\\" + sRemoteAdminUser + "."); }
+                        { SendMessageToClients("Failure backing up dateabase as connected client user " + Environment.UserDomainName + "\\" + Environment.UserName + "."); }
                     }
                 }
                 if (!bAuthenticated)
@@ -730,8 +747,8 @@ namespace SSASDiag
                     SendMessageToClients("Confirming remote file share access to copy remote database backup locally.");
                 if (!Directory.Exists("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$")))
                 {
-                    string msg = "Remote file share access failed for user " + sRemoteAdminDomain + "\\" + sRemoteAdminUser + " to server " + srvName + ".";
-                    throw new Exception(msg);
+                    SendMessageToClients("Remote file share access failed for user " + (sRemoteAdminDomain == "" ? Environment.UserDomainName : sRemoteAdminDomain) + "\\" + (sRemoteAdminUser == "" ? Environment.UserName : sRemoteAdminUser) + " to server " + srvName + ".");
+                    return false;
                 }
                     
                 SendMessageToClients("Initiating backup of relational database " + SQLDBName + ".bak on SQL server " + srvName + ".");
@@ -826,8 +843,8 @@ namespace SSASDiag
         {
             if (bGetProfiler)
             {
-                SendMessageToClients("Waiting 20s to allow profiler trace to catch up with any lagging events...");
-                System.Threading.Thread.Sleep(20000); // Wait 15s to allow profiler events to catch up a little bit.
+               // SendMessageToClients("Waiting 20s to allow profiler trace to catch up with any lagging events...");
+                //System.Threading.Thread.Sleep(20000); // Wait 15s to allow profiler events to catch up a little bit.
                 SendMessageToClients("Executing AS server command to stop profiler trace...");
                 ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
                 SendMessageToClients("Stopped profiler trace.");
@@ -903,17 +920,22 @@ namespace SSASDiag
             {
                 SendMessageToClients("Creating zip file of output: " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
 
-                // Zip up all output into a single zip file.
-                ZipFile z = new ZipFile();
-                z.AddDirectory(TraceID );
-                z.MaxOutputSegmentSize = 1024 * 1024 * (int)iRollover;
-                z.Encryption = EncryptionAlgorithm.None;
-                z.CompressionLevel = Ionic.Zlib.CompressionLevel.Default;
-                z.BufferSize = 1000000;
-                z.CodecBufferSize = 1000000;
-                z.Save(TraceID + ".zip");
+                try
+                {
+                    // Zip up all output into a single zip file.
+                    ZipFile z = new ZipFile();
+                    z.AddDirectory(TraceID);
+                    z.MaxOutputSegmentSize = 1024 * 1024 * (int)iRollover;
+                    z.Encryption = EncryptionAlgorithm.None;
+                    z.CompressionLevel = Ionic.Zlib.CompressionLevel.Default;
+                    z.BufferSize = 1000000;
+                    z.CodecBufferSize = 1000000;
+                    z.Save(TraceID + ".zip");
 
-                SendMessageToClients("Created zip file.");
+                    SendMessageToClients("Created zip file.");
+                }
+                catch (Exception ex)
+                { frmSSASDiag.LogException(ex); }
             }
 
             if (bDeleteRaw)

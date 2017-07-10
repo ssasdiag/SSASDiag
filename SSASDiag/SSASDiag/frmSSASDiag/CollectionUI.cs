@@ -181,15 +181,22 @@ namespace SSASDiag
             txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
         }
 
+        string svcName = "";
         private void NpClient_ServerMessage(NamedPipeConnection<string, string> connection, string message)
         {
             if (tPumpUIUpdatesPreServiceStart.Enabled == true)
                 tPumpUIUpdatesPreServiceStart.Stop();
 
-            string svcName = "";
+            
             try
             { Invoke(new System.Action(() => svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text))); }
             catch { }
+
+            if (message == "Initialize pipe")
+            {
+                npClient.PushMessage("Initialize pipe");
+                return;
+            }
 
             if (message.StartsWith("\r\nInitialized service for trace with ID: "))
             {
@@ -241,25 +248,13 @@ namespace SSASDiag
                         pp.Top = Top + Height / 2 - pp.Height / 2;
                         pp.Left = Left + Width / 2 - pp.Width / 2;
                     }));
-                    Invoke(new System.Action(() => Enabled = false));
-                    pp.ShowDialog();
-                    Invoke(new System.Action(() => Enabled = true));
-                    if (pp.DialogResult != DialogResult.Abort)
+                    Invoke(new System.Action(() =>
                     {
-                        try
-                        {
-                            // We will get our dialog closed by notifcation from the service if another client gives credentials before we complete ourselves...
-                            string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
-                            List<string> CurrentStatus = File.ReadLines(SvcPath.Substring(0, SvcPath.Length - 4) + ".output.log").ToList();
-                            CurrentStatus = CurrentStatus.GetRange(0, CurrentStatus.Count - 4);
-                            File.WriteAllLines(svcOutputPath, CurrentStatus);
-                        }
-                        catch(Exception e) { LogException(e); }
+                        if (!pp.IsDisposed)
+                            pp.Show();
+                        Enabled = false;
                     }
-                    if (pp.DialogResult == DialogResult.OK)
-                        npClient.PushMessage("Administrator=" + pp.User.Trim() + ";Domain=" + pp.Domain.Trim() + ";Password=" + pp.Password.Trim());
-                    else
-                        npClient.PushMessage("Cancelled by client");
+                    ));
                 }
             }
             else if (message == "\r\nStop")
@@ -270,16 +265,16 @@ namespace SSASDiag
                     ProcessStartInfo p = null;
                     try
                     {
-                            // Stop the service via command line.
-                            p = new ProcessStartInfo("cmd.exe", "/c net stop " + svcName);
+                        // Stop the service via command line.
+                        p = new ProcessStartInfo("cmd.exe", "/c net stop " + svcName);
                         p.WindowStyle = ProcessWindowStyle.Hidden;
                         p.UseShellExecute = false;
                         p.CreateNoWindow = true;
                         Process.Start(p);
                         if (Environment.UserInteractive)
                         {
-                                // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
-                                string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
+                            // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
+                            string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
                             p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & " + SvcPath + " -u");
                             p.WindowStyle = ProcessWindowStyle.Hidden;
                             p.UseShellExecute = false;
@@ -291,6 +286,14 @@ namespace SSASDiag
                     { LogException(e); }
                 }));
             }
+            else if (message.Contains("Cancelled by client"))
+            {
+                if (pp != null && pp.Visible)
+                {
+                    pp.DialogResult = DialogResult.Abort;
+                    Invoke(new System.Action(()=>pp.Close()));
+                }
+            }
             else
                 txtStatus.Invoke(new System.Action(() =>
                 {
@@ -300,18 +303,39 @@ namespace SSASDiag
                 }));
 
             if (message.StartsWith("\r\nWindows authentication for remote SQL data source "))
-                pp.lblUserPasswordError.Text = "Incorrect user name or password";
+                Invoke(new System.Action(()=>pp.lblUserPasswordError.Text = "Incorrect user name or password"));
             if (message.StartsWith("\r\nAuthenticated user "))
-                pp.lblUserPasswordError.Text = "User unauthorized to database ";
+                Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "User unauthorized to database "));
             if (message.StartsWith("\r\nRemote file share access failed for user "))
-                pp.lblUserPasswordError.Text = "User unauthorized to remote share";
+                Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "User unauthorized to remote share"));
             if (pp != null)
-                pp.lblUserPasswordError.Left = pp.Width / 2 - pp.lblUserPasswordError.Width / 2;
+                Invoke(new System.Action(() => pp.lblUserPasswordError.Left = pp.Width / 2 - pp.lblUserPasswordError.Width / 2));
 
             if (message.StartsWith("\r\nStopping collection at "))
                 btnCapture.Image = imgStopHalfLit;
         }
-                
+
+        private void Pp_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Invoke(new System.Action(() => Enabled = true));
+            if (pp.DialogResult != DialogResult.Abort)
+            {
+                try
+                {
+                    // We will get our dialog closed by notifcation from the service if another client gives credentials before we complete ourselves...
+                    string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
+                    List<string> CurrentStatus = File.ReadLines(SvcPath.Substring(0, SvcPath.Length - 4) + ".output.log").ToList();
+                    CurrentStatus = CurrentStatus.GetRange(0, CurrentStatus.Count - 4);
+                    File.WriteAllText(svcOutputPath, String.Join("\r\n", CurrentStatus).TrimEnd(new char[] { '\r', '\n' }));
+                }
+                catch (Exception ex) { LogException(ex); }
+            }
+            if (pp.DialogResult == DialogResult.OK)
+                npClient.PushMessage("Administrator=" + pp.User.Trim() + ";Domain=" + pp.Domain.Trim() + ";Password=" + pp.Password.Trim());
+            if (pp.DialogResult == DialogResult.Cancel)
+                npClient.PushMessage("Cancelled by client");
+        }
+
         private string[] WriteSafeReadAllLines(String path)
         {
             if (File.Exists(path))
@@ -465,10 +489,12 @@ namespace SSASDiag
 
             if (btnCapture.Enabled && Args.ContainsKey("start") && cbInstances.Items.Count > 0)
                     btnCapture_Click(sender, e);
-            npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
-            npClient.ServerMessage += NpClient_ServerMessage;
-            npClient.Start();
-            npClient.PushMessage("User=" + Environment.UserDomainName + "\\" + Environment.UserName);
+            if (Environment.UserInteractive)
+            {
+                npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
+                npClient.ServerMessage += NpClient_ServerMessage;
+                npClient.Start();
+            }
         }
 
         private void PopulateInstanceDropdown()
@@ -516,7 +542,6 @@ namespace SSASDiag
             cbInstances.DataSource = LocalInstances;
             cbInstances.DisplayMember = "Text";
             cbInstances.Refresh();
-            //if (cbInstances.Items.Count > 0) cbInstances.SelectedIndex = 0;
             if (LocalInstances.Count == 0)
                 lblInstanceDetails.Text = "There were no Analysis Services instances found on this server.\r\nPlease run on a server with a SQL 2008 or later SSAS instance.";
             else

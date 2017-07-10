@@ -145,6 +145,7 @@
             this.Name = "frmPasswordPrompt";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Remote Credentials Required";
+            this.Load += new System.EventHandler(this.frmPasswordPrompt_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
