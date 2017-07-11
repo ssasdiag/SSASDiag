@@ -197,9 +197,10 @@ namespace SSASDiag
 
         string GetAnalysisIDFromLog()
         {
-            if (File.Exists(m_analysisPath + "\\SSASDiag.log"))
+            string[] logs = Directory.GetFiles(m_analysisPath, "SSASDiag.log", SearchOption.AllDirectories);
+            if (logs.Length > 0)
             {
-                string[] lines = File.ReadAllLines(m_analysisPath + "\\SSASDiag.log");
+                string[] lines = File.ReadAllLines(logs[0]);
                 if (lines.Length >= 2 && lines[1].StartsWith("Initialized service for trace with ID: "))
                     return lines[1].Substring("Initialized service for trace with ID: ".Length);
                 else
@@ -267,7 +268,7 @@ namespace SSASDiag
                 Directory.CreateDirectory(m_analysisPath);
             if (!Directory.Exists(m_analysisPath + "\\Analysis"))
                 Directory.CreateDirectory(m_analysisPath + "\\Analysis");
-
+            
             if (z["SSASDiag.log"] != null)
                 z["SSASDiag.log"].Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
             AnalysisTraceID = GetAnalysisIDFromLog();

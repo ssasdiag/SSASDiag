@@ -1,4 +1,5 @@
-﻿using System.ServiceProcess;
+﻿using System.DirectoryServices.AccountManagement;
+using System.ServiceProcess;
 using System.Collections.Generic;
 using Microsoft.Win32;
 using System.IO.Compression;
@@ -27,7 +28,6 @@ namespace SSASDiag
         [STAThread]
         public static void Main()
         {
-            
             if (!Environment.UserInteractive)
             {
                 // In service mode we wipe out command line of startup config after we complete.
@@ -47,7 +47,22 @@ namespace SSASDiag
                         return;
                     }
                 }
-            }            
+            }
+            else
+            {
+                new Thread(new ThreadStart(() =>
+                {
+                    var machineContext = new PrincipalContext(ContextType.Machine);
+                    var grpPrincipal = GroupPrincipal.FindByIdentity(machineContext, IdentityType.Name, "Administrators");
+                    var domainContext = new PrincipalContext(ContextType.Domain, Environment.UserDomainName);
+                    var user = UserPrincipal.FindByIdentity(domainContext, Environment.UserName);
+                    if (!user.IsMemberOf(grpPrincipal))
+                    {
+                        MessageBox.Show("Diagnostic collection must be run as a local administrator.\r\nPlease run again as a local administrator.", "Administrator account required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        Application.Exit();
+                    }
+                })).Start();
+            }
 
             // Assign a unique Run ID used to anonymously track usage if user allows
             RunID = Guid.NewGuid();
