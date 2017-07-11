@@ -212,7 +212,8 @@ namespace SSASDiag
             RegistryKey Shell;
 
             BaseKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + Extension);
-            BaseKey.SetValue("", KeyName);
+            BaseKey = BaseKey.CreateSubKey("OpenWithProgIds");
+            BaseKey.SetValue(KeyName, "");
 
             OpenMethod = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + KeyName);
             OpenMethod.SetValue("", FileDescription);
