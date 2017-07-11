@@ -40,7 +40,8 @@ namespace SSASDiag
                     {
                         ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 1500 > nul & net stop SSASDiag_" + Environment.GetCommandLineArgs()[2]);
                         p.WindowStyle = ProcessWindowStyle.Hidden;
-                        p.UseShellExecute = false;
+                        p.UseShellExecute = true;
+                        p.Verb = "runas";
                         p.CreateNoWindow = true;
                         Process.Start(p);
                         return;
@@ -275,7 +276,7 @@ namespace SSASDiag
                             //AppDomain.Unload(tempDomain);
                             //Thread.Sleep(1000);
                             Process p = new Process();
-                            p.StartInfo.UseShellExecute = false;
+                            p.StartInfo.UseShellExecute = true;
                             p.StartInfo.CreateNoWindow = true;
                             p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                             p.StartInfo.FileName = "cmd.exe";

@@ -110,6 +110,7 @@ namespace SSASDiag
             svcOutputPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".exe")) + ".output.log";
             PipeSecurity ps = new PipeSecurity();
             ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null) as IdentityReference, PipeAccessRights.FullControl, AccessControlType.Allow));
+            ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), PipeAccessRights.ReadWrite | PipeAccessRights.Synchronize, AccessControlType.Allow));
             npServer = new NamedPipeServer<string>("SSASDiag_" + (InstanceName == "" ? "MSSQLSERVER" : InstanceName), ps);
             npServer.ClientMessage += npServer_ClientMessage;
             npServer.ClientConnected += NpServer_ClientConnected;
@@ -285,7 +286,7 @@ namespace SSASDiag
             }                   
         }
 
-        bool ImpersonateNamedPipeConnection(NamedPipeConnection<string, string> conn)
+        bool ImpersonateNamedPipeConnection(NamedPipeConnection<string, string> conn, bool NotifyClients = true)
         {
             NamedPipeWrapper.IO.PipeStreamWrapper<string, string> pipe = GetPrivateField<NamedPipeWrapper.IO.PipeStreamWrapper<string, string>>(conn, "_streamWrapper");
             int h = pipe.BaseStream.SafePipeHandle.DangerousGetHandle().ToInt32();
@@ -294,7 +295,8 @@ namespace SSASDiag
                 return true;
             else
             {
-                SendMessageToClients("Failure impersonating client connection.  Win32 error code was: " + GetLastError());
+                if (NotifyClients)
+                    SendMessageToClients("Failure impersonating client connection.  Win32 error code was: " + GetLastError());
                 return false;
             }
         }
@@ -302,35 +304,37 @@ namespace SSASDiag
         private void bgGetSPNs(object sender, DoWorkEventArgs e)
         {
             SendMessageToClients("Attempting to capture SPNs for the AS service account " + sServiceAccount + ".");
-            string sErr = "";
+            string sErr = "", sOut = "";
             foreach (NamedPipeConnection<string, string> conn in npServer._connections)
             {
-                ImpersonateNamedPipeConnection(npServer._connections[0]);
-                Process p = new Process();
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.CreateNoWindow = true;
-                p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.RedirectStandardError = true;
-                p.StartInfo.FileName = "setspn";
-                p.StartInfo.Arguments = "-l \"" + sServiceAccount + "\"";
-                p.Start();
-                string sOut = p.StandardOutput.ReadToEnd();
-                sErr = p.StandardError.ReadToEnd();
-                p.WaitForExit();
-                if (sErr == "")
+                if (conn.IsConnected)
                 {
-                    File.WriteAllText(Environment.CurrentDirectory + "\\" + TraceID + "\\ServiceAccountSPNs.txt", sOut);
-                    SendMessageToClients("Captured SPNs defined for service account " + sServiceAccount + ".");
-                    break;
-                }
-                else
-                {
-                    SendMessageToClients("Failed to capture SPNs.");
+                    if (ImpersonateNamedPipeConnection(conn, false))
+                    {
+                        Process p = new Process();
+                        p.StartInfo.CreateNoWindow = true;
+                        p.StartInfo.UseShellExecute = false;
+                        p.StartInfo.RedirectStandardOutput = true;
+                        p.StartInfo.RedirectStandardError = true;
+                        p.StartInfo.FileName = "setspn";
+                        p.StartInfo.Arguments = "-l \"" + sServiceAccount + "\"";
+                        p.Start();
+                        sOut = p.StandardOutput.ReadToEnd();
+                        sErr = p.StandardError.ReadToEnd();
+                        p.WaitForExit();
+                        if (sErr == "")
+                        {
+                            File.WriteAllText(Environment.CurrentDirectory + "\\" + TraceID + "\\ServiceAccountSPNs.txt", sOut);
+                            SendMessageToClients("Captured SPNs defined for service account " + sServiceAccount + ".");
+                            break;
+                        }
+                    }
                 }
             }
-            if (sErr != "")
-                SendMessageToClients("Rerun SSASDiag as a domain administrator if this configuration detail is required.");
+            if (sOut == "")
+                SendMessageToClients("Failed to capture SPNs.  Rerun SSASDiag as a domain administrator if this configuration detail is required.");
         }
+
         private void bgGetSPNsCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (bGetPerfMon)
@@ -444,6 +448,7 @@ namespace SSASDiag
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
             p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             p.StartInfo.FileName = "netsh";
             p.StartInfo.Arguments = "trace stop";
             p.Start();
@@ -644,17 +649,20 @@ namespace SSASDiag
 
                 foreach (NamedPipeConnection<string, string> npConn in npServer._connections)
                 {
-                    try
+                    if (npConn.IsConnected)
                     {
-                        ImpersonateNamedPipeConnection(npConn);
-                        SendMessageToClients("Attempting to connect to data source as client " + Environment.UserDomainName + "\\" + Environment.UserName);
-                        conn.Open();
-                        PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName);
-                        bAuthenticated = true;
-                    }
-                    catch (Exception e)
-                    {
-                        SendMessageToClients(e.Message);
+                        try
+                        {
+                            ImpersonateNamedPipeConnection(npConn);
+                            SendMessageToClients("Attempting to connect to data source as client " + Environment.UserDomainName + "\\" + Environment.UserName);
+                            conn.Open();
+                            PerformBAKBackupAndMoveLocal(conn, srvName, ds.Name, db, sqlDbName);
+                            bAuthenticated = true;
+                        }
+                        catch (Exception e)
+                        {
+                            SendMessageToClients(e.Message);
+                        }
                     }
                 }
                 if (!bAuthenticated)
@@ -819,9 +827,10 @@ namespace SSASDiag
         {
             SendMessageToClients("Stopping network trace.  This may take a while...");
             Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
             p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            p.StartInfo.UseShellExecute = false;
             p.StartInfo.FileName = "netsh";
             p.StartInfo.Arguments = "trace stop";
             p.Start();

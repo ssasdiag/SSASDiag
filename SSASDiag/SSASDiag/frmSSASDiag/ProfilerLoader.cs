@@ -137,7 +137,7 @@ namespace SSASDiag
                 if (connstr.Contains("Initial Catalog=;")) connstr = connstr.Replace("Initial Catalog=;", "Initial Catalog=" + AnalysisTraceID + ";");
 
                 ASProfilerTraceImporterProcess = new Process();
-                ASProfilerTraceImporterProcess.StartInfo.UseShellExecute = false;
+                ASProfilerTraceImporterProcess.StartInfo.UseShellExecute = true;
                 ASProfilerTraceImporterProcess.StartInfo.CreateNoWindow = true;
                 ASProfilerTraceImporterProcess.StartInfo.RedirectStandardOutput = true;
                 ASProfilerTraceImporterProcess.StartInfo.FileName = Program.TempPath + "ASProfilerTraceImporterCmd.exe";
@@ -340,9 +340,9 @@ namespace SSASDiag
             cmd = new SqlCommand("SELECT COUNT(*) FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "'", connSqlDb);
             if (Convert.ToInt32(cmd.ExecuteScalar()) == 1)
                 // The database was already attached - change default to leave as it was before.
-                chkDettachProfilerAnalysisDBWhenDone.Checked = false;
+                chkDettachProfilerAnalysisDBWhenDone.Invoke(new System.Action(()=>chkDettachProfilerAnalysisDBWhenDone.Checked = false));
             else
-                chkDettachProfilerAnalysisDBWhenDone.Checked = true;
+                chkDettachProfilerAnalysisDBWhenDone.Invoke(new System.Action(() => chkDettachProfilerAnalysisDBWhenDone.Checked = true));
 
             cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') CREATE DATABASE [" + AnalysisTraceID + "] ON (FILENAME = N'" + mdfPath + AnalysisTraceID + ".mdf'),"
                                                 + "(FILENAME = N'" + mdfPath + AnalysisTraceID + ".ldf') "

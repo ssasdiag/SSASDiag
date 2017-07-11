@@ -69,9 +69,14 @@ namespace SSASDiag
 
                     ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & net stop " + svcName);
                     p.WindowStyle = ProcessWindowStyle.Hidden;
+                    p.Verb = "runas";
                     p.UseShellExecute = false;
                     p.CreateNoWindow = true;
-                    Process.Start(p);
+                    p.RedirectStandardOutput = true;
+                    p.RedirectStandardError = true;
+                    Process proc = Process.Start(p);
+                    Debug.WriteLine("Output of net stop of process: " + proc.StandardOutput.ReadToEnd());
+                    
                 }
                 catch (Exception e)
                 { LogException(e); }

@@ -189,7 +189,7 @@ namespace SSASDiag
 
             if (message == "Initialize pipe")
             {
-                npClient.PushMessage("Initialize pipe");
+                connection.PushMessage("Initialize pipe");
                 return;
             }
 
@@ -200,11 +200,12 @@ namespace SSASDiag
                     txtStatus.Text = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n"
                                     + "Collection service SSASDiag_MSSQLSERVER started.";
                     InitializeCaptureUI();
-                }));   
+                }));
             }
 
+
             if (message.StartsWith("\r\nDiagnostics captured for ") || // && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
-                message.StartsWith("\r\nTime remaining until collection starts: ")) //&& LastStatusLine.StartsWith("Time remaining until collection starts: ")))
+                    message.StartsWith("\r\nTime remaining until collection starts: ")) //&& LastStatusLine.StartsWith("Time remaining until collection starts: ")))
             {
                 string LastStatusLine = "";
                 txtStatus.Invoke(new System.Action(() =>
@@ -212,7 +213,7 @@ namespace SSASDiag
                                                             if (txtStatus.Text.Length > 0)
                                                                 LastStatusLine = txtStatus.Lines.Last();
                                                         }));
-                if (LastStatusLine.StartsWith(message.Substring(2, 20)))
+                if (LastStatusLine != "" && LastStatusLine.StartsWith(message.Substring(2, 20)))
                     txtStatus.Invoke(new System.Action(() => txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""))));
                 else
                 {
@@ -230,7 +231,7 @@ namespace SSASDiag
             else if (message.StartsWith("\r\nWaiting for client interaction:\r\n"))
             {
                 string uiMsg = message.Replace("\r\nWaiting for client interaction:\r\n", "");
-                if (uiMsg.StartsWith("Windows Administrator required for remote server:"))
+                if (uiMsg.StartsWith("Windows Administrator required for remote server:") && pp != null)
                 {
                     if (uiMsg.EndsWith("TryingAgain"))
                     {
@@ -260,25 +261,48 @@ namespace SSASDiag
                     ProcessStartInfo p = null;
                     try
                     {
+                        svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
                         // Stop the service via command line.
                         p = new ProcessStartInfo("cmd.exe", "/c net stop " + svcName);
                         p.WindowStyle = ProcessWindowStyle.Hidden;
-                        p.UseShellExecute = false;
+                        p.UseShellExecute = true;
+                        p.Verb = "runas";
                         p.CreateNoWindow = true;
                         Process.Start(p);
                         if (Environment.UserInteractive)
                         {
                             // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
-                            string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
+                            p = new ProcessStartInfo("reg.exe", @"query HKLM\System\CurrentControlSet\Services\" + svcName + " /v ImagePath");
+                            p.UseShellExecute = false;
+                            p.CreateNoWindow = true;
+                            p.WindowStyle = ProcessWindowStyle.Hidden;
+                            p.RedirectStandardOutput = true;
+                            p.RedirectStandardError = true;
+                            Process proc = Process.Start(p);
+                            string SvcPath = proc.StandardOutput.ReadToEnd();
+                            if (SvcPath == "")
+                            {
+                                string err = proc.StandardError.ReadToEnd();
+                                throw new Exception("Exception getting service path: " + err);
+                            }
+                            else
+                            {
+                                SvcPath = SvcPath.Replace("\r\nHKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Services\\" + svcName + "\r\n    ImagePath    REG_EXPAND_SZ    ", "").Replace("\r\n", "");
+                            }
+
+                            //string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
                             p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & " + SvcPath + " -u");
                             p.WindowStyle = ProcessWindowStyle.Hidden;
-                            p.UseShellExecute = false;
+                            p.Verb = "runas";
+                            p.UseShellExecute = true;
                             p.CreateNoWindow = true;
                             Process.Start(p);
                         }
                     }
                     catch (Exception e)
-                    { LogException(e); }
+                    {
+                        LogException(e);
+                    }
                 }));
             }
             else if (message.Contains("Cancelled by client"))
@@ -286,7 +310,7 @@ namespace SSASDiag
                 if (pp != null && pp.Visible)
                 {
                     pp.DialogResult = DialogResult.Abort;
-                    Invoke(new System.Action(()=>pp.Close()));
+                    Invoke(new System.Action(() => pp.Close()));
                 }
             }
             else
@@ -297,14 +321,16 @@ namespace SSASDiag
                     txtStatus.ScrollToCaret();
                 }));
 
-            if (message.StartsWith("\r\nWindows authentication for remote SQL data source "))
-                Invoke(new System.Action(()=>pp.lblUserPasswordError.Text = "Incorrect user name or password"));
-            if (message.StartsWith("\r\nAuthenticated user "))
-                Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "User unauthorized to database "));
-            if (message.StartsWith("\r\nRemote file share access failed for user "))
-                Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "User unauthorized to remote share"));
             if (pp != null)
+            {
+                if (message.StartsWith("\r\nWindows authentication for remote SQL data source "))
+                    Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "Incorrect user name or password"));
+                if (message.StartsWith("\r\nAuthenticated user "))
+                    Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "User unauthorized to database "));
+                if (message.StartsWith("\r\nRemote file share access failed for user "))
+                    Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "User unauthorized to remote share"));
                 Invoke(new System.Action(() => pp.lblUserPasswordError.Left = pp.Width / 2 - pp.lblUserPasswordError.Width / 2));
+            }
 
             if (message.StartsWith("\r\nStopping collection at "))
                 btnCapture.Image = imgStopHalfLit;
@@ -494,6 +520,7 @@ namespace SSASDiag
                 npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
                 npClient.ServerMessage += NpClient_ServerMessage;
                 npClient.Start();
+                npClient.PushMessage("forceopen");
             }
         }
 
@@ -539,7 +566,8 @@ namespace SSASDiag
         }
         private void bgPopulateInstanceDropdownComplete(object sender, RunWorkerCompletedEventArgs e)
         {
-            svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text); 
+            if (cbInstances.SelectedIndex > -1)
+                svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text); 
             cbInstances.DataSource = LocalInstances;
             cbInstances.DisplayMember = "Text";
             cbInstances.Refresh();
