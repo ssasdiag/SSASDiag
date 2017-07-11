@@ -88,11 +88,11 @@ namespace SSASDiag
                         File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
                         ProcessStartInfo p = new ProcessStartInfo(sInstanceServiceConfig);
                         p.CreateNoWindow = true;
-                        p.UseShellExecute = false;
+                        p.Verb = "runas"; // ensures elevation of priv
                         p.WindowStyle = ProcessWindowStyle.Hidden;
                         p.Arguments = "-i";
                         Process proc = Process.Start(p);
-                        proc.WaitForExit();
+                        
 
                         // Setup the service startup parameters according to user selections
                         svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] 
@@ -131,7 +131,7 @@ namespace SSASDiag
                         new Thread(new ThreadStart(() => {
                             p = new ProcessStartInfo("cmd.exe", "/c net start " + svcName);
                             p.WindowStyle = ProcessWindowStyle.Hidden;
-                            p.UseShellExecute = false;
+                            p.Verb = "runas"; // ensures elevation of priv
                             p.CreateNoWindow = true;
                             Process.Start(p);
                         })).Start();

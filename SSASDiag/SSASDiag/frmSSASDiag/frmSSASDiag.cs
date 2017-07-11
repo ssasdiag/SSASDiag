@@ -423,6 +423,30 @@ namespace SSASDiag
             }
         }
 
+        private void frmSSASDiag_DragDrop(object sender, DragEventArgs e)
+        {
+            if (btnCapture.Image.Tag as string == "Play")
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                foreach (string file in files)
+                {
+                    if (file.EndsWith(".trc") || file.EndsWith(".zip") || file.EndsWith(".etl") || file.EndsWith(".cap") || Directory.Exists(file))
+                    {
+                        txtFolderZipForAnalysis.Text = m_analysisPath = file;
+                        LogFeatureUse("Analysis File Opened", file.Substring(file.LastIndexOf("\\") + 1));
+                        PopulateAnalysisTabs();
+                        tcCollectionAnalysisTabs.SelectedIndex = 1;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void frmSSASDiag_DragEnter(object sender, DragEventArgs e)
+        {
+            if (btnCapture.Image.Tag as string == "Play" && e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
+        }
+
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.AllowUsageStats = Convert.ToString(chkAllowUsageStatsCollection.Checked);
