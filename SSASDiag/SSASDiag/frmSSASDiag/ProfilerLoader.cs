@@ -137,7 +137,7 @@ namespace SSASDiag
                 if (connstr.Contains("Initial Catalog=;")) connstr = connstr.Replace("Initial Catalog=;", "Initial Catalog=" + AnalysisTraceID + ";");
 
                 ASProfilerTraceImporterProcess = new Process();
-                ASProfilerTraceImporterProcess.StartInfo.UseShellExecute = true;
+                ASProfilerTraceImporterProcess.StartInfo.UseShellExecute = false;
                 ASProfilerTraceImporterProcess.StartInfo.CreateNoWindow = true;
                 ASProfilerTraceImporterProcess.StartInfo.RedirectStandardOutput = true;
                 ASProfilerTraceImporterProcess.StartInfo.FileName = Program.TempPath + "ASProfilerTraceImporterCmd.exe";
@@ -322,8 +322,7 @@ namespace SSASDiag
             })).Start();
             Invoke(new System.Action(() =>
             {
-                cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries.Where(q => q.QueryType == (bProfilerEventClassSublcassViewPresent ? ProfilerQueryTypes.AllQueries :
-                                                                                                    bProfilerEventClassSublcassViewPresent ? ProfilerQueryTypes.QueriesWithEventClassSubclassNames :
+                cmbProfilerAnalyses.DataSource = ProfilerTraceAnalysisQueries.Where(q => q.QueryType == (bProfilerEventClassSublcassViewPresent ? ProfilerQueryTypes.QueriesWithEventClassSubclassNames :
                                                                                                     ProfilerQueryTypes.BaseQuery)
                                                                                             || q.Name == "").ToList();
                 cmbProfilerAnalyses.Refresh();

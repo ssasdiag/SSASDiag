@@ -195,6 +195,11 @@ namespace SSASDiag
             if (Args.ContainsKey("perfmoninterval"))
                 try { udInterval.Value = Convert.ToInt32(Args["perfmoninterval"]); }
                 catch { }
+
+            SetWeakFileAssociation(".trc", "SSASDiag Profiler Trace Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
+            SetWeakFileAssociation(".etl", "SSASDiag Network Trace .etl Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
+            SetWeakFileAssociation(".cap", "SSASDiag Network Trace .cap Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
+            SetWeakFileAssociation(".zip", "SSASDiag Data Collection Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
         }
 
         private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
@@ -205,17 +210,24 @@ namespace SSASDiag
                 Program.CheckForUpdates(AppDomain.CurrentDomain);
         }
 
-        public static void SetWeakFileAssociations()
+        public static void SetWeakFileAssociation(string Extension, string KeyName, string OpenWith, string FileDescription)
         {
             RegistryKey BaseKey;
+            RegistryKey OpenMethod;
+            RegistryKey Shell;
 
-            BaseKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\Applications\\SSASDiag.exe");
-            BaseKey = BaseKey.CreateSubKey("SupportedTypes");
-            BaseKey.SetValue(".trc", "");
-            BaseKey.SetValue(".zip", "");
-            BaseKey.SetValue(".etl", "");
-            BaseKey.SetValue(".cap", "");
-            
+            BaseKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + Extension);
+            BaseKey.CreateSubKey("OpenWithProgids").SetValue(KeyName, "");
+
+            OpenMethod = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + KeyName);
+            OpenMethod.SetValue("", FileDescription);
+
+            Shell = OpenMethod.CreateSubKey("Shell");
+            Shell.CreateSubKey("open").CreateSubKey("command").SetValue("", "\"" + OpenWith + "\"" + " \"%1\"");
+            BaseKey.Close();
+            OpenMethod.Close();
+            Shell.Close();
+
             // Tell explorer the file association has been changed
             SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
         }
@@ -301,7 +313,11 @@ namespace SSASDiag
 
             bFullyInitialized = true;
 
-            SetWeakFileAssociations();
+            SetWeakFileAssociation(".trc", "SSASDiag Profiler Trace Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
+            SetWeakFileAssociation(".etl", "SSASDiag Network Trace .etl Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
+            SetWeakFileAssociation(".cap", "SSASDiag Network Trace .cap Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
+            SetWeakFileAssociation(".zip", "SSASDiag Data Collection Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
+
             pp.FormClosed += Pp_FormClosed;
         }
 
