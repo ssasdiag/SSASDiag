@@ -39,10 +39,10 @@
             this.label1.ForeColor = System.Drawing.Color.LightSkyBlue;
             this.label1.Location = new System.Drawing.Point(59, 90);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(194, 210);
+            this.label1.Size = new System.Drawing.Size(194, 240);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Yinn Wong\r\nVan To\r\nSrini Gajella\r\nSamarendra Panda\r\nMalcolm Stewart\r\nJon Burchel\r" +
-    "\nGert Christen";
+            this.label1.Text = "Anne Zorner\r\nYinn Wong\r\nVan To\r\nSrini Gajella\r\nSamarendra Panda\r\nMalcolm Stewart\r" +
+    "\nJon Burchel\r\nGert Christen";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
@@ -61,7 +61,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.ClientSize = new System.Drawing.Size(312, 335);
+            this.ClientSize = new System.Drawing.Size(312, 357);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
