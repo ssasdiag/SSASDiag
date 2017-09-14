@@ -117,6 +117,7 @@ namespace SSASDiag
                             (chkGetNetwork.Checked ? " /network" : "") +
                             (Args.ContainsKey("debug") ? " /debug" : "") +
                             (chkAllowUsageStatsCollection.Checked  ? " /reportusage" : "") +
+                            " /outputdir \"" + Environment.CurrentDirectory + "\"" +
                             " /start";
                         File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
                         svcOutputPath = sInstanceServiceConfig.Substring(0, sInstanceServiceConfig.IndexOf(".exe")) + ".output.log";

@@ -237,6 +237,7 @@ namespace SSASDiag
                     SendMessageToClients("The msmdsrv.ini configuration for the instance at " + sConfigDir + ".");
                 }
 
+                SendMessageToClients("Current dir: " + Environment.CurrentDirectory);
                 if (!Directory.Exists(TraceID))
                     Directory.CreateDirectory(TraceID);
                 else

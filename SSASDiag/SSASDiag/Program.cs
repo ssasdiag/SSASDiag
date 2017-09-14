@@ -249,7 +249,7 @@ namespace SSASDiag
                 {
                     MainForm.btnCapture.PerformClick();
                     while (MainForm.btnCapture.Image.Tag as string != "Start")
-                        Thread.Sleep(500000);
+                        Thread.Sleep(5000);
                 }
                 // Reinitialize service config to start with only option to specify instance, which will trigger stop of service hereafter in service mode then, until UI configures new settings, should someone try to start manually.
                 string svcIniPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (MainForm.cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : MainForm.cbInstances.Text)).GetValue("ImagePath") as string;
