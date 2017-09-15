@@ -1048,7 +1048,7 @@ namespace PdhNative
                     // Marshal.PtrToStructure will allocate managed memory for the object, 
                     // so the unmanaged ptr can be freed safely
                     //
-                    pCounterPathElements = Marshal.PtrToStructure<PDH_COUNTER_PATH_ELEMENTS>(structPtr);
+                    pCounterPathElements = (PDH_COUNTER_PATH_ELEMENTS)Marshal.PtrToStructure(structPtr, typeof(PDH_COUNTER_PATH_ELEMENTS));
                 }
             }
             finally
