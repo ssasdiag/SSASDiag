@@ -245,6 +245,9 @@
     <None Include="Resources\stop-button-half-lit.png" />
     <None Include="Resources\ASProfilerTraceImporterCmd.exe" />
     <None Include="Resources\package_new.png" />
+    <None Include="Resources\Dump.png" />
+    <None Include="Resources\DumpDisabled.png" />
+    <None Include="Resources\DumpLit.png" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

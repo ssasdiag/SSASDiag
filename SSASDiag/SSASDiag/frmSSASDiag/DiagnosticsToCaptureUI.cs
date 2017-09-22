@@ -28,7 +28,7 @@ namespace SSASDiag
         #region SimpleDiagnosticsUI
         private void cmbProblemType_SelectedIndexChanged(object sender, EventArgs e)
         {
-            chkGetConfigDetails.Checked = chkGetNetwork.Checked = chkGetPerfMon.Checked = chkGetProfiler.Checked = chkProfilerPerfDetails.Checked = false;
+            chkHangDumps.Checked = chkGetConfigDetails.Checked = chkGetNetwork.Checked = chkGetPerfMon.Checked = chkGetProfiler.Checked = chkProfilerPerfDetails.Checked = false;
 
             switch (cmbProblemType.SelectedItem as string)
             {
@@ -41,8 +41,9 @@ namespace SSASDiag
                 case "Errors/Hangs (non-connectivity)":
                     rtbProblemDescription.Text = "Non-connectivity related errors require minimal collection of config details, performance monitor logs, and basic profiler traces.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
-                                           + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
-                    chkGetPerfMon.Checked = chkGetProfiler.Checked = chkGetConfigDetails.Checked = chkXMLA.Checked = true;
+                                           + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.\r\n\r\n"
+                                           + "Enables a button allowing on-demand collection of hang dumps anytime after diagnostic collection is active.";
+                    chkGetPerfMon.Checked = chkGetProfiler.Checked = chkGetConfigDetails.Checked = chkXMLA.Checked = chkHangDumps.Checked = true;
                     break;
                 case "Connectivity Failures":
                     rtbProblemDescription.Text = "Connectivity failures require minimal collection of config details, performance monitor logs, basic profiler traces, and network traces.\r\n\r\n"

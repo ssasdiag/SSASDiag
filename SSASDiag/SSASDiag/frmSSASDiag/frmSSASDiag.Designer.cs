@@ -49,6 +49,7 @@
             this.chkProfilerPerfDetails = new System.Windows.Forms.CheckBox();
             this.chkGetNetwork = new System.Windows.Forms.CheckBox();
             this.chkXMLA = new System.Windows.Forms.CheckBox();
+            this.btnHangDumps = new System.Windows.Forms.Button();
             this.chkAllowUsageStatsCollection = new System.Windows.Forms.CheckBox();
             this.tcCollectionAnalysisTabs = new System.Windows.Forms.TabControl();
             this.tbCollection = new System.Windows.Forms.TabPage();
@@ -66,6 +67,7 @@
             this.tbLevelOfData = new System.Windows.Forms.TrackBar();
             this.tabAdvanced = new System.Windows.Forms.TabPage();
             this.pnlDiagnosticsToCollect = new System.Windows.Forms.Panel();
+            this.chkHangDumps = new System.Windows.Forms.CheckBox();
             this.chkGetProfiler = new System.Windows.Forms.CheckBox();
             this.chkGetPerfMon = new System.Windows.Forms.CheckBox();
             this.dtStopTime = new System.Windows.Forms.DateTimePicker();
@@ -360,6 +362,24 @@
             this.chkXMLA.UseVisualStyleBackColor = true;
             this.chkXMLA.CheckedChanged += new System.EventHandler(this.chkXMLA_CheckedChanged);
             // 
+            // btnHangDumps
+            // 
+            this.btnHangDumps.FlatAppearance.BorderSize = 0;
+            this.btnHangDumps.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.btnHangDumps.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnHangDumps.Image = global::SSASDiag.Properties.Resources.Dump;
+            this.btnHangDumps.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.btnHangDumps.Location = new System.Drawing.Point(273, 160);
+            this.btnHangDumps.Name = "btnHangDumps";
+            this.btnHangDumps.Size = new System.Drawing.Size(66, 68);
+            this.btnHangDumps.TabIndex = 67;
+            this.btnHangDumps.Text = "Capture Hang Dumps";
+            this.btnHangDumps.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.ttStatus.SetToolTip(this.btnHangDumps, "Captures 3 consecutive hang dumps from the service on-demand when clicked.");
+            this.btnHangDumps.UseVisualStyleBackColor = true;
+            this.btnHangDumps.Visible = false;
+            this.btnHangDumps.Click += new System.EventHandler(this.btnHangDumps_Click);
+            // 
             // chkAllowUsageStatsCollection
             // 
             this.chkAllowUsageStatsCollection.AutoSize = true;
@@ -408,6 +428,7 @@
             // 
             // splitCollectionUI.Panel1
             // 
+            this.splitCollectionUI.Panel1.Controls.Add(this.btnHangDumps);
             this.splitCollectionUI.Panel1.Controls.Add(this.label3);
             this.splitCollectionUI.Panel1.Controls.Add(this.txtSaveLocation);
             this.splitCollectionUI.Panel1.Controls.Add(this.btnSaveLocation);
@@ -535,8 +556,8 @@
             // 
             this.cmbProblemType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbProblemType.Items.AddRange(new object[] {
-            "Errors/Hangs (non-connectivity)",
             "Performance",
+            "Errors/Hangs (non-connectivity)",
             "Incorrect Query Results",
             "Connectivity Failures",
             "Connectivity (client/middle-tier only)",
@@ -593,6 +614,7 @@
             // 
             this.pnlDiagnosticsToCollect.AutoScroll = true;
             this.pnlDiagnosticsToCollect.BackColor = System.Drawing.SystemColors.Control;
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkHangDumps);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkBAK);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetConfigDetails);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkABF);
@@ -607,6 +629,17 @@
             this.pnlDiagnosticsToCollect.Name = "pnlDiagnosticsToCollect";
             this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(231, 138);
             this.pnlDiagnosticsToCollect.TabIndex = 38;
+            // 
+            // chkHangDumps
+            // 
+            this.chkHangDumps.AutoSize = true;
+            this.chkHangDumps.Location = new System.Drawing.Point(3, 186);
+            this.chkHangDumps.Name = "chkHangDumps";
+            this.chkHangDumps.Size = new System.Drawing.Size(154, 17);
+            this.chkHangDumps.TabIndex = 8;
+            this.chkHangDumps.Text = "Enable hang dump capture";
+            this.chkHangDumps.UseVisualStyleBackColor = true;
+            this.chkHangDumps.CheckedChanged += new System.EventHandler(this.chkHangDumps_CheckedChanged);
             // 
             // chkGetProfiler
             // 
@@ -762,7 +795,7 @@
             this.btnCapture.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
             this.btnCapture.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
             this.btnCapture.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnCapture.Location = new System.Drawing.Point(273, 76);
+            this.btnCapture.Location = new System.Drawing.Point(271, 76);
             this.btnCapture.Name = "btnCapture";
             this.btnCapture.Size = new System.Drawing.Size(68, 68);
             this.btnCapture.TabIndex = 58;
@@ -1267,6 +1300,8 @@
         private System.Windows.Forms.Label lblInterval2;
         public System.Windows.Forms.Button btnCapture;
         public System.Windows.Forms.ComboBox cbInstances;
+        private System.Windows.Forms.Button btnHangDumps;
+        private System.Windows.Forms.CheckBox chkHangDumps;
     }
 }
 

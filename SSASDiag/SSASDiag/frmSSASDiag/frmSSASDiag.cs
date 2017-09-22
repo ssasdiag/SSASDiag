@@ -452,6 +452,16 @@ namespace SSASDiag
             if (btnCapture.Image.Tag as string == "Play" && e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
         }
 
+        private void chkHangDumps_CheckedChanged(object sender, EventArgs e)
+        {
+            btnHangDumps.Visible = !(btnHangDumps.Enabled = !chkHangDumps.Checked);
+        }
+
+        private void btnHangDumps_Click(object sender, EventArgs e)
+        {
+            npClient.PushMessage("Dumping");
+        }
+
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.AllowUsageStats = Convert.ToString(chkAllowUsageStatsCollection.Checked);

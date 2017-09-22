@@ -58,7 +58,7 @@ namespace SSASDiag
                     {
                         svcOutputPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text)).GetValue("ImagePath") as string;
                         svcOutputPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".exe")) + ".output.log";
-                        dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 || cbsdi == null ? "" : cbsdi.Text, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
+                        dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 || cbsdi == null ? "" : cbsdi.Text, cbsdi.ServiceName, cbsdi.InstanceID, cbsdi.SQLProgramDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
                             txtStatus,
                             (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
                             chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked);
@@ -142,6 +142,7 @@ namespace SSASDiag
                 {
                     btnCapture.Click -= btnCapture_Click;
                     btnCapture.Image = imgStopHalfLit;
+                    btnHangDumps.Enabled = false;
                     if (!Environment.UserInteractive)
                         new Thread(new ThreadStart(() => dc.StopAndFinalizeAllDiagnostics())).Start();
                     else
@@ -222,6 +223,7 @@ namespace SSASDiag
                     {
                         if (btnCapture.Image.Tag as string == "Play Half Lit")
                         {
+                            btnHangDumps.Enabled = true;
                             btnCapture.Image = imgStop;
                             btnCapture.Click += btnCapture_Click;
                         }
@@ -253,6 +255,18 @@ namespace SSASDiag
                     }
                     ));
                 }
+            }
+            else if (message == "Dumping")
+            {
+                btnCapture.Image = imgStopHalfLit;
+                btnCapture.Click -= btnCapture_Click;
+                btnHangDumps.Invoke(new System.Action(() => { btnHangDumps.Enabled = false; }));
+            }
+            else if (message == "DumpingOver")
+            {
+                btnCapture.Image = imgStop;
+                btnCapture.Click += btnCapture_Click;
+                btnHangDumps.Invoke(new System.Action(() => { btnHangDumps.Enabled = true; }));
             }
             else if (message == "\r\nStop")
             {
@@ -322,7 +336,7 @@ namespace SSASDiag
                     txtStatus.ScrollToCaret();
                 }));
 
-            if (pp != null)
+            if (pp != null && pp.InvokeRequired)
             {
                 if (message.StartsWith("\r\nWindows authentication for remote SQL data source "))
                     Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "Incorrect user name or password"));
@@ -378,6 +392,9 @@ namespace SSASDiag
         {
             public string Text { get; set; }
             public string ConfigPath { get; set; }
+            public string InstanceID { get; set; }
+            public string ServiceName { get; set; }
+            public string SQLProgramDir { get; set; }
             public string ServiceAccount { get; set; }
         }
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
@@ -551,10 +568,13 @@ namespace SSASDiag
                         string ConfigPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + s.ServiceName, false).GetValue("ImagePath") as string;
                         System.Diagnostics.Trace.WriteLine("Found AS instance: " + ConfigPath);
                         ConfigPath = ConfigPath.Substring(ConfigPath.IndexOf("-s \"") + "-s \"".Length).TrimEnd('\"');
+                        string InstanceID = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "");
+                        InstanceID = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\OLAP", false).GetValue(InstanceID) as string;
+                        string SQLProgramDir = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Setup", false).GetValue("SQLProgramDir") as string;
                         if (s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "").ToUpper() == "MSSQLSERVER")
-                            LocalInstances.Insert(0, new ComboBoxServiceDetailsItem() { Text = "Default instance (MSSQLServer)", ConfigPath = ConfigPath, ServiceAccount = sSvcUser });
+                            LocalInstances.Insert(0, new ComboBoxServiceDetailsItem() { Text = "Default instance (MSSQLServer)", ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName });
                         else
-                            LocalInstances.Add(new ComboBoxServiceDetailsItem() { Text = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", ""), ConfigPath = ConfigPath, ServiceAccount = sSvcUser });
+                            LocalInstances.Add(new ComboBoxServiceDetailsItem() { Text = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", ""), ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName });
                     }
             }
             catch (Exception ex)

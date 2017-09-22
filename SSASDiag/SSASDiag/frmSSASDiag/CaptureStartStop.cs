@@ -36,6 +36,7 @@ namespace SSASDiag
         #endregion StatusHandlingDuringCapture
         private void callback_StartDiagnosticsComplete()
         {
+            if (chkHangDumps.Checked) btnHangDumps.Enabled = true;
             btnCapture.Image = imgStop;
             btnCapture.Click += btnCapture_Click;
             if (dc != null)
