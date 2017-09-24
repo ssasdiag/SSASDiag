@@ -28,7 +28,9 @@ namespace SSASDiag
         #region SimpleDiagnosticsUI
         private void cmbProblemType_SelectedIndexChanged(object sender, EventArgs e)
         {
-            chkHangDumps.Checked = chkGetConfigDetails.Checked = chkGetNetwork.Checked = chkGetPerfMon.Checked = chkGetProfiler.Checked = chkProfilerPerfDetails.Checked = false;
+            bool bUpdatingSimpleToMatchChangedAdvanced = new StackTrace().GetFrames().Where(f => f.GetMethod().Name.Contains("UpdateSimpleUIAfterAdvancedChanged")).Count() > 0;
+            if (!bUpdatingSimpleToMatchChangedAdvanced)
+                chkHangDumps.Checked = chkGetConfigDetails.Checked = chkGetNetwork.Checked = chkGetPerfMon.Checked = chkGetProfiler.Checked = chkProfilerPerfDetails.Checked = false;
 
             switch (cmbProblemType.SelectedItem as string)
             {
@@ -36,14 +38,20 @@ namespace SSASDiag
                     rtbProblemDescription.Text = "Performance issues require minimal collection of config details, performance monitor logs, and extended profiler traces including performance relevant details.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
-                    chkProfilerPerfDetails.Checked = chkGetProfiler.Checked = chkGetPerfMon.Checked = chkXMLA.Checked = chkGetConfigDetails.Checked = true;
+                    chkProfilerPerfDetails.Checked = chkGetProfiler.Checked = chkGetPerfMon.Checked = chkGetConfigDetails.Checked = true;
+                    chkXMLA.Checked = tbLevelOfData.Value == 0;
+                    chkABF.Checked = tbLevelOfData.Value == 1;
+                    chkBAK.Checked = tbLevelOfData.Value == 2;
                     break;
                 case "Errors/Hangs (non-connectivity)":
                     rtbProblemDescription.Text = "Non-connectivity related errors require minimal collection of config details, performance monitor logs, and basic profiler traces.\r\n\r\n"
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.\r\n\r\n"
                                            + "Enables a button allowing on-demand collection of hang dumps anytime after diagnostic collection is active.";
-                    chkGetPerfMon.Checked = chkGetProfiler.Checked = chkGetConfigDetails.Checked = chkXMLA.Checked = chkHangDumps.Checked = true;
+                    chkGetPerfMon.Checked = chkGetProfiler.Checked = chkGetConfigDetails.Checked = chkHangDumps.Checked = true;
+                    chkXMLA.Checked = tbLevelOfData.Value == 0;
+                    chkABF.Checked = tbLevelOfData.Value == 1;
+                    chkBAK.Checked = tbLevelOfData.Value == 2;
                     break;
                 case "Connectivity Failures":
                     rtbProblemDescription.Text = "Connectivity failures require minimal collection of config details, performance monitor logs, basic profiler traces, and network traces.\r\n\r\n"
@@ -52,12 +60,15 @@ namespace SSASDiag
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.";
                     chkGetConfigDetails.Checked = chkGetProfiler.Checked = chkGetPerfMon.Checked = chkGetNetwork.Checked = true;
+                    chkXMLA.Checked = tbLevelOfData.Value == 0;
+                    chkABF.Checked = tbLevelOfData.Value == 1;
+                    chkBAK.Checked = tbLevelOfData.Value == 2;
                     break;
                 case "Connectivity (client/middle-tier only)":
                     rtbProblemDescription.Text = "Connectivity failures on client and middle tier require collection of network traces.\r\n\r\n"
                                            + "Network traces should be captured on a failing client, and any middle tier server, for multi-tier scenarios.\r\n\r\n"
                                            + "Service Principle Names registered in Active Directory are captured if the tool is run as a domain administrator.";
-                    chkXMLA.Checked = chkABF.Checked = chkBAK.Checked = false;
+                    chkXMLA.Checked = chkABF.Checked = chkBAK.Checked = tbLevelOfData.Enabled = false;
                     chkGetNetwork.Checked = true;
                     break;
                 case "Incorrect Query Results":
@@ -79,6 +90,9 @@ namespace SSASDiag
                         ProcessSliderMiddlePosition();
                     }
                     ttStatus.Show("Including AS backups can increase data collection size and time required to stop collection.", tbLevelOfData, 1500);
+                    break;
+                case "":
+                    rtbProblemDescription.Text = "Custom data capture based on selections from the Advanced tab.";
                     break;
             }
         }
@@ -156,9 +170,10 @@ namespace SSASDiag
             EnsureSomethingToCapture();
             UpdateUIIfOnlyNetworkingEnabled();
         }
+
         private void chkProfilerPerfDetails_CheckedChanged(object sender, EventArgs e)
         {
-            if (chkProfilerPerfDetails.Checked)
+            if (chkProfilerPerfDetails.Checked && tcSimpleAdvanced.SelectedIndex == 1)
             {
                 chkGetProfiler.Checked = true;
                 if (Environment.UserInteractive && bFullyInitialized && MessageBox.Show("Adding verbose performance details to profiler traces accumulates data much more quickly than without, and is often not required even to understand many performance issues.\r\n\r\nDo you want to enable verbose tracing anyway?", "Verbose Trace Details Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.No)
@@ -232,10 +247,10 @@ namespace SSASDiag
         private void chkGetNetwork_CheckedChanged(object sender, EventArgs e)
         {
             SetRolloverAndStartStopEnabledStates();
-            if (chkGetNetwork.Checked && chkRollover.Checked)
+            if (chkGetNetwork.Checked && chkRollover.Checked && tcSimpleAdvanced.SelectedIndex == 1)
                 ttStatus.Show("NOTE: Network traces rollover circularly,\n"
                             + "always deleting older data automatically.", chkGetNetwork, 2000);
-            if (chkGetNetwork.Checked && Environment.UserInteractive && bFullyInitialized)
+            if (chkGetNetwork.Checked && Environment.UserInteractive && bFullyInitialized && tcSimpleAdvanced.SelectedIndex == 1)
                 MessageBox.Show("Please note that including network traces may significantly increase size of data collected and time required to stop collection.",
                     "Network Trace Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             UpdateUIIfOnlyNetworkingEnabled();
@@ -279,6 +294,28 @@ namespace SSASDiag
                     btnCapture.Enabled = true;
                 btnCapture.ResumeLayout();
             }
+        }
+        private void UpdateSimpleUIAfterAdvancedChanged()
+        {
+            bool bSomeFormOfDBData = (chkXMLA.Checked || chkABF.Checked || chkBAK.Checked);
+            if (chkProfilerPerfDetails.Checked && chkGetProfiler.Checked && chkGetPerfMon.Checked && bSomeFormOfDBData && chkGetConfigDetails.Checked)
+                cmbProblemType.SelectedIndex = 1;
+            else if (chkGetPerfMon.Checked && chkGetProfiler.Checked && chkGetConfigDetails.Checked && bSomeFormOfDBData && chkHangDumps.Checked)
+                cmbProblemType.SelectedIndex = 2;
+            else if (!bSomeFormOfDBData && chkGetNetwork.Checked)
+                cmbProblemType.SelectedIndex = 5;
+            else if (chkGetConfigDetails.Checked && chkGetProfiler.Checked && chkGetPerfMon.Checked && chkGetNetwork.Checked)
+                cmbProblemType.SelectedIndex = 4;
+            else if (chkGetConfigDetails.Checked && chkGetProfiler.Checked && chkBAK.Checked)
+                cmbProblemType.SelectedIndex = 3;
+            else if (chkGetConfigDetails.Checked && chkGetProfiler.Checked && chkGetPerfMon.Checked && chkABF.Checked)
+                cmbProblemType.SelectedIndex = 6;
+            else if (cmbProblemType.SelectedIndex != 0)
+                cmbProblemType.SelectedIndex = 0;
+            tbLevelOfData.Enabled = chkBAK.Checked || chkABF.Checked || chkXMLA.Checked;
+            tbLevelOfData.ValueChanged -= tbLevelOfData_ValueChanged;
+            tbLevelOfData.Value = chkABF.Checked ? 1 : chkBAK.Checked ? 2 : 0;
+            tbLevelOfData.ValueChanged += tbLevelOfData_ValueChanged;
         }
 
         #endregion AdvandedDiagnosticsUI

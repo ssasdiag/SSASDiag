@@ -295,7 +295,7 @@ namespace SSASDiag
             if (Args.ContainsKey("network")) chkGetNetwork.Checked = true; 
 
             if (!Args.ContainsKey("config") && !Args.ContainsKey("perfmon") && !Args.ContainsKey("profiler") && !Args.ContainsKey("verbose") && !Args.ContainsKey("xmla") && !Args.ContainsKey("abf") && !Args.ContainsKey("bak") && !Args.ContainsKey("network") && !Args.ContainsKey("problemtype"))
-                cmbProblemType.SelectedIndex = 0;
+                cmbProblemType.SelectedIndex = 1;
 
             if (Args.ContainsKey("levelofdata"))
                 try { tbLevelOfData.Value = Convert.ToInt32(Args["levelofdata"]); }
@@ -455,6 +455,12 @@ namespace SSASDiag
         private void btnHangDumps_Click(object sender, EventArgs e)
         {
             npClient.PushMessage("Dumping");
+        }
+
+        private void tcSimpleAdvanced_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (tcSimpleAdvanced.SelectedIndex == 0)
+                UpdateSimpleUIAfterAdvancedChanged();
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
