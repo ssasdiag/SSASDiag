@@ -206,6 +206,12 @@ namespace SSASDiag
                 }));
             }
 
+            if (message.StartsWith("\r\nCreated temporary folder "))
+            {
+                txtFolderZipForAnalysis.Invoke(new System.Action(() =>
+                    txtFolderZipForAnalysis.Text = m_analysisPath = Environment.CurrentDirectory + "\\" + message.Replace("\r\nCreated temporary folder ", "").Replace(" to collect diagnostic files.", "") + (chkZip.Checked && chkDeleteRaw.Checked ? ".zip" : "")
+                    ));
+            }
 
             if (message.StartsWith("\r\nDiagnostics captured for ") || // && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
                     message.StartsWith("\r\nTime remaining until collection starts: ")) //&& LastStatusLine.StartsWith("Time remaining until collection starts: ")))
@@ -219,14 +225,9 @@ namespace SSASDiag
                 if (LastStatusLine != "" && LastStatusLine.StartsWith(message.Substring(2, 20)))
                     txtStatus.Invoke(new System.Action(() =>
                     {
-                        bool bScrollRequired = false;
-                        if (txtStatus.Lines.Last().StartsWith("Diagnostics captured for")) bScrollRequired = true;
                         txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""));
-                        if (bScrollRequired)
-                        {
-                            txtStatus.SelectionStart = txtStatus.TextLength;
-                            txtStatus.ScrollToCaret();
-                        }
+                        txtStatus.SelectionStart = txtStatus.TextLength;
+                        txtStatus.ScrollToCaret();
                     }
                     ));
                 else

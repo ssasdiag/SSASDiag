@@ -35,23 +35,14 @@ namespace SSASDiag
                     cmbProfilerAnalyses.DisplayMember = "Name";
                 }
 
-                if (dc != null && !bProfilerTraceDbAttached)
+                if (txtFolderZipForAnalysis.Text != "")
                 {
-                    AnalysisTraceID = dc.TraceID;
-                    if (Directory.Exists(Environment.CurrentDirectory + "\\" + dc.TraceID))
-                    {
-                        m_analysisPath = txtFolderZipForAnalysis.Text = Environment.CurrentDirectory + "\\" + dc.TraceID;
+                    AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag").Replace(".zip", "");
+                    if (Directory.Exists(txtFolderZipForAnalysis.Text) || File.Exists(txtFolderZipForAnalysis.Text))
                         PopulateAnalysisTabs();
-                    }
-                    else
-                    {
-                        if (File.Exists(Environment.CurrentDirectory + "\\" + dc.TraceID + ".zip"))
-                        {
-                            m_analysisPath = txtFolderZipForAnalysis.Text = Environment.CurrentDirectory + "\\" + dc.TraceID + ".zip";
-                            PopulateAnalysisTabs();
-                        }
-                    }
                 }
+                else
+                    lblInitialAnalysisPrompt.Visible = true;
             }
         }
         private void btnAnalysisFolder_Click(object sender, EventArgs e)
@@ -78,6 +69,7 @@ namespace SSASDiag
         }
         private void PopulateAnalysisTabs()
         {
+            lblInitialAnalysisPrompt.Visible = false;
             if (connSqlDb.State != ConnectionState.Closed)
                 connSqlDb.Close();
             if (File.Exists(m_analysisPath))

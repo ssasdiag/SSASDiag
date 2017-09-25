@@ -86,6 +86,10 @@
             this.lblInterval2 = new System.Windows.Forms.Label();
             this.txtStatus = new System.Windows.Forms.RichTextBox();
             this.tbAnalysis = new System.Windows.Forms.TabPage();
+            this.lblInitialAnalysisPrompt = new System.Windows.Forms.Label();
+            this.btnAnalysisFolder = new System.Windows.Forms.Button();
+            this.txtFolderZipForAnalysis = new System.Windows.Forms.TextBox();
+            this.lblFolderZipPrompt = new System.Windows.Forms.Label();
             this.tcAnalysis = new System.Windows.Forms.TabControl();
             this.tbProfilerTraces = new System.Windows.Forms.TabPage();
             this.btnImportProfilerTrace = new System.Windows.Forms.Button();
@@ -102,9 +106,6 @@
             this.chkDettachProfilerAnalysisDBWhenDone = new System.Windows.Forms.CheckBox();
             this.dgdProfilerAnalyses = new System.Windows.Forms.DataGridView();
             this.imgAnalyzerIcons = new System.Windows.Forms.ImageList(this.components);
-            this.btnAnalysisFolder = new System.Windows.Forms.Button();
-            this.txtFolderZipForAnalysis = new System.Windows.Forms.TextBox();
-            this.lblFolderZipPrompt = new System.Windows.Forms.Label();
             this.btnSettings = new System.Windows.Forms.Button();
             this.ctxSettings = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.automaticallyCheckForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -873,10 +874,11 @@
             // tbAnalysis
             // 
             this.tbAnalysis.BackColor = System.Drawing.SystemColors.Control;
-            this.tbAnalysis.Controls.Add(this.tcAnalysis);
+            this.tbAnalysis.Controls.Add(this.lblInitialAnalysisPrompt);
             this.tbAnalysis.Controls.Add(this.btnAnalysisFolder);
             this.tbAnalysis.Controls.Add(this.txtFolderZipForAnalysis);
             this.tbAnalysis.Controls.Add(this.lblFolderZipPrompt);
+            this.tbAnalysis.Controls.Add(this.tcAnalysis);
             this.tbAnalysis.Location = new System.Drawing.Point(4, 22);
             this.tbAnalysis.Margin = new System.Windows.Forms.Padding(0);
             this.tbAnalysis.Name = "tbAnalysis";
@@ -884,6 +886,45 @@
             this.tbAnalysis.Size = new System.Drawing.Size(593, 439);
             this.tbAnalysis.TabIndex = 1;
             this.tbAnalysis.Text = "Analysis";
+            // 
+            // lblInitialAnalysisPrompt
+            // 
+            this.lblInitialAnalysisPrompt.AutoSize = true;
+            this.lblInitialAnalysisPrompt.BackColor = System.Drawing.SystemColors.Window;
+            this.lblInitialAnalysisPrompt.Location = new System.Drawing.Point(10, 64);
+            this.lblInitialAnalysisPrompt.Name = "lblInitialAnalysisPrompt";
+            this.lblInitialAnalysisPrompt.Size = new System.Drawing.Size(298, 104);
+            this.lblInitialAnalysisPrompt.TabIndex = 34;
+            this.lblInitialAnalysisPrompt.Text = resources.GetString("lblInitialAnalysisPrompt.Text");
+            this.lblInitialAnalysisPrompt.Visible = false;
+            // 
+            // btnAnalysisFolder
+            // 
+            this.btnAnalysisFolder.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAnalysisFolder.Location = new System.Drawing.Point(115, 5);
+            this.btnAnalysisFolder.Name = "btnAnalysisFolder";
+            this.btnAnalysisFolder.Size = new System.Drawing.Size(22, 19);
+            this.btnAnalysisFolder.TabIndex = 0;
+            this.btnAnalysisFolder.Text = "...";
+            this.btnAnalysisFolder.UseVisualStyleBackColor = true;
+            this.btnAnalysisFolder.Click += new System.EventHandler(this.btnAnalysisFolder_Click);
+            // 
+            // txtFolderZipForAnalysis
+            // 
+            this.txtFolderZipForAnalysis.Location = new System.Drawing.Point(137, 4);
+            this.txtFolderZipForAnalysis.Name = "txtFolderZipForAnalysis";
+            this.txtFolderZipForAnalysis.ReadOnly = true;
+            this.txtFolderZipForAnalysis.Size = new System.Drawing.Size(453, 20);
+            this.txtFolderZipForAnalysis.TabIndex = 1;
+            // 
+            // lblFolderZipPrompt
+            // 
+            this.lblFolderZipPrompt.AutoSize = true;
+            this.lblFolderZipPrompt.Location = new System.Drawing.Point(3, 8);
+            this.lblFolderZipPrompt.Name = "lblFolderZipPrompt";
+            this.lblFolderZipPrompt.Size = new System.Drawing.Size(115, 13);
+            this.lblFolderZipPrompt.TabIndex = 0;
+            this.lblFolderZipPrompt.Text = "Analyze Folder/Zip File";
             // 
             // tcAnalysis
             // 
@@ -1117,34 +1158,6 @@
             this.imgAnalyzerIcons.Images.SetKeyName(4, "PerfMon.ico");
             this.imgAnalyzerIcons.Images.SetKeyName(5, "Profiler.ico");
             // 
-            // btnAnalysisFolder
-            // 
-            this.btnAnalysisFolder.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAnalysisFolder.Location = new System.Drawing.Point(115, 5);
-            this.btnAnalysisFolder.Name = "btnAnalysisFolder";
-            this.btnAnalysisFolder.Size = new System.Drawing.Size(22, 19);
-            this.btnAnalysisFolder.TabIndex = 0;
-            this.btnAnalysisFolder.Text = "...";
-            this.btnAnalysisFolder.UseVisualStyleBackColor = true;
-            this.btnAnalysisFolder.Click += new System.EventHandler(this.btnAnalysisFolder_Click);
-            // 
-            // txtFolderZipForAnalysis
-            // 
-            this.txtFolderZipForAnalysis.Location = new System.Drawing.Point(137, 4);
-            this.txtFolderZipForAnalysis.Name = "txtFolderZipForAnalysis";
-            this.txtFolderZipForAnalysis.ReadOnly = true;
-            this.txtFolderZipForAnalysis.Size = new System.Drawing.Size(453, 20);
-            this.txtFolderZipForAnalysis.TabIndex = 1;
-            // 
-            // lblFolderZipPrompt
-            // 
-            this.lblFolderZipPrompt.AutoSize = true;
-            this.lblFolderZipPrompt.Location = new System.Drawing.Point(3, 8);
-            this.lblFolderZipPrompt.Name = "lblFolderZipPrompt";
-            this.lblFolderZipPrompt.Size = new System.Drawing.Size(115, 13);
-            this.lblFolderZipPrompt.TabIndex = 0;
-            this.lblFolderZipPrompt.Text = "Analyze Folder/Zip File";
-            // 
             // btnSettings
             // 
             this.btnSettings.FlatAppearance.BorderColor = System.Drawing.SystemColors.ButtonFace;
@@ -1342,6 +1355,7 @@
         private System.Windows.Forms.ToolStripMenuItem automaticallyCheckForUpdatesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem enableAnonymousUsageStatisticCollectionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem enableOpenWithToolStripItem;
+        private System.Windows.Forms.Label lblInitialAnalysisPrompt;
     }
 }
 
