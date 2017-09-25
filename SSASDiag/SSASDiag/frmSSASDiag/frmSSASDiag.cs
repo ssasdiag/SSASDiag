@@ -455,7 +455,7 @@ namespace SSASDiag
 
         private void ctxSettings_Click(object sender, EventArgs e)
         {
-            ctxSettings.Show(btnSettings, new Point(3, btnSettings.Height - 3));
+            ctxSettings.Show(btnSettings, new Point(btnSettings.Width - ctxSettings.Width - 3, btnSettings.Height - 3));
         }
 
         private void enableOpenWithToolStripItem_CheckedChanged(object sender, EventArgs e)
