@@ -116,7 +116,7 @@ namespace SSASDiag
                             (chkXMLA.Checked ? " /xmla" : "") +
                             (chkGetNetwork.Checked ? " /network" : "") +
                             (Args.ContainsKey("debug") ? " /debug" : "") +
-                            (chkAllowUsageStatsCollection.Checked  ? " /reportusage" : "") +
+                            (enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked  ? " /reportusage" : "") +
                             " /outputdir \"" + Environment.CurrentDirectory + "\"" +
                             " /start";
                         File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());

@@ -30,8 +30,8 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSSASDiag));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.lkBugs = new System.Windows.Forms.LinkLabel();
@@ -50,7 +50,6 @@
             this.chkGetNetwork = new System.Windows.Forms.CheckBox();
             this.chkXMLA = new System.Windows.Forms.CheckBox();
             this.btnHangDumps = new System.Windows.Forms.Button();
-            this.chkAllowUsageStatsCollection = new System.Windows.Forms.CheckBox();
             this.tcCollectionAnalysisTabs = new System.Windows.Forms.TabControl();
             this.tbCollection = new System.Windows.Forms.TabPage();
             this.splitCollectionUI = new System.Windows.Forms.SplitContainer();
@@ -106,9 +105,8 @@
             this.btnAnalysisFolder = new System.Windows.Forms.Button();
             this.txtFolderZipForAnalysis = new System.Windows.Forms.TextBox();
             this.lblFolderZipPrompt = new System.Windows.Forms.Label();
-            this.chkAutoUpdate = new System.Windows.Forms.CheckBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.btnSettings = new System.Windows.Forms.Button();
+            this.ctxSettings = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.automaticallyCheckForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableOpenWithToolStripItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -136,7 +134,7 @@
             this.splitProfilerAnalysis.SuspendLayout();
             this.pnlProfilerAnalysisStatus.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdProfilerAnalyses)).BeginInit();
-            this.contextMenuStrip1.SuspendLayout();
+            this.ctxSettings.SuspendLayout();
             this.SuspendLayout();
             // 
             // lkFeedback
@@ -147,7 +145,7 @@
             this.lkFeedback.Image = ((System.Drawing.Image)(resources.GetObject("lkFeedback.Image")));
             this.lkFeedback.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkFeedback.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkFeedback.Location = new System.Drawing.Point(7, 468);
+            this.lkFeedback.Location = new System.Drawing.Point(1, 479);
             this.lkFeedback.Name = "lkFeedback";
             this.lkFeedback.Padding = new System.Windows.Forms.Padding(2);
             this.lkFeedback.Size = new System.Drawing.Size(77, 17);
@@ -165,7 +163,7 @@
             this.lkBugs.Image = ((System.Drawing.Image)(resources.GetObject("lkBugs.Image")));
             this.lkBugs.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkBugs.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkBugs.Location = new System.Drawing.Point(90, 468);
+            this.lkBugs.Location = new System.Drawing.Point(84, 479);
             this.lkBugs.Name = "lkBugs";
             this.lkBugs.Padding = new System.Windows.Forms.Padding(2);
             this.lkBugs.Size = new System.Drawing.Size(53, 17);
@@ -183,7 +181,7 @@
             this.lkDiscussion.Image = ((System.Drawing.Image)(resources.GetObject("lkDiscussion.Image")));
             this.lkDiscussion.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkDiscussion.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkDiscussion.Location = new System.Drawing.Point(149, 468);
+            this.lkDiscussion.Location = new System.Drawing.Point(143, 479);
             this.lkDiscussion.Name = "lkDiscussion";
             this.lkDiscussion.Padding = new System.Windows.Forms.Padding(2);
             this.lkDiscussion.Size = new System.Drawing.Size(111, 17);
@@ -201,7 +199,7 @@
             this.lkAbout.Image = ((System.Drawing.Image)(resources.GetObject("lkAbout.Image")));
             this.lkAbout.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkAbout.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkAbout.Location = new System.Drawing.Point(266, 468);
+            this.lkAbout.Location = new System.Drawing.Point(260, 479);
             this.lkAbout.Name = "lkAbout";
             this.lkAbout.Padding = new System.Windows.Forms.Padding(2);
             this.lkAbout.Size = new System.Drawing.Size(57, 17);
@@ -387,19 +385,6 @@
             this.btnHangDumps.UseVisualStyleBackColor = false;
             this.btnHangDumps.Visible = false;
             this.btnHangDumps.Click += new System.EventHandler(this.btnHangDumps_Click);
-            // 
-            // chkAllowUsageStatsCollection
-            // 
-            this.chkAllowUsageStatsCollection.AutoSize = true;
-            this.chkAllowUsageStatsCollection.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkAllowUsageStatsCollection.Location = new System.Drawing.Point(412, 469);
-            this.chkAllowUsageStatsCollection.Name = "chkAllowUsageStatsCollection";
-            this.chkAllowUsageStatsCollection.Size = new System.Drawing.Size(189, 16);
-            this.chkAllowUsageStatsCollection.TabIndex = 47;
-            this.chkAllowUsageStatsCollection.Text = "Allow anonymous usage stats collection";
-            this.chkAllowUsageStatsCollection.UseVisualStyleBackColor = true;
-            this.chkAllowUsageStatsCollection.CheckedChanged += new System.EventHandler(this.chkAllowUsageStatsCollection_CheckedChanged);
-            this.chkAllowUsageStatsCollection.MouseHover += new System.EventHandler(this.chkAllowUsageStatsCollection_MouseHover);
             // 
             // tcCollectionAnalysisTabs
             // 
@@ -1091,21 +1076,21 @@
             this.dgdProfilerAnalyses.AllowUserToDeleteRows = false;
             this.dgdProfilerAnalyses.AllowUserToOrderColumns = true;
             this.dgdProfilerAnalyses.AllowUserToResizeRows = false;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.AliceBlue;
-            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.AliceBlue;
+            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             this.dgdProfilerAnalyses.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
             this.dgdProfilerAnalyses.BackgroundColor = System.Drawing.SystemColors.ControlDark;
             this.dgdProfilerAnalyses.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdProfilerAnalyses.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dgdProfilerAnalyses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle4;
             this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
             this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 0);
             this.dgdProfilerAnalyses.Margin = new System.Windows.Forms.Padding(0);
@@ -1160,43 +1145,32 @@
             this.lblFolderZipPrompt.TabIndex = 0;
             this.lblFolderZipPrompt.Text = "Analyze Folder/Zip File";
             // 
-            // chkAutoUpdate
+            // btnSettings
             // 
-            this.chkAutoUpdate.AutoSize = true;
-            this.chkAutoUpdate.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkAutoUpdate.Location = new System.Drawing.Point(443, 2);
-            this.chkAutoUpdate.Name = "chkAutoUpdate";
-            this.chkAutoUpdate.Size = new System.Drawing.Size(156, 16);
-            this.chkAutoUpdate.TabIndex = 46;
-            this.chkAutoUpdate.Text = "Automatically check for updates";
-            this.chkAutoUpdate.UseVisualStyleBackColor = true;
-            this.chkAutoUpdate.CheckedChanged += new System.EventHandler(this.chkAutoUpdate_CheckedChanged);
+            this.btnSettings.FlatAppearance.BorderColor = System.Drawing.SystemColors.ButtonFace;
+            this.btnSettings.FlatAppearance.BorderSize = 0;
+            this.btnSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSettings.Image = ((System.Drawing.Image)(resources.GetObject("btnSettings.Image")));
+            this.btnSettings.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnSettings.Location = new System.Drawing.Point(535, -2);
+            this.btnSettings.Name = "btnSettings";
+            this.btnSettings.Size = new System.Drawing.Size(68, 22);
+            this.btnSettings.TabIndex = 48;
+            this.btnSettings.Text = "Settings";
+            this.btnSettings.TextAlign = System.Drawing.ContentAlignment.BottomRight;
+            this.btnSettings.UseVisualStyleBackColor = true;
+            this.btnSettings.Click += new System.EventHandler(this.ctxSettings_Click);
             // 
-            // button1
+            // ctxSettings
             // 
-            this.button1.FlatAppearance.BorderSize = 0;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Image = ((System.Drawing.Image)(resources.GetObject("button1.Image")));
-            this.button1.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.button1.Location = new System.Drawing.Point(376, -2);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(67, 22);
-            this.button1.TabIndex = 48;
-            this.button1.Text = "Settings";
-            this.button1.TextAlign = System.Drawing.ContentAlignment.BottomRight;
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // contextMenuStrip1
-            // 
-            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ctxSettings.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.automaticallyCheckForUpdatesToolStripMenuItem,
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem,
             this.enableOpenWithToolStripItem});
-            this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.ShowCheckMargin = true;
-            this.contextMenuStrip1.ShowImageMargin = false;
-            this.contextMenuStrip1.Size = new System.Drawing.Size(313, 70);
+            this.ctxSettings.Name = "contextMenuStrip1";
+            this.ctxSettings.ShowCheckMargin = true;
+            this.ctxSettings.ShowImageMargin = false;
+            this.ctxSettings.Size = new System.Drawing.Size(313, 70);
             // 
             // automaticallyCheckForUpdatesToolStripMenuItem
             // 
@@ -1204,6 +1178,7 @@
             this.automaticallyCheckForUpdatesToolStripMenuItem.Name = "automaticallyCheckForUpdatesToolStripMenuItem";
             this.automaticallyCheckForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(312, 22);
             this.automaticallyCheckForUpdatesToolStripMenuItem.Text = "Automatically check for updates";
+            this.automaticallyCheckForUpdatesToolStripMenuItem.CheckedChanged += new System.EventHandler(this.chkAutoUpdate_CheckedChanged);
             // 
             // enableAnonymousUsageStatisticCollectionToolStripMenuItem
             // 
@@ -1212,14 +1187,18 @@
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Size = new System.Drawing.Size(312, 22);
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Text = "Enable anonymous usage statistic collection";
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.ToolTipText = resources.GetString("enableAnonymousUsageStatisticCollectionToolStripMenuItem.ToolTipText");
+            this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.CheckedChanged += new System.EventHandler(this.chkAllowUsageStatsCollection_CheckedChanged);
             // 
             // enableOpenWithToolStripItem
             // 
+            this.enableOpenWithToolStripItem.Checked = true;
             this.enableOpenWithToolStripItem.CheckOnClick = true;
+            this.enableOpenWithToolStripItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.enableOpenWithToolStripItem.Name = "enableOpenWithToolStripItem";
             this.enableOpenWithToolStripItem.Size = new System.Drawing.Size(312, 22);
             this.enableOpenWithToolStripItem.Text = "Enable context menu to Open With SSASDiag";
             this.enableOpenWithToolStripItem.ToolTipText = "Current supported file types include .zip, .trc, .cap, .etl.";
+            this.enableOpenWithToolStripItem.CheckedChanged += new System.EventHandler(this.enableOpenWithToolStripItem_CheckedChanged);
             // 
             // frmSSASDiag
             // 
@@ -1227,9 +1206,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(601, 496);
-            this.Controls.Add(this.button1);
-            this.Controls.Add(this.chkAllowUsageStatsCollection);
-            this.Controls.Add(this.chkAutoUpdate);
+            this.Controls.Add(this.btnSettings);
             this.Controls.Add(this.lkAbout);
             this.Controls.Add(this.tcCollectionAnalysisTabs);
             this.Controls.Add(this.lkDiscussion);
@@ -1280,7 +1257,7 @@
             this.pnlProfilerAnalysisStatus.ResumeLayout(false);
             this.pnlProfilerAnalysisStatus.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdProfilerAnalyses)).EndInit();
-            this.contextMenuStrip1.ResumeLayout(false);
+            this.ctxSettings.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1314,8 +1291,6 @@
         private System.Windows.Forms.Label lblProfilerAnalysisStatusRight;
         private System.Windows.Forms.CheckBox chkDettachProfilerAnalysisDBWhenDone;
         private System.Windows.Forms.Button btnImportProfilerTrace;
-        private System.Windows.Forms.CheckBox chkAutoUpdate;
-        private System.Windows.Forms.CheckBox chkAllowUsageStatsCollection;
         private System.Windows.Forms.SplitContainer splitCollectionUI;
         private System.Windows.Forms.RichTextBox txtStatus;
         private System.Windows.Forms.Label label3;
@@ -1362,8 +1337,8 @@
         public System.Windows.Forms.ComboBox cbInstances;
         private System.Windows.Forms.Button btnHangDumps;
         private System.Windows.Forms.CheckBox chkHangDumps;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.Button btnSettings;
+        private System.Windows.Forms.ContextMenuStrip ctxSettings;
         private System.Windows.Forms.ToolStripMenuItem automaticallyCheckForUpdatesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem enableAnonymousUsageStatisticCollectionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem enableOpenWithToolStripItem;

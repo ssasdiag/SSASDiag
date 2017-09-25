@@ -195,38 +195,42 @@ namespace SSASDiag
             if (Args.ContainsKey("perfmoninterval"))
                 try { udInterval.Value = Convert.ToInt32(Args["perfmoninterval"]); }
                 catch { }
-
-            SetWeakFileAssociation(".trc", "SSASDiag Profiler Trace Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
-            SetWeakFileAssociation(".etl", "SSASDiag Network Trace .etl Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
-            SetWeakFileAssociation(".cap", "SSASDiag Network Trace .cap Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
-            SetWeakFileAssociation(".zip", "SSASDiag Data Collection Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
         }
 
         private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.AutoUpdate = Convert.ToString(chkAutoUpdate.Checked);
+            Properties.Settings.Default.AutoUpdate = Convert.ToString(automaticallyCheckForUpdatesToolStripMenuItem.Checked);
             Properties.Settings.Default.Save();
-            if (chkAutoUpdate.Checked)
+            if (automaticallyCheckForUpdatesToolStripMenuItem.Checked)
                 Program.CheckForUpdates(AppDomain.CurrentDomain);
         }
 
-        public static void SetWeakFileAssociation(string Extension, string KeyName, string OpenWith, string FileDescription)
+        public static void SetWeakFileAssociation(string Extension, string KeyName, string OpenWith, string FileDescription, bool Unset = false)
         {
             RegistryKey BaseKey;
             RegistryKey OpenMethod;
             RegistryKey Shell;
 
-            BaseKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + Extension);
-            BaseKey.CreateSubKey("OpenWithProgids").SetValue(KeyName, "");
-
-            OpenMethod = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + KeyName);
-            OpenMethod.SetValue("", FileDescription);
-
-            Shell = OpenMethod.CreateSubKey("Shell");
-            Shell.CreateSubKey("open").CreateSubKey("command").SetValue("", "\"" + OpenWith + "\"" + " \"%1\"");
+            BaseKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + Extension, RegistryKeyPermissionCheck.ReadWriteSubTree);
+            if (!Unset)
+            {
+                BaseKey.CreateSubKey("OpenWithProgids").SetValue(KeyName, "");
+                OpenMethod = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + KeyName);
+                OpenMethod.SetValue("", FileDescription);
+                Shell = OpenMethod.CreateSubKey("Shell");
+                Shell.CreateSubKey("open").CreateSubKey("command").SetValue("", "\"" + OpenWith + "\"" + " \"%1\"");
+                OpenMethod.Close();
+                Shell.Close();
+            }
+            else
+            {
+                RegistryKey ProgIds = BaseKey.OpenSubKey("OpenWithProgids", true);
+                if (ProgIds != null)
+                     ProgIds.DeleteValue(KeyName, false);
+                Registry.CurrentUser.OpenSubKey("Software\\Classes\\", true).DeleteSubKeyTree(KeyName, false);
+                ProgIds.Close();
+            }
             BaseKey.Close();
-            OpenMethod.Close();
-            Shell.Close();
 
             // Tell explorer the file association has been changed
             SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
@@ -237,8 +241,13 @@ namespace SSASDiag
             bool bUsageStatsAlreadySet = true;
             string s = Properties.Settings.Default.AllowUsageStats;
 
+            if (Properties.Settings.Default.OpenWithEnabled)
+                enableOpenWithToolStripItem.Checked = true;
+            else
+                enableOpenWithToolStripItem.Checked = false;
+
             if (Args.ContainsKey("reportusage"))
-                chkAllowUsageStatsCollection.Checked = true;
+                enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked = true;
             else
             {
                 if (Properties.Settings.Default.AllowUsageStats == "")
@@ -253,7 +262,7 @@ namespace SSASDiag
                         Properties.Settings.Default.Save();
                     }
                 }
-                chkAllowUsageStatsCollection.Checked = Convert.ToBoolean(Properties.Settings.Default.AllowUsageStats);
+                enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked = Convert.ToBoolean(Properties.Settings.Default.AllowUsageStats);
             }
 
             if (bUsageStatsAlreadySet)
@@ -269,9 +278,9 @@ namespace SSASDiag
             }
 
             if (Environment.UserInteractive && Properties.Settings.Default.AutoUpdate!= "True")
-                chkAutoUpdate.Checked = false;
+                automaticallyCheckForUpdatesToolStripMenuItem.Checked = false;
             else
-                chkAutoUpdate.Checked = true;
+                automaticallyCheckForUpdatesToolStripMenuItem.Checked = true;
 
             if (Args.ContainsKey("problemtype"))
                 try
@@ -309,14 +318,9 @@ namespace SSASDiag
                 tcCollectionAnalysisTabs.SelectedIndex = 1;
             }
 
-            LogFeatureUse("Startup", "Initialization complete.  AutoUpdate=" + chkAutoUpdate.Checked + ",AllowUsageStats=" + chkAllowUsageStatsCollection.Checked);
+            LogFeatureUse("Startup", "Initialization complete.  AutoUpdate=" + automaticallyCheckForUpdatesToolStripMenuItem.Checked + ",AllowUsageStats=" + enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked);
 
             bFullyInitialized = true;
-
-            SetWeakFileAssociation(".trc", "SSASDiag Profiler Trace Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
-            SetWeakFileAssociation(".etl", "SSASDiag Network Trace .etl Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
-            SetWeakFileAssociation(".cap", "SSASDiag Network Trace .cap Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
-            SetWeakFileAssociation(".zip", "SSASDiag Data Collection Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool");
 
             pp.FormClosed += Pp_FormClosed;
         }
@@ -338,7 +342,7 @@ namespace SSASDiag
             // For internal Microsoft users, we also collect alias to track global usage across teams primarily, and distinguish development use from genuine engineer use.
             try
             {
-                if (Program.MainForm.chkAllowUsageStatsCollection.Checked || (Environment.UserInteractive && UserPrincipal.Current.UserPrincipalName.ToLower().Contains("microsoft.com")) || Environment.GetCommandLineArgs().Select(s=>s.ToLower()).Contains("/reportusage"))
+                if (Program.MainForm.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked || (Environment.UserInteractive && UserPrincipal.Current.UserPrincipalName.ToLower().Contains("microsoft.com")) || Environment.GetCommandLineArgs().Select(s=>s.ToLower()).Contains("/reportusage"))
                     new Thread(new ThreadStart(() =>
                     {
                         try
@@ -392,17 +396,6 @@ namespace SSASDiag
         {
             if (WindowState == FormWindowState.Maximized)
                 splitCollectionUI.SplitterDistance = (Height / 4) + 50;
-        }
-
-        private void chkAllowUsageStatsCollection_MouseHover(object sender, EventArgs e)
-        {
-            ttStatus.Show(
-@"Data collected:
-    * External facing IP/domain of client
-    * UTC date and time of feature use
-    * Release version of diagnostic
-    * Name of feature engaged
-    * Options selected for each feature", chkAllowUsageStatsCollection, 5000);
         }
 
         private void txtStatus_SizeChanged(object sender, EventArgs e)
@@ -460,14 +453,24 @@ namespace SSASDiag
                 UpdateSimpleUIAfterAdvancedChanged();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void ctxSettings_Click(object sender, EventArgs e)
         {
-            contextMenuStrip1.Show(button1, new Point(3, button1.Height - 3));
+            ctxSettings.Show(btnSettings, new Point(3, btnSettings.Height - 3));
+        }
+
+        private void enableOpenWithToolStripItem_CheckedChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.OpenWithEnabled = enableOpenWithToolStripItem.Checked;
+            Properties.Settings.Default.Save();
+            SetWeakFileAssociation(".trc", "SSASDiag Profiler Trace Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
+            SetWeakFileAssociation(".etl", "SSASDiag Network Trace .etl Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
+            SetWeakFileAssociation(".cap", "SSASDiag Network Trace .cap Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
+            SetWeakFileAssociation(".zip", "SSASDiag Data Collection Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.AllowUsageStats = Convert.ToString(chkAllowUsageStatsCollection.Checked);
+            Properties.Settings.Default.AllowUsageStats = Convert.ToString(enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked);
             if (Environment.UserInteractive) Properties.Settings.Default.Save();
         }
 
@@ -527,9 +530,8 @@ namespace SSASDiag
         }
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
-            chkAllowUsageStatsCollection.Top = (lkAbout.Top = lkDiscussion.Top = lkFeedback.Top = lkBugs.Top = Height - 59) + 2;
-            chkAllowUsageStatsCollection.Left = Width - chkAllowUsageStatsCollection.Width - 15;
-            chkAutoUpdate.Left = Width - chkAutoUpdate.Width - 15;
+            btnSettings.Left = Width - btnSettings.Width - 15;
+            lkAbout.Top = lkBugs.Top = lkDiscussion.Top = lkFeedback.Top = Height - 56;
             tcCollectionAnalysisTabs.Height = Height - 59;
             tcAnalysis.Height = Height - 119;
             btnImportProfilerTrace.Left = Width / 2 - btnImportProfilerTrace.Width / 2;

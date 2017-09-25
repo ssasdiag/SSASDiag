@@ -70,5 +70,17 @@ namespace SSASDiag.Properties {
                 this["AllowUsageStats"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool OpenWithEnabled {
+            get {
+                return ((bool)(this["OpenWithEnabled"]));
+            }
+            set {
+                this["OpenWithEnabled"] = value;
+            }
+        }
     }
 }
