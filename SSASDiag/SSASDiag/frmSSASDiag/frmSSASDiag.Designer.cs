@@ -107,6 +107,11 @@
             this.txtFolderZipForAnalysis = new System.Windows.Forms.TextBox();
             this.lblFolderZipPrompt = new System.Windows.Forms.Label();
             this.chkAutoUpdate = new System.Windows.Forms.CheckBox();
+            this.button1 = new System.Windows.Forms.Button();
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.automaticallyCheckForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.enableAnonymousUsageStatisticCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.enableOpenWithToolStripItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tcCollectionAnalysisTabs.SuspendLayout();
             this.tbCollection.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitCollectionUI)).BeginInit();
@@ -131,6 +136,7 @@
             this.splitProfilerAnalysis.SuspendLayout();
             this.pnlProfilerAnalysisStatus.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdProfilerAnalyses)).BeginInit();
+            this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // lkFeedback
@@ -453,14 +459,14 @@
             this.splitCollectionUI.Panel1.Controls.Add(this.lblInterval);
             this.splitCollectionUI.Panel1.Controls.Add(this.lblInterval2);
             this.splitCollectionUI.Panel1.Resize += new System.EventHandler(this.splitCollectionUI_Panel1_Resize);
-            this.splitCollectionUI.Panel1MinSize = 228;
+            this.splitCollectionUI.Panel1MinSize = 220;
             // 
             // splitCollectionUI.Panel2
             // 
             this.splitCollectionUI.Panel2.Controls.Add(this.txtStatus);
             this.splitCollectionUI.Panel2MinSize = 26;
             this.splitCollectionUI.Size = new System.Drawing.Size(593, 439);
-            this.splitCollectionUI.SplitterDistance = 228;
+            this.splitCollectionUI.SplitterDistance = 220;
             this.splitCollectionUI.SplitterIncrement = 13;
             this.splitCollectionUI.TabIndex = 46;
             // 
@@ -493,11 +499,11 @@
             this.grpDiagsToCapture.Controls.Add(this.tcSimpleAdvanced);
             this.grpDiagsToCapture.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.grpDiagsToCapture.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.grpDiagsToCapture.Location = new System.Drawing.Point(351, 52);
+            this.grpDiagsToCapture.Location = new System.Drawing.Point(351, 50);
             this.grpDiagsToCapture.Margin = new System.Windows.Forms.Padding(0);
             this.grpDiagsToCapture.Name = "grpDiagsToCapture";
             this.grpDiagsToCapture.Padding = new System.Windows.Forms.Padding(0);
-            this.grpDiagsToCapture.Size = new System.Drawing.Size(239, 177);
+            this.grpDiagsToCapture.Size = new System.Drawing.Size(239, 171);
             this.grpDiagsToCapture.TabIndex = 57;
             this.grpDiagsToCapture.TabStop = false;
             this.grpDiagsToCapture.Text = "Diagnostics to Capture:";
@@ -513,7 +519,7 @@
             this.tcSimpleAdvanced.Name = "tcSimpleAdvanced";
             this.tcSimpleAdvanced.Padding = new System.Drawing.Point(0, 0);
             this.tcSimpleAdvanced.SelectedIndex = 0;
-            this.tcSimpleAdvanced.Size = new System.Drawing.Size(239, 164);
+            this.tcSimpleAdvanced.Size = new System.Drawing.Size(239, 158);
             this.tcSimpleAdvanced.TabIndex = 1;
             this.tcSimpleAdvanced.SelectedIndexChanged += new System.EventHandler(this.tcSimpleAdvanced_SelectedIndexChanged);
             // 
@@ -524,7 +530,7 @@
             this.tabGuided.Location = new System.Drawing.Point(4, 22);
             this.tabGuided.Margin = new System.Windows.Forms.Padding(0);
             this.tabGuided.Name = "tabGuided";
-            this.tabGuided.Size = new System.Drawing.Size(231, 138);
+            this.tabGuided.Size = new System.Drawing.Size(231, 132);
             this.tabGuided.TabIndex = 0;
             this.tabGuided.Text = "Guided";
             // 
@@ -542,7 +548,7 @@
             this.pnlSimple.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlSimple.Location = new System.Drawing.Point(0, 0);
             this.pnlSimple.Name = "pnlSimple";
-            this.pnlSimple.Size = new System.Drawing.Size(231, 138);
+            this.pnlSimple.Size = new System.Drawing.Size(231, 132);
             this.pnlSimple.TabIndex = 33;
             // 
             // rtbProblemDescription
@@ -610,7 +616,7 @@
             this.tabAdvanced.Location = new System.Drawing.Point(4, 22);
             this.tabAdvanced.Margin = new System.Windows.Forms.Padding(0);
             this.tabAdvanced.Name = "tabAdvanced";
-            this.tabAdvanced.Size = new System.Drawing.Size(231, 138);
+            this.tabAdvanced.Size = new System.Drawing.Size(231, 132);
             this.tabAdvanced.TabIndex = 1;
             this.tabAdvanced.Text = "Advanced";
             // 
@@ -631,7 +637,7 @@
             this.pnlDiagnosticsToCollect.Location = new System.Drawing.Point(0, 0);
             this.pnlDiagnosticsToCollect.Margin = new System.Windows.Forms.Padding(0);
             this.pnlDiagnosticsToCollect.Name = "pnlDiagnosticsToCollect";
-            this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(231, 138);
+            this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(231, 132);
             this.pnlDiagnosticsToCollect.TabIndex = 38;
             // 
             // chkHangDumps
@@ -873,7 +879,7 @@
             this.txtStatus.Location = new System.Drawing.Point(0, 0);
             this.txtStatus.Name = "txtStatus";
             this.txtStatus.ReadOnly = true;
-            this.txtStatus.Size = new System.Drawing.Size(593, 207);
+            this.txtStatus.Size = new System.Drawing.Size(593, 215);
             this.txtStatus.TabIndex = 37;
             this.txtStatus.Text = "";
             this.txtStatus.SizeChanged += new System.EventHandler(this.txtStatus_SizeChanged);
@@ -1166,12 +1172,62 @@
             this.chkAutoUpdate.UseVisualStyleBackColor = true;
             this.chkAutoUpdate.CheckedChanged += new System.EventHandler(this.chkAutoUpdate_CheckedChanged);
             // 
+            // button1
+            // 
+            this.button1.FlatAppearance.BorderSize = 0;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button1.Image = ((System.Drawing.Image)(resources.GetObject("button1.Image")));
+            this.button1.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.button1.Location = new System.Drawing.Point(376, -2);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(67, 22);
+            this.button1.TabIndex = 48;
+            this.button1.Text = "Settings";
+            this.button1.TextAlign = System.Drawing.ContentAlignment.BottomRight;
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.automaticallyCheckForUpdatesToolStripMenuItem,
+            this.enableAnonymousUsageStatisticCollectionToolStripMenuItem,
+            this.enableOpenWithToolStripItem});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.ShowCheckMargin = true;
+            this.contextMenuStrip1.ShowImageMargin = false;
+            this.contextMenuStrip1.Size = new System.Drawing.Size(313, 70);
+            // 
+            // automaticallyCheckForUpdatesToolStripMenuItem
+            // 
+            this.automaticallyCheckForUpdatesToolStripMenuItem.CheckOnClick = true;
+            this.automaticallyCheckForUpdatesToolStripMenuItem.Name = "automaticallyCheckForUpdatesToolStripMenuItem";
+            this.automaticallyCheckForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(312, 22);
+            this.automaticallyCheckForUpdatesToolStripMenuItem.Text = "Automatically check for updates";
+            // 
+            // enableAnonymousUsageStatisticCollectionToolStripMenuItem
+            // 
+            this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.CheckOnClick = true;
+            this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Name = "enableAnonymousUsageStatisticCollectionToolStripMenuItem";
+            this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Size = new System.Drawing.Size(312, 22);
+            this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Text = "Enable anonymous usage statistic collection";
+            this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.ToolTipText = resources.GetString("enableAnonymousUsageStatisticCollectionToolStripMenuItem.ToolTipText");
+            // 
+            // enableOpenWithToolStripItem
+            // 
+            this.enableOpenWithToolStripItem.CheckOnClick = true;
+            this.enableOpenWithToolStripItem.Name = "enableOpenWithToolStripItem";
+            this.enableOpenWithToolStripItem.Size = new System.Drawing.Size(312, 22);
+            this.enableOpenWithToolStripItem.Text = "Enable context menu to Open With SSASDiag";
+            this.enableOpenWithToolStripItem.ToolTipText = "Current supported file types include .zip, .trc, .cap, .etl.";
+            // 
             // frmSSASDiag
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(601, 496);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.chkAllowUsageStatsCollection);
             this.Controls.Add(this.chkAutoUpdate);
             this.Controls.Add(this.lkAbout);
@@ -1224,6 +1280,7 @@
             this.pnlProfilerAnalysisStatus.ResumeLayout(false);
             this.pnlProfilerAnalysisStatus.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdProfilerAnalyses)).EndInit();
+            this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1305,6 +1362,11 @@
         public System.Windows.Forms.ComboBox cbInstances;
         private System.Windows.Forms.Button btnHangDumps;
         private System.Windows.Forms.CheckBox chkHangDumps;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem automaticallyCheckForUpdatesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem enableAnonymousUsageStatisticCollectionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem enableOpenWithToolStripItem;
     }
 }
 

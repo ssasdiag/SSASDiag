@@ -585,9 +585,7 @@ namespace SSASDiag
                             SendMessageToClients(" ");
                     }
                     else
-                    {
                         SendMessageToClients("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss"));
-                    }
                 }
 
                 if (iCurrentTimerTicksSinceLastInterval >= iInterval && bPerfMonRunning)

@@ -248,6 +248,7 @@
     <None Include="Resources\Dump.png" />
     <None Include="Resources\DumpDisabled.png" />
     <None Include="Resources\DumpLit.png" />
+    <None Include="Resources\Settings.png" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

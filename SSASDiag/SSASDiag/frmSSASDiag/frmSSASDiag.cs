@@ -409,22 +409,19 @@ namespace SSASDiag
         {
             if (txtStatus.Text != "")
             {
-                int lineHeight;
-                using (Graphics g = txtStatus.CreateGraphics())
+                int lineHeight = TextRenderer.MeasureText(txtStatus.CreateGraphics(), txtStatus.Lines.Last(), txtStatus.Font).Height;
+                int heightDiscrepancy = ((txtStatus.Height - 5) % lineHeight);
+                if (heightDiscrepancy > 0)
                 {
-                    lineHeight = TextRenderer.MeasureText(g, txtStatus.Lines.Last(), txtStatus.Font).Height;
-                }
-                if (lineHeight > 0)
-                {
-                    if (splitCollectionUI.SplitterDistance >= splitCollectionUI.Panel1MinSize + lineHeight)
-                        splitCollectionUI.SplitterDistance -= (txtStatus.Height % lineHeight) - 5;
+                    if (splitCollectionUI.Panel1MinSize <= splitCollectionUI.SplitterDistance - heightDiscrepancy)
+                        splitCollectionUI.SplitterDistance -= lineHeight - heightDiscrepancy;
                     else
-                        splitCollectionUI.SplitterDistance += lineHeight - (txtStatus.Height % lineHeight) + 5;
+                        splitCollectionUI.SplitterDistance += heightDiscrepancy;
+                    
                 }
-
-                txtStatus.SelectionStart = txtStatus.TextLength;
-                txtStatus.ScrollToCaret();
                 
+                txtStatus.SelectionStart = txtStatus.TextLength;
+                txtStatus.ScrollToCaret();   
             }
         }
 
@@ -461,6 +458,11 @@ namespace SSASDiag
         {
             if (tcSimpleAdvanced.SelectedIndex == 0)
                 UpdateSimpleUIAfterAdvancedChanged();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            contextMenuStrip1.Show(button1, new Point(3, button1.Height - 3));
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)

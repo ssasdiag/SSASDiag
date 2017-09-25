@@ -220,7 +220,7 @@ Generated trace/log files are saved with file names of the format:
         AAEAAAD/////AQAAAAAAAAAMAgAAAFdTeXN0ZW0uV2luZG93cy5Gb3JtcywgVmVyc2lvbj00LjAuMC4w
         LCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWI3N2E1YzU2MTkzNGUwODkFAQAAACZTeXN0
         ZW0uV2luZG93cy5Gb3Jtcy5JbWFnZUxpc3RTdHJlYW1lcgEAAAAERGF0YQcCAgAAAAkDAAAADwMAAABM
-        GgAAAk1TRnQBSQFMAgEBBgEAARABBQEQAQUBGAEAARgBAAT/AQkBAAj/AUIBTQE2AQQGAAE2AQQCAAEo
+        GgAAAk1TRnQBSQFMAgEBBgEAAWABBQFgAQUBGAEAARgBAAT/AQkBAAj/AUIBTQE2AQQGAAE2AQQCAAEo
         AwABYAMAATADAAEBAQABCAYAARIYAAGAAgABgAMAAoABAAGAAwABgAEAAYABAAKAAgADwAEAAcAB3AHA
         AQAB8AHKAaYBAAEzBQABMwEAATMBAAEzAQACMwIAAxYBAAMcAQADIgEAAykBAANVAQADTQEAA0IBAAM5
         AQABgAF8Af8BAAJQAf8BAAGTAQAB1gEAAf8B7AHMAQABxgHWAe8BAAHWAucBAAGQAakBrQIAAf8BMwMA
@@ -334,6 +334,26 @@ Generated trace/log files are saved with file names of the format:
         AcABAAEBAYACAAHgAQABHwIAAQMBwAEAAQMBwAIAAeABAAEfAgABAwHAAQABAwHgAgAB4AEAAR8CAAEH
         AcEC/wHwAQABAQP/AgABPws=
 </value>
+  </data>
+  <data name="button1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAMdJREFUOE+1
+        kgENAjEMRSfhJCAFCecAJOAAnHAOwAE4AAfgABxwfcn/l8KO5CDwk5f+dM26dSv/1DxYC/zH6oK9wE9S
+        q0jHi2L2yDWVNsE1uCsuAwtP7qZI7ZNmAYvEJrEQOUcNTYiDWOCeB3k4KQdn5YAacvhKD8VVkAeH95Vc
+        M6qvN+A42+AoDxybHOQrUEMOPygPxoVAV8i50SEinob39jMyfYtNvEasntHKH4lN/JHs0duP9CoGtxN5
+        oJNFR44K7v5rldIDBhs4SKJUg3IAAAAASUVORK5CYII=
+</value>
+  </data>
+  <metadata name="contextMenuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>257, 17</value>
+  </metadata>
+  <data name="enableAnonymousUsageStatisticCollectionToolStripMenuItem.ToolTipText" xml:space="preserve">
+    <value>Data collected:
+    * External facing IP/domain of client
+    * UTC date and time of feature use
+    * Release version of diagnostic
+    * Name of feature engaged
+    * Options selected for each feature</value>
   </data>
   <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>44</value>

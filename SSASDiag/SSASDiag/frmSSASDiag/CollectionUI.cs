@@ -217,7 +217,18 @@ namespace SSASDiag
                                                                 LastStatusLine = txtStatus.Lines.Last();
                                                         }));
                 if (LastStatusLine != "" && LastStatusLine.StartsWith(message.Substring(2, 20)))
-                    txtStatus.Invoke(new System.Action(() => txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""))));
+                    txtStatus.Invoke(new System.Action(() =>
+                    {
+                        bool bScrollRequired = false;
+                        if (txtStatus.Lines.Last().StartsWith("Diagnostics captured for")) bScrollRequired = true;
+                        txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""));
+                        if (bScrollRequired)
+                        {
+                            txtStatus.SelectionStart = txtStatus.TextLength;
+                            txtStatus.ScrollToCaret();
+                        }
+                    }
+                    ));
                 else
                 {
                     Invoke(new System.Action(() =>
