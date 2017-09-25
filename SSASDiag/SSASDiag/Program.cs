@@ -69,9 +69,9 @@ namespace SSASDiag
 
             // Check for .NET 4.6.1 or later.
             object ReleaseVer = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, "").OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full").GetValue("Release");
-            if (ReleaseVer == null || Convert.ToInt32(ReleaseVer) <= 394254)
+            if (ReleaseVer == null || Convert.ToInt32(ReleaseVer) <= 378389)
             {
-                if (Environment.UserInteractive && MessageBox.Show("SSASDiag requires .NET 4.6.1 or later and will exit now.\r\nInstall the latest .NET release now?", ".NET Update Required", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                if (Environment.UserInteractive && MessageBox.Show("SSASDiag requires .NET 4.5 or later and will exit now.\r\nInstall the latest .NET release now?", ".NET Update Required", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
                     Process.Start("https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/NDP462-KB3151800-x86-x64-AllOS-ENU.exe");
                 return;
             }
