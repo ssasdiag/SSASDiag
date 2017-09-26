@@ -48,21 +48,6 @@ namespace SSASDiag
                     }
                 }
             }
-            else
-            {
-                //new Thread(new ThreadStart(() =>
-                //{
-                //    var machineContext = new PrincipalContext(ContextType.Machine);
-                //    var grpPrincipal = GroupPrincipal.FindByIdentity(machineContext, IdentityType.Name, "Administrators");
-                //    var domainContext = new PrincipalContext(ContextType.Domain, Environment.UserDomainName);
-                //    var user = UserPrincipal.FindByIdentity(domainContext, Environment.UserName);
-                //    if (!user.IsMemberOf(grpPrincipal))
-                //    {
-                //        MessageBox.Show("Diagnostic collection must be run as a local administrator.\r\nPlease run again as a local administrator.", "Administrator account required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                //        Application.Exit();
-                //    }
-                //})).Start();
-            }
 
             // Assign a unique Run ID used to anonymously track usage if user allows
             RunID = Guid.NewGuid();
@@ -118,6 +103,11 @@ namespace SSASDiag
                                 + de.Key.ToString().Replace('_', '.') + ".exe",
                                 de.Entry.Value as byte[]);
                 })).Start();
+
+                // Symbolic debugger binaries required for dump parsing. 
+                // Silent, 'impactless' (completely asynchronously off main thread), minimal subset of the standard debugging tools required for cdb.exe.
+                // Copied simply into %Program Files%\CDB.
+                InstallCDB();
 
                 try {
 
@@ -307,6 +297,26 @@ namespace SSASDiag
                 }
                 catch (Exception ex) { Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
             })).Start();
+        }
+
+        static private void InstallCDB()
+        {
+            new Thread(new ThreadStart(() =>
+            {
+                if (!File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "\\CDB\\cdb.exe"))
+                {
+                    if (!File.Exists(TempPath + "\\cdb.zip"))
+                    {
+                        WebRequest req = HttpWebRequest.Create(Uri.EscapeUriString("http://jburchelsrv.southcentralus.cloudapp.azure.com/cdb.zip"));
+                        req.Method = "GET";
+                        Stream newBin = File.OpenWrite(TempPath + "\\cdb.zip");
+                        req.GetResponse().GetResponseStream().CopyTo(newBin);
+                    }
+                    ZipArchive zf = ZipFile.OpenRead(TempPath + "\\cdb.zip");
+                    zf.ExtractToDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "\\CDB");
+                }
+            }
+            )).Start();
         }
 
         private static bool ServerFileIsNewer(string clientFileVersion, string serverFile)
