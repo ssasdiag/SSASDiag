@@ -6,6 +6,7 @@ using System.ServiceProcess;
 using System;
 using System.IO;
 using System.Net.Security;
+using System.Net.NetworkInformation;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -241,6 +242,8 @@ namespace SSASDiag
             bool bUsageStatsAlreadySet = true;
             string s = Properties.Settings.Default.AllowUsageStats;
 
+            Text = Text + " v" + Application.ProductVersion;
+
             if (Properties.Settings.Default.OpenWithEnabled)
                 enableOpenWithToolStripItem.Checked = true;
             else
@@ -342,7 +345,7 @@ namespace SSASDiag
             // For internal Microsoft users, we also collect alias to track global usage across teams primarily, and distinguish development use from genuine engineer use.
             try
             {
-                if (Program.MainForm.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked || (Environment.UserInteractive && UserPrincipal.Current.UserPrincipalName.ToLower().Contains("microsoft.com")) || Environment.GetCommandLineArgs().Select(s=>s.ToLower()).Contains("/reportusage"))
+                if (Program.MainForm.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked || (Environment.UserInteractive && IPGlobalProperties.GetIPGlobalProperties().DomainName.ToLower().Contains("microsoft.com")) || Environment.GetCommandLineArgs().Select(s=>s.ToLower()).Contains("/reportusage"))
                     new Thread(new ThreadStart(() =>
                     {
                         try
@@ -355,14 +358,16 @@ namespace SSASDiag
                             nvc.Add("FeatureDetail", WebUtility.UrlEncode(FeatureDetail.Replace("'", "''")));
                             try
                             {
-                                string UserAndDomain = UserPrincipal.Current.UserPrincipalName;
-                                nvc.Add("UpnSuffix", WebUtility.UrlEncode((Environment.UserInteractive ? UserAndDomain.Substring(UserAndDomain.IndexOf("@") + 1) : "")));
-                                if (UserAndDomain.EndsWith("microsoft.com"))
-                                    nvc.Add("MicrosoftInternal", WebUtility.UrlEncode(UserAndDomain.Substring(0, UserAndDomain.IndexOf("@"))));
+                                string domain = IPGlobalProperties.GetIPGlobalProperties().DomainName.ToLower();
+                                string domainend = domain.Substring(domain.LastIndexOf('.'));
+                                domain = domain.Remove(domain.LastIndexOf('.'));
+                                domain = domain.Substring(domain.LastIndexOf('.') + 1) + domainend;
+                                nvc.Add("UpnSuffix", domain);
+                                if (domain.EndsWith("microsoft.com"))
+                                    nvc.Add("MicrosoftInternal", WebUtility.UrlEncode(domain));
                             }
                             catch
                             {
-                                /* This may occur if user isn't domain user. No easy way to check that I could find so just eat exception and move on...  */
                                 nvc.Add("UpnSuffix", "unknown");
                             }
                             wc.UploadValues("http://jburchelsrv.southcentralus.cloudapp.azure.com/SSASDiagUsageStats.aspx", nvc);
@@ -373,10 +378,9 @@ namespace SSASDiag
                         }
                     })).Start();
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                // Need to handle, but don't log, since LogException tries to log through feature use also and will create loop...  For now ignoring.
-                //LogException(e);
+                Debug.WriteLine("Exception during feature logging: " + ex.Message);
             }
         }
 
