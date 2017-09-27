@@ -364,7 +364,7 @@ namespace SSASDiag
                                 domain = domain.Substring(domain.LastIndexOf('.') + 1) + domainend;
                                 nvc.Add("UpnSuffix", domain);
                                 if (domain.EndsWith("microsoft.com"))
-                                    nvc.Add("MicrosoftInternal", WebUtility.UrlEncode(domain));
+                                    nvc.Add("MicrosoftInternal", WebUtility.UrlEncode(Environment.UserName));
                             }
                             catch
                             {
