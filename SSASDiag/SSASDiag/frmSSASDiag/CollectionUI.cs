@@ -128,6 +128,15 @@ namespace SSASDiag
                         tPumpUIUpdatesPreServiceStart.Interval = 1000;
                         tPumpUIUpdatesPreServiceStart.Tick += TPumpUIUpdatesPreServiceStart_Tick;
                         tPumpUIUpdatesPreServiceStart.Start();
+                        if (npClient != null)
+                        {
+                            npClient.ServerMessage -= NpClient_ServerMessage;
+                            npClient = null;
+                        }
+                        npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
+                        npClient.ServerMessage += NpClient_ServerMessage;
+                        npClient.Start();
+                        npClient.PushMessage("forceopen");
                         string svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
                         new Thread(new ThreadStart(() => {
                             p = new ProcessStartInfo("cmd.exe", "/c net start " + svcName);
@@ -490,6 +499,15 @@ namespace SSASDiag
                                 // If we are running, starting or stopping, get current status and connect pipe to continue monitoring.
                                 else
                                 {
+                                    if (npClient != null)
+                                    {
+                                        npClient.ServerMessage -= NpClient_ServerMessage;
+                                        npClient = null;
+                                    }
+                                    cbInstances.Invoke(new System.Action(()=>npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text))));
+                                    npClient.ServerMessage += NpClient_ServerMessage;
+                                    npClient.Start();
+                                    npClient.WaitForConnection();
 
                                     callback_StartDiagnosticsComplete();
                                     Invoke(new System.Action(() => txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false));
@@ -541,18 +559,6 @@ namespace SSASDiag
 
             if (btnCapture.Enabled && Args.ContainsKey("start") && cbInstances.Items.Count > 0)
                     btnCapture_Click(sender, e);
-            if (Environment.UserInteractive)
-            {
-                if (npClient != null)
-                {
-                    npClient.ServerMessage -= NpClient_ServerMessage;
-                    npClient = null;
-                }
-                npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
-                npClient.ServerMessage += NpClient_ServerMessage;
-                npClient.Start();
-                npClient.PushMessage("forceopen");
-            }
         }
 
         private void PopulateInstanceDropdown()
