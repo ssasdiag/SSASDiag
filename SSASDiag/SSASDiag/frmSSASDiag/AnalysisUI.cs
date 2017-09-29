@@ -88,6 +88,7 @@ namespace SSASDiag
             tcAnalysis.TabPages.Clear();
             btnImportProfilerTrace.Visible = true;
 
+            string mdfPath = "";
             if (m_analysisPath != null)
             {
                 if (m_analysisPath.EndsWith(".zip"))
@@ -101,8 +102,13 @@ namespace SSASDiag
                 if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdmp")) || 
                     (!File.Exists(m_analysisPath) && Directory.GetFiles(m_analysisPath, "*.mdmp", SearchOption.AllDirectories).Count() > 0))
                 {
-                    tcAnalysis.TabPages.Add(new TabPage("Crash Dumps") { ImageIndex = 1, Name = "Crash Dumps" });
-                    tcAnalysis.TabPages["Crash Dumps"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of crash dumps."));
+                    if (ValidateProfilerTraceDBConnectionStatus())
+                    {
+                        ucASDumpAnalyzer DumpAnalyzer = new ucASDumpAnalyzer(m_analysisPath, connSqlDb);
+                        DumpAnalyzer.Dock = DockStyle.Fill;
+                        tcAnalysis.TabPages.Add(new TabPage("Crash Dumps") { ImageIndex = 1, Name = "Crash Dumps" });
+                        tcAnalysis.TabPages["Crash Dumps"].Controls.Add(DumpAnalyzer);
+                    }
                 }
                 if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".evtx")) || 
                     File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_Application.evtx") ||
@@ -164,7 +170,6 @@ namespace SSASDiag
                     {
                         btnImportProfilerTrace.Visible = true;
                         string sqlForTraces = Properties.Settings.Default["SqlForProfilerTraceAnalysis"] as string;
-                        string mdfPath = "";
                         if (m_analysisPath.EndsWith(".trc"))
                             mdfPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) + "Analysis" + m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\")).Replace(".trc", "").TrimEnd(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) + ".mdf";
                         else

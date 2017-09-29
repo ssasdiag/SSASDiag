@@ -121,6 +121,12 @@
     <Compile Include="frmAbout.Designer.cs">
       <DependentUpon>frmAbout.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmSSASDiag\Analyzers\ucASDumpAnalyzer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="frmSSASDiag\Analyzers\ucASDumpAnalyzer.Designer.cs">
+      <DependentUpon>ucASDumpAnalyzer.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmSSASDiag\DiagnosticsToCaptureUI.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -173,6 +179,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmSimpleSQLServerPrompt.resx">
       <DependentUpon>frmSimpleSQLServerPrompt.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmSSASDiag\Analyzers\ucASDumpAnalyzer.resx">
+      <DependentUpon>ucASDumpAnalyzer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmSSASDiag\frmSSASDiag.resx">
       <DependentUpon>frmSSASDiag.cs</DependentUpon>

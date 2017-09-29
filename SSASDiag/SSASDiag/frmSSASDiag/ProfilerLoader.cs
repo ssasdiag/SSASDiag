@@ -90,45 +90,50 @@ namespace SSASDiag
                 bgCancelTrace.RunWorkerAsync();
             }
         }
+
+        public void SetAnalysisFolderPermissionsAndCreateDB(string path)
+        {
+            if (File.Exists(path))
+                path = path.Substring(0, path.LastIndexOf("\\"));
+
+            if (!File.Exists(path) && !Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            if (!Directory.Exists(path + "\\Analysis"))
+                Directory.CreateDirectory(path + "\\Analysis");
+
+            string sSvcUser = "";
+            ServiceController[] services = ServiceController.GetServices();
+            foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
+                if (s.DisplayName.Contains("SQL Server (" + (connSqlDb.DataSource.Contains("\\") ? connSqlDb.DataSource.Substring(connSqlDb.DataSource.IndexOf("\\")) : "MSSQLSERVER")))
+                {
+                    SelectQuery sQuery = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\"");
+                    ManagementObjectSearcher mgmtSearcher = new ManagementObjectSearcher(sQuery);
+
+                    foreach (ManagementObject svc in mgmtSearcher.Get())
+                        sSvcUser = svc["startname"] as string;
+                    if (sSvcUser.Contains(".")) sSvcUser = sSvcUser.Replace(".", Environment.UserDomainName);
+                    if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
+                }
+
+            DirectoryInfo dirInfo = new DirectoryInfo(path + "\\Analysis");
+            DirectorySecurity dirSec = dirInfo.GetAccessControl();
+            dirSec.AddAccessRule(new FileSystemAccessRule(sSvcUser, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
+            dirInfo.SetAccessControl(dirSec);
+
+            if (AnalysisTraceID == "")
+                AnalysisTraceID = path.Substring(path.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
+            SqlCommand cmd = new SqlCommand(Properties.Resources.CreateDBSQLScript.
+                                Replace("<mdfpath/>", path + "\\Analysis\\" + AnalysisTraceID + ".mdf").
+                                Replace("<ldfpath/>", path + "\\Analysis\\" + AnalysisTraceID + ".ldf").
+                                Replace("<dbname/>", AnalysisTraceID)
+                                , connSqlDb);
+            int ret = cmd.ExecuteNonQuery();
+        }
         private void bgImportProfilerTrace(object sender, DoWorkEventArgs e)
         {
             try
             {
-                if (File.Exists(m_analysisPath))
-                    m_analysisPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\"));
-
-                if (!File.Exists(m_analysisPath) && !Directory.Exists(m_analysisPath))
-                    Directory.CreateDirectory(m_analysisPath);
-                if (!Directory.Exists(m_analysisPath + "\\Analysis"))
-                    Directory.CreateDirectory(m_analysisPath + "\\Analysis");
-
-                string sSvcUser = "";
-                ServiceController[] services = ServiceController.GetServices();
-                foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
-                    if (s.DisplayName.Contains("SQL Server (" + (connSqlDb.DataSource.Contains("\\") ? connSqlDb.DataSource.Substring(connSqlDb.DataSource.IndexOf("\\")) : "MSSQLSERVER")))
-                    {
-                        SelectQuery sQuery = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\"");
-                        ManagementObjectSearcher mgmtSearcher = new ManagementObjectSearcher(sQuery);
-
-                        foreach (ManagementObject svc in mgmtSearcher.Get())
-                            sSvcUser = svc["startname"] as string;
-                        if (sSvcUser.Contains(".")) sSvcUser = sSvcUser.Replace(".", Environment.UserDomainName);
-                        if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
-                    }
-
-                DirectoryInfo dirInfo = new DirectoryInfo(m_analysisPath + "\\Analysis");
-                DirectorySecurity dirSec = dirInfo.GetAccessControl();
-                dirSec.AddAccessRule(new FileSystemAccessRule(sSvcUser, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
-                dirInfo.SetAccessControl(dirSec);
-
-                if (AnalysisTraceID == "")
-                    AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
-                SqlCommand cmd = new SqlCommand(Properties.Resources.CreateDBSQLScript.
-                                    Replace("<mdfpath/>", m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf").
-                                    Replace("<ldfpath/>", m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf").
-                                    Replace("<dbname/>", AnalysisTraceID)
-                                    , connSqlDb);
-                int ret = cmd.ExecuteNonQuery();
+                SetAnalysisFolderPermissionsAndCreateDB(m_analysisPath);
 
                 ProfilerTraceStatusTextBox.Invoke(new System.Action(() =>
                     ProfilerTraceStatusTextBox.Text = "Importing profiler trace to database [" + AnalysisTraceID + "] on SQL instance: [" + (connSqlDb.DataSource == "." ? Environment.MachineName : connSqlDb.DataSource) + "]."));
@@ -348,6 +353,7 @@ namespace SSASDiag
                                                 + "FOR ATTACH", connSqlDb);
             cmd.ExecuteNonQuery();
             bProfilerTraceDbAttached = true;
+
             Invoke(new System.Action(() =>
             {
                 splitProfilerAnalysis.Visible = true;
@@ -358,7 +364,6 @@ namespace SSASDiag
                 ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Attached trace database [" + AnalysisTraceID + "]\r\nto SQL instance [" + (connSqlDb.DataSource.StartsWith(".") ? Environment.MachineName + connSqlDb.DataSource.Substring(1) : connSqlDb.DataSource) + "]\r\nfor analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n");
             }));
 
-            ValidateProfilerTraceViews();
         }
         private void AttachProfilerTraceDB()
         {
