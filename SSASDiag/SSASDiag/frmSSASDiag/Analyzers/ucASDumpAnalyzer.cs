@@ -69,6 +69,9 @@ namespace SSASDiag
             Shown += UcASDumpAnalyzer_Shown;
             HandleDestroyed += UcASDumpAnalyzer_HandleDestroyed;
 
+            splitDumpOutput.Panel2Collapsed = true;
+            splitDebugger.Panel2Collapsed = true;
+            splitDumpDetails.Panel2Collapsed = true;
 
             if (Directory.Exists(dumpPath))
             {
@@ -206,6 +209,9 @@ namespace SSASDiag
                 }
                 dgdDumpList.ClearSelection();
                 dgdDumpList.SelectionChanged += dgdDumpList_SelectionChanged;
+                btnAnalyzeDumps.Enabled = false;
+                btnAnalyzeDumps.BackColor = SystemColors.ControlLight;
+                btnAnalyzeDumps.Text = "";
             }
         }
 
@@ -306,7 +312,7 @@ namespace SSASDiag
                     SubmitDebuggerCommand("q");
                     cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + path + "', '" + pid + "'," + CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "") + ", '" + stk.Replace("'", "''") + "', '" + qry.Replace("'", "''") + "', 1)";
                     cmd.ExecuteNonQuery();
-                    //res = SubmitDebuggerCommand("~*kN");
+                    string AllThreads = SubmitDebuggerCommand("~*kN");
 
 
                 }
@@ -358,7 +364,8 @@ namespace SSASDiag
                 {
                     // trim the current prompt from the start of data if both are not zero length strings
                     string output = e.Data.Length > 0 && CurrentPrompt.Length > 0 ? e.Data.Replace(CurrentPrompt, "") : e.Data;
-                    txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(output + "\r\n")));
+                    if (txtStatus.IsHandleCreated)
+                        txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(output + "\r\n")));
                     LastResponse += output + "\r\n";
                 }
             }
@@ -394,8 +401,9 @@ namespace SSASDiag
         {
             new Thread(new ThreadStart(() =>
             {
-                foreach (DataGridViewRow r in dgdDumpList.Rows)
-                {
+            foreach (DataGridViewRow r in dgdDumpList.Rows)
+            {
+                    splitDebugger.Invoke(new System.Action(() => splitDebugger.Panel2Collapsed = false));
                     if (r.Cells[1].Selected)
                     {
                         ConnectToDump(r.Cells[0].Value as string);
@@ -453,6 +461,7 @@ namespace SSASDiag
                     string pluralize = (selCount > 1 ? "s: " : ": ");
                     rtDumpDetails.Text = "Dump file" + pluralize + dComp.DumpName + "\r\nAS Version" + pluralize + dComp.ASVersion + "\r\n" +
                         "Dump time: " + (selCount > 1 ? "<multiple dumps selected>" : dComp.DumpTime.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")) + "\r\n" +
+                        "Dump process id: " + (selCount > 1 ? "<multiple dumps selected>" : dComp.ProcessID) + "\r\n" +
                         (AnalyzedCount < selCount ?
                             "Analysis exists for " + AnalyzedCount + " of " + selCount + " selected dumps.\r\n" :
                             (selCount == 1 ? "" : "Analysis exists for all of the " + selCount + " selected dumps.\r\n")) +
@@ -482,7 +491,7 @@ namespace SSASDiag
             btnAnalyzeDumps.Enabled = (AnalyzedCount < selCount);
             btnAnalyzeDumps.BackColor = (AnalyzedCount < selCount) ? Color.DarkSeaGreen : SystemColors.ControlLight;
             btnAnalyzeDumps.Text = (AnalyzedCount < selCount) ? "Analyze Selection" : "";
-            spDumpDetails.Panel2Collapsed = selCount == 0;
+            splitDumpDetails.Panel2Collapsed = selCount == 0;
             dgdDumpList.ResumeLayout();
         }
 
@@ -492,22 +501,14 @@ namespace SSASDiag
             rtbStack.Text = s.CallStack;
             if (s.Query != "")
             {
-                splitDumpOutput.SuspendLayout();
+                lblQuery.Text = "A query was found on the thread.";
                 splitDumpOutput.Panel2Collapsed = false;
-                mdxQuery.SuspendLayout();
                 mdxQuery.Text = s.Query;
                 mdxQuery.ZoomFactor = 1;
                 mdxQuery.ZoomFactor = .75F;
-                mdxQuery.ResumeLayout();
-                splitDumpOutput.ResumeLayout();
             }
             else
                 splitDumpOutput.Panel2Collapsed = true;
-        }
-
-        private void ucASDumpAnalyzer_SizeChanged(object sender, EventArgs e)
-        {
-            splitDumpOutput.Height = splitDumpList.Panel2.Height - pnStacks.Height;
         }
     }
 }

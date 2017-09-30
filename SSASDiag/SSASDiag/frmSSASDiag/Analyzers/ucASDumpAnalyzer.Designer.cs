@@ -32,17 +32,21 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitDebugger = new System.Windows.Forms.SplitContainer();
             this.splitDumpList = new System.Windows.Forms.SplitContainer();
-            this.spDumpDetails = new System.Windows.Forms.SplitContainer();
+            this.splitDumpDetails = new System.Windows.Forms.SplitContainer();
             this.dgdDumpList = new System.Windows.Forms.DataGridView();
             this.rtDumpDetails = new System.Windows.Forms.RichTextBox();
             this.btnAnalyzeDumps = new System.Windows.Forms.Button();
+            this.splitDumpOutput = new System.Windows.Forms.SplitContainer();
             this.pnStacks = new System.Windows.Forms.Panel();
             this.lblThreads = new System.Windows.Forms.Label();
             this.cmbThreads = new System.Windows.Forms.ComboBox();
-            this.splitDumpOutput = new System.Windows.Forms.SplitContainer();
             this.rtbStack = new System.Windows.Forms.RichTextBox();
             this.mdxQuery = new SimpleMDXParser.SimpleMDXEditor();
+            this.pnQuery = new System.Windows.Forms.Panel();
+            this.lblQuery = new System.Windows.Forms.Label();
             this.txtStatus = new System.Windows.Forms.RichTextBox();
+            this.pnDebugger = new System.Windows.Forms.Panel();
+            this.lblDebugger = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.splitDebugger)).BeginInit();
             this.splitDebugger.Panel1.SuspendLayout();
@@ -52,16 +56,18 @@
             this.splitDumpList.Panel1.SuspendLayout();
             this.splitDumpList.Panel2.SuspendLayout();
             this.splitDumpList.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.spDumpDetails)).BeginInit();
-            this.spDumpDetails.Panel1.SuspendLayout();
-            this.spDumpDetails.Panel2.SuspendLayout();
-            this.spDumpDetails.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitDumpDetails)).BeginInit();
+            this.splitDumpDetails.Panel1.SuspendLayout();
+            this.splitDumpDetails.Panel2.SuspendLayout();
+            this.splitDumpDetails.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdDumpList)).BeginInit();
-            this.pnStacks.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitDumpOutput)).BeginInit();
             this.splitDumpOutput.Panel1.SuspendLayout();
             this.splitDumpOutput.Panel2.SuspendLayout();
             this.splitDumpOutput.SuspendLayout();
+            this.pnStacks.SuspendLayout();
+            this.pnQuery.SuspendLayout();
+            this.pnDebugger.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitDebugger
@@ -69,6 +75,7 @@
             this.splitDebugger.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitDebugger.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
             this.splitDebugger.Location = new System.Drawing.Point(0, 0);
+            this.splitDebugger.Margin = new System.Windows.Forms.Padding(0);
             this.splitDebugger.Name = "splitDebugger";
             this.splitDebugger.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -79,6 +86,7 @@
             // splitDebugger.Panel2
             // 
             this.splitDebugger.Panel2.Controls.Add(this.txtStatus);
+            this.splitDebugger.Panel2.Controls.Add(this.pnDebugger);
             this.splitDebugger.Size = new System.Drawing.Size(638, 432);
             this.splitDebugger.SplitterDistance = 321;
             this.splitDebugger.TabIndex = 39;
@@ -92,36 +100,35 @@
             // 
             // splitDumpList.Panel1
             // 
-            this.splitDumpList.Panel1.Controls.Add(this.spDumpDetails);
+            this.splitDumpList.Panel1.Controls.Add(this.splitDumpDetails);
             this.splitDumpList.Panel1.Controls.Add(this.btnAnalyzeDumps);
             // 
             // splitDumpList.Panel2
             // 
-            this.splitDumpList.Panel2.Controls.Add(this.pnStacks);
             this.splitDumpList.Panel2.Controls.Add(this.splitDumpOutput);
             this.splitDumpList.Size = new System.Drawing.Size(638, 321);
-            this.splitDumpList.SplitterDistance = 275;
+            this.splitDumpList.SplitterDistance = 227;
             this.splitDumpList.TabIndex = 0;
             // 
-            // spDumpDetails
+            // splitDumpDetails
             // 
-            this.spDumpDetails.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spDumpDetails.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
-            this.spDumpDetails.Location = new System.Drawing.Point(0, 21);
-            this.spDumpDetails.Name = "spDumpDetails";
-            this.spDumpDetails.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.splitDumpDetails.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitDumpDetails.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
+            this.splitDumpDetails.Location = new System.Drawing.Point(0, 21);
+            this.splitDumpDetails.Name = "splitDumpDetails";
+            this.splitDumpDetails.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
-            // spDumpDetails.Panel1
+            // splitDumpDetails.Panel1
             // 
-            this.spDumpDetails.Panel1.Controls.Add(this.dgdDumpList);
+            this.splitDumpDetails.Panel1.Controls.Add(this.dgdDumpList);
             // 
-            // spDumpDetails.Panel2
+            // splitDumpDetails.Panel2
             // 
-            this.spDumpDetails.Panel2.Controls.Add(this.rtDumpDetails);
-            this.spDumpDetails.Panel2MinSize = 100;
-            this.spDumpDetails.Size = new System.Drawing.Size(275, 300);
-            this.spDumpDetails.SplitterDistance = 167;
-            this.spDumpDetails.TabIndex = 3;
+            this.splitDumpDetails.Panel2.Controls.Add(this.rtDumpDetails);
+            this.splitDumpDetails.Panel2MinSize = 100;
+            this.splitDumpDetails.Size = new System.Drawing.Size(227, 300);
+            this.splitDumpDetails.SplitterDistance = 167;
+            this.splitDumpDetails.TabIndex = 3;
             // 
             // dgdDumpList
             // 
@@ -147,7 +154,7 @@
             this.dgdDumpList.Name = "dgdDumpList";
             this.dgdDumpList.ReadOnly = true;
             this.dgdDumpList.RowHeadersVisible = false;
-            this.dgdDumpList.Size = new System.Drawing.Size(275, 167);
+            this.dgdDumpList.Size = new System.Drawing.Size(227, 167);
             this.dgdDumpList.TabIndex = 3;
             // 
             // rtDumpDetails
@@ -161,7 +168,7 @@
             this.rtDumpDetails.Location = new System.Drawing.Point(0, 0);
             this.rtDumpDetails.Name = "rtDumpDetails";
             this.rtDumpDetails.ReadOnly = true;
-            this.rtDumpDetails.Size = new System.Drawing.Size(275, 129);
+            this.rtDumpDetails.Size = new System.Drawing.Size(227, 129);
             this.rtDumpDetails.TabIndex = 40;
             this.rtDumpDetails.Text = "";
             // 
@@ -175,11 +182,31 @@
             this.btnAnalyzeDumps.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAnalyzeDumps.Location = new System.Drawing.Point(0, 0);
             this.btnAnalyzeDumps.Name = "btnAnalyzeDumps";
-            this.btnAnalyzeDumps.Size = new System.Drawing.Size(275, 21);
+            this.btnAnalyzeDumps.Size = new System.Drawing.Size(227, 21);
             this.btnAnalyzeDumps.TabIndex = 1;
             this.btnAnalyzeDumps.Text = "Analyze Selection";
             this.btnAnalyzeDumps.UseVisualStyleBackColor = false;
             this.btnAnalyzeDumps.Click += new System.EventHandler(this.btnAnalyzeDumps_Click);
+            // 
+            // splitDumpOutput
+            // 
+            this.splitDumpOutput.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitDumpOutput.Location = new System.Drawing.Point(0, 0);
+            this.splitDumpOutput.Name = "splitDumpOutput";
+            this.splitDumpOutput.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitDumpOutput.Panel1
+            // 
+            this.splitDumpOutput.Panel1.Controls.Add(this.rtbStack);
+            this.splitDumpOutput.Panel1.Controls.Add(this.pnStacks);
+            // 
+            // splitDumpOutput.Panel2
+            // 
+            this.splitDumpOutput.Panel2.Controls.Add(this.mdxQuery);
+            this.splitDumpOutput.Panel2.Controls.Add(this.pnQuery);
+            this.splitDumpOutput.Size = new System.Drawing.Size(407, 321);
+            this.splitDumpOutput.SplitterDistance = 118;
+            this.splitDumpOutput.TabIndex = 0;
             // 
             // pnStacks
             // 
@@ -187,9 +214,10 @@
             this.pnStacks.Controls.Add(this.cmbThreads);
             this.pnStacks.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnStacks.Location = new System.Drawing.Point(0, 0);
+            this.pnStacks.Margin = new System.Windows.Forms.Padding(0);
             this.pnStacks.Name = "pnStacks";
-            this.pnStacks.Size = new System.Drawing.Size(359, 21);
-            this.pnStacks.TabIndex = 5;
+            this.pnStacks.Size = new System.Drawing.Size(407, 21);
+            this.pnStacks.TabIndex = 46;
             // 
             // lblThreads
             // 
@@ -204,32 +232,14 @@
             // cmbThreads
             // 
             this.cmbThreads.Dock = System.Windows.Forms.DockStyle.Right;
+            this.cmbThreads.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbThreads.FormattingEnabled = true;
-            this.cmbThreads.Location = new System.Drawing.Point(287, 0);
+            this.cmbThreads.ItemHeight = 12;
+            this.cmbThreads.Location = new System.Drawing.Point(335, 0);
             this.cmbThreads.Name = "cmbThreads";
-            this.cmbThreads.Size = new System.Drawing.Size(72, 21);
+            this.cmbThreads.Size = new System.Drawing.Size(72, 20);
             this.cmbThreads.TabIndex = 1;
             this.cmbThreads.Visible = false;
-            this.cmbThreads.SelectedIndexChanged += new System.EventHandler(this.cmbThreads_SelectedIndexChanged);
-            // 
-            // splitDumpOutput
-            // 
-            this.splitDumpOutput.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.splitDumpOutput.Location = new System.Drawing.Point(0, 20);
-            this.splitDumpOutput.Name = "splitDumpOutput";
-            this.splitDumpOutput.Orientation = System.Windows.Forms.Orientation.Horizontal;
-            // 
-            // splitDumpOutput.Panel1
-            // 
-            this.splitDumpOutput.Panel1.Controls.Add(this.rtbStack);
-            // 
-            // splitDumpOutput.Panel2
-            // 
-            this.splitDumpOutput.Panel2.Controls.Add(this.mdxQuery);
-            this.splitDumpOutput.Panel2Collapsed = true;
-            this.splitDumpOutput.Size = new System.Drawing.Size(359, 301);
-            this.splitDumpOutput.SplitterDistance = 112;
-            this.splitDumpOutput.TabIndex = 0;
             // 
             // rtbStack
             // 
@@ -239,21 +249,40 @@
             this.rtbStack.Dock = System.Windows.Forms.DockStyle.Fill;
             this.rtbStack.Font = new System.Drawing.Font("Consolas", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.rtbStack.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.rtbStack.Location = new System.Drawing.Point(0, 0);
+            this.rtbStack.Location = new System.Drawing.Point(0, 21);
             this.rtbStack.Name = "rtbStack";
             this.rtbStack.ReadOnly = true;
-            this.rtbStack.Size = new System.Drawing.Size(359, 301);
+            this.rtbStack.Size = new System.Drawing.Size(407, 97);
             this.rtbStack.TabIndex = 45;
             this.rtbStack.Text = "";
             // 
             // mdxQuery
             // 
             this.mdxQuery.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mdxQuery.Location = new System.Drawing.Point(0, 0);
+            this.mdxQuery.Location = new System.Drawing.Point(0, 18);
             this.mdxQuery.Name = "mdxQuery";
-            this.mdxQuery.Size = new System.Drawing.Size(150, 46);
+            this.mdxQuery.Size = new System.Drawing.Size(407, 181);
             this.mdxQuery.TabIndex = 1;
             this.mdxQuery.Text = "";
+            // 
+            // pnQuery
+            // 
+            this.pnQuery.Controls.Add(this.lblQuery);
+            this.pnQuery.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnQuery.Location = new System.Drawing.Point(0, 0);
+            this.pnQuery.Name = "pnQuery";
+            this.pnQuery.Size = new System.Drawing.Size(407, 18);
+            this.pnQuery.TabIndex = 2;
+            // 
+            // lblQuery
+            // 
+            this.lblQuery.AutoSize = true;
+            this.lblQuery.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblQuery.Location = new System.Drawing.Point(4, 3);
+            this.lblQuery.Name = "lblQuery";
+            this.lblQuery.Size = new System.Drawing.Size(0, 12);
+            this.lblQuery.TabIndex = 4;
+            this.lblQuery.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // txtStatus
             // 
@@ -263,12 +292,30 @@
             this.txtStatus.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtStatus.Font = new System.Drawing.Font("Consolas", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtStatus.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.txtStatus.Location = new System.Drawing.Point(0, 0);
+            this.txtStatus.Location = new System.Drawing.Point(0, 18);
             this.txtStatus.Name = "txtStatus";
             this.txtStatus.ReadOnly = true;
-            this.txtStatus.Size = new System.Drawing.Size(638, 107);
+            this.txtStatus.Size = new System.Drawing.Size(638, 89);
             this.txtStatus.TabIndex = 39;
             this.txtStatus.Text = "";
+            // 
+            // pnDebugger
+            // 
+            this.pnDebugger.Controls.Add(this.lblDebugger);
+            this.pnDebugger.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnDebugger.Location = new System.Drawing.Point(0, 0);
+            this.pnDebugger.Name = "pnDebugger";
+            this.pnDebugger.Size = new System.Drawing.Size(638, 18);
+            this.pnDebugger.TabIndex = 40;
+            // 
+            // lblDebugger
+            // 
+            this.lblDebugger.AutoSize = true;
+            this.lblDebugger.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblDebugger.Location = new System.Drawing.Point(3, 2);
+            this.lblDebugger.Name = "lblDebugger";
+            this.lblDebugger.Size = new System.Drawing.Size(0, 12);
+            this.lblDebugger.TabIndex = 0;
             // 
             // ucASDumpAnalyzer
             // 
@@ -278,7 +325,6 @@
             this.Name = "ucASDumpAnalyzer";
             this.Size = new System.Drawing.Size(638, 432);
             this.Load += new System.EventHandler(this.ucASDumpAnalyzer_Load);
-            this.SizeChanged += new System.EventHandler(this.ucASDumpAnalyzer_SizeChanged);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.ucASDumpAnalyzer_Paint);
             this.splitDebugger.Panel1.ResumeLayout(false);
             this.splitDebugger.Panel2.ResumeLayout(false);
@@ -288,17 +334,21 @@
             this.splitDumpList.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitDumpList)).EndInit();
             this.splitDumpList.ResumeLayout(false);
-            this.spDumpDetails.Panel1.ResumeLayout(false);
-            this.spDumpDetails.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.spDumpDetails)).EndInit();
-            this.spDumpDetails.ResumeLayout(false);
+            this.splitDumpDetails.Panel1.ResumeLayout(false);
+            this.splitDumpDetails.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitDumpDetails)).EndInit();
+            this.splitDumpDetails.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgdDumpList)).EndInit();
-            this.pnStacks.ResumeLayout(false);
-            this.pnStacks.PerformLayout();
             this.splitDumpOutput.Panel1.ResumeLayout(false);
             this.splitDumpOutput.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitDumpOutput)).EndInit();
             this.splitDumpOutput.ResumeLayout(false);
+            this.pnStacks.ResumeLayout(false);
+            this.pnStacks.PerformLayout();
+            this.pnQuery.ResumeLayout(false);
+            this.pnQuery.PerformLayout();
+            this.pnDebugger.ResumeLayout(false);
+            this.pnDebugger.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -309,15 +359,19 @@
         private System.Windows.Forms.SplitContainer splitDumpList;
         private System.Windows.Forms.Button btnAnalyzeDumps;
         private System.Windows.Forms.RichTextBox txtStatus;
-        private System.Windows.Forms.SplitContainer spDumpDetails;
+        private System.Windows.Forms.SplitContainer splitDumpDetails;
         private System.Windows.Forms.DataGridView dgdDumpList;
         private System.Windows.Forms.RichTextBox rtDumpDetails;
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.Panel pnStacks;
-        private System.Windows.Forms.Label lblThreads;
-        private System.Windows.Forms.ComboBox cmbThreads;
         private System.Windows.Forms.SplitContainer splitDumpOutput;
         private System.Windows.Forms.RichTextBox rtbStack;
         private SimpleMDXParser.SimpleMDXEditor mdxQuery;
+        private System.Windows.Forms.Panel pnQuery;
+        private System.Windows.Forms.Label lblQuery;
+        private System.Windows.Forms.Panel pnDebugger;
+        private System.Windows.Forms.Label lblDebugger;
+        private System.Windows.Forms.Panel pnStacks;
+        private System.Windows.Forms.Label lblThreads;
+        private System.Windows.Forms.ComboBox cmbThreads;
     }
 }
