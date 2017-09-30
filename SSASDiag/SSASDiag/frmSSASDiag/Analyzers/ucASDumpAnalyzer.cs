@@ -169,41 +169,44 @@ namespace SSASDiag
             dgdDumpList.DataBindingComplete += DgdDumpList_DataBindingComplete;
         }
 
+        int DataBindingCompletions = 0;
         private void DgdDumpList_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
-            dgdDumpList.SelectionChanged += dgdDumpList_SelectionChanged;
-            dgdDumpList.ClearSelection();
-            dgdDumpList.Columns[0].Visible = false;
-            dgdDumpList.Columns[2].Visible = false;
-            dgdDumpList.Columns[3].Visible = false;
-            dgdDumpList.Columns[4].Visible = false;
-            dgdDumpList.Columns[5].Visible = false;
-            dgdDumpList.Columns[6].Visible = false;
-            dgdDumpList.Columns[7].Visible = false;
-
-            foreach (DataGridViewRow r in dgdDumpList.Rows)
+            DataBindingCompletions++;
+            if (DataBindingCompletions == 4)
             {
-                try
+                dgdDumpList.Columns[0].Visible = false;
+                dgdDumpList.Columns[2].Visible = false;
+                dgdDumpList.Columns[3].Visible = false;
+                dgdDumpList.Columns[4].Visible = false;
+                dgdDumpList.Columns[5].Visible = false;
+                dgdDumpList.Columns[6].Visible = false;
+                dgdDumpList.Columns[7].Visible = false;
+
+                foreach (DataGridViewRow r in dgdDumpList.Rows)
                 {
-                    Dump d = r.DataBoundItem as Dump;
-                    if (d.Analyzed == false)
+                    try
                     {
-                        r.DefaultCellStyle.ForeColor = SystemColors.GrayText;
-                        r.Cells[1].ToolTipText = "This dump has not been analyzed yet.  Select, then click Analyze Selection.";
+                        Dump d = r.DataBoundItem as Dump;
+                        if (d.Analyzed == false)
+                        {
+                            r.DefaultCellStyle.ForeColor = SystemColors.GrayText;
+                            r.Cells[1].ToolTipText = "This dump has not been analyzed yet.  Select, then click Analyze Selection.";
+                        }
+                        else
+                        if (d.Crash == false)
+                        {
+                            r.DefaultCellStyle.BackColor = SystemColors.ControlDark;
+                        }
                     }
-                    else
-                    if (d.Crash == false)
+                    catch (Exception ex)
                     {
-                        r.DefaultCellStyle.BackColor = SystemColors.ControlDark;
+                        Debug.WriteLine(ex.Message);
                     }
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.Message);
-                }
+                dgdDumpList.ClearSelection();
+                dgdDumpList.SelectionChanged += dgdDumpList_SelectionChanged;
             }
-
-
         }
 
         private void UcASDumpAnalyzer_HandleDestroyed(object sender, EventArgs e)
@@ -407,11 +410,6 @@ namespace SSASDiag
                     }
                 }
             })).Start();
-
-            mdxQuery.SuspendLayout();
-            mdxQuery.Text = Properties.Resources.SampleMDX;
-            mdxQuery.ZoomFactor = 0.75F;
-            mdxQuery.ResumeLayout();
         }
 
         private void dgdDumpList_SelectionChanged(object sender, EventArgs e)
@@ -472,6 +470,7 @@ namespace SSASDiag
                 cmbThreads.DataSource = dComp.Stacks;
                 cmbThreads.DisplayMember = "ThreadID";
                 cmbThreads.Visible = true;
+                cmbThreads_SelectedIndexChanged(null, null);
             }
             else
             {
@@ -493,11 +492,16 @@ namespace SSASDiag
             rtbStack.Text = s.CallStack;
             if (s.Query != "")
             {
+                splitDumpOutput.SuspendLayout();
+                splitDumpOutput.Panel2Collapsed = false;
+                mdxQuery.SuspendLayout();
                 mdxQuery.Text = s.Query;
-                spDumpDetails.Panel2Collapsed = false;
+                mdxQuery.ZoomFactor = .75F;
+                mdxQuery.ResumeLayout();
+                splitDumpOutput.ResumeLayout();
             }
             else
-                spDumpDetails.Panel2Collapsed = true;
+                splitDumpOutput.Panel2Collapsed = true;
         }
 
         private void ucASDumpAnalyzer_SizeChanged(object sender, EventArgs e)

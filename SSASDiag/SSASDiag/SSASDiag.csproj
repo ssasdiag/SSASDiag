@@ -259,8 +259,6 @@
     <None Include="Resources\ASProfilerTraceImporterCmd.exe" />
     <None Include="Resources\package_new.png" />
     <None Include="Resources\Dump.png" />
-    <None Include="Resources\DumpDisabled.png" />
-    <None Include="Resources\DumpLit.png" />
     <None Include="Resources\Settings.png" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
