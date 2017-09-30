@@ -496,6 +496,7 @@ namespace SSASDiag
                 splitDumpOutput.Panel2Collapsed = false;
                 mdxQuery.SuspendLayout();
                 mdxQuery.Text = s.Query;
+                mdxQuery.ZoomFactor = 1;
                 mdxQuery.ZoomFactor = .75F;
                 mdxQuery.ResumeLayout();
                 splitDumpOutput.ResumeLayout();
