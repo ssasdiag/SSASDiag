@@ -217,12 +217,19 @@ namespace SSASDiag
 
         private void UcASDumpAnalyzer_HandleDestroyed(object sender, EventArgs e)
         {
-            connDB.ChangeDatabase("master");
-            SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') ALTER DATABASE [" + DBName() + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connDB);
-            cmd.ExecuteNonQuery();
-            cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') EXEC master.dbo.sp_detach_db @dbname = N'" + DBName() + "'", connDB);
-            cmd.ExecuteNonQuery();
-            connDB.Close();
+            try
+            {
+                connDB.ChangeDatabase("master");
+                SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') ALTER DATABASE [" + DBName() + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connDB);
+                cmd.ExecuteNonQuery();
+                cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') EXEC master.dbo.sp_detach_db @dbname = N'" + DBName() + "'", connDB);
+                cmd.ExecuteNonQuery();
+                connDB.Close();
+            }
+            catch
+            {
+                // Closing connection could fail if the database is in use or something.  Just ignore - we're closing, don't notify user...
+            }
         }
 
         private string DBName()
@@ -254,6 +261,7 @@ namespace SSASDiag
                     if (!(c.OwningRow.DataBoundItem as Dump).Analyzed) TotalCountToAnalyze++;
                 if (TotalCountToAnalyze > 0)
                 {
+                    rtDumpDetails.Invoke(new System.Action(() => rtDumpDetails.Text = "Analyzing " + TotalCountToAnalyze + " dump" + (TotalCountToAnalyze == 1 ? "" : "s") + "."));
                     foreach (DataGridViewCell c in dgdDumpList.SelectedCells)
                     {
                         Dump d = c.OwningRow.DataBoundItem as Dump;
@@ -312,6 +320,7 @@ namespace SSASDiag
                     Dump d = DumpFiles.Find(df => df.DumpName == path);
                     ResultReady.Reset();
                     ResultReady.WaitOne();
+                    ResultReady.Reset();
                     string init = LastResponse;
                     d.ASVersion = SubmitDebuggerCommand("lmvm msmdsrv").Split(new char[] { '\r', '\n' }).Where(f => f.Contains("Product version:")).First().Replace("    Product version:  ", "");
                     d.Crash = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("This dump file has an exception of interest stored in it.")).Count() > 0;
@@ -329,7 +338,7 @@ namespace SSASDiag
                     DateTime dt;
                     DateTime.TryParseExact(properTime, "MMM d, yyyy HH:mm:ss.fff zzz", null, System.Globalization.DateTimeStyles.AssumeLocal, out dt);
                     d.DumpTime = dt;
-                    cmd.CommandText = "INSERT INTO Dumps VALUES('" + path + "', '" + pid + "', '" + d.ASVersion + "', '" + dt.ToString() + "', " + (d.Crash ? 1 : 0) + ", '" + d.DumpException + "')";
+                    cmd.CommandText = "INSERT INTO Dumps VALUES('" + d.DumpPath + "', '" + pid + "', '" + d.ASVersion + "', '" + dt.ToString() + "', " + (d.Crash ? 1 : 0) + ", '" + d.DumpException + "')";
                     cmd.ExecuteNonQuery();
                     d.Analyzed = true;
 
@@ -357,14 +366,40 @@ namespace SSASDiag
                         }
                         catch
                         {
-                            qry = "There was a query on this thread but there was an error reading its memory.";
+                            // I should insert backup approach to try dU if .printf fails as can happen if partial memory is present so no null-terminator is found on the string...
+                            qry = "There was a query on this thread but its memory could not be read (possibly not captured in this minidump).";
                         }
                     }
                     d.Stacks.Add(new Stack() { CallStack = stk, ThreadID = Convert.ToInt32((CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", ""))), Query = qry, ExceptionThread = true });
-                    //string AllThreads = SubmitDebuggerCommand("~*kN");
-                    SubmitDebuggerCommand("q");
-                    cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + path + "', '" + pid + "'," + CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "") + ", '" + stk.Replace("'", "''") + "', '" + qry.Replace("'", "''") + "', 1)";
+                    cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "'," + CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "") + ", '" + stk.Replace("'", "''") + "', '" + qry.Replace("'", "''") + "', 1)";
                     cmd.ExecuteNonQuery();
+
+                    // Process non-exception threads
+                    SubmitDebuggerCommand(".echo"); // Hack attack, don't ask it works...  Wish the next command otherwise deterministically got output but don't know why it doesn't yet, without adding this...
+                    List<string> AllThreads = SubmitDebuggerCommand("~*kN").Replace("\n", "").Split(new char[] { '\r'}).ToList();
+                    for (int i = 0; i < AllThreads.Count; i++)
+                    {
+                        string l = AllThreads[i];
+                        if (l.StartsWith(" # Child-SP") && !AllThreads[i - 1].StartsWith("#"))  // The exception thread already captured is denoted in output with # so we can skip it...
+                        {
+                            Stack s = new Stack() { ExceptionThread = false };
+                            s.ThreadID = Convert.ToInt32(AllThreads[i - 1].Substring(0, AllThreads[i - 1].IndexOf(" Id: ")).TrimStart());
+                            int j = i;
+                            for (; AllThreads[j] != ""; j++)
+                                s.CallStack += AllThreads[j] + "\r\n";
+                            i = j;
+                            s.CallStack = s.CallStack.TrimEnd();
+                            s.Query = "";
+                            if (d.Stacks.Find(st => st.ThreadID == s.ThreadID) == null)
+                            {
+                                d.Stacks.Add(s);
+                                cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "', '" + s.ThreadID + "', '" + stk.Replace("'", "''") + "', '" + s.Query.Replace("'", "''") + "', 0)";
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
+                    SubmitDebuggerCommand("q");
+                    
                 }
                 )).Start();
         }
@@ -379,6 +414,7 @@ namespace SSASDiag
                 p.StandardInput.WriteLine(".echo");
                 ResultReady.Reset();
                 ResultReady.WaitOne();
+                ResultReady.Reset();
             }
             return LastResponse;
         }
