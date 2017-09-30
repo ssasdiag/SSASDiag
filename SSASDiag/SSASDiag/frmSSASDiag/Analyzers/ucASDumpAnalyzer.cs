@@ -176,7 +176,7 @@ namespace SSASDiag
         private void DgdDumpList_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
             DataBindingCompletions++;
-            if (DataBindingCompletions == 4)
+            if (DataBindingCompletions > 3)  // Skip the first three binding messages when we are initializing...
             {
                 dgdDumpList.Columns[0].Visible = false;
                 dgdDumpList.Columns[2].Visible = false;
@@ -244,6 +244,49 @@ namespace SSASDiag
 
         }
 
+        private void btnAnalyzeDumps_Click(object sender, EventArgs e)
+        {
+            new Thread(new ThreadStart(() =>
+            {
+                int TotalCountToAnalyze = 0;
+                int CurrentDump = 1;
+                foreach (DataGridViewCell c in dgdDumpList.SelectedCells)
+                    if (!(c.OwningRow.DataBoundItem as Dump).Analyzed) TotalCountToAnalyze++;
+                if (TotalCountToAnalyze > 0)
+                {
+                    foreach (DataGridViewCell c in dgdDumpList.SelectedCells)
+                    {
+                        Dump d = c.OwningRow.DataBoundItem as Dump;
+                        if (!d.Analyzed)
+                        {
+                            splitDebugger.Invoke(new System.Action(() =>
+                            {
+                                splitDebugger.Panel2Collapsed = false;
+                                lblDebugger.Text = "Analyzing " + d.DumpName + ", dump " + CurrentDump + " of " + TotalCountToAnalyze + " to be analyzed.";
+                            }));
+                            ConnectToDump(c.Value as string);
+                            while (!p.HasExited)
+                                Thread.Sleep(500);
+                            // Clean up the old process and reinitialize.
+                            p.Close();
+                            p.ErrorDataReceived -= P_ErrorDataReceived;
+                            p.OutputDataReceived -= P_OutputDataReceived;
+                            p.Exited -= P_Exited;
+                            p.Dispose();
+                            p = new Process();
+                        }
+                        dgdDumpList.Invoke(new System.Action(() =>
+                            {
+                                c.Style.ForeColor = SystemColors.ControlText;
+                                if (TotalCountToAnalyze == 1)
+                                    dgdDumpList_SelectionChanged(null, null);
+                                lblDebugger.Text = "Analyzed " + TotalCountToAnalyze + " memory dump" + (TotalCountToAnalyze > 1 ? "s." : ".");
+                            }));
+                    }
+                }
+            })).Start();
+        }
+
         public void ConnectToDump(string path)
         {
             SqlCommand cmd = new SqlCommand();
@@ -266,26 +309,31 @@ namespace SSASDiag
             p.StandardInput.WriteLine(".echo"); // Ensures we can detect end of output, when this is processed and input prompt is displayed in console output...
             new Thread(new ThreadStart(() =>
                 {
+                    Dump d = DumpFiles.Find(df => df.DumpName == path);
                     ResultReady.Reset();
                     ResultReady.WaitOne();
                     string init = LastResponse;
-                    string debugTime = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("Debug session time: ")).First().Replace("Debug session time: ", "").Trim();
-                    string ver = SubmitDebuggerCommand("lmvm msmdsrv").Split(new char[] { '\r', '\n' }).Where(f => f.Contains("Product version:")).First().Replace("    Product version:  ", "");
-                    bool crash = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("This dump file has an exception of interest stored in it.")).Count() > 0;
+                    d.ASVersion = SubmitDebuggerCommand("lmvm msmdsrv").Split(new char[] { '\r', '\n' }).Where(f => f.Contains("Product version:")).First().Replace("    Product version:  ", "");
+                    d.Crash = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("This dump file has an exception of interest stored in it.")).Count() > 0;
                     string pid = init.Substring(init.IndexOf("This dump file has an exception of interest stored in it."));
                     pid = pid.Substring(pid.IndexOf("\r\n") + 2);
                     pid = pid.Substring(pid.IndexOf("\r\n") + 2);
                     pid = pid.Substring(0, pid.IndexOf("\r\n"));
-                    string exc = pid.Substring(pid.IndexOf("): ") + "): ".Length);
+                    d.DumpException = pid.Substring(pid.IndexOf("): ") + "): ".Length);
                     pid = pid.Substring(0, pid.IndexOf("): ")).Replace("(", "");
                     pid = pid.Substring(0, pid.IndexOf("."));
+                    d.ProcessID = pid;
+                    string debugTime = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("Debug session time: ")).First().Replace("Debug session time: ", "").Trim();
                     string[] timeparts = debugTime.Replace("   ", " ").Replace("  ", " ").Split(new char[] { ' ' });
                     string properTime = timeparts[1] + " " + timeparts[2] + ", " + timeparts[4] + " " + timeparts[3] + " " + timeparts[6] + timeparts[7].Replace(")", "");
                     DateTime dt;
                     DateTime.TryParseExact(properTime, "MMM d, yyyy HH:mm:ss.fff zzz", null, System.Globalization.DateTimeStyles.AssumeLocal, out dt);
-                    cmd.CommandText = "INSERT INTO Dumps VALUES('" + path + "', '" + pid + "', '" + ver + "', '" + dt.ToString() + "', " + (crash ? 1 : 0) + ", '" + exc + "')";
+                    d.DumpTime = dt;
+                    cmd.CommandText = "INSERT INTO Dumps VALUES('" + path + "', '" + pid + "', '" + d.ASVersion + "', '" + dt.ToString() + "', " + (d.Crash ? 1 : 0) + ", '" + d.DumpException + "')";
                     cmd.ExecuteNonQuery();
+                    d.Analyzed = true;
 
+                    d.Stacks = new List<Stack>();
                     string stk = SubmitDebuggerCommand("kN");
                     string qry = "";
 
@@ -307,14 +355,16 @@ namespace SSASDiag
                             addy = addy.Substring(0, addy.IndexOf("PFData<") - 1);
                             qry = SubmitDebuggerCommand(".printf \"%mu\", " + addy);
                         }
-                        catch (Exception) { /* This could fail if memory can't be read so just move on. */ }
+                        catch
+                        {
+                            qry = "There was a query on this thread but there was an error reading its memory.";
+                        }
                     }
+                    d.Stacks.Add(new Stack() { CallStack = stk, ThreadID = Convert.ToInt32((CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", ""))), Query = qry, ExceptionThread = true });
+                    //string AllThreads = SubmitDebuggerCommand("~*kN");
                     SubmitDebuggerCommand("q");
                     cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + path + "', '" + pid + "'," + CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "") + ", '" + stk.Replace("'", "''") + "', '" + qry.Replace("'", "''") + "', 1)";
                     cmd.ExecuteNonQuery();
-                    string AllThreads = SubmitDebuggerCommand("~*kN");
-
-
                 }
                 )).Start();
         }
@@ -397,29 +447,6 @@ namespace SSASDiag
             dgdDumpList.EndEdit();
         }
 
-        private void btnAnalyzeDumps_Click(object sender, EventArgs e)
-        {
-            new Thread(new ThreadStart(() =>
-            {
-            foreach (DataGridViewRow r in dgdDumpList.Rows)
-            {
-                    splitDebugger.Invoke(new System.Action(() => splitDebugger.Panel2Collapsed = false));
-                    if (r.Cells[1].Selected)
-                    {
-                        ConnectToDump(r.Cells[0].Value as string);
-                        while (!p.HasExited)
-                            Thread.Sleep(500);
-                        p.Close();
-                        p.ErrorDataReceived -= P_ErrorDataReceived;
-                        p.OutputDataReceived -= P_OutputDataReceived;
-                        p.Exited -= P_Exited;
-                        p.Dispose();
-                        p = new Process();
-                    }
-                }
-            })).Start();
-        }
-
         private void dgdDumpList_SelectionChanged(object sender, EventArgs e)
         {
             dgdDumpList.SuspendLayout();
@@ -427,6 +454,7 @@ namespace SSASDiag
             int AnalyzedCount = 0;
             int CrashedCount = 0;
             int selCount = dgdDumpList.SelectedCells.Count;
+            splitDebugger.Panel2Collapsed = true;
             foreach (DataGridViewCell c in dgdDumpList.SelectedCells)
             {
                 Dump d = c.OwningRow.DataBoundItem as Dump;                
