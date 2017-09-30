@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Security.AccessControl;
 using System.Management;
 using System.ServiceProcess;
@@ -15,6 +16,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Data.SqlClient;
 using System.IO;
+using SimpleMDXParser;
 
 namespace SSASDiag
 {
@@ -23,10 +25,40 @@ namespace SSASDiag
         public string DumpPath { get; set; }
         ManualResetEvent ResultReady = new ManualResetEvent(false);
         SqlConnection connDB;
-        List<string> DumpFiles = new List<string>();
+        List<Dump> DumpFiles = new List<Dump>();
         string AnalysisPath = "";
         string DumpAnalysisId;
         Process p = new Process();
+
+        private class Dump
+        {
+            public Dump Clone()
+            {
+                return (Dump)MemberwiseClone();
+            }
+
+            public string DumpPath { get; set; }
+            public string DumpName
+            {
+                get { return DumpPath.Substring(DumpPath.LastIndexOf("\\") + 1); }
+            }
+            public bool Crash { get; set; }
+            public bool Analyzed { get; set; }
+            public string ASVersion { get; set; }
+            public string DumpException { get; set; }
+            public DateTime DumpTime { get; set; }
+            public string ProcessID { get; set; }
+            public List<Stack> Stacks { get; set; }
+        }
+
+        private class Stack
+        {
+            public int ThreadID { get; set; }
+            public string CallStack { get; set; }
+            public string Query { get; set; }
+            public bool ExceptionThread { get; set; }
+        }
+
 
         public ucASDumpAnalyzer(string dumpPath, SqlConnection conndb)
         {
@@ -40,19 +72,21 @@ namespace SSASDiag
 
             if (Directory.Exists(dumpPath))
             {
-                DumpFiles = Directory.GetFiles(DumpPath, "*.mdmp", SearchOption.AllDirectories).ToList();
+                List<string> dumpfiles = Directory.GetFiles(DumpPath, "*.mdmp", SearchOption.AllDirectories).ToList();
+                foreach (string f in dumpfiles)
+                    DumpFiles.Add(new Dump() { DumpPath = f, Analyzed = false, Crash = false });
                 AnalysisPath = DumpPath + "\\Analysis";
             }
             else
             {
                 AnalysisPath = DumpPath.Substring(0, DumpPath.LastIndexOf("\\") + 1) + "Analysis";
-                DumpFiles.Add(DumpPath);
-            }           
-           
+                DumpFiles.Add(new Dump() { DumpPath = dumpPath, Analyzed = false, Crash = false });
+            }
+
             if (!Directory.Exists(AnalysisPath))
                 Directory.CreateDirectory(AnalysisPath);
 
-            if (File.Exists(AnalysisPath + "DumpAnalysisId.txt"))
+            if (File.Exists(AnalysisPath + "\\DumpAnalysisId.txt"))
                 DumpAnalysisId = File.ReadAllText(AnalysisPath + "\\DumpAnalysisId.txt");
             else
             {
@@ -104,6 +138,72 @@ namespace SSASDiag
                                 + " ([DumpPath] [nvarchar] (max) NOT NULL, [DumpProcessID] [nvarchar](10) NOT NULL, [ASVersion] [nvarchar] (15) NOT NULL, [DumpTime] [datetime] NULL, [CrashDump] [bit] NOT NULL, [DumpException] [nvarchar](max) NULL) ON[PRIMARY] TEXTIMAGE_ON[PRIMARY]";
             cmd.ExecuteNonQuery();
 
+            
+            cmd.CommandText = "select * from Dumps";
+            SqlDataReader dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                Dump d = DumpFiles.Find(df => df.DumpPath == dr["DumpPath"] as string);
+                if (d != null)
+                {
+                    d.Analyzed = true;
+                    d.ASVersion = dr["ASVersion"] as string;
+                    d.DumpTime = (DateTime)dr["DumpTime"];
+                    d.Crash = (bool)dr["CrashDump"];
+                    d.DumpException = dr["DumpException"] as string;
+                    d.ProcessID = dr["DumpProcessID"] as string;
+                    d.Stacks = new List<Stack>();
+                }
+            }
+            dr.Close();
+            cmd.CommandText = "select * from StacksAndQueries";
+            dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                Dump d = DumpFiles.Find(df => df.DumpPath == dr["DumpPath"] as string);
+                if (d != null)
+                    d.Stacks.Add(new Stack() { CallStack = dr["Stack"] as string, ThreadID = (int)dr["ThreadID"], Query = dr["Query"] as string, ExceptionThread = (bool)dr["ExceptionThread"] });
+            }
+            dr.Close();
+            dgdDumpList.DataSource = DumpFiles;
+            dgdDumpList.DataBindingComplete += DgdDumpList_DataBindingComplete;
+        }
+
+        private void DgdDumpList_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            dgdDumpList.SelectionChanged += dgdDumpList_SelectionChanged;
+            dgdDumpList.ClearSelection();
+            dgdDumpList.Columns[0].Visible = false;
+            dgdDumpList.Columns[2].Visible = false;
+            dgdDumpList.Columns[3].Visible = false;
+            dgdDumpList.Columns[4].Visible = false;
+            dgdDumpList.Columns[5].Visible = false;
+            dgdDumpList.Columns[6].Visible = false;
+            dgdDumpList.Columns[7].Visible = false;
+
+            foreach (DataGridViewRow r in dgdDumpList.Rows)
+            {
+                try
+                {
+                    Dump d = r.DataBoundItem as Dump;
+                    if (d.Analyzed == false)
+                    {
+                        r.DefaultCellStyle.ForeColor = SystemColors.GrayText;
+                        r.Cells[1].ToolTipText = "This dump has not been analyzed yet.  Select, then click Analyze Selection.";
+                    }
+                    else
+                    if (d.Crash == false)
+                    {
+                        r.DefaultCellStyle.BackColor = SystemColors.ControlDark;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+            }
+
+
         }
 
         private void UcASDumpAnalyzer_HandleDestroyed(object sender, EventArgs e)
@@ -132,22 +232,13 @@ namespace SSASDiag
 
         private void UcASDumpAnalyzer_Shown(object sender, EventArgs e)
         {
-            new Thread(new ThreadStart(() =>
-            {
-                foreach (string f in DumpFiles)
-                {
-                    ConnectToDump(f);
-                    while (!p.HasExited)
-                        Thread.Sleep(500);
-                    p = new Process();
-                }
-            })).Start();
+
         }
 
         public void ConnectToDump(string path)
         {
             SqlCommand cmd = new SqlCommand();
-            cmd.Connection = connDB;    
+            cmd.Connection = connDB;
             p.OutputDataReceived += P_OutputDataReceived;
             p.ErrorDataReceived += P_ErrorDataReceived;
             p.Exited += P_Exited;
@@ -164,13 +255,13 @@ namespace SSASDiag
             p.BeginErrorReadLine();
             p.BeginOutputReadLine();
             p.StandardInput.WriteLine(".echo"); // Ensures we can detect end of output, when this is processed and input prompt is displayed in console output...
-            new Thread(new ThreadStart(()=>
+            new Thread(new ThreadStart(() =>
                 {
                     ResultReady.Reset();
                     ResultReady.WaitOne();
                     string init = LastResponse;
                     string debugTime = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("Debug session time: ")).First().Replace("Debug session time: ", "").Trim();
-                    string ver = SubmitDebuggerCommand("lmvm msmdsrv").Split(new char[] { '\r', '\n'}).Where(f=>f.Contains("Product version:")).First().Replace("    Product version:  ", "");
+                    string ver = SubmitDebuggerCommand("lmvm msmdsrv").Split(new char[] { '\r', '\n' }).Where(f => f.Contains("Product version:")).First().Replace("    Product version:  ", "");
                     bool crash = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("This dump file has an exception of interest stored in it.")).Count() > 0;
                     string pid = init.Substring(init.IndexOf("This dump file has an exception of interest stored in it."));
                     pid = pid.Substring(pid.IndexOf("\r\n") + 2);
@@ -179,7 +270,7 @@ namespace SSASDiag
                     string exc = pid.Substring(pid.IndexOf("): ") + "): ".Length);
                     pid = pid.Substring(0, pid.IndexOf("): ")).Replace("(", "");
                     pid = pid.Substring(0, pid.IndexOf("."));
-                    string[] timeparts = debugTime.Replace("   ", " ").Replace("  ", " ").Split(new char[] {' '});
+                    string[] timeparts = debugTime.Replace("   ", " ").Replace("  ", " ").Split(new char[] { ' ' });
                     string properTime = timeparts[1] + " " + timeparts[2] + ", " + timeparts[4] + " " + timeparts[3] + " " + timeparts[6] + timeparts[7].Replace(")", "");
                     DateTime dt;
                     DateTime.TryParseExact(properTime, "MMM d, yyyy HH:mm:ss.fff zzz", null, System.Globalization.DateTimeStyles.AssumeLocal, out dt);
@@ -213,6 +304,8 @@ namespace SSASDiag
                     cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + path + "', '" + pid + "'," + CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "") + ", '" + stk.Replace("'", "''") + "', '" + qry.Replace("'", "''") + "', 1)";
                     cmd.ExecuteNonQuery();
                     //res = SubmitDebuggerCommand("~*kN");
+
+
                 }
                 )).Start();
         }
@@ -221,21 +314,24 @@ namespace SSASDiag
         {
             LastResponse = "";
             p.StandardInput.WriteLine(cmd);
-            txtStatus.Invoke(new System.Action(()=> txtStatus.Text += CurrentPrompt + " " + cmd + "\r\n"));
-            p.StandardInput.WriteLine(".echo");
-            ResultReady.Reset();
-            ResultReady.WaitOne();
+            txtStatus.Invoke(new System.Action(() => txtStatus.Text += CurrentPrompt + " " + cmd + "\r\n"));
+            if (cmd != "q")
+            {
+                p.StandardInput.WriteLine(".echo");
+                ResultReady.Reset();
+                ResultReady.WaitOne();
+            }
             return LastResponse;
         }
 
         private void P_Exited(object sender, EventArgs e)
         {
-            
+
         }
 
         private void P_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            
+
         }
 
         string LastResponse = "";
@@ -249,7 +345,7 @@ namespace SSASDiag
                     if (e.Data.Length > 10)
                     {
                         LastResponse = e.Data.Replace(CurrentPrompt, "");
-                        txtStatus.Invoke(new System.Action(() => txtStatus.Text += LastResponse + "\r\n"));
+                        txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(LastResponse + "\r\n")));
                     }
                     else
                         CurrentPrompt = e.Data;
@@ -259,12 +355,11 @@ namespace SSASDiag
                 {
                     // trim the current prompt from the start of data if both are not zero length strings
                     string output = e.Data.Length > 0 && CurrentPrompt.Length > 0 ? e.Data.Replace(CurrentPrompt, "") : e.Data;
-                    txtStatus.Invoke(new System.Action(() => txtStatus.Text += output + "\r\n"));
+                    txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(output + "\r\n")));
                     LastResponse += output + "\r\n";
                 }
-            }   
+            }
         }
-
 
         public event EventHandler Shown;
         bool wasShown = false;
@@ -276,6 +371,138 @@ namespace SSASDiag
                 if (Shown != null)
                     Shown(this, EventArgs.Empty);
             }
+        }
+
+        private void ucASDumpAnalyzer_Load(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void checkboxHeader_CheckedChanged(object sender, EventArgs e)
+        {
+            for (int i = 0; i < dgdDumpList.RowCount; i++)
+            {
+                dgdDumpList[0, i].Value = ((CheckBox)dgdDumpList.Controls.Find("checkboxHeader", true)[0]).Checked;
+            }
+            dgdDumpList.EndEdit();
+        }
+
+        private void btnAnalyzeDumps_Click(object sender, EventArgs e)
+        {
+            new Thread(new ThreadStart(() =>
+            {
+                foreach (DataGridViewRow r in dgdDumpList.Rows)
+                {
+                    if (r.Cells[1].Selected)
+                    {
+                        ConnectToDump(r.Cells[0].Value as string);
+                        while (!p.HasExited)
+                            Thread.Sleep(500);
+                        p.Close();
+                        p.ErrorDataReceived -= P_ErrorDataReceived;
+                        p.OutputDataReceived -= P_OutputDataReceived;
+                        p.Exited -= P_Exited;
+                        p.Dispose();
+                        p = new Process();
+                    }
+                }
+            })).Start();
+
+            mdxQuery.SuspendLayout();
+            mdxQuery.Text = Properties.Resources.SampleMDX;
+            mdxQuery.ZoomFactor = 0.75F;
+            mdxQuery.ResumeLayout();
+        }
+
+        private void dgdDumpList_SelectionChanged(object sender, EventArgs e)
+        {
+            dgdDumpList.SuspendLayout();
+            Dump dComp = null;
+            int AnalyzedCount = 0;
+            int CrashedCount = 0;
+            int selCount = dgdDumpList.SelectedCells.Count;
+            foreach (DataGridViewCell c in dgdDumpList.SelectedCells)
+            {
+                Dump d = c.OwningRow.DataBoundItem as Dump;                
+                if (d.Analyzed)
+                { 
+                    AnalyzedCount++;
+                
+                    if (dComp == null)
+                        dComp = d.Clone();
+                    else
+                        dComp.DumpPath = "\\Multiple dumps selected";
+                    if (d.Crash)
+                        CrashedCount++;
+                    if (d.ASVersion != dComp.ASVersion)
+                        dComp.ASVersion = "<multiple versions>";
+                    if (d.DumpException != dComp.DumpException)
+                        dComp.DumpException = "<multiple exceptions>";
+                }
+            }
+            if (selCount > 0)
+            {
+                if (dComp == null)
+                {
+                    rtDumpDetails.Text = "The selected dump has not been analyzed yet.";
+                }
+                else
+                {
+                    if (AnalyzedCount < selCount)
+                        btnAnalyzeDumps.Enabled = true;
+                    else
+                        btnAnalyzeDumps.Enabled = false;
+                    string pluralize = (selCount > 1 ? "s: " : ": ");
+                    rtDumpDetails.Text = "Dump file" + pluralize + dComp.DumpName + "\r\nAS Version" + pluralize + dComp.ASVersion + "\r\n" +
+                        "Dump time: " + (selCount > 1 ? "<multiple dumps selected>" : dComp.DumpTime.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")) + "\r\n" +
+                        (AnalyzedCount < selCount ?
+                            "Analysis exists for " + AnalyzedCount + " of " + selCount + " selected dumps.\r\n" :
+                            (selCount == 1 ? "" : "Analysis exists for all of the " + selCount + " selected dumps.\r\n")) +
+                        (CrashedCount < selCount ?
+                            (selCount == 1 ? "This is a hang dump." : CrashedCount + " selected dumps were crash dumps and " + (AnalyzedCount - CrashedCount) + " were hang dumps.") :
+                            (selCount == 1 ? "This is a crash dump." : CrashedCount + " selected dumps were crash dumps and " + (AnalyzedCount - CrashedCount) + " were hang dumps.")) +
+                        "\r\n" +
+                        ((CrashedCount == selCount) ? "Dump Exception" + pluralize + "\r\n" + dComp.DumpException : "");
+                    rtDumpDetails.Rtf = rtDumpDetails.Rtf.Replace("<", "\\i<").Replace(">", "\\i0>");
+                }
+            }
+            if ((selCount & AnalyzedCount) == 1)
+            {
+                lblThreads.Text = dComp.Stacks.Count + " threads were found in the dump.  Select to view:";
+                cmbThreads.DataSource = dComp.Stacks;
+                cmbThreads.DisplayMember = "ThreadID";
+                cmbThreads.Visible = true;
+            }
+            else
+            {
+                cmbThreads.Visible = false;
+                lblThreads.Text = "";
+                rtbStack.Text = "";
+                splitDumpOutput.Panel2Collapsed = true;
+            }
+            btnAnalyzeDumps.Enabled = (AnalyzedCount < selCount);
+            btnAnalyzeDumps.BackColor = (AnalyzedCount < selCount) ? Color.DarkSeaGreen : SystemColors.ControlLight;
+            btnAnalyzeDumps.Text = (AnalyzedCount < selCount) ? "Analyze Selection" : "";
+            spDumpDetails.Panel2Collapsed = selCount == 0;
+            dgdDumpList.ResumeLayout();
+        }
+
+        private void cmbThreads_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Stack s = (cmbThreads.SelectedItem as Stack);
+            rtbStack.Text = s.CallStack;
+            if (s.Query != "")
+            {
+                mdxQuery.Text = s.Query;
+                spDumpDetails.Panel2Collapsed = false;
+            }
+            else
+                spDumpDetails.Panel2Collapsed = true;
+        }
+
+        private void ucASDumpAnalyzer_SizeChanged(object sender, EventArgs e)
+        {
+            splitDumpOutput.Height = splitDumpList.Panel2.Height - pnStacks.Height;
         }
     }
 }

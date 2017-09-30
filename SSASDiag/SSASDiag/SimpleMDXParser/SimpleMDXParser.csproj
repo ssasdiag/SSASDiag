@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectType>local</ProjectType>
+    <ProjectVersion>7.10.377</ProjectVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7D6F7E70-2D7A-4D66-A1AD-8CC87600F012}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <AssemblyName>MDXParser</AssemblyName>
+    <OutputType>Library</OutputType>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\Resources\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="MDXParser\DependencyGraph.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NativeMethods.cs" />
+    <Compile Include="SimpleMDXEditor.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="TextBoxSource.cs" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Global.cs" />
+    <Compile Include="SSVParseLib\SSLexConsumer.cs" />
+    <Compile Include="SSVParseLib\SSLexTable.cs" />
+    <Compile Include="MDXGrammarLexTable.cs" />
+    <Compile Include="MDXParser\Context.cs" />
+    <Compile Include="MDXParser\CalcObject.cs" />
+    <Compile Include="MDXParser\NamedObject.cs" />
+    <Compile Include="MDXParser\CalculatedMember.cs" />
+    <Compile Include="MDXParser\NamedSet.cs" />
+    <Compile Include="SSVParseLib\SSYaccTable.cs" />
+    <Compile Include="SSVParseLib\SSLexTableHeader.cs" />
+    <Compile Include="SSVParseLib\SSLex.cs" />
+    <Compile Include="MDXGrammarLexClass.cs" />
+    <Compile Include="MDXParser\CubeInfo.cs" />
+    <Compile Include="MDXParser\Analyzer.cs" />
+    <Compile Include="SSVParseLib\SSLexMark.cs" />
+    <Compile Include="SSVParseLib\SSYaccTableRow.cs" />
+    <Compile Include="SSVParseLib\SSYaccTableProd.cs" />
+    <Compile Include="SSVParseLib\SSYaccTableHeader.cs" />
+    <Compile Include="SSVParseLib\SSLexTableRowEntry.cs" />
+    <Compile Include="SSVParseLib\SSLexTableRow.cs" />
+    <Compile Include="SSVParseLib\SSLexSubtable.cs" />
+    <Compile Include="SSVParseLib\SSLexStringConsumer.cs" />
+    <Compile Include="SSVParseLib\SSLexDfaTableHeader.cs" />
+    <Compile Include="SSVParseLib\SSLexCharacterClass.cs" />
+    <Compile Include="SSVParseLib\SSYaccTableRowEntry.cs" />
+    <Compile Include="SSVParseLib\SSYaccStackElement.cs" />
+    <Compile Include="SSVParseLib\SSYaccSet.cs" />
+    <Compile Include="MDXParser\TreeNode.cs" />
+    <Compile Include="MDXParser\TreeNodeCollection.cs" />
+    <Compile Include="MDXParser\WinFormsTreeNode.cs" />
+    <Compile Include="MDXParser\WinFormsTreeNodeCollection.cs" />
+    <Compile Include="MDXParser\WebTreeNode.cs" />
+    <Compile Include="MDXParser\WebTreeNodeCollection.cs" />
+    <Compile Include="MDXStudio\VersionInfo.cs" />
+    <Compile Include="SSVParseLib\SSLexKeyTable.cs" />
+    <Compile Include="MDXGrammarYaccTable.cs" />
+    <Compile Include="MDXParser\MDXStackElem.cs" />
+    <Compile Include="SSVParseLib\SSYacc.cs" />
+    <Compile Include="MDXParser\MDXGrammarYaccClass.cs" />
+    <Compile Include="SSVParseLib\SSYaccStack.cs" />
+    <Compile Include="MDXParser\Vertex.cs" />
+    <Compile Include="MDXParser\MDXNode.cs" />
+    <Compile Include="MDXParser\MDXListNode!1.cs" />
+    <Compile Include="MDXParser\MDXScriptNode.cs" />
+    <Compile Include="MDXParser\MDXStatementNode.cs" />
+    <Compile Include="MDXParser\MDXCreateNode.cs" />
+    <Compile Include="MDXParser\MDXWithNode.cs" />
+    <Compile Include="MDXParser\MDXExpNode.cs" />
+    <Compile Include="MDXParser\MDXIDNode.cs" />
+    <Compile Include="MDXParser\MDXBinOpNode.cs" />
+    <Compile Include="MDXParser\MDXCaseNode.cs" />
+    <Compile Include="MDXParser\MDXBaseFunctionNode.cs" />
+    <Compile Include="MDXParser\MDXTupleNode.cs" />
+    <Compile Include="MDXParser\ColorSegmentDescComparer.cs" />
+    <Compile Include="MDXParser\ColorSegmentAscComparer.cs" />
+    <Compile Include="MDXParser\ColorSegment.cs" />
+    <Compile Include="MDXParser\ColorCoding.cs" />
+    <Compile Include="SSVParseLib\SSYaccCache.cs" />
+    <Compile Include="MDXParser\OutputFormat.cs" />
+    <Compile Include="MDXParser\FormatOptions.cs" />
+    <Compile Include="MDXParser\Formatter.cs" />
+    <Compile Include="MDXParser\Source.cs" />
+    <Compile Include="MDXParser\Locator.cs" />
+    <Compile Include="MDXParser\MessageType.cs" />
+    <Compile Include="MDXParser\MessageLocationComparer.cs" />
+    <Compile Include="MDXParser\Message.cs" />
+    <Compile Include="MDXParser\MessageCollection.cs" />
+    <Compile Include="SSVParseLib\SSLexLexeme.cs" />
+    <Compile Include="SSVParseLib\SSLexFinalState.cs" />
+    <Compile Include="SSVParseLib\SSLexFileConsumer.cs" />
+    <Compile Include="MDXParser\MDXParserException.cs" />
+    <Compile Include="MDXParser\MDXParser.cs" />
+    <Compile Include="MDXParser\StringUtil.cs" />
+    <Compile Include="MDXParser\MDXConstruct.cs" />
+    <Compile Include="MDXParser\MDXDataType.cs" />
+    <Compile Include="MDXParser\MDXSyntaxForm.cs" />
+    <Compile Include="MDXParser\MDXFunctionOpt.cs" />
+    <Compile Include="MDXParser\MDXObject.cs" />
+    <Compile Include="MDXParser\MDXParserObjects.cs" />
+    <Compile Include="MDXParser\MDXDummyNode.cs" />
+    <Compile Include="MDXParser\MDXWithListNode.cs" />
+    <Compile Include="MDXParser\MDXWithMemberNode.cs" />
+    <Compile Include="MDXParser\MDXWithSetNode.cs" />
+    <Compile Include="MDXParser\MDXWithCalcCellNode.cs" />
+    <Compile Include="MDXParser\MDXCalcPropNode.cs" />
+    <Compile Include="MDXParser\MDXAxisNode.cs" />
+    <Compile Include="MDXParser\MDXWhereNode.cs" />
+    <Compile Include="MDXParser\MDXAxesListNode.cs" />
+    <Compile Include="MDXParser\MDXCalculateNode.cs" />
+    <Compile Include="MDXParser\MDXFreezeNode.cs" />
+    <Compile Include="MDXParser\MDXEmptyStmtNode.cs" />
+    <Compile Include="MDXParser\MDXScopeNode.cs" />
+    <Compile Include="MDXParser\MDXEndScopeNode.cs" />
+    <Compile Include="MDXParser\MDXAssignmentNode.cs" />
+    <Compile Include="MDXParser\MDXCreateSubcubeNode.cs" />
+    <Compile Include="MDXParser\MDXDrillThroughNode.cs" />
+    <Compile Include="MDXParser\MDXSelectNode.cs" />
+    <Compile Include="MDXParser\MDXGoNode.cs" />
+    <Compile Include="MDXParser\MDXConstNode.cs" />
+    <Compile Include="MDXParser\MDXIntegerConstNode.cs" />
+    <Compile Include="MDXParser\MDXFloatConstNode.cs" />
+    <Compile Include="MDXParser\MDXStringConstNode.cs" />
+    <Compile Include="MDXParser\MDXEmptyNode.cs" />
+    <Compile Include="MDXParser\MDXFlagNode.cs" />
+    <Compile Include="MDXParser\MDXEnumSetNode.cs" />
+    <Compile Include="MDXParser\MDXUnaryOpNode.cs" />
+    <Compile Include="MDXParser\MDXExpListNode.cs" />
+    <Compile Include="MDXParser\MDXWhenNode.cs" />
+    <Compile Include="MDXParser\MDXNonEmptyNode.cs" />
+    <Compile Include="MDXParser\MDXParamNode.cs" />
+    <Compile Include="MDXParser\MDXFunctionNode.cs" />
+    <Compile Include="MDXParser\MDXPropertyNode.cs" />
+    <Compile Include="MDXParser\MDXAliasNode.cs" />
+    <Compile Include="MDXParser\MDXParameter.cs" />
+    <Compile Include="MDXParser\MDXParamParser.cs" />
+  </ItemGroup>
+</Project>

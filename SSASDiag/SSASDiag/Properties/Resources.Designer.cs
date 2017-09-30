@@ -170,6 +170,15 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;sqlpp_request&gt;&lt;clientid&gt;dpriver-9094-8133-2031&lt;/clientid&gt;&lt;dbvendor&gt;mdx&lt;/dbvendor&gt;&lt;outputfmt&gt;html2&lt;/outputfmt&gt;&lt;inputsql&gt;&lt;/inputsql&gt;&lt;formatoptions&gt;&lt;keywordcs&gt;Uppercase&lt;/keywordcs&gt;&lt;tablenamecs&gt;Lowercase&lt;/tablenamecs&gt;&lt;columnnamecs&gt;Lowercase&lt;/columnnamecs&gt;&lt;functioncs&gt;InitCap&lt;/functioncs&gt;&lt;datatypecs&gt;Uppercase&lt;/datatypecs&gt;&lt;variablecs&gt;Unchanged&lt;/variablecs&gt;&lt;aliascs&gt;Unchanged&lt;/aliascs&gt;&lt;quotedidentifiercs&gt;Unchanged&lt;/quotedidentifiercs&gt;&lt;identifiercs&gt;Lowercase&lt;/identifiercs&gt;&lt;lnbrwithcomma&gt;after&lt;/lnbrwithcomma&gt;&lt;liststy [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string MDXConversionPostData {
+            get {
+                return ResourceManager.GetString("MDXConversionPostData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         internal static System.Drawing.Icon Microsoft_107 {
@@ -435,6 +444,15 @@ namespace SSASDiag.Properties {
             get {
                 object obj = ResourceManager.GetObject("ResourcesZip", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WITH MEMBER [Project].[Funding IDs].[XL_PT0] AS &apos;strtomember(&quot;[Project].[Funding IDs].[Funding ID].&amp;[54565]&quot;).UniqueName&apos; MEMBER [Project].[Funding IDs].[XL_PT1] AS &apos;strtomember(&quot;[Project].[Funding IDs].[Funding ID].&amp;[55173]&quot;).UniqueName&apos; MEMBER [Project].[Funding IDs].[XL_PT2] AS &apos;strtomember(&quot;[Project].[Funding IDs].[Funding ID].&amp;[55175]&quot;).UniqueName&apos; MEMBER [Project].[Funding IDs].[XL_PT3] AS &apos;strtomember(&quot;[Project].[Funding IDs].[Funding ID].&amp;[55379]&quot;).UniqueName&apos; MEMBER [Project].[Funding IDs].[XL_PT4] [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string SampleMDX {
+            get {
+                return ResourceManager.GetString("SampleMDX", resourceCulture);
             }
         }
         
