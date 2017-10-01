@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitDebugger = new System.Windows.Forms.SplitContainer();
             this.splitDumpList = new System.Windows.Forms.SplitContainer();
             this.splitDumpDetails = new System.Windows.Forms.SplitContainer();
@@ -141,14 +141,14 @@
             this.dgdDumpList.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdDumpList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdDumpList.ColumnHeadersVisible = false;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdDumpList.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdDumpList.DefaultCellStyle = dataGridViewCellStyle4;
             this.dgdDumpList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdDumpList.Location = new System.Drawing.Point(0, 0);
             this.dgdDumpList.Name = "dgdDumpList";
@@ -237,9 +237,9 @@
             this.cmbThreads.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbThreads.FormattingEnabled = true;
             this.cmbThreads.ItemHeight = 12;
-            this.cmbThreads.Location = new System.Drawing.Point(335, 0);
+            this.cmbThreads.Location = new System.Drawing.Point(258, 0);
             this.cmbThreads.Name = "cmbThreads";
-            this.cmbThreads.Size = new System.Drawing.Size(72, 20);
+            this.cmbThreads.Size = new System.Drawing.Size(149, 20);
             this.cmbThreads.TabIndex = 1;
             this.cmbThreads.Visible = false;
             this.cmbThreads.SelectedIndexChanged += new System.EventHandler(this.cmbThreads_SelectedIndexChanged);

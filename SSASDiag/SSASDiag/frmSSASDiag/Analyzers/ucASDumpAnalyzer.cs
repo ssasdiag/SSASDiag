@@ -49,7 +49,19 @@ namespace SSASDiag
             public string DumpException { get; set; }
             public DateTime DumpTime { get; set; }
             public string ProcessID { get; set; }
-            public List<Stack> Stacks { get; set; }
+            private List<Stack> _stacks;
+            public List<Stack> Stacks { get { return _stacks; } set { _stacks = value; } }
+            public List<Stack> OrderedStacks
+            {
+                get
+                {
+                    return _stacks.OrderBy(s => s.SortOrder).ToList();
+                }
+                set
+                {
+                    _stacks = value;
+                }
+            }
         }
 
         private class Stack
@@ -58,6 +70,35 @@ namespace SSASDiag
             public string CallStack { get; set; }
             public string Query { get; set; }
             public bool ExceptionThread { get; set; }
+            public string SortOrder
+            {
+                get
+                {
+                    string prefix = "";
+                    if (FormattedThreadID.Contains("exception"))
+                        prefix = "0";
+                    else if (FormattedThreadID.Contains("command"))
+                        prefix = "1";
+                    else if (FormattedThreadID.Contains("missing query"))
+                        prefix = "3";
+                    else if (FormattedThreadID.Contains(" "))
+                        prefix = "2";
+                    else
+                        prefix = "4";
+                    return prefix + FormattedThreadID;
+                }
+            }
+            public string FormattedThreadID
+            {
+                get
+                {
+                    string q = Query.Trim();
+                    return "~" + 
+                           ThreadID + 
+                           (q == "" ? "" : (q.StartsWith("There") ? ", missing query" : (q.StartsWith("<") ? ", XMLA command" : ", MDX query"))) + 
+                           (ExceptionThread ? ", exception" : "");
+                }
+            }
         }
 
 
@@ -292,7 +333,11 @@ namespace SSASDiag
                             p.Exited -= P_Exited;
                             p.Dispose();
                             p = new Process();
-                            dgdDumpList.Invoke(new System.Action(() => c.Style.ForeColor = SystemColors.ControlText));
+                            dgdDumpList.Invoke(new System.Action(() =>
+                                {
+                                    c.Style.ForeColor = SystemColors.ControlText;
+                                    c.ToolTipText = "";
+                                }));
                             CurrentDump++;
                         }
                     }
@@ -421,7 +466,6 @@ namespace SSASDiag
                     }
                     SubmitDebuggerCommand("q");
                     d.Analyzed = true;
-
                 }
                 )).Start();
         }
@@ -568,9 +612,9 @@ namespace SSASDiag
             }
             if ((selCount & AnalyzedCount) == 1)
             {
-                lblThreads.Text = dComp.Stacks.Count + " threads were found in the dump.  Select to view:";
-                cmbThreads.DataSource = dComp.Stacks;
-                cmbThreads.DisplayMember = "ThreadID";
+                lblThreads.Text = dComp.Stacks.Count + " threads were found in the dump.";
+                cmbThreads.DataSource = dComp.OrderedStacks;
+                cmbThreads.DisplayMember = "FormattedThreadID";
                 cmbThreads.Visible = true;
                 cmbThreads_SelectedIndexChanged(null, null);
             }
