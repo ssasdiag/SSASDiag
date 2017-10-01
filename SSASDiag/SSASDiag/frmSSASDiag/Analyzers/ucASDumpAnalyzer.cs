@@ -343,6 +343,7 @@ namespace SSASDiag
                                     {
                                         splitDebugger.Panel2Collapsed = false;
                                         lblDebugger.Text = "Analyzing " + d.DumpName + ", dump " + (DumpCountAnalyzedInCurrentRun + 1) + " of " + TotalCountToAnalyze + " to be analyzed.";
+                                        txtStatus.Text = "Starting analysis of the memory dump at " + d.DumpPath + ".";
                                     }));
                                     ConnectToDump(d.DumpPath);
                                     while (!bCancel && !p.HasExited)
@@ -376,10 +377,15 @@ namespace SSASDiag
                         {
                             dgdDumpList.Invoke(new System.Action(() =>
                             {
+                                SuspendLayout();
                                 lblDebugger.Text = rtDumpDetails.Text = "Analyzed " + TotalCountToAnalyze + " memory dump" + (TotalCountToAnalyze != 1 ? "s." : ".");
                                 btnAnalyzeDumps.Text = "";
                                 btnAnalyzeDumps.BackColor = SystemColors.Control;
                                 btnAnalyzeDumps.Enabled = false;
+                                dgdDumpList_SelectionChanged(null, null);
+                                splitDebugger.Panel2Collapsed = false;
+                                ResumeLayout();
+                                
                             }));
                         }
                     }
@@ -594,24 +600,35 @@ namespace SSASDiag
                     OutputChunksSinceLastDump++;
                     // trim the current prompt from the start of data if both are not zero length strings
                     string output = e.Data.Length > 0 && CurrentPrompt.Length > 0 ? e.Data.Replace(CurrentPrompt, "") : e.Data;
-                    try
+                    // Skip adding output to text window for basic debugger header text...
+                    if ((!LastResponse.StartsWith("\r\nMicrosoft (R) Windows Debugger Version") && !output.StartsWith("Microsoft (R) Windows Debugger Version")) || output.StartsWith("Loading Dump File "))
                     {
-                        if (txtStatus.IsHandleCreated)
-                            txtStatus.Invoke(new System.Action(() =>
-                            {
-                                txtStatus.AppendText(output + "\r\n");
-                                if (OutputChunksSinceLastDump == 3)
+                        try
+                        {
+                            if (txtStatus.IsHandleCreated)
+                                txtStatus.Invoke(new System.Action(() =>
                                 {
-                                    txtStatus.SelectionStart = txtStatus.TextLength;
-                                    txtStatus.ScrollToCaret();
-                                    OutputChunksSinceLastDump = 0;
-                                }
-                            }));
+                                    txtStatus.AppendText(output + "\r\n");
+                                    if (OutputChunksSinceLastDump == 3)
+                                    {
+                                        txtStatus.SelectionStart = txtStatus.TextLength;
+                                        txtStatus.ScrollToCaret();
+                                        OutputChunksSinceLastDump = 0;
+                                    }
+                                }));
+                        }
+                        catch
+                        {
+                            // May fail if the thread was destroyed at close time, so no remediation needed, just ignore and let it move on then.
+                        }
                     }
-                    catch
+                    else
                     {
-                        // May fail if the thread was destroyed at close time, so no remediation needed, just ignore and let it move on then.
+                        // When we are initializing the dump, we skip all the header stuff.  Zero it out once we get to our real first line then...
+                        if (output.StartsWith("Loading Dump File "))
+                            LastResponse = "";
                     }
+
                     LastResponse += output + "\r\n";
                 }
             }
