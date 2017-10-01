@@ -17,6 +17,7 @@ using System.Threading;
 using System.Data.SqlClient;
 using System.IO;
 using SimpleMDXParser;
+using FastColoredTextBoxNS;
 
 namespace SSASDiag
 {
@@ -168,6 +169,14 @@ namespace SSASDiag
             dr.Close();
             dgdDumpList.DataSource = DumpFiles;
             dgdDumpList.DataBindingComplete += DgdDumpList_DataBindingComplete;
+
+            xmlQuery.Zoom = 75;
+            xmlQuery.Language = Language.XML;
+            xmlQuery.Dock = DockStyle.Fill;
+            xmlQuery.ShowLineNumbers = false;
+            xmlQuery.Visible = false;
+            splitDumpOutput.Panel2.Controls.Add(xmlQuery);
+            xmlQuery.BringToFront();
         }
 
         int DataBindingCompletions = 0;
@@ -283,18 +292,17 @@ namespace SSASDiag
                             p.Exited -= P_Exited;
                             p.Dispose();
                             p = new Process();
-
+                            dgdDumpList.Invoke(new System.Action(() => c.Style.ForeColor = SystemColors.ControlText));
                             CurrentDump++;
                         }
-                        dgdDumpList.Invoke(new System.Action(() =>
-                            {
-                                c.Style.ForeColor = SystemColors.ControlText;
-                                if (TotalCountToAnalyze == 1)
-                                    dgdDumpList_SelectionChanged(null, null);
-                                lblDebugger.Text = "Analyzed " + TotalCountToAnalyze + " memory dump" + (TotalCountToAnalyze > 1 ? "s." : ".");
-                                btnAnalyzeDumps.Enabled = true;
-                            }));
                     }
+                    dgdDumpList.Invoke(new System.Action(() =>
+                    { 
+                        if (TotalCountToAnalyze == 1)
+                            dgdDumpList_SelectionChanged(null, null);
+                        lblDebugger.Text = "Analyzed " + TotalCountToAnalyze + " memory dump" + (TotalCountToAnalyze > 1 ? "s." : ".");
+                        btnAnalyzeDumps.Enabled = true;
+                    }));
                 }
             })).Start();
         }
@@ -375,7 +383,6 @@ namespace SSASDiag
                     d.DumpTime = dt;
                     cmd.CommandText = "INSERT INTO Dumps VALUES('" + d.DumpPath + "', '" + pid + "', '" + d.ASVersion + "', '" + dt.ToString() + "', " + (d.Crash ? 1 : 0) + ", '" + d.DumpException + "')";
                     cmd.ExecuteNonQuery();
-                    d.Analyzed = true;
 
                     d.Stacks = new List<Stack>();
                     string stk = SubmitDebuggerCommand("kN");
@@ -407,13 +414,14 @@ namespace SSASDiag
                             if (d.Stacks.Find(st => st.ThreadID == s.ThreadID) == null)
                             {
                                 d.Stacks.Add(s);
-                                cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "', '" + s.ThreadID + "', '" + stk.Replace("'", "''") + "', '" + s.Query.Replace("'", "''") + "', 0)";
+                                cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "', '" + s.ThreadID + "', '" + s.CallStack.Replace("'", "''") + "', '" + s.Query.Replace("'", "''") + "', 0)";
                                 cmd.ExecuteNonQuery();
                             }
                         }
                     }
                     SubmitDebuggerCommand("q");
-                    
+                    d.Analyzed = true;
+
                 }
                 )).Start();
         }
@@ -510,7 +518,7 @@ namespace SSASDiag
             int AnalyzedCount = 0;
             int CrashedCount = 0;
             int selCount = dgdDumpList.SelectedCells.Count;
-            if (!(btnAnalyzeDumps.Text != "" && !btnAnalyzeDumps.Enabled))
+            if (btnAnalyzeDumps.Text == "")
                 splitDebugger.Panel2Collapsed = true;
             foreach (DataGridViewCell c in dgdDumpList.SelectedCells)
             {
@@ -573,13 +581,18 @@ namespace SSASDiag
                 rtbStack.Text = "";
                 splitDumpOutput.Panel2Collapsed = true;
             }
-            btnAnalyzeDumps.Enabled = (AnalyzedCount < selCount);
-            btnAnalyzeDumps.BackColor = (AnalyzedCount < selCount) ? Color.DarkSeaGreen : SystemColors.ControlLight;
-            btnAnalyzeDumps.Text = (AnalyzedCount < selCount) ? "Analyze Selection" : "";
-            splitDumpDetails.Panel2Collapsed = selCount == 0;
+            if (btnAnalyzeDumps.Text == "")
+            {
+                btnAnalyzeDumps.Enabled = (AnalyzedCount < selCount);
+                btnAnalyzeDumps.BackColor = (AnalyzedCount < selCount) ? Color.DarkSeaGreen : SystemColors.ControlLight;
+                btnAnalyzeDumps.Text = (AnalyzedCount < selCount) ? "Analyze Selection" : "";
+                splitDumpDetails.Panel2Collapsed = selCount == 0;
+            }
             dgdDumpList.ResumeLayout();
         }
 
+
+        FastColoredTextBox xmlQuery = new FastColoredTextBox();
         private void cmbThreads_SelectedIndexChanged(object sender, EventArgs e)
         {
             Stack s = (cmbThreads.SelectedItem as Stack);
@@ -588,9 +601,21 @@ namespace SSASDiag
             {
                 lblQuery.Text = "A query was found on the thread.";
                 splitDumpOutput.Panel2Collapsed = false;
-                mdxQuery.Text = s.Query;
-                mdxQuery.ZoomFactor = 1;
-                mdxQuery.ZoomFactor = .75F;
+                if (s.Query.Trim().StartsWith("<") || s.Query == "There was a query on this thread but its memory could not be read (possibly not captured in this minidump).")
+                {
+                    xmlQuery.Text = s.Query;
+                    mdxQuery.Visible = false;
+                    xmlQuery.Visible = true;
+                }
+                else
+                {
+                    mdxQuery.Text = s.Query;
+                    mdxQuery.ParseAndFormat();
+                    mdxQuery.ZoomFactor = 1;
+                    mdxQuery.ZoomFactor = .75F;
+                    xmlQuery.Visible = false;
+                    mdxQuery.Visible = true;
+                }
             }
             else
                 splitDumpOutput.Panel2Collapsed = true;
