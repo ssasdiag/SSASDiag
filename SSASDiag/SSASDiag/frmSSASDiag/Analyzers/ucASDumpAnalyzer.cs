@@ -308,14 +308,19 @@ namespace SSASDiag
             {
                 int TotalCountToAnalyze = 0;
                 int CurrentDump = 1;
-                foreach (DataGridViewCell c in dgdDumpList.SelectedCells)
-                    if (!(c.OwningRow.DataBoundItem as Dump).Analyzed) TotalCountToAnalyze++;
+                foreach (DataGridViewRow r in dgdDumpList.Rows)
+                    if (!(r.DataBoundItem as Dump).Analyzed && r.Cells[1].Selected) TotalCountToAnalyze++;
                 if (TotalCountToAnalyze > 0)
                 {
                     rtDumpDetails.Invoke(new System.Action(() => rtDumpDetails.Text = "Analyzing " + TotalCountToAnalyze + " dump" + (TotalCountToAnalyze == 1 ? "" : "s") + "."));
-                    foreach (DataGridViewCell c in dgdDumpList.SelectedCells)
+                    List<DataGridViewRow> DumpsToProcess = new List<DataGridViewRow>();
+                    foreach (DataGridViewRow r in dgdDumpList.Rows)
+                        if (r.Cells[1].Selected)
+                            DumpsToProcess.Add(r);
+                    foreach (DataGridViewRow r in DumpsToProcess)
                     {
-                        Dump d = c.OwningRow.DataBoundItem as Dump;
+                        Dump d = r.DataBoundItem as Dump;
+                        DataGridViewCell c = r.Cells[1];
                         if (!d.Analyzed)
                         {
                             splitDebugger.Invoke(new System.Action(() =>
@@ -323,7 +328,7 @@ namespace SSASDiag
                                 splitDebugger.Panel2Collapsed = false;
                                 lblDebugger.Text = "Analyzing " + d.DumpName + ", dump " + CurrentDump + " of " + TotalCountToAnalyze + " to be analyzed.";
                             }));
-                            ConnectToDump(c.Value as string);
+                            ConnectToDump(d.DumpPath);
                             while (!p.HasExited)
                                 Thread.Sleep(500);
                             // Clean up the old process and reinitialize.
@@ -341,6 +346,7 @@ namespace SSASDiag
                             CurrentDump++;
                         }
                     }
+                    
                     dgdDumpList.Invoke(new System.Action(() =>
                     { 
                         if (TotalCountToAnalyze == 1)
@@ -373,6 +379,9 @@ namespace SSASDiag
                 {
                     addy = addy.Substring(0, addy.IndexOf("PFData<") - 1);
                     qry = SubmitDebuggerCommand(".printf \"%mu\", " + addy);
+                    int PromptLocation = qry.LastIndexOf(CurrentPrompt);
+                    if (PromptLocation != -1)
+                        qry = qry.Substring(0, qry.LastIndexOf(CurrentPrompt));
                 }
                 catch
                 {
@@ -405,7 +414,7 @@ namespace SSASDiag
             p.StandardInput.WriteLine(".echo \"EndOfData\""); // Ensures we can detect end of output, when this is processed and input prompt is displayed in console output...
             new Thread(new ThreadStart(() =>
                 {
-                    Dump d = DumpFiles.Find(df => df.DumpName == path);
+                    Dump d = DumpFiles.Find(df => df.DumpPath == path);
                     ResultReady.Reset();
                     ResultReady.WaitOne();
                     ResultReady.Reset();
@@ -653,12 +662,13 @@ namespace SSASDiag
                 }
                 else
                 {
-                    mdxQuery.Text = s.Query;
-                    mdxQuery.ParseAndFormat();
-                    mdxQuery.ZoomFactor = 1;
-                    mdxQuery.ZoomFactor = .75F;
                     xmlQuery.Visible = false;
                     mdxQuery.Visible = true;
+                    mdxQuery.SuspendLayout();
+                    mdxQuery.Text = s.Query;
+                    mdxQuery.ZoomFactor = 1;
+                    mdxQuery.ZoomFactor = .75F;
+                    mdxQuery.ResumeLayout();
                 }
             }
             else
