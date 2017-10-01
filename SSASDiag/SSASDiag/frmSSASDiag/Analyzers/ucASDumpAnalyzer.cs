@@ -95,7 +95,7 @@ namespace SSASDiag
                     string q = Query.Trim();
                     return "~" + 
                            ThreadID + 
-                           (q == "" ? "" : (q.StartsWith("There") ? ", missing query" : (q.StartsWith("<") ? ", XMLA command" : ", MDX query"))) + 
+                           (q == "" ? "" : (q.StartsWith("There") ? ", missing query" : (q.StartsWith("<") ? ", XMLA command" : q.StartsWith("{") ? ", JSON command" : ", MDX query"))) + 
                            (ExceptionThread ? ", exception" : "");
                 }
             }
@@ -706,7 +706,7 @@ namespace SSASDiag
             {
                 if (dComp == null)
                 {
-                    rtDumpDetails.Text = "The selection has not been analyzed yet.\r\nClick Analyze Selection to perform analysis.";
+                    rtDumpDetails.Text = "Selection requires initial analysis.";
                 }
                 else
                 {
@@ -717,7 +717,7 @@ namespace SSASDiag
                         "Process id: " + (selCount > 1 ? "<multiple>" : dComp.ProcessID) + "\r\n" +
                         (AnalyzedCount < selCount ?
                             "Analysis found for " + AnalyzedCount + " of " + selCount + " dumps.\r\n" :
-                            (selCount == 1 ? "" : "Analysis found for all " + selCount + " dumps.\r\n")) +
+                            (selCount == 1 ? "" : "Analysis found for " + selCount + " dumps.\r\n")) +
                         (CrashedCount < selCount ?
                             (selCount == 1 ? "This is a hang dump." : CrashedCount + " dumps were crashes." + (AnalyzedCount - CrashedCount > 0 ? "\r\n" + (AnalyzedCount - CrashedCount) + " were hang dumps." : "")) :
                             (selCount == 1 ? "This is a crash dump." : CrashedCount + " dumps were crashes." + (AnalyzedCount - CrashedCount > 0 ? "\r\n" + (AnalyzedCount - CrashedCount) + " were hang dumps." : "")));
@@ -761,7 +761,7 @@ namespace SSASDiag
             {
                 lblQuery.Text = "A query was found on the thread.";
                 splitDumpOutput.Panel2Collapsed = false;
-                if (s.Query.Trim().StartsWith("<") || s.Query == "There was a query on this thread but its memory could not be read (possibly not captured in this minidump).")
+                if (s.Query.Trim().StartsWith("<") || s.Query.Trim().StartsWith("{") || s.Query == "There was a query on this thread but its memory could not be read (possibly not captured in this minidump).")
                 {
                     xmlQuery.Text = s.Query;
                     mdxQuery.Visible = false;
