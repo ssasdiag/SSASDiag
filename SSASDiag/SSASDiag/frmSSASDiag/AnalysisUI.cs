@@ -106,8 +106,8 @@ namespace SSASDiag
                     {
                         ucASDumpAnalyzer DumpAnalyzer = new ucASDumpAnalyzer(m_analysisPath, connSqlDb);
                         DumpAnalyzer.Dock = DockStyle.Fill;
-                        tcAnalysis.TabPages.Add(new TabPage("Crash Dumps") { ImageIndex = 1, Name = "Crash Dumps" });
-                        tcAnalysis.TabPages["Crash Dumps"].Controls.Add(DumpAnalyzer);
+                        tcAnalysis.TabPages.Add(new TabPage("Memory Dumps") { ImageIndex = 1, Name = "Memory Dumps" });
+                        tcAnalysis.TabPages["Memory Dumps"].Controls.Add(DumpAnalyzer);
                     }
                 }
                 if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".evtx")) || 

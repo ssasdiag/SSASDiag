@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitDebugger = new System.Windows.Forms.SplitContainer();
             this.splitDumpList = new System.Windows.Forms.SplitContainer();
             this.splitDumpDetails = new System.Windows.Forms.SplitContainer();
@@ -37,10 +37,10 @@
             this.rtDumpDetails = new System.Windows.Forms.RichTextBox();
             this.btnAnalyzeDumps = new System.Windows.Forms.Button();
             this.splitDumpOutput = new System.Windows.Forms.SplitContainer();
+            this.rtbStack = new System.Windows.Forms.RichTextBox();
             this.pnStacks = new System.Windows.Forms.Panel();
             this.lblThreads = new System.Windows.Forms.Label();
             this.cmbThreads = new System.Windows.Forms.ComboBox();
-            this.rtbStack = new System.Windows.Forms.RichTextBox();
             this.mdxQuery = new SimpleMDXParser.SimpleMDXEditor();
             this.pnQuery = new System.Windows.Forms.Panel();
             this.lblQuery = new System.Windows.Forms.Label();
@@ -141,14 +141,14 @@
             this.dgdDumpList.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdDumpList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdDumpList.ColumnHeadersVisible = false;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdDumpList.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdDumpList.DefaultCellStyle = dataGridViewCellStyle1;
             this.dgdDumpList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdDumpList.Location = new System.Drawing.Point(0, 0);
             this.dgdDumpList.Name = "dgdDumpList";
@@ -174,8 +174,9 @@
             // 
             // btnAnalyzeDumps
             // 
-            this.btnAnalyzeDumps.BackColor = System.Drawing.Color.DarkSeaGreen;
+            this.btnAnalyzeDumps.BackColor = System.Drawing.SystemColors.Control;
             this.btnAnalyzeDumps.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnAnalyzeDumps.Enabled = false;
             this.btnAnalyzeDumps.FlatAppearance.BorderSize = 0;
             this.btnAnalyzeDumps.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.btnAnalyzeDumps.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
@@ -184,7 +185,6 @@
             this.btnAnalyzeDumps.Name = "btnAnalyzeDumps";
             this.btnAnalyzeDumps.Size = new System.Drawing.Size(227, 21);
             this.btnAnalyzeDumps.TabIndex = 1;
-            this.btnAnalyzeDumps.Text = "Analyze Selection";
             this.btnAnalyzeDumps.UseVisualStyleBackColor = false;
             this.btnAnalyzeDumps.Click += new System.EventHandler(this.btnAnalyzeDumps_Click);
             // 
@@ -207,6 +207,21 @@
             this.splitDumpOutput.Size = new System.Drawing.Size(407, 321);
             this.splitDumpOutput.SplitterDistance = 118;
             this.splitDumpOutput.TabIndex = 0;
+            // 
+            // rtbStack
+            // 
+            this.rtbStack.BackColor = System.Drawing.Color.Black;
+            this.rtbStack.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbStack.DetectUrls = false;
+            this.rtbStack.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbStack.Font = new System.Drawing.Font("Consolas", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rtbStack.ForeColor = System.Drawing.Color.LightSkyBlue;
+            this.rtbStack.Location = new System.Drawing.Point(0, 21);
+            this.rtbStack.Name = "rtbStack";
+            this.rtbStack.ReadOnly = true;
+            this.rtbStack.Size = new System.Drawing.Size(407, 97);
+            this.rtbStack.TabIndex = 45;
+            this.rtbStack.Text = "";
             // 
             // pnStacks
             // 
@@ -243,21 +258,6 @@
             this.cmbThreads.TabIndex = 1;
             this.cmbThreads.Visible = false;
             this.cmbThreads.SelectedIndexChanged += new System.EventHandler(this.cmbThreads_SelectedIndexChanged);
-            // 
-            // rtbStack
-            // 
-            this.rtbStack.BackColor = System.Drawing.Color.Black;
-            this.rtbStack.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbStack.DetectUrls = false;
-            this.rtbStack.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rtbStack.Font = new System.Drawing.Font("Consolas", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rtbStack.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.rtbStack.Location = new System.Drawing.Point(0, 21);
-            this.rtbStack.Name = "rtbStack";
-            this.rtbStack.ReadOnly = true;
-            this.rtbStack.Size = new System.Drawing.Size(407, 97);
-            this.rtbStack.TabIndex = 45;
-            this.rtbStack.Text = "";
             // 
             // mdxQuery
             // 
@@ -360,7 +360,6 @@
 
         private System.Windows.Forms.SplitContainer splitDebugger;
         private System.Windows.Forms.SplitContainer splitDumpList;
-        private System.Windows.Forms.Button btnAnalyzeDumps;
         private System.Windows.Forms.RichTextBox txtStatus;
         private System.Windows.Forms.SplitContainer splitDumpDetails;
         private System.Windows.Forms.DataGridView dgdDumpList;
@@ -376,5 +375,6 @@
         private System.Windows.Forms.Panel pnStacks;
         private System.Windows.Forms.Label lblThreads;
         private System.Windows.Forms.ComboBox cmbThreads;
+        public System.Windows.Forms.Button btnAnalyzeDumps;
     }
 }

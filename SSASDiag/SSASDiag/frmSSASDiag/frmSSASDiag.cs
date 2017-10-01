@@ -515,6 +515,17 @@ namespace SSASDiag
                     bgDetachProfilerDB.RunWorkerAsync();
                     e.Cancel = true;
                 }
+                if (!e.Cancel)
+                {
+                    if (tcAnalysis.TabPages.ContainsKey("Memory Dumps"))
+                    {
+                        ucASDumpAnalyzer da = (tcAnalysis.TabPages["Memory Dumps"].Controls[0] as ucASDumpAnalyzer);
+                        if (da.btnAnalyzeDumps.Text.StartsWith("Cancel"))
+                            da.btnAnalyzeDumps.PerformClick();
+                        while (da.btnAnalyzeDumps.Text.StartsWith("Cancel"))
+                            Thread.Sleep(50);
+                    }
+                }
             }
             catch (Exception ex)
             {

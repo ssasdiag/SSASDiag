@@ -205,7 +205,16 @@ namespace SSASDiag
             {
                 Dump d = DumpFiles.Find(df => df.DumpPath == dr["DumpPath"] as string);
                 if (d != null)
-                    d.Stacks.Add(new Stack() { CallStack = dr["Stack"] as string, ThreadID = (int)dr["ThreadID"], Query = dr["Query"] as string, ExceptionThread = (bool)dr["ExceptionThread"] });
+                {
+                    try
+                    {
+                        d.Stacks.Add(new Stack() { CallStack = dr["Stack"] as string, ThreadID = (int)dr["ThreadID"], Query = dr["Query"] as string, ExceptionThread = (bool)dr["ExceptionThread"] });
+                    }
+                    catch
+                    {
+                        // This would fail only if there was some corruption in the database and needn't be handled, but better not to fail in that case, so adding empty try/catch...
+                    }
+                }
             }
             dr.Close();
             dgdDumpList.DataSource = DumpFiles;
@@ -257,9 +266,6 @@ namespace SSASDiag
                 }
                 dgdDumpList.ClearSelection();
                 dgdDumpList.SelectionChanged += dgdDumpList_SelectionChanged;
-                btnAnalyzeDumps.Enabled = false;
-                btnAnalyzeDumps.BackColor = SystemColors.ControlLight;
-                btnAnalyzeDumps.Text = "";
             }
         }
 
@@ -299,63 +305,95 @@ namespace SSASDiag
 
         }
 
+        public bool bCancel = false;
+        int DumpCountAnalyzedInCurrentRun = 0;
         private void btnAnalyzeDumps_Click(object sender, EventArgs e)
         {
-            btnAnalyzeDumps.Enabled = false;
-            txtStatus.SelectionStart = txtStatus.TextLength;
-            txtStatus.ScrollToCaret();
-            new Thread(new ThreadStart(() =>
+            if (btnAnalyzeDumps.Text == "Analyze Selection")
             {
-                int TotalCountToAnalyze = 0;
-                int CurrentDump = 1;
-                foreach (DataGridViewRow r in dgdDumpList.Rows)
-                    if (!(r.DataBoundItem as Dump).Analyzed && r.Cells[1].Selected) TotalCountToAnalyze++;
-                if (TotalCountToAnalyze > 0)
+                DumpCountAnalyzedInCurrentRun = 0;
+                bCancel = false;
+                btnAnalyzeDumps.BackColor = Color.Pink;
+                btnAnalyzeDumps.FlatAppearance.MouseDownBackColor = Color.IndianRed;
+                btnAnalyzeDumps.FlatAppearance.MouseOverBackColor = Color.LightCoral;
+                btnAnalyzeDumps.Text = "Cancel Analysis In-Progress...";
+                txtStatus.SelectionStart = txtStatus.TextLength;
+                txtStatus.ScrollToCaret();
+                new Thread(new ThreadStart(() =>
                 {
-                    rtDumpDetails.Invoke(new System.Action(() => rtDumpDetails.Text = "Analyzing " + TotalCountToAnalyze + " dump" + (TotalCountToAnalyze == 1 ? "" : "s") + "."));
-                    List<DataGridViewRow> DumpsToProcess = new List<DataGridViewRow>();
+                    int TotalCountToAnalyze = 0;
                     foreach (DataGridViewRow r in dgdDumpList.Rows)
-                        if (r.Cells[1].Selected)
-                            DumpsToProcess.Add(r);
-                    foreach (DataGridViewRow r in DumpsToProcess)
+                        if (!(r.DataBoundItem as Dump).Analyzed && r.Cells[1].Selected) TotalCountToAnalyze++;
+                    if (TotalCountToAnalyze > 0)
                     {
-                        Dump d = r.DataBoundItem as Dump;
-                        DataGridViewCell c = r.Cells[1];
-                        if (!d.Analyzed)
+                        rtDumpDetails.Invoke(new System.Action(() => rtDumpDetails.Text = "Analyzing " + TotalCountToAnalyze + " dump" + (TotalCountToAnalyze == 1 ? "" : "s") + "."));
+                        List<DataGridViewRow> DumpsToProcess = new List<DataGridViewRow>();
+                        foreach (DataGridViewRow r in dgdDumpList.Rows)
+                            if (r.Cells[1].Selected)
+                                DumpsToProcess.Add(r);
+                        foreach (DataGridViewRow r in DumpsToProcess)
                         {
-                            splitDebugger.Invoke(new System.Action(() =>
+                            if (!bCancel)
                             {
-                                splitDebugger.Panel2Collapsed = false;
-                                lblDebugger.Text = "Analyzing " + d.DumpName + ", dump " + CurrentDump + " of " + TotalCountToAnalyze + " to be analyzed.";
-                            }));
-                            ConnectToDump(d.DumpPath);
-                            while (!p.HasExited)
-                                Thread.Sleep(500);
-                            // Clean up the old process and reinitialize.
-                            p.Close();
-                            p.ErrorDataReceived -= P_ErrorDataReceived;
-                            p.OutputDataReceived -= P_OutputDataReceived;
-                            p.Exited -= P_Exited;
-                            p.Dispose();
-                            p = new Process();
-                            dgdDumpList.Invoke(new System.Action(() =>
+                                Dump d = r.DataBoundItem as Dump;
+                                DataGridViewCell c = r.Cells[1];
+                                if (!d.Analyzed)
                                 {
-                                    c.Style.ForeColor = SystemColors.ControlText;
-                                    c.ToolTipText = "";
-                                }));
-                            CurrentDump++;
+                                    splitDebugger.Invoke(new System.Action(() =>
+                                    {
+                                        splitDebugger.Panel2Collapsed = false;
+                                        lblDebugger.Text = "Analyzing " + d.DumpName + ", dump " + (DumpCountAnalyzedInCurrentRun + 1) + " of " + TotalCountToAnalyze + " to be analyzed.";
+                                    }));
+                                    ConnectToDump(d.DumpPath);
+                                    while (!bCancel && !p.HasExited)
+                                        Thread.Sleep(500);
+                                    // Clean up the old process and reinitialize.
+                                    if (bCancel)
+                                    {
+                                        p.CancelOutputRead();
+                                        p.CancelErrorRead();
+                                        if (!p.HasExited)
+                                            p.Kill();
+                                    }
+                                    else
+                                    {
+                                        dgdDumpList.Invoke(new System.Action(() =>
+                                        {
+                                            c.Style.ForeColor = SystemColors.ControlText;
+                                            c.ToolTipText = "";
+                                        }));
+                                        DumpCountAnalyzedInCurrentRun++;
+                                    }
+                                    p.OutputDataReceived -= P_OutputDataReceived;
+                                    p.ErrorDataReceived -= P_ErrorDataReceived;
+                                    p.Exited -= P_Exited;
+                                    p.Close();
+                                    p = new Process();
+                                }
+                            }
+                        }
+                        if (!bCancel)
+                        {
+                            dgdDumpList.Invoke(new System.Action(() =>
+                            {
+                                lblDebugger.Text = rtDumpDetails.Text = "Analyzed " + TotalCountToAnalyze + " memory dump" + (TotalCountToAnalyze != 1 ? "s." : ".");
+                                btnAnalyzeDumps.Text = "";
+                                btnAnalyzeDumps.BackColor = SystemColors.Control;
+                                btnAnalyzeDumps.Enabled = false;
+                            }));
                         }
                     }
-                    
-                    dgdDumpList.Invoke(new System.Action(() =>
-                    { 
-                        if (TotalCountToAnalyze == 1)
-                            dgdDumpList_SelectionChanged(null, null);
-                        lblDebugger.Text = "Analyzed " + TotalCountToAnalyze + " memory dump" + (TotalCountToAnalyze > 1 ? "s." : ".");
-                        btnAnalyzeDumps.Enabled = true;
-                    }));
-                }
-            })).Start();
+                })).Start();
+            }
+            else
+            {
+                bCancel = true;
+                btnAnalyzeDumps.Text = "Analyze Selection";
+                btnAnalyzeDumps.BackColor = Color.DarkSeaGreen;
+                btnAnalyzeDumps.FlatAppearance.MouseDownBackColor = Color.FromArgb(128, 255, 128);
+                btnAnalyzeDumps.FlatAppearance.MouseOverBackColor = Color.FromArgb(192, 255, 192);
+                lblDebugger.Text = rtDumpDetails.Text = "Analyzed " + DumpCountAnalyzedInCurrentRun + " memory dump" + (DumpCountAnalyzedInCurrentRun != 1 ? "s" : "") + " before user cancelled.";
+            }
         }
 
         private string GetQueryFromStack(string stk, int tid)
@@ -419,6 +457,8 @@ namespace SSASDiag
                     ResultReady.WaitOne();
                     ResultReady.Reset();
                     string init = LastResponse;
+                    if (bCancel)
+                        return;
                     d.ASVersion = SubmitDebuggerCommand("lmvm msmdsrv").Split(new char[] { '\r', '\n' }).Where(f => f.Contains("Product version:")).First().Replace("    Product version:  ", "");
                     d.Crash = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("This dump file has an exception of interest stored in it.")).Count() > 0;
                     string pid = init.Substring(init.IndexOf("This dump file has an exception of interest stored in it."));
@@ -435,6 +475,9 @@ namespace SSASDiag
                     DateTime dt;
                     DateTime.TryParseExact(properTime, "MMM d, yyyy HH:mm:ss.fff zzz", null, System.Globalization.DateTimeStyles.AssumeLocal, out dt);
                     d.DumpTime = dt;
+
+                    if (bCancel)
+                        return;
                     cmd.CommandText = "INSERT INTO Dumps VALUES('" + d.DumpPath + "', '" + pid + "', '" + d.ASVersion + "', '" + dt.ToString() + "', " + (d.Crash ? 1 : 0) + ", '" + d.DumpException + "')";
                     cmd.ExecuteNonQuery();
 
@@ -443,6 +486,8 @@ namespace SSASDiag
                     int tid = Convert.ToInt32((CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "")));
                     string qry = GetQueryFromStack(stk, tid);
 
+                    if (bCancel)
+                        return;
                     
                     d.Stacks.Add(new Stack() { CallStack = stk, ThreadID = tid, Query = qry, ExceptionThread = true });
                     cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "'," + CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "") + ", '" + stk.Replace("'", "''") + "', '" + qry.Replace("'", "''") + "', 1)";
@@ -450,31 +495,50 @@ namespace SSASDiag
 
                     // Process non-exception threads
                     List<string> AllThreads = new List<string>();
-                    while (AllThreads.Count <= 1)  // hack - sometimes it doesn't execute the first try, don't know why.
+                    while (AllThreads.Count <= 1 && !bCancel)  // hack - sometimes it doesn't execute the first try, don't know why.
                         AllThreads = SubmitDebuggerCommand("~*kN").Replace("\n", "").Split(new char[] { '\r'}).ToList();
-                    for (int i = 0; i < AllThreads.Count; i++)
+                    if (!bCancel)
                     {
-                        string l = AllThreads[i];
-                        if (l.StartsWith(" # Child-SP") && !AllThreads[i - 1].StartsWith("#"))  // The exception thread already captured is denoted in output with # so we can skip it...
+                        for (int i = 0; i < AllThreads.Count; i++)
                         {
-                            Stack s = new Stack() { ExceptionThread = false };
-                            s.ThreadID = Convert.ToInt32(AllThreads[i - 1].Substring(0, AllThreads[i - 1].IndexOf(" Id: ")).TrimStart());
-                            int j = i;
-                            for (; AllThreads[j] != ""; j++)
-                                s.CallStack += AllThreads[j] + "\r\n";
-                            i = j;
-                            s.CallStack = s.CallStack.TrimEnd();
-                            s.Query = GetQueryFromStack(s.CallStack, s.ThreadID);
-                            if (d.Stacks.Find(st => st.ThreadID == s.ThreadID) == null)
+                            string l = AllThreads[i];
+                            if (l.StartsWith(" # Child-SP") && !AllThreads[i - 1].StartsWith("#"))  // The exception thread already captured is denoted in output with # so we can skip it...
                             {
-                                d.Stacks.Add(s);
-                                cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "', '" + s.ThreadID + "', '" + s.CallStack.Replace("'", "''") + "', '" + s.Query.Replace("'", "''") + "', 0)";
-                                cmd.ExecuteNonQuery();
+                                Stack s = new Stack() { ExceptionThread = false };
+                                s.ThreadID = Convert.ToInt32(AllThreads[i - 1].Substring(0, AllThreads[i - 1].IndexOf(" Id: ")).TrimStart());
+                                int j = i;
+                                for (; AllThreads[j] != ""; j++)
+                                    s.CallStack += AllThreads[j] + "\r\n";
+                                i = j;
+                                s.CallStack = s.CallStack.TrimEnd();
+                                s.Query = GetQueryFromStack(s.CallStack, s.ThreadID);
+                                if (d.Stacks.Find(st => st.ThreadID == s.ThreadID) == null && !bCancel)
+                                {
+                                    d.Stacks.Add(s);
+                                    cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "', '" + s.ThreadID + "', '" + s.CallStack.Replace("'", "''") + "', '" + s.Query.Replace("'", "''") + "', 0)";
+                                    cmd.ExecuteNonQuery();
+                                }
                             }
                         }
                     }
+
+                    if (bCancel)
+                    {
+                        // When we were cancelled don't leave any orphaned rows in the data...
+                        cmd.CommandText = "DELETE from Dumps WHERE DumpPath = '" + d.DumpPath + "' AND DumpProcessID = '" + d.ProcessID + "'";
+                        cmd.ExecuteNonQuery();
+                        cmd.CommandText = "DELETE from StacksAndQueries WHERE DumpPath = '" + d.DumpPath + "' AND DumpProcessID = '" + d.ProcessID + "'";
+                        cmd.ExecuteNonQuery();
+                        // Also clear out these fields to be as consistent as possible although we shouldn't be using these ever if the Analyzed field remains false as it does.
+                        d.DumpException = "";
+                        d.ASVersion = "";
+                        d.ProcessID = "";
+                        d.Stacks = new List<Stack>();
+                    }
+                    else
+                        d.Analyzed = true;
+
                     SubmitDebuggerCommand("q");
-                    d.Analyzed = true;
                 }
                 )).Start();
         }
@@ -482,13 +546,16 @@ namespace SSASDiag
         private string SubmitDebuggerCommand(string cmd)
         {
             LastResponse = "";
-            p.StandardInput.WriteLine(cmd);
-            txtStatus.Invoke(new System.Action(() => txtStatus.Text += CurrentPrompt + " " + cmd + "\r\n"));
-            if (cmd != "q")
+            if (p.StartInfo.RedirectStandardInput)
             {
-                p.StandardInput.WriteLine(".echo \"EndOfData\"");
-                ResultReady.Reset();
-                ResultReady.WaitOne();
+                p.StandardInput.WriteLine(cmd);
+                txtStatus.Invoke(new System.Action(() => txtStatus.Text += CurrentPrompt + " " + cmd + "\r\n"));
+                if (cmd != "q")
+                {
+                    p.StandardInput.WriteLine(".echo \"EndOfData\"");
+                    ResultReady.Reset();
+                    ResultReady.WaitOne();
+                }
             }
             return LastResponse;
         }
@@ -508,6 +575,11 @@ namespace SSASDiag
         int OutputChunksSinceLastDump = 0;
         private void P_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
+            if (bCancel)
+            {
+                ResultReady.Set();
+                return;
+            }
             if (e.Data != null)
             {
                 if (e.Data.EndsWith("EndOfData"))  // this signals the input prompt has been shown
@@ -522,17 +594,24 @@ namespace SSASDiag
                     OutputChunksSinceLastDump++;
                     // trim the current prompt from the start of data if both are not zero length strings
                     string output = e.Data.Length > 0 && CurrentPrompt.Length > 0 ? e.Data.Replace(CurrentPrompt, "") : e.Data;
-                    if (txtStatus.IsHandleCreated)
-                        txtStatus.Invoke(new System.Action(() =>
-                        {
-                            txtStatus.AppendText(output + "\r\n");
-                            if (OutputChunksSinceLastDump == 3)
+                    try
+                    {
+                        if (txtStatus.IsHandleCreated)
+                            txtStatus.Invoke(new System.Action(() =>
                             {
-                                txtStatus.SelectionStart = txtStatus.TextLength;
-                                txtStatus.ScrollToCaret();
-                                OutputChunksSinceLastDump = 0;
-                            }
-                        }));
+                                txtStatus.AppendText(output + "\r\n");
+                                if (OutputChunksSinceLastDump == 3)
+                                {
+                                    txtStatus.SelectionStart = txtStatus.TextLength;
+                                    txtStatus.ScrollToCaret();
+                                    OutputChunksSinceLastDump = 0;
+                                }
+                            }));
+                    }
+                    catch
+                    {
+                        // May fail if the thread was destroyed at close time, so no remediation needed, just ignore and let it move on then.
+                    }
                     LastResponse += output + "\r\n";
                 }
             }
@@ -600,10 +679,6 @@ namespace SSASDiag
                 }
                 else
                 {
-                    if (AnalyzedCount < selCount)
-                        btnAnalyzeDumps.Enabled = true;
-                    else
-                        btnAnalyzeDumps.Enabled = false;
                     string pluralize = (selCount > 1 ? "s: " : ": ");
                     rtDumpDetails.Text = "Dump file" + pluralize + dComp.DumpName + "\r\nAS Version" + pluralize + dComp.ASVersion + "\r\n" +
                         "Dump time: " + (selCount > 1 ? "<multiple dumps selected>" : dComp.DumpTime.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")) + "\r\n" +
@@ -612,8 +687,8 @@ namespace SSASDiag
                             "Analysis exists for " + AnalyzedCount + " of " + selCount + " selected dumps.\r\n" :
                             (selCount == 1 ? "" : "Analysis exists for all of the " + selCount + " selected dumps.\r\n")) +
                         (CrashedCount < selCount ?
-                            (selCount == 1 ? "This is a hang dump." : CrashedCount + " selected dumps were crash dumps and " + (AnalyzedCount - CrashedCount) + " were hang dumps.") :
-                            (selCount == 1 ? "This is a crash dump." : CrashedCount + " selected dumps were crash dumps and " + (AnalyzedCount - CrashedCount) + " were hang dumps.")) +
+                            (selCount == 1 ? "This is a hang dump." : CrashedCount + " selected dumps were Memory Dumps and " + (AnalyzedCount - CrashedCount) + " were hang dumps.") :
+                            (selCount == 1 ? "This is a crash dump." : CrashedCount + " selected dumps were Memory Dumps and " + (AnalyzedCount - CrashedCount) + " were hang dumps.")) +
                         "\r\n" +
                         ((CrashedCount == selCount) ? "Dump Exception" + pluralize + "\r\n" + dComp.DumpException : "");
                     rtDumpDetails.Rtf = rtDumpDetails.Rtf.Replace("<", "\\i<").Replace(">", "\\i0>");
@@ -634,10 +709,10 @@ namespace SSASDiag
                 rtbStack.Text = "";
                 splitDumpOutput.Panel2Collapsed = true;
             }
-            if (btnAnalyzeDumps.Text == "")
+            if (btnAnalyzeDumps.Text == "Analyze Selection" || btnAnalyzeDumps.Text == "")
             {
                 btnAnalyzeDumps.Enabled = (AnalyzedCount < selCount);
-                btnAnalyzeDumps.BackColor = (AnalyzedCount < selCount) ? Color.DarkSeaGreen : SystemColors.ControlLight;
+                btnAnalyzeDumps.BackColor = (AnalyzedCount < selCount) ? Color.DarkSeaGreen : SystemColors.Control;
                 btnAnalyzeDumps.Text = (AnalyzedCount < selCount) ? "Analyze Selection" : "";
                 splitDumpDetails.Panel2Collapsed = selCount == 0;
             }
