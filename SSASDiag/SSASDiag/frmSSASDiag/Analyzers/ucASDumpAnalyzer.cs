@@ -113,7 +113,6 @@ namespace SSASDiag
 
             splitDumpOutput.Panel2Collapsed = true;
             splitDebugger.Panel2Collapsed = true;
-            splitDumpDetails.Panel2Collapsed = true;
 
             if (Directory.Exists(dumpPath))
             {
@@ -227,6 +226,8 @@ namespace SSASDiag
             xmlQuery.Visible = false;
             splitDumpOutput.Panel2.Controls.Add(xmlQuery);
             xmlQuery.BringToFront();
+
+            frmSSASDiag.LogFeatureUse("Dump Analysis", "Dumps analysis initalized for " + DumpFiles.Count + " dumps, " + DumpFiles.Where(d => !d.Analyzed).Count() + " of which still require analysis.");
         }
 
         int DataBindingCompletions = 0;
@@ -266,6 +267,7 @@ namespace SSASDiag
                 }
                 dgdDumpList.ClearSelection();
                 dgdDumpList.SelectionChanged += dgdDumpList_SelectionChanged;
+                rtDumpDetails.Text = "Memory dumps found: " + DumpFiles.Count + "\r\nDump(s) with existing analysis: " + DumpFiles.Where(d => d.Analyzed).Count();
             }
         }
 
@@ -273,6 +275,7 @@ namespace SSASDiag
         {
             try
             {
+                frmSSASDiag.LogFeatureUse("Dump Analysis", "Detatching from dump analysis database on exit.");
                 connDB.ChangeDatabase("master");
                 SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') ALTER DATABASE [" + DBName() + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connDB);
                 cmd.ExecuteNonQuery();
@@ -321,16 +324,18 @@ namespace SSASDiag
                 txtStatus.ScrollToCaret();
                 new Thread(new ThreadStart(() =>
                 {
-                    int TotalCountToAnalyze = 0;
+                    int TotalSelectedDumpsCount = 0;
                     foreach (DataGridViewRow r in dgdDumpList.Rows)
-                        if (!(r.DataBoundItem as Dump).Analyzed && r.Cells[1].Selected) TotalCountToAnalyze++;
-                    if (TotalCountToAnalyze > 0)
+                        if (!(r.DataBoundItem as Dump).Analyzed && r.Cells[1].Selected) TotalSelectedDumpsCount++;
+                    if (TotalSelectedDumpsCount > 0)
                     {
-                        rtDumpDetails.Invoke(new System.Action(() => rtDumpDetails.Text = "Analyzing " + TotalCountToAnalyze + " dump" + (TotalCountToAnalyze == 1 ? "" : "s") + "."));
+                        rtDumpDetails.Invoke(new System.Action(() => rtDumpDetails.Text = "Analyzing " + TotalSelectedDumpsCount + " dump" + (TotalSelectedDumpsCount == 1 ? "" : "s") + "."));
                         List<DataGridViewRow> DumpsToProcess = new List<DataGridViewRow>();
                         foreach (DataGridViewRow r in dgdDumpList.Rows)
                             if (r.Cells[1].Selected)
                                 DumpsToProcess.Add(r);
+                        int DumpsRequiringAnalysis = DumpsToProcess.Where(drow => !(drow.DataBoundItem as Dump).Analyzed).Count();
+                        frmSSASDiag.LogFeatureUse("Dump Analysis", "Analysis started on " + DumpsRequiringAnalysis + " dump" + (DumpsRequiringAnalysis > 1 ? "s." : "."));
                         foreach (DataGridViewRow r in DumpsToProcess)
                         {
                             if (!bCancel)
@@ -342,7 +347,7 @@ namespace SSASDiag
                                     splitDebugger.Invoke(new System.Action(() =>
                                     {
                                         splitDebugger.Panel2Collapsed = false;
-                                        lblDebugger.Text = "Analyzing " + d.DumpName + ", dump " + (DumpCountAnalyzedInCurrentRun + 1) + " of " + TotalCountToAnalyze + " to be analyzed.";
+                                        lblDebugger.Text = "Analyzing " + d.DumpName + ", dump " + (DumpCountAnalyzedInCurrentRun + 1) + " of " + TotalSelectedDumpsCount + " to be analyzed.";
                                         txtStatus.Text = "Starting analysis of the memory dump at " + d.DumpPath + ".";
                                     }));
                                     ConnectToDump(d.DumpPath);
@@ -379,14 +384,14 @@ namespace SSASDiag
                             dgdDumpList.Invoke(new System.Action(() =>
                             {
                                 SuspendLayout();
-                                lblDebugger.Text = rtDumpDetails.Text = "Analyzed " + TotalCountToAnalyze + " memory dump" + (TotalCountToAnalyze != 1 ? "s." : ".");
+                                lblDebugger.Text = rtDumpDetails.Text = "Analyzed " + TotalSelectedDumpsCount + " memory dump" + (TotalSelectedDumpsCount != 1 ? "s." : ".");
                                 btnAnalyzeDumps.Text = "";
                                 btnAnalyzeDumps.BackColor = SystemColors.Control;
                                 btnAnalyzeDumps.Enabled = false;
                                 dgdDumpList_SelectionChanged(null, null);
                                 splitDebugger.Panel2Collapsed = false;
                                 ResumeLayout();
-                                
+                                frmSSASDiag.LogFeatureUse("Dump Analysis", "Completed analysis of " + DumpsRequiringAnalysis + " dump" + (DumpsRequiringAnalysis > 1 ? "s." : "."));
                             }));
                         }
                     }
@@ -400,6 +405,7 @@ namespace SSASDiag
                 btnAnalyzeDumps.FlatAppearance.MouseDownBackColor = Color.FromArgb(128, 255, 128);
                 btnAnalyzeDumps.FlatAppearance.MouseOverBackColor = Color.FromArgb(192, 255, 192);
                 lblDebugger.Text = rtDumpDetails.Text = "Analyzed " + DumpCountAnalyzedInCurrentRun + " memory dump" + (DumpCountAnalyzedInCurrentRun != 1 ? "s" : "") + " before user cancelled.";
+                frmSSASDiag.LogFeatureUse("Dump Analysis", "Dump analysis cancelled after " + DumpCountAnalyzedInCurrentRun + " dump" + (DumpCountAnalyzedInCurrentRun != 1 ? "s" : "") + " were analyzed successfully.");
             }
         }
 
@@ -439,6 +445,7 @@ namespace SSASDiag
 
         public void ConnectToDump(string path)
         {
+            LastResponse = "";
             SqlCommand cmd = new SqlCommand();
             cmd.Connection = connDB;
             p.OutputDataReceived += P_OutputDataReceived;
@@ -489,7 +496,7 @@ namespace SSASDiag
                     cmd.ExecuteNonQuery();
 
                     d.Stacks = new List<Stack>();
-                    string stk = SubmitDebuggerCommand("kN");
+                    string stk = SubmitDebuggerCommand("kN").Trim();
                     int tid = Convert.ToInt32((CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "")));
                     string qry = GetQueryFromStack(stk, tid);
 
@@ -497,6 +504,7 @@ namespace SSASDiag
                         return;
                     
                     d.Stacks.Add(new Stack() { CallStack = stk, ThreadID = tid, Query = qry, ExceptionThread = true });
+                    frmSSASDiag.LogFeatureUse("Dump Analysis", ("Analysis of dump " + path + " shows the following exception stack:\r\n" + stk.Replace("'", "''")));
                     cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "'," + CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "") + ", '" + stk.Replace("'", "''") + "', '" + qry.Replace("'", "''") + "', 1)";
                     cmd.ExecuteNonQuery();
 
@@ -602,7 +610,6 @@ namespace SSASDiag
                 }
                 else
                 {
-                    OutputChunksSinceLastDump++;
                     // trim the current prompt from the start of data if both are not zero length strings
                     string output = e.Data.Length > 0 && CurrentPrompt.Length > 0 ? e.Data.Replace(CurrentPrompt, "") : e.Data;
                     // Skip adding output to text window for basic debugger header text...
@@ -610,6 +617,7 @@ namespace SSASDiag
                     {
                         try
                         {
+                            OutputChunksSinceLastDump++;
                             if (txtStatus.IsHandleCreated)
                                 txtStatus.Invoke(new System.Action(() =>
                                 {
@@ -619,6 +627,7 @@ namespace SSASDiag
                                         txtStatus.SelectionStart = txtStatus.TextLength;
                                         txtStatus.ScrollToCaret();
                                         OutputChunksSinceLastDump = 0;
+                                        
                                     }
                                 }));
                         }
@@ -684,36 +693,38 @@ namespace SSASDiag
                     if (dComp == null)
                         dComp = d.Clone();
                     else
-                        dComp.DumpPath = "\\Multiple dumps selected";
+                        dComp.DumpPath = "\\<multiple>";
                     if (d.Crash)
                         CrashedCount++;
                     if (d.ASVersion != dComp.ASVersion)
-                        dComp.ASVersion = "<multiple versions>";
+                        dComp.ASVersion = "<multiple>";
                     if (d.DumpException != dComp.DumpException)
-                        dComp.DumpException = "<multiple exceptions>";
+                        dComp.DumpException = "<multiple>";
                 }
             }
             if (selCount > 0)
             {
                 if (dComp == null)
                 {
-                    rtDumpDetails.Text = "The selected dump has not been analyzed yet.";
+                    rtDumpDetails.Text = "The selection has not been analyzed yet.\r\nClick Analyze Selection to perform analysis.";
                 }
                 else
                 {
                     string pluralize = (selCount > 1 ? "s: " : ": ");
                     rtDumpDetails.Text = "Dump file" + pluralize + dComp.DumpName + "\r\nAS Version" + pluralize + dComp.ASVersion + "\r\n" +
-                        "Dump time: " + (selCount > 1 ? "<multiple dumps selected>" : dComp.DumpTime.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")) + "\r\n" +
-                        "Dump process id: " + (selCount > 1 ? "<multiple dumps selected>" : dComp.ProcessID) + "\r\n" +
+                        "Dump date: " + (selCount > 1 ? "<multiple>" : dComp.DumpTime.ToString("MM/dd/yyyy")) + "\r\n" +
+                        "Dump time: " + (selCount > 1 ? "<multiple>" : dComp.DumpTime.ToString("HH:mm:ss UTCzzz")) + "\r\n" +
+                        "Process id: " + (selCount > 1 ? "<multiple>" : dComp.ProcessID) + "\r\n" +
                         (AnalyzedCount < selCount ?
-                            "Analysis exists for " + AnalyzedCount + " of " + selCount + " selected dumps.\r\n" :
-                            (selCount == 1 ? "" : "Analysis exists for all of the " + selCount + " selected dumps.\r\n")) +
+                            "Analysis found for " + AnalyzedCount + " of " + selCount + " dumps.\r\n" :
+                            (selCount == 1 ? "" : "Analysis found for all " + selCount + " dumps.\r\n")) +
                         (CrashedCount < selCount ?
-                            (selCount == 1 ? "This is a hang dump." : CrashedCount + " selected dumps were Memory Dumps and " + (AnalyzedCount - CrashedCount) + " were hang dumps.") :
-                            (selCount == 1 ? "This is a crash dump." : CrashedCount + " selected dumps were Memory Dumps and " + (AnalyzedCount - CrashedCount) + " were hang dumps.")) +
-                        "\r\n" +
-                        ((CrashedCount == selCount) ? "Dump Exception" + pluralize + "\r\n" + dComp.DumpException : "");
-                    rtDumpDetails.Rtf = rtDumpDetails.Rtf.Replace("<", "\\i<").Replace(">", "\\i0>");
+                            (selCount == 1 ? "This is a hang dump." : CrashedCount + " dumps were crashes." + (AnalyzedCount - CrashedCount > 0 ? "\r\n" + (AnalyzedCount - CrashedCount) + " were hang dumps." : "")) :
+                            (selCount == 1 ? "This is a crash dump." : CrashedCount + " dumps were crashes." + (AnalyzedCount - CrashedCount > 0 ? "\r\n" + (AnalyzedCount - CrashedCount) + " were hang dumps." : "")));
+                    rtDumpDetails.Rtf = rtDumpDetails.Rtf.Replace("<", "\\i<").Replace(">", "\\i0>").Trim().TrimEnd('}') + 
+                        (dComp.DumpException == "<multiple>" ?
+                            "Dump Exceptions: <multiple>\\par}" :
+                            ((CrashedCount == selCount) ? "Dump Exception" + pluralize + "\\par\\i\\b\\fs15" + dComp.DumpException : "\\b0\\i0\\par}"));
                 }
             }
             if ((selCount & AnalyzedCount) == 1)
@@ -736,7 +747,6 @@ namespace SSASDiag
                 btnAnalyzeDumps.Enabled = (AnalyzedCount < selCount);
                 btnAnalyzeDumps.BackColor = (AnalyzedCount < selCount) ? Color.DarkSeaGreen : SystemColors.Control;
                 btnAnalyzeDumps.Text = (AnalyzedCount < selCount) ? "Analyze Selection" : "";
-                splitDumpDetails.Panel2Collapsed = selCount == 0;
             }
             dgdDumpList.ResumeLayout();
         }
