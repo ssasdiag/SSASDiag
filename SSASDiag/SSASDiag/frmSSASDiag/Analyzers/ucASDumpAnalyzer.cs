@@ -89,13 +89,11 @@ namespace SSASDiag
             if (!Directory.Exists(AnalysisPath))
                 Directory.CreateDirectory(AnalysisPath);
 
-            if (File.Exists(AnalysisPath + "\\DumpAnalysisId.txt"))
-                DumpAnalysisId = File.ReadAllText(AnalysisPath + "\\DumpAnalysisId.txt");
+            string[] DumpAnalyses = Directory.GetFiles(AnalysisPath, "SSASDiag_MemoryDump_Analysis_*.mdf");
+            if (DumpAnalyses.Count() > 0)
+                DumpAnalysisId = DumpAnalyses[0].Replace(AnalysisPath, "").Replace("SSASDiag_MemoryDump_Analysis_", "").Replace(".mdf", "").Replace("\\", "");
             else
-            {
                 DumpAnalysisId = Guid.NewGuid().ToString();
-                File.WriteAllText(AnalysisPath + "\\DumpAnalysisId.txt", DumpAnalysisId);
-            }
 
             string sSvcUser = "";
             ServiceController[] services = ServiceController.GetServices();
@@ -253,6 +251,9 @@ namespace SSASDiag
 
         private void btnAnalyzeDumps_Click(object sender, EventArgs e)
         {
+            btnAnalyzeDumps.Enabled = false;
+            txtStatus.SelectionStart = txtStatus.TextLength;
+            txtStatus.ScrollToCaret();
             new Thread(new ThreadStart(() =>
             {
                 int TotalCountToAnalyze = 0;
@@ -282,6 +283,8 @@ namespace SSASDiag
                             p.Exited -= P_Exited;
                             p.Dispose();
                             p = new Process();
+
+                            CurrentDump++;
                         }
                         dgdDumpList.Invoke(new System.Action(() =>
                             {
@@ -289,10 +292,42 @@ namespace SSASDiag
                                 if (TotalCountToAnalyze == 1)
                                     dgdDumpList_SelectionChanged(null, null);
                                 lblDebugger.Text = "Analyzed " + TotalCountToAnalyze + " memory dump" + (TotalCountToAnalyze > 1 ? "s." : ".");
+                                btnAnalyzeDumps.Enabled = true;
                             }));
                     }
                 }
             })).Start();
+        }
+
+        private string GetQueryFromStack(string stk, int tid)
+        {
+            string qry = "";
+            List<string> Lines = new List<string>(stk.Split(new char[] { '\r', '\n' }));
+            if (Lines.Where(c => c.Contains("PXSession")).Count() > 0)
+            {
+                string res = SubmitDebuggerCommand("~" + tid + "s");
+                string PXSessionLine = Lines.Where(l => l.Contains("PXSession")).First();
+                res = SubmitDebuggerCommand(".frame " + PXSessionLine.Substring(0, PXSessionLine.IndexOf(" ")));
+                res = SubmitDebuggerCommand("dt this m_strLastRequest");
+                string addy = res.Substring(res.IndexOf("Type PXSession*\r\n") + "Type PXSession*\r\n".Length);
+                addy = addy.Substring(0, addy.IndexOf(" "));
+                string offset = res.Substring(res.IndexOf(addy) + addy.Length);
+                offset = offset.Substring(offset.IndexOf("+"));
+                offset = offset.Substring(0, offset.IndexOf(" "));
+                res = SubmitDebuggerCommand("dt PFString " + addy + offset);
+                addy = res.Substring(res.IndexOf(" : ") + " : ".Length);
+                try
+                {
+                    addy = addy.Substring(0, addy.IndexOf("PFData<") - 1);
+                    qry = SubmitDebuggerCommand(".printf \"%mu\", " + addy);
+                }
+                catch
+                {
+                    // I should insert backup approach to try dU if .printf fails as can happen if partial memory is present so no null-terminator is found on the string...
+                    qry = "There was a query on this thread but its memory could not be read (possibly not captured in this minidump).";
+                }
+            }
+            return qry;
         }
 
         public void ConnectToDump(string path)
@@ -314,7 +349,7 @@ namespace SSASDiag
             p.Start();
             p.BeginErrorReadLine();
             p.BeginOutputReadLine();
-            p.StandardInput.WriteLine(".echo"); // Ensures we can detect end of output, when this is processed and input prompt is displayed in console output...
+            p.StandardInput.WriteLine(".echo \"EndOfData\""); // Ensures we can detect end of output, when this is processed and input prompt is displayed in console output...
             new Thread(new ThreadStart(() =>
                 {
                     Dump d = DumpFiles.Find(df => df.DumpName == path);
@@ -344,39 +379,18 @@ namespace SSASDiag
 
                     d.Stacks = new List<Stack>();
                     string stk = SubmitDebuggerCommand("kN");
-                    string qry = "";
+                    int tid = Convert.ToInt32((CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "")));
+                    string qry = GetQueryFromStack(stk, tid);
 
-                    List<string> Lines = new List<string>(stk.Split(new char[] { '\r', '\n' }));
-                    if (Lines.Where(c => c.Contains("PXSession")).Count() > 0)
-                    {
-                        string PXSessionLine = Lines.Where(l => l.Contains("PXSession")).First();
-                        string res = SubmitDebuggerCommand(".frame " + PXSessionLine.Substring(0, PXSessionLine.IndexOf(" ")));
-                        res = SubmitDebuggerCommand("dt this m_strLastRequest");
-                        string addy = res.Substring(res.IndexOf("Type PXSession*\r\n") + "Type PXSession*\r\n".Length);
-                        addy = addy.Substring(0, addy.IndexOf(" "));
-                        string offset = res.Substring(res.IndexOf(addy) + addy.Length);
-                        offset = offset.Substring(offset.IndexOf("+"));
-                        offset = offset.Substring(0, offset.IndexOf(" "));
-                        res = SubmitDebuggerCommand("dt PFString " + addy + offset);
-                        addy = res.Substring(res.IndexOf(" : ") + " : ".Length);
-                        try
-                        {
-                            addy = addy.Substring(0, addy.IndexOf("PFData<") - 1);
-                            qry = SubmitDebuggerCommand(".printf \"%mu\", " + addy);
-                        }
-                        catch
-                        {
-                            // I should insert backup approach to try dU if .printf fails as can happen if partial memory is present so no null-terminator is found on the string...
-                            qry = "There was a query on this thread but its memory could not be read (possibly not captured in this minidump).";
-                        }
-                    }
-                    d.Stacks.Add(new Stack() { CallStack = stk, ThreadID = Convert.ToInt32((CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", ""))), Query = qry, ExceptionThread = true });
+                    
+                    d.Stacks.Add(new Stack() { CallStack = stk, ThreadID = tid, Query = qry, ExceptionThread = true });
                     cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "'," + CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "") + ", '" + stk.Replace("'", "''") + "', '" + qry.Replace("'", "''") + "', 1)";
                     cmd.ExecuteNonQuery();
 
                     // Process non-exception threads
-                    SubmitDebuggerCommand(".echo"); // Hack attack, don't ask it works...  Wish the next command otherwise deterministically got output but don't know why it doesn't yet, without adding this...
-                    List<string> AllThreads = SubmitDebuggerCommand("~*kN").Replace("\n", "").Split(new char[] { '\r'}).ToList();
+                    List<string> AllThreads = new List<string>();
+                    while (AllThreads.Count <= 1)  // hack - sometimes it doesn't execute the first try, don't know why.
+                        AllThreads = SubmitDebuggerCommand("~*kN").Replace("\n", "").Split(new char[] { '\r'}).ToList();
                     for (int i = 0; i < AllThreads.Count; i++)
                     {
                         string l = AllThreads[i];
@@ -389,7 +403,7 @@ namespace SSASDiag
                                 s.CallStack += AllThreads[j] + "\r\n";
                             i = j;
                             s.CallStack = s.CallStack.TrimEnd();
-                            s.Query = "";
+                            s.Query = GetQueryFromStack(s.CallStack, s.ThreadID);
                             if (d.Stacks.Find(st => st.ThreadID == s.ThreadID) == null)
                             {
                                 d.Stacks.Add(s);
@@ -411,10 +425,9 @@ namespace SSASDiag
             txtStatus.Invoke(new System.Action(() => txtStatus.Text += CurrentPrompt + " " + cmd + "\r\n"));
             if (cmd != "q")
             {
-                p.StandardInput.WriteLine(".echo");
+                p.StandardInput.WriteLine(".echo \"EndOfData\"");
                 ResultReady.Reset();
                 ResultReady.WaitOne();
-                ResultReady.Reset();
             }
             return LastResponse;
         }
@@ -431,27 +444,34 @@ namespace SSASDiag
 
         string LastResponse = "";
         string CurrentPrompt = "";
+        int OutputChunksSinceLastDump = 0;
         private void P_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data != null)
             {
-                if (e.Data.EndsWith("> "))  // this signals the input prompt has been shown
+                if (e.Data.EndsWith("EndOfData"))  // this signals the input prompt has been shown
                 {
-                    if (e.Data.Length > 10)
-                    {
-                        LastResponse = e.Data.Replace(CurrentPrompt, "");
-                        txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(LastResponse + "\r\n")));
-                    }
-                    else
-                        CurrentPrompt = e.Data;
+                    CurrentPrompt = e.Data.Replace("EndOfData", "");
+                    LastResponse += CurrentPrompt.Substring(CurrentPrompt.IndexOf("> ") + "> ".Length);
+                    CurrentPrompt = CurrentPrompt.Substring(0, CurrentPrompt.IndexOf("> ") + 1);
                     ResultReady.Set();
                 }
                 else
                 {
+                    OutputChunksSinceLastDump++;
                     // trim the current prompt from the start of data if both are not zero length strings
                     string output = e.Data.Length > 0 && CurrentPrompt.Length > 0 ? e.Data.Replace(CurrentPrompt, "") : e.Data;
                     if (txtStatus.IsHandleCreated)
-                        txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(output + "\r\n")));
+                        txtStatus.Invoke(new System.Action(() =>
+                        {
+                            txtStatus.AppendText(output + "\r\n");
+                            if (OutputChunksSinceLastDump == 3)
+                            {
+                                txtStatus.SelectionStart = txtStatus.TextLength;
+                                txtStatus.ScrollToCaret();
+                                OutputChunksSinceLastDump = 0;
+                            }
+                        }));
                     LastResponse += output + "\r\n";
                 }
             }
@@ -490,7 +510,8 @@ namespace SSASDiag
             int AnalyzedCount = 0;
             int CrashedCount = 0;
             int selCount = dgdDumpList.SelectedCells.Count;
-            splitDebugger.Panel2Collapsed = true;
+            if (!(btnAnalyzeDumps.Text != "" && !btnAnalyzeDumps.Enabled))
+                splitDebugger.Panel2Collapsed = true;
             foreach (DataGridViewCell c in dgdDumpList.SelectedCells)
             {
                 Dump d = c.OwningRow.DataBoundItem as Dump;                
