@@ -355,6 +355,7 @@ namespace SSASDiag
                                         p.CancelErrorRead();
                                         if (!p.HasExited)
                                             p.Kill();
+                                        ResultReady.Set();
                                     }
                                     else
                                     {
@@ -507,22 +508,25 @@ namespace SSASDiag
                     {
                         for (int i = 0; i < AllThreads.Count; i++)
                         {
-                            string l = AllThreads[i];
-                            if (l.StartsWith(" # Child-SP") && !AllThreads[i - 1].StartsWith("#"))  // The exception thread already captured is denoted in output with # so we can skip it...
+                            if (!bCancel)
                             {
-                                Stack s = new Stack() { ExceptionThread = false };
-                                s.ThreadID = Convert.ToInt32(AllThreads[i - 1].Substring(0, AllThreads[i - 1].IndexOf(" Id: ")).TrimStart());
-                                int j = i;
-                                for (; AllThreads[j] != ""; j++)
-                                    s.CallStack += AllThreads[j] + "\r\n";
-                                i = j;
-                                s.CallStack = s.CallStack.TrimEnd();
-                                s.Query = GetQueryFromStack(s.CallStack, s.ThreadID);
-                                if (d.Stacks.Find(st => st.ThreadID == s.ThreadID) == null && !bCancel)
+                                string l = AllThreads[i];
+                                if (l.StartsWith(" # Child-SP") && !AllThreads[i - 1].StartsWith("#"))  // The exception thread already captured is denoted in output with # so we can skip it...
                                 {
-                                    d.Stacks.Add(s);
-                                    cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "', '" + s.ThreadID + "', '" + s.CallStack.Replace("'", "''") + "', '" + s.Query.Replace("'", "''") + "', 0)";
-                                    cmd.ExecuteNonQuery();
+                                    Stack s = new Stack() { ExceptionThread = false };
+                                    s.ThreadID = Convert.ToInt32(AllThreads[i - 1].Substring(0, AllThreads[i - 1].IndexOf(" Id: ")).TrimStart());
+                                    int j = i;
+                                    for (; AllThreads[j] != ""; j++)
+                                        s.CallStack += AllThreads[j] + "\r\n";
+                                    i = j;
+                                    s.CallStack = s.CallStack.TrimEnd();
+                                    s.Query = GetQueryFromStack(s.CallStack, s.ThreadID);
+                                    if (d.Stacks.Find(st => st.ThreadID == s.ThreadID) == null && !bCancel)
+                                    {
+                                        d.Stacks.Add(s);
+                                        cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "', '" + s.ThreadID + "', '" + s.CallStack.Replace("'", "''") + "', '" + s.Query.Replace("'", "''") + "', 0)";
+                                        cmd.ExecuteNonQuery();
+                                    }
                                 }
                             }
                         }
@@ -539,6 +543,7 @@ namespace SSASDiag
                         d.DumpException = "";
                         d.ASVersion = "";
                         d.ProcessID = "";
+                        d.Stacks = null;
                         d.Stacks = new List<Stack>();
                     }
                     else
