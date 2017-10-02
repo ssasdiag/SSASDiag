@@ -238,7 +238,7 @@ namespace SSASDiag
                 }
             }
         }
-        private TextBox GetStatusTextBox(string Text = "")
+        public TextBox GetStatusTextBox(string Text = "")
         {
             TextBox txtStatus = new TextBox();
             txtStatus.Name = "StatusTextbox";

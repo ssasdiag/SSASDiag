@@ -228,6 +228,7 @@ namespace SSASDiag
             xmlQuery.BringToFront();
 
             frmSSASDiag.LogFeatureUse("Dump Analysis", "Dumps analysis initalized for " + DumpFiles.Count + " dumps, " + DumpFiles.Where(d => !d.Analyzed).Count() + " of which still require analysis.");
+            ValidateSymbolResolution();
         }
 
         int DataBindingCompletions = 0;
@@ -269,6 +270,84 @@ namespace SSASDiag
                 dgdDumpList.SelectionChanged += dgdDumpList_SelectionChanged;
                 rtDumpDetails.Text = "Memory dumps found: " + DumpFiles.Count + "\r\nDump(s) with existing analysis: " + DumpFiles.Where(d => d.Analyzed).Count();
             }
+        }
+
+        private async Task<bool> PrivateSymbolServerAccessible()
+        {
+            WebRequest wr = WebRequest.Create("http://symweb");
+            WebResponse wres = await wr.GetResponseAsync();
+            string res = (new StreamReader(wres.GetResponseStream())).ReadToEnd();
+            return res.StartsWith("<html>");
+        }
+
+        private bool SomeSymDirExists(string SymDirList)
+        {
+            bool SymDirExists = false;
+            foreach (string sym in SymDirList.Split(';'))
+                if (Directory.Exists(sym))
+                    SymDirExists = true;
+            return SymDirExists;
+        }
+
+        frmStatusFloater StatusFloater = new frmStatusFloater();
+        private void ValidateSymbolResolution()
+        {
+            
+            StatusFloater.lblStatus.Text = "Checking symbol resolution for dump analysis...";
+            StatusFloater.Left = Program.MainForm.Left + Program.MainForm.Width / 2 - StatusFloater.Width / 2;
+            StatusFloater.Top = Program.MainForm.Top + Program.MainForm.Height / 2 - StatusFloater.Height / 2;
+            Visible = false;
+            StatusFloater.Show(Program.MainForm);
+            new Thread(new ThreadStart(() =>
+            {
+                bool symbolsResolved = false;
+                string sympath = Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH");
+                if (sympath != null && (sympath.Contains("http://symweb") || sympath.Contains("https://symweb")))
+                {
+                    if (PrivateSymbolServerAccessible().Result)
+                        symbolsResolved = true;
+                }
+                else
+                {
+                    if (PrivateSymbolServerAccessible().Result)
+                    {
+                        Directory.CreateDirectory(AnalysisPath + "\\Symbols");
+                        Environment.SetEnvironmentVariable("_NT_SYMBOL_PATH", "srv*" + AnalysisPath + "\\Symbols*http://symweb", EnvironmentVariableTarget.Machine);
+                        symbolsResolved = true;
+                    }
+                }
+                StatusFloater.Invoke(new System.Action(() =>
+                {
+                    StatusFloater.Close();
+                    StatusFloater = null;
+                }));
+                if (!symbolsResolved)
+                {
+                    if (sympath != null)
+                    {
+                        sympath = sympath.Replace("*http://symweb/", "").Replace("*https://symweb/", "").Replace("*http://symweb", "").Replace("*https://symweb", "").Replace("srv*", "");
+                        if (SomeSymDirExists(sympath))
+                        {
+                            if (MessageBox.Show("Private symbol server could not be resolved. Microsoft private network required. " +
+                                       "The client has a local cache and could contain private symbols for dump analaysis.\r\n\r\n" +
+                                       "Proceed to attempt analysis with the local cache?\r\n\r\nNOTE: Analysis requires valid private symbol resolution.", "Symbol Server Resolution Failed", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
+                                == DialogResult.Yes)
+                                symbolsResolved = true;
+                        }
+                    }
+                    if (!symbolsResolved)
+                    {
+                        MessageBox.Show("Symbol resolution failed. Dumps require private symbol resolution. " +
+                                        "Create a SYSTEM environment variable called _NT_SYMBOL_PATH that resolves private symbols for msmdsrv.exe.\r\n\r\n" +
+                                        "Dump analysis disabled for now.", "Dump Symbol Resolution Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                        txtStatus.Text = "Dump analysis disabled because symbol resolution failed.\r\n" +
+                            "Set a SYSTEM environment variable called _NT_SYMBOL_PATH.\r\nUse a valid path to private symbols for msmdsrv.exe.";
+                        splitDebugger.Panel1Collapsed = true;
+                    }
+                }
+                Invoke(new System.Action(() =>Visible = true));
+            })).Start();
         }
 
         private void UcASDumpAnalyzer_HandleDestroyed(object sender, EventArgs e)
