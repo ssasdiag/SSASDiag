@@ -227,8 +227,7 @@ namespace SSASDiag
             splitDumpOutput.Panel2.Controls.Add(xmlQuery);
             xmlQuery.BringToFront();
 
-            frmSSASDiag.LogFeatureUse("Dump Analysis", "Dumps analysis initalized for " + DumpFiles.Count + " dumps, " + DumpFiles.Where(d => !d.Analyzed).Count() + " of which still require analysis.");
-            ValidateSymbolResolution();
+            frmSSASDiag.LogFeatureUse("Dump Analysis", "Dump analysis initalized for " + DumpFiles.Count + " dumps, " + DumpFiles.Where(d => !d.Analyzed).Count() + " of which still require analysis.");
         }
 
         int DataBindingCompletions = 0;
@@ -384,7 +383,7 @@ namespace SSASDiag
 
         private void UcASDumpAnalyzer_Shown(object sender, EventArgs e)
         {
-
+            ValidateSymbolResolution();
         }
 
         public bool bCancel = false;
