@@ -37,7 +37,6 @@
             this.rtDumpDetails = new System.Windows.Forms.RichTextBox();
             this.btnAnalyzeDumps = new System.Windows.Forms.Button();
             this.splitDumpOutput = new System.Windows.Forms.SplitContainer();
-            this.rtbStack = new System.Windows.Forms.RichTextBox();
             this.pnStacks = new System.Windows.Forms.Panel();
             this.lblThreads = new System.Windows.Forms.Label();
             this.cmbThreads = new System.Windows.Forms.ComboBox();
@@ -197,7 +196,6 @@
             // 
             // splitDumpOutput.Panel1
             // 
-            this.splitDumpOutput.Panel1.Controls.Add(this.rtbStack);
             this.splitDumpOutput.Panel1.Controls.Add(this.pnStacks);
             // 
             // splitDumpOutput.Panel2
@@ -207,21 +205,6 @@
             this.splitDumpOutput.Size = new System.Drawing.Size(407, 321);
             this.splitDumpOutput.SplitterDistance = 118;
             this.splitDumpOutput.TabIndex = 0;
-            // 
-            // rtbStack
-            // 
-            this.rtbStack.BackColor = System.Drawing.Color.Black;
-            this.rtbStack.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbStack.DetectUrls = false;
-            this.rtbStack.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rtbStack.Font = new System.Drawing.Font("Consolas", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rtbStack.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.rtbStack.Location = new System.Drawing.Point(0, 21);
-            this.rtbStack.Name = "rtbStack";
-            this.rtbStack.ReadOnly = true;
-            this.rtbStack.Size = new System.Drawing.Size(407, 97);
-            this.rtbStack.TabIndex = 45;
-            this.rtbStack.Text = "";
             // 
             // pnStacks
             // 
@@ -366,7 +349,6 @@
         private System.Windows.Forms.RichTextBox rtDumpDetails;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.SplitContainer splitDumpOutput;
-        private System.Windows.Forms.RichTextBox rtbStack;
         private SimpleMDXParser.SimpleMDXEditor mdxQuery;
         private System.Windows.Forms.Panel pnQuery;
         private System.Windows.Forms.Label lblQuery;
