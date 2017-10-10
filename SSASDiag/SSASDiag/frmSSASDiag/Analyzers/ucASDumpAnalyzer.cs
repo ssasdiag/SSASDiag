@@ -62,6 +62,22 @@ namespace SSASDiag
                     _stacks = value;
                 }
             }
+
+            public void IdentifyOwningThreadsAfterAllStacksLoaded()
+            {
+                List<Stack> PXSessionStacks = _stacks.Where(st => st.PXSessionAddyOnThisStack != null).ToList();
+                foreach (Stack s in _stacks)
+                {
+                    if (s.PXSessionAddyReferencedFromRemoteOwningThread != null && s.PXSessionAddyReferencedFromRemoteOwningThread != "")
+                    {
+                        Stack owner = _stacks.Find(st => st.PXSessionAddyOnThisStack == s.PXSessionAddyReferencedFromRemoteOwningThread);
+                        s.RemoteOwningThreadID = owner.ThreadID;
+                        if (owner.OwnedThreads == null)
+                            owner.OwnedThreads = new List<int>();
+                        owner.OwnedThreads.Add(s.ThreadID);
+                    }
+                }
+            }
         }
 
         private class Stack
@@ -70,6 +86,10 @@ namespace SSASDiag
             public string CallStack { get; set; }
             public string Query { get; set; }
             public bool ExceptionThread { get; set; }
+            public string PXSessionAddyOnThisStack { get; set; }
+            public string PXSessionAddyReferencedFromRemoteOwningThread { get; set; }
+            public int? RemoteOwningThreadID { get; set; }
+            public List<int> OwnedThreads { get; set; }
             public string SortOrder
             {
                 get
@@ -174,7 +194,7 @@ namespace SSASDiag
             cmd.CommandText = "USE [" + DBName() + "]";
             cmd.ExecuteNonQuery();
             cmd.CommandText = "if not exists (select * from sysobjects where name='StacksAndQueries' and xtype='U') CREATE TABLE[dbo].[StacksAndQueries]"
-                                + " ([DumpPath][nvarchar](max) NOT NULL, [DumpProcessID] [nvarchar](10) NOT NULL, [ThreadID] [int] NOT NULL, [Stack] [nvarchar] (max) NOT NULL, [Query] [nvarchar] (max) NULL, [ExceptionThread] [bit] NOT NULL) ON[PRIMARY] TEXTIMAGE_ON[PRIMARY]";
+                                + " ([DumpPath][nvarchar](max) NOT NULL, [DumpProcessID] [nvarchar](10) NOT NULL, [ThreadID] [int] NOT NULL, [Stack] [nvarchar] (max) NOT NULL, [Query] [nvarchar] (max) NULL, [ExceptionThread] [bit] NOT NULL, [OwningThread] [int] NULL, [OwnedThreads] [nvarchar] (max) NULL) ON[PRIMARY] TEXTIMAGE_ON[PRIMARY]";
             cmd.ExecuteNonQuery();
             cmd.CommandText = "if not exists(select* from sysobjects where name= 'Dumps' and xtype = 'U') CREATE TABLE[dbo].[Dumps]"
                                 + " ([DumpPath] [nvarchar] (max) NOT NULL, [DumpProcessID] [nvarchar](10) NOT NULL, [ASVersion] [nvarchar] (15) NOT NULL, [DumpTime] [datetime] NULL, [CrashDump] [bit] NOT NULL, [DumpException] [nvarchar](max) NULL) ON[PRIMARY] TEXTIMAGE_ON[PRIMARY]";
@@ -428,7 +448,7 @@ namespace SSASDiag
                                         lblDebugger.Text = "Analyzing " + d.DumpName + ", dump " + (DumpCountAnalyzedInCurrentRun + 1) + " of " + TotalSelectedDumpsCount + " to be analyzed.";
                                         txtStatus.Text = "Starting analysis of the memory dump at " + d.DumpPath + ".";
                                     }));
-                                    ConnectToDump(d.DumpPath);
+                                    AnalyzeDump(d.DumpPath);
                                     while (!bCancel && !p.HasExited)
                                         Thread.Sleep(500);
                                     // Clean up the old process and reinitialize.
@@ -459,7 +479,7 @@ namespace SSASDiag
                         }
                         if (!bCancel)
                         {
-                            dgdDumpList.Invoke(new System.Action(() =>
+                            Invoke(new System.Action(() =>
                             {
                                 SuspendLayout();
                                 lblDebugger.Text = rtDumpDetails.Text = "Analyzed " + TotalSelectedDumpsCount + " memory dump" + (TotalSelectedDumpsCount != 1 ? "s." : ".");
@@ -487,17 +507,38 @@ namespace SSASDiag
             }
         }
 
-        private string GetQueryFromStack(string stk, int tid)
+        private int GetOwningPXSessionTIDFromStack(Stack s)
+        {
+            int TID = -1;
+            List<string> Lines = new List<string>(s.CallStack.Split(new char[] { '\r', '\n' }));
+            if (Lines.Where(c => c.Contains("PFThreadPool::ExecuteJob")).Count() > 0 &&
+                Lines.Where(c => c.Contains("PXSession")).Count() == 0)
+            {
+                string res = SubmitDebuggerCommand("~" + s.ThreadID + "s");
+                string PFThreadPool_ExecuteJobLine = Lines.Where(l => l.Contains("PFThreadPool::ExecuteJob")).First();
+                res = SubmitDebuggerCommand(".frame " + PFThreadPool_ExecuteJobLine.Substring(0, PFThreadPool_ExecuteJobLine.IndexOf(" ")));
+                res = SubmitDebuggerCommand("dt in_pThreadContext m_pParentEC->m_spSession->p");  // obtains the pointer to PXSession for the thread
+                res = res.Substring(res.LastIndexOf(": ") + ": ".Length);
+                string PXSessionAddy = res.Substring(0, res.LastIndexOf(" "));
+                s.PXSessionAddyReferencedFromRemoteOwningThread = PXSessionAddy;
+            }
+            return TID;
+        }
+
+        private string GetQueryFromStack(Stack s)
         {
             string qry = "";
-            List<string> Lines = new List<string>(stk.Split(new char[] { '\r', '\n' }));
+            List<string> Lines = new List<string>(s.CallStack.Split(new char[] { '\r', '\n' }));
             if (Lines.Where(c => c.Contains("PXSession")).Count() > 0)
             {
-                string res = SubmitDebuggerCommand("~" + tid + "s");
-                string PXSessionLine = Lines.Where(l => l.Contains("PXSession")).First();
+                string res = SubmitDebuggerCommand("~" + s.ThreadID + "s");
+                string PXSessionLine = Lines.Where(l => l.Contains("PXSession")).Last();
                 res = SubmitDebuggerCommand(".frame " + PXSessionLine.Substring(0, PXSessionLine.IndexOf(" ")));
                 res = SubmitDebuggerCommand("dt this m_strLastRequest");
-                string addy = res.Substring(res.IndexOf("Type PXSession*\r\n") + "Type PXSession*\r\n".Length);
+                string addy = res.Substring(res.IndexOf("PXSession*\r\n") + "PXSession*\r\n".Length);
+                addy = addy.Substring(0, addy.IndexOf(" "));
+                s.PXSessionAddyOnThisStack = addy;
+                addy = res.Substring(res.IndexOf("Type PXSession*\r\n") + "Type PXSession*\r\n".Length);
                 addy = addy.Substring(0, addy.IndexOf(" "));
                 string offset = res.Substring(res.IndexOf(addy) + addy.Length);
                 offset = offset.Substring(offset.IndexOf("+"));
@@ -518,10 +559,11 @@ namespace SSASDiag
                     qry = "There was a query on this thread but its memory could not be read (possibly not captured in this minidump).";
                 }
             }
+            s.Query = qry;
             return qry;
         }
 
-        public void ConnectToDump(string path)
+        public void AnalyzeDump(string path)
         {
             LastResponse = "";
             SqlCommand cmd = new SqlCommand();
@@ -570,21 +612,19 @@ namespace SSASDiag
 
                     if (bCancel)
                         return;
-                    cmd.CommandText = "INSERT INTO Dumps VALUES('" + d.DumpPath + "', '" + pid + "', '" + d.ASVersion + "', '" + dt.ToString() + "', " + (d.Crash ? 1 : 0) + ", '" + d.DumpException + "')";
-                    cmd.ExecuteNonQuery();
 
                     d.Stacks = new List<Stack>();
                     string stk = SubmitDebuggerCommand("kN").Trim();
                     int tid = Convert.ToInt32((CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "")));
-                    string qry = GetQueryFromStack(stk, tid);
+                    Stack s = new Stack() { CallStack = stk, ThreadID = tid, ExceptionThread = true };
+                    GetQueryFromStack(s);
+                    GetOwningPXSessionTIDFromStack(s);
 
                     if (bCancel)
                         return;
                     
-                    d.Stacks.Add(new Stack() { CallStack = stk, ThreadID = tid, Query = qry, ExceptionThread = true });
+                    d.Stacks.Add(s);
                     frmSSASDiag.LogFeatureUse("Dump Analysis", ("Analysis of dump " + path + " shows the following exception stack:\r\n" + stk.Replace("'", "''")));
-                    cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "'," + CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "") + ", '" + stk.Replace("'", "''") + "', '" + qry.Replace("'", "''") + "', 1)";
-                    cmd.ExecuteNonQuery();
 
                     // Process non-exception threads
                     List<string> AllThreads = new List<string>();
@@ -599,24 +639,43 @@ namespace SSASDiag
                                 string l = AllThreads[i];
                                 if (l.StartsWith(" # Child-SP") && !AllThreads[i - 1].StartsWith("#"))  // The exception thread already captured is denoted in output with # so we can skip it...
                                 {
-                                    Stack s = new Stack() { ExceptionThread = false };
+                                    s = new Stack() { ExceptionThread = false };
                                     s.ThreadID = Convert.ToInt32(AllThreads[i - 1].Substring(0, AllThreads[i - 1].IndexOf(" Id: ")).TrimStart());
                                     int j = i;
                                     for (; AllThreads[j] != ""; j++)
                                         s.CallStack += AllThreads[j] + "\r\n";
                                     i = j;
                                     s.CallStack = s.CallStack.TrimEnd();
-                                    s.Query = GetQueryFromStack(s.CallStack, s.ThreadID);
+                                    GetQueryFromStack(s);
                                     if (d.Stacks.Find(st => st.ThreadID == s.ThreadID) == null && !bCancel)
-                                    {
                                         d.Stacks.Add(s);
-                                        cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + d.DumpPath + "', '" + pid + "', '" + s.ThreadID + "', '" + s.CallStack.Replace("'", "''") + "', '" + s.Query.Replace("'", "''") + "', 0)";
-                                        cmd.ExecuteNonQuery();
-                                    }
                                 }
                             }
                         }
                     }
+
+                    d.IdentifyOwningThreadsAfterAllStacksLoaded();
+
+                    // Wait to do db inserts until we really have all data.
+
+                    cmd.CommandText = "INSERT INTO Dumps VALUES('" + d.DumpPath + "', '" + pid + "', '" + d.ASVersion + "', '" + dt.ToString() + "', " + (d.Crash ? 1 : 0) + ", '" + d.DumpException + "')";
+                    cmd.ExecuteNonQuery();
+
+                    foreach (Stack st in d.Stacks)
+                    {
+                        cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + 
+                                d.DumpPath + "', '" + 
+                                pid + "', '" + 
+                                st.ThreadID + "', '" + 
+                                st.CallStack.Replace("'", "''") + "', " + 
+                                (st.Query == null ? "NULL" : "'" + st.Query.Replace("'", "''") + "'") + ", " + 
+                                (st.ExceptionThread == true ? 1 : 0) + ", " + 
+                                (st.RemoteOwningThreadID == null ? "NULL" : st.RemoteOwningThreadID.ToString()) + ", " + 
+                                (st.OwnedThreads == null ? "NULL" : "'" + String.Join(", ", st.OwnedThreads) + "'") + 
+                            ")";
+                        cmd.ExecuteNonQuery();
+                    }
+
 
                     if (bCancel)
                     {
