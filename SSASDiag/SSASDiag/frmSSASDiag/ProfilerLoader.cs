@@ -133,6 +133,9 @@ namespace SSASDiag
         {
             try
             {
+                if (m_analysisPath.EndsWith(".trc"))
+                    m_analysisPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1);
+
                 SetAnalysisFolderPermissionsAndCreateDB(m_analysisPath);
 
                 ProfilerTraceStatusTextBox.Invoke(new System.Action(() =>
@@ -141,6 +144,7 @@ namespace SSASDiag
                 if (!connstr.Contains("Initial Catalog")) connstr += (connstr.EndsWith(";") ? "" : ";") + "Initial Catalog=" + AnalysisTraceID + ";";
                 if (connstr.Contains("Initial Catalog=;")) connstr = connstr.Replace("Initial Catalog=;", "Initial Catalog=" + AnalysisTraceID + ";");
 
+                
                 ASProfilerTraceImporterProcess = new Process();
                 ASProfilerTraceImporterProcess.StartInfo.UseShellExecute = false;
                 ASProfilerTraceImporterProcess.StartInfo.CreateNoWindow = true;

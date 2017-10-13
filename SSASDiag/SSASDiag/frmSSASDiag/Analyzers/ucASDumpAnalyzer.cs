@@ -512,7 +512,6 @@ namespace SSASDiag
                                     }
                                     p.OutputDataReceived -= P_OutputDataReceived;
                                     p.ErrorDataReceived -= P_ErrorDataReceived;
-                                    p.Exited -= P_Exited;
                                     p.Close();
                                     p = new Process();
                                 }
@@ -548,9 +547,8 @@ namespace SSASDiag
             }
         }
 
-        private int GetOwningPXSessionTIDFromStack(Stack s)
+        private void GetOwningPXSessionFromStack(Stack s)
         {
-            int TID = -1;
             List<string> Lines = new List<string>(s.CallStack.Split(new char[] { '\r', '\n' }));
             if (Lines.Where(c => c.Contains("PFThreadPool::ExecuteJob")).Count() > 0 &&
                 Lines.Where(c => c.Contains("PXSession")).Count() == 0)
@@ -563,10 +561,9 @@ namespace SSASDiag
                 string PXSessionAddy = res.Substring(0, res.LastIndexOf(" "));
                 s.PXSessionAddyReferencedFromRemoteOwningThread = PXSessionAddy;
             }
-            return TID;
         }
 
-        private string GetQueryFromStack(Stack s)
+        private void GetQueryFromStack(Stack s)
         {
             string qry = "";
             List<string> Lines = new List<string>(s.CallStack.Split(new char[] { '\r', '\n' }));
@@ -601,7 +598,6 @@ namespace SSASDiag
                 }
             }
             s.Query = qry;
-            return qry;
         }
 
         public void AnalyzeDump(string path)
@@ -611,7 +607,6 @@ namespace SSASDiag
             cmd.Connection = connDB;
             p.OutputDataReceived += P_OutputDataReceived;
             p.ErrorDataReceived += P_ErrorDataReceived;
-            p.Exited += P_Exited;
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.CreateNoWindow = true;
             p.StartInfo.RedirectStandardOutput = true;
@@ -659,7 +654,7 @@ namespace SSASDiag
                     int tid = Convert.ToInt32((CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "")));
                     Stack s = new Stack() { CallStack = stk, ThreadID = tid, ExceptionThread = true };
                     GetQueryFromStack(s);
-                    GetOwningPXSessionTIDFromStack(s);
+                    GetOwningPXSessionFromStack(s);
 
                     if (bCancel)
                         return;
@@ -757,14 +752,10 @@ namespace SSASDiag
             return LastResponse;
         }
 
-        private void P_Exited(object sender, EventArgs e)
-        {
-
-        }
-
         private void P_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-
+            LastResponse += "ERROR: " + e.Data;
+            ResultReady.Set();
         }
 
         string LastResponse = "";
