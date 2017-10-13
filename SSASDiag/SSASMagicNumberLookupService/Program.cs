@@ -100,85 +100,95 @@ namespace SSASMagicNumberLookupService
         static bool InExtraction = false;
         static private string ExtractMagicNumbers(string sym)
         {
-            string localcache = Environment.CurrentDirectory + "\\MagicNumberLookupSymbolCache\\";
-            if (!Directory.Exists(localcache))
-                Directory.CreateDirectory(localcache);
-
-            HttpWebRequest wr = WebRequest.CreateHttp("http://symweb/msmdsrv.exe/" + sym + "/file.ptr");
-            string sympath = new StreamReader(wr.GetResponse().GetResponseStream()).ReadToEnd().Replace("PATH:", "");
-            string localsymbol = localcache + sym + sympath.Substring(sympath.LastIndexOf('\\'));
-            if (!Directory.Exists(localcache + sym))
+            try
             {
-                Directory.CreateDirectory(localcache + sym);
-                File.Copy(sympath, localsymbol);
-            }                
+                string localcache = Environment.CurrentDirectory + "\\MagicNumberLookupSymbolCache\\";
+                if (!Directory.Exists(localcache))
+                    Directory.CreateDirectory(localcache);
 
-            Process p = new Process();
-            p.OutputDataReceived += P_OutputDataReceived;
-            p.ErrorDataReceived += P_ErrorDataReceived;
-            p.Exited += P_Exited;
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.RedirectStandardInput = true;
-            p.EnableRaisingEvents = true;
-            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            p.StartInfo.FileName = "cmd.exe";
-            p.StartInfo.Arguments = "/c \"\"" + Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "\\CDB\\cdb.exe\" -z \"" + localsymbol + "\"\"";
-            p.Start();
-            p.BeginErrorReadLine();
-            p.BeginOutputReadLine();
-            p.StandardInput.WriteLine(".echo \"EndOfData\""); // Ensures we can detect end of output, when this is processed and input prompt is displayed in console output...
+                HttpWebRequest wr = WebRequest.CreateHttp("http://symweb/msmdsrv.exe/" + sym + "/file.ptr");
+                string sympath = new StreamReader(wr.GetResponse().GetResponseStream()).ReadToEnd().Replace("PATH:", "");
+                if (sympath.StartsWith("MSG"))
+                    return "Error: " + sympath;
+                string localsymbol = localcache + sym + sympath.Substring(sympath.LastIndexOf('\\'));
+                if (!Directory.Exists(localcache + sym))
+                {
+                    Directory.CreateDirectory(localcache + sym);
+                    File.Copy(sympath, localsymbol);
+                }
 
-            DebuggerResultReady.Reset();
-            DebuggerResultReady.WaitOne();
-            DebuggerResultReady.Reset();
+                Process p = new Process();
+                p.OutputDataReceived += P_OutputDataReceived;
+                p.ErrorDataReceived += P_ErrorDataReceived;
+                p.Exited += P_Exited;
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.RedirectStandardError = true;
+                p.StartInfo.RedirectStandardInput = true;
+                p.EnableRaisingEvents = true;
+                p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                p.StartInfo.FileName = "cmd.exe";
+                p.StartInfo.Arguments = "/c \"\"" + Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "\\CDB\\cdb.exe\" -z \"" + localsymbol + "\"\"";
+                p.Start();
+                p.BeginErrorReadLine();
+                p.BeginOutputReadLine();
+                p.StandardInput.WriteLine(".echo \"EndOfData\""); // Ensures we can detect end of output, when this is processed and input prompt is displayed in console output...
 
-            string res = SubmitDebuggerCommand(".reload /i \"" + localsymbol + "\"", p);
-            res = SubmitDebuggerCommand("x msmdsrv!PXSession::InternalExecuteCommand", p).Trim();
-            string PXSessionExecuteCommandAddress = Int32.Parse(res.Substring(0, res.IndexOf(" ")).Split('`')[1].TrimStart('0'), System.Globalization.NumberStyles.HexNumber).ToString();
-            string[] lines = SubmitDebuggerCommand("uf msmdsrv!PXSession::InternalExecuteCommand", p).Split(new char[] { '\r', '\n' });
-            res = lines[lines.Length - 3];
-            string PXSessionExecuteCommandEndAddress = Int32.Parse(res.Substring(0, res.IndexOf(' ')).Split('`')[1].TrimStart('0'), System.Globalization.NumberStyles.HexNumber).ToString();
+                DebuggerResultReady.Reset();
+                DebuggerResultReady.WaitOne();
+                DebuggerResultReady.Reset();
 
-            res = SubmitDebuggerCommand("dt msmdsrv!PXSession", p);
-            string LastRequestOffset = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_strLastRequest")).First().Trim();
-            LastRequestOffset = Int32.Parse(LastRequestOffset.Substring(0, LastRequestOffset.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
-            string User = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_strUserName")).First().Trim();
-            User = Int32.Parse(User.Substring(0, User.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
-            string Roles = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_strActiveRoles")).First().Trim();
-            Roles = Int32.Parse(Roles.Substring(0, Roles.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
-            string StartTime = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_timeLastRequestStart")).First().Trim();
-            StartTime = Int32.Parse(StartTime.Substring(0, StartTime.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
-            string Database = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_strSPDatabaseID")).First().Trim();
-            Database = Int32.Parse(Database.Substring(0, Database.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
+                string res = SubmitDebuggerCommand(".reload /i \"" + localsymbol + "\"", p);
+                res = SubmitDebuggerCommand("x msmdsrv!PXSession::InternalExecuteCommand", p).Trim();
+                string PXSessionExecuteCommandAddress = Int32.Parse(res.Substring(0, res.IndexOf(" ")).Split('`')[1].TrimStart('0'), System.Globalization.NumberStyles.HexNumber).ToString();
+                string[] lines = SubmitDebuggerCommand("uf msmdsrv!PXSession::InternalExecuteCommand", p).Split(new char[] { '\r', '\n' });
+                res = lines[lines.Length - 3];
+                string PXSessionExecuteCommandEndAddress = Int32.Parse(res.Substring(0, res.IndexOf(' ')).Split('`')[1].TrimStart('0'), System.Globalization.NumberStyles.HexNumber).ToString();
 
-            res = SubmitDebuggerCommand("x msmdsrv!PFThreadPool::ExecuteJob", p).Trim();
-            string PFThreadPoolExecuteJobAddress = Int32.Parse(res.Substring(0, res.IndexOf(" ")).Split('`')[1].TrimStart('0'), System.Globalization.NumberStyles.HexNumber).ToString();
-            lines = SubmitDebuggerCommand("uf msmdsrv!PFThreadPool::ExecuteJob", p).Split(new char[] { '\r', '\n' });
-            res = lines[lines.Length - 3];
-            string PFThreadPoolExecuteJobEndAddress = Int32.Parse(res.Substring(0, res.IndexOf(' ')).Split('`')[1].TrimStart('0'), System.Globalization.NumberStyles.HexNumber).ToString();
+                res = SubmitDebuggerCommand("dt msmdsrv!PXSession", p);
+                string LastRequestOffset = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_strLastRequest")).First().Trim();
+                LastRequestOffset = Int32.Parse(LastRequestOffset.Substring(0, LastRequestOffset.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
+                string User = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_strUserName")).First().Trim();
+                User = Int32.Parse(User.Substring(0, User.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
+                string Roles = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_strActiveRoles")).First().Trim();
+                Roles = Int32.Parse(Roles.Substring(0, Roles.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
+                string StartTime = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_timeLastRequestStart")).First().Trim();
+                StartTime = Int32.Parse(StartTime.Substring(0, StartTime.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
+                string Database = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_strSPDatabaseID")).First().Trim();
+                Database = Int32.Parse(Database.Substring(0, Database.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
 
-            res = SubmitDebuggerCommand("dt msmdsrv!PFThreadContext", p);
-            string ParentContextOffset = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_pParentEC")).First().Trim();
-            ParentContextOffset = Int32.Parse(ParentContextOffset.Substring(0, ParentContextOffset.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
-            res = SubmitDebuggerCommand("dt msmdsrv!PCExecutionContext", p);
-            string SessionOffset = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_spSession")).First().Trim();
-            SessionOffset = Int32.Parse(SessionOffset.Substring(0, SessionOffset.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
+                res = SubmitDebuggerCommand("x msmdsrv!PFThreadPool::ExecuteJob", p).Trim();
+                string PFThreadPoolExecuteJobAddress = Int32.Parse(res.Substring(0, res.IndexOf(" ")).Split('`')[1].TrimStart('0'), System.Globalization.NumberStyles.HexNumber).ToString();
+                lines = SubmitDebuggerCommand("uf msmdsrv!PFThreadPool::ExecuteJob", p).Split(new char[] { '\r', '\n' });
+                res = lines[lines.Length - 3];
+                string PFThreadPoolExecuteJobEndAddress = Int32.Parse(res.Substring(0, res.IndexOf(' ')).Split('`')[1].TrimStart('0'), System.Globalization.NumberStyles.HexNumber).ToString();
 
-            string output = PXSessionExecuteCommandAddress + "," +
-                            PXSessionExecuteCommandEndAddress + "," +
-                            LastRequestOffset + "," +
-                            User + "," +
-                            Roles + "," +
-                            StartTime + "," +
-                            Database + "," +
-                            PFThreadPoolExecuteJobAddress + "," +
-                            PFThreadPoolExecuteJobEndAddress + "," +
-                            ParentContextOffset + "," +
-                            SessionOffset;
-            return output;
+                res = SubmitDebuggerCommand("dt msmdsrv!PFThreadContext", p);
+                string ParentContextOffset = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_pParentEC")).First().Trim();
+                ParentContextOffset = Int32.Parse(ParentContextOffset.Substring(0, ParentContextOffset.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
+                res = SubmitDebuggerCommand("dt msmdsrv!PCExecutionContext", p);
+                string SessionOffset = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_spSession")).First().Trim();
+                SessionOffset = Int32.Parse(SessionOffset.Substring(0, SessionOffset.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
+
+                string output = PXSessionExecuteCommandAddress + "," +
+                                PXSessionExecuteCommandEndAddress + "," +
+                                LastRequestOffset + "," +
+                                User + "," +
+                                Roles + "," +
+                                StartTime + "," +
+                                Database + "," +
+                                PFThreadPoolExecuteJobAddress + "," +
+                                PFThreadPoolExecuteJobEndAddress + "," +
+                                ParentContextOffset + "," +
+                                SessionOffset;
+
+                return output;
+            }
+            catch (Exception e)
+            {
+                return "Error: " + e.Message;
+            }
         }
         
         static private string SubmitDebuggerCommand(string cmd, Process p)
