@@ -16,14 +16,20 @@ namespace SSASMagicNumberLookupService
 {
     class Program
     {
+        static string path = "";
         static ManualResetEvent DebuggerResultReady = new ManualResetEvent(false);
         static string LastResponse = "";
-        static string path = @"w:\magicnumbers.data";
         static Timer tmr = new Timer(new TimerCallback(PollForAwaitingRequests), null, 0, 1000);
 
         static void Main(string[] args)
         {
+            if (args.Length < 1)
+                return;
+            else
+                path = args[0];
+
             Console.WriteLine("SSASMagicNumberLookupService started at " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToLongTimeString() + ".");
+            Console.WriteLine("Monitoring file: " + path);
             Console.WriteLine("Press q to quit monitoring for new magic number lookup requests...");
             while (Console.ReadKey().KeyChar != 'q')
                 ;
@@ -81,7 +87,10 @@ namespace SSASMagicNumberLookupService
                             File.WriteAllLines(path, syms);
                             bWritten = true;
                         }
-                        catch { }
+                        catch
+                        {
+                            Thread.Sleep(250);
+                        }
                     }
                 }
             }
@@ -91,7 +100,9 @@ namespace SSASMagicNumberLookupService
         static bool InExtraction = false;
         static private string ExtractMagicNumbers(string sym)
         {
-            string localcache = "C:\\MagicNumberLookupSymbolCache\\";
+            string localcache = Environment.CurrentDirectory + "\\MagicNumberLookupSymbolCache\\";
+            if (!Directory.Exists(localcache))
+                Directory.CreateDirectory(localcache);
 
             HttpWebRequest wr = WebRequest.CreateHttp("http://symweb/msmdsrv.exe/" + sym + "/file.ptr");
             string sympath = new StreamReader(wr.GetResponse().GetResponseStream()).ReadToEnd().Replace("PATH:", "");
@@ -100,8 +111,7 @@ namespace SSASMagicNumberLookupService
             {
                 Directory.CreateDirectory(localcache + sym);
                 File.Copy(sympath, localsymbol);
-            }
-                
+            }                
 
             Process p = new Process();
             p.OutputDataReceived += P_OutputDataReceived;
@@ -124,8 +134,8 @@ namespace SSASMagicNumberLookupService
             DebuggerResultReady.Reset();
             DebuggerResultReady.WaitOne();
             DebuggerResultReady.Reset();
-            string res = SubmitDebuggerCommand(".reload /i \"" + localcache + sym + "\"", p);
 
+            string res = SubmitDebuggerCommand(".reload /i \"" + localsymbol + "\"", p);
             res = SubmitDebuggerCommand("x msmdsrv!PXSession::InternalExecuteCommand", p).Trim();
             string PXSessionExecuteCommandAddress = Int32.Parse(res.Substring(0, res.IndexOf(" ")).Split('`')[1].TrimStart('0'), System.Globalization.NumberStyles.HexNumber).ToString();
             string[] lines = SubmitDebuggerCommand("uf msmdsrv!PXSession::InternalExecuteCommand", p).Split(new char[] { '\r', '\n' });
