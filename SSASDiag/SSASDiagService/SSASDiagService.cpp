@@ -480,7 +480,7 @@ VOID Install(char* pPath, char* pName, char* pLongName)
 			pName,			/* name of service         */ 
 			pLongName,			/* service name to display */ 
 			SERVICE_ALL_ACCESS,        /* desired access          */ 
-			SERVICE_WIN32_OWN_PROCESS|SERVICE_INTERACTIVE_PROCESS , /* service type            */ 
+			SERVICE_WIN32_OWN_PROCESS , /* service type            */ 
 			SERVICE_DEMAND_START,      /* start type              */ 
 			SERVICE_ERROR_NORMAL,      /* error control type      */ 
 			pPath,			/* service's binary        */ 

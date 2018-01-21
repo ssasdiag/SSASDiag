@@ -71,7 +71,7 @@ namespace SSASMagicNumberLookupService
                         bNewNums = true;
                         string sym = syms[i];
                         Console.WriteLine("\r\n" + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() + " -  Performing magic number lookup on binary with time/size stamp: " + sym.TrimEnd('=') + "...");
-                        string magicnums = ExtractMagicNumbers(sym.TrimEnd('='));
+                        string magicnums = ExtractMagicNumbers(sym.TrimEnd('=')).TrimEnd(new char[] {'\r', '\n'});
                         Console.WriteLine("\r\n" + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() + " - Magic numbers discovered: " + magicnums);
                         syms[syms.IndexOf(sym.Trim())] = sym.Trim() + magicnums;
                         InExtraction = false;
@@ -84,7 +84,7 @@ namespace SSASMagicNumberLookupService
                     {
                         try
                         {
-                            File.WriteAllLines(path, syms);
+                            File.WriteAllLines(path, syms.Where(s=>s.Trim()!=""));
                             bWritten = true;
                         }
                         catch
@@ -170,6 +170,7 @@ namespace SSASMagicNumberLookupService
                 res = SubmitDebuggerCommand("dt msmdsrv!PCExecutionContext", p);
                 string SessionOffset = res.Split(new char[] { '\r', '\n' }).Where(s => s.Contains("m_spSession")).First().Trim();
                 SessionOffset = Int32.Parse(SessionOffset.Substring(0, SessionOffset.IndexOf(" ")).Replace("+0x", ""), System.Globalization.NumberStyles.HexNumber).ToString();
+                SubmitDebuggerCommand("q", p);
 
                 string output = PXSessionExecuteCommandAddress + "," +
                                 PXSessionExecuteCommandEndAddress + "," +

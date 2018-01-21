@@ -138,10 +138,15 @@ namespace SSASDiag
                 MessageBox.Show("The tool cannot run from its own temp directory, used internally.  Please run from another location.", "App cannot run from its own temp location - by design", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Application.Exit();
             }
-            if (!Args.ContainsKey("outputdir") && Properties.Settings.Default["SaveLocation"] as string != Environment.CurrentDirectory && Properties.Settings.Default["SaveLocation"] as string != "")
-                Environment.CurrentDirectory = Properties.Settings.Default["SaveLocation"] as string;
+            string outputDir = Properties.Settings.Default["SaveLocation"] as string;
             if (Args.ContainsKey("outputdir"))
-                Environment.CurrentDirectory = Args["outputdir"];
+                outputDir = Args["outputdir"];
+            if (outputDir != Environment.CurrentDirectory && outputDir != "")
+            {
+                if (!Directory.Exists(outputDir))
+                    Directory.CreateDirectory(outputDir);
+                Environment.CurrentDirectory = outputDir;
+            }
 
             PopulateInstanceDropdown();
 
