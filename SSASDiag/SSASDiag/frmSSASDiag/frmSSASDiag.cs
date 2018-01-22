@@ -551,7 +551,7 @@ namespace SSASDiag
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
             btnSettings.Left = Width - btnSettings.Width - 15;
-            lkAbout.Top = lkBugs.Top = lkDiscussion.Top = lkFeedback.Top = Height - 56;
+            lkAbout.Top = lkBugsIdeas.Top = lkFeedback.Top = Height - 56;
             tcCollectionAnalysisTabs.Height = Height - 59;
             tcAnalysis.Height = Height - 119;
             btnImportProfilerTrace.Left = Width / 2 - btnImportProfilerTrace.Width / 2;
@@ -590,13 +590,9 @@ namespace SSASDiag
         {
             Process.Start("mailto:ssasdiagchamps@service.microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
         }
-        private void lkBugs_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start("https://asprofilertraceimporter.codeplex.com/workitem/list/basic");
-        }
         private void lkDiscussion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("https://asprofilertraceimporter.codeplex.com/discussions");
+            Process.Start("https://github.com/ssasdiag/SSASDiag/issues");
         }
         private void lkAbout_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {

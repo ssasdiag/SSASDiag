@@ -36,8 +36,7 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
-            this.lkBugs = new System.Windows.Forms.LinkLabel();
-            this.lkDiscussion = new System.Windows.Forms.LinkLabel();
+            this.lkBugsIdeas = new System.Windows.Forms.LinkLabel();
             this.lkAbout = new System.Windows.Forms.LinkLabel();
             this.label3 = new System.Windows.Forms.Label();
             this.txtSaveLocation = new System.Windows.Forms.TextBox();
@@ -158,41 +157,23 @@
             this.ttStatus.SetToolTip(this.lkFeedback, "Share the love!");
             this.lkFeedback.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkFeedback_LinkClicked);
             // 
-            // lkBugs
-            // 
-            this.lkBugs.AutoSize = true;
-            this.lkBugs.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lkBugs.ForeColor = System.Drawing.SystemColors.Highlight;
-            this.lkBugs.Image = ((System.Drawing.Image)(resources.GetObject("lkBugs.Image")));
-            this.lkBugs.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lkBugs.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkBugs.Location = new System.Drawing.Point(84, 479);
-            this.lkBugs.Name = "lkBugs";
-            this.lkBugs.Padding = new System.Windows.Forms.Padding(2);
-            this.lkBugs.Size = new System.Drawing.Size(53, 17);
-            this.lkBugs.TabIndex = 19;
-            this.lkBugs.TabStop = true;
-            this.lkBugs.Text = "      Bugs";
-            this.ttStatus.SetToolTip(this.lkBugs, "Fix it!");
-            this.lkBugs.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkBugs_LinkClicked);
-            // 
             // lkDiscussion
             // 
-            this.lkDiscussion.AutoSize = true;
-            this.lkDiscussion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lkDiscussion.ForeColor = System.Drawing.SystemColors.Highlight;
-            this.lkDiscussion.Image = ((System.Drawing.Image)(resources.GetObject("lkDiscussion.Image")));
-            this.lkDiscussion.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lkDiscussion.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkDiscussion.Location = new System.Drawing.Point(143, 479);
-            this.lkDiscussion.Name = "lkDiscussion";
-            this.lkDiscussion.Padding = new System.Windows.Forms.Padding(2);
-            this.lkDiscussion.Size = new System.Drawing.Size(111, 17);
-            this.lkDiscussion.TabIndex = 20;
-            this.lkDiscussion.TabStop = true;
-            this.lkDiscussion.Text = "      Discussion/Ideas";
-            this.ttStatus.SetToolTip(this.lkDiscussion, "Make it better!");
-            this.lkDiscussion.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkDiscussion_LinkClicked);
+            this.lkBugsIdeas.AutoSize = true;
+            this.lkBugsIdeas.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lkBugsIdeas.ForeColor = System.Drawing.SystemColors.Highlight;
+            this.lkBugsIdeas.Image = ((System.Drawing.Image)(resources.GetObject("lkDiscussion.Image")));
+            this.lkBugsIdeas.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lkBugsIdeas.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
+            this.lkBugsIdeas.Location = new System.Drawing.Point(77, 479);
+            this.lkBugsIdeas.Name = "lkDiscussion";
+            this.lkBugsIdeas.Padding = new System.Windows.Forms.Padding(2);
+            this.lkBugsIdeas.Size = new System.Drawing.Size(84, 17);
+            this.lkBugsIdeas.TabIndex = 20;
+            this.lkBugsIdeas.TabStop = true;
+            this.lkBugsIdeas.Text = "      Bugs/Ideas";
+            this.ttStatus.SetToolTip(this.lkBugsIdeas, "Make it better!");
+            this.lkBugsIdeas.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkDiscussion_LinkClicked);
             // 
             // lkAbout
             // 
@@ -202,7 +183,7 @@
             this.lkAbout.Image = ((System.Drawing.Image)(resources.GetObject("lkAbout.Image")));
             this.lkAbout.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkAbout.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkAbout.Location = new System.Drawing.Point(260, 479);
+            this.lkAbout.Location = new System.Drawing.Point(158, 479);
             this.lkAbout.Name = "lkAbout";
             this.lkAbout.Padding = new System.Windows.Forms.Padding(2);
             this.lkAbout.Size = new System.Drawing.Size(57, 17);
@@ -1245,8 +1226,7 @@
             this.Controls.Add(this.btnSettings);
             this.Controls.Add(this.lkAbout);
             this.Controls.Add(this.tcCollectionAnalysisTabs);
-            this.Controls.Add(this.lkDiscussion);
-            this.Controls.Add(this.lkBugs);
+            this.Controls.Add(this.lkBugsIdeas);
             this.Controls.Add(this.lkFeedback);
             this.DoubleBuffered = true;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -1302,8 +1282,7 @@
         #endregion
         private System.Windows.Forms.ToolTip ttStatus;
         private System.Windows.Forms.LinkLabel lkFeedback;
-        private System.Windows.Forms.LinkLabel lkBugs;
-        private System.Windows.Forms.LinkLabel lkDiscussion;
+        private System.Windows.Forms.LinkLabel lkBugsIdeas;
         private System.Windows.Forms.TabControl tcCollectionAnalysisTabs;
         private System.Windows.Forms.TabPage tbCollection;
         private System.Windows.Forms.TabPage tbAnalysis;
