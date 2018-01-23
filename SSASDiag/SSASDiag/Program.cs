@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Resources;
 using System.Threading;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace SSASDiag
 {
@@ -112,7 +113,7 @@ namespace SSASDiag
                 try {
 
                 if (!File.Exists(TempPath + "SSASDiag.exe") 
-                    || (File.Exists(TempPath + "SSASDiag.exe") && new FileInfo(TempPath + "SSASDiag.exe").Length != new FileInfo(Application.ExecutablePath).Length) 
+                    || (File.Exists(TempPath + "SSASDiag.exe") && File.ReadAllBytes(TempPath + "SSASDiag.exe").SequenceEqual(File.ReadAllBytes(Application.ExecutablePath))) 
                     || Debugger.IsAttached
                     || !Environment.UserInteractive)
                         File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true); } catch { } // may fail if file is in use, fine...
