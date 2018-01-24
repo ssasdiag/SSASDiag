@@ -17,7 +17,7 @@
                 lines = File.ReadAllLines(SignalFile).ToList();
                 bFileAccessed = true;
             }
-            catch (Exception e)
+            catch
             {
                 Thread.Sleep(250);
             }
@@ -34,7 +34,7 @@
                     File.AppendAllText(SignalFile, "\r\n" + SymbolTimeSizeStamp + "=");
                     bFileAccessed = true;
                 }
-                catch (Exception e)
+                catch
                 {
                     Thread.Sleep(250);
                 }

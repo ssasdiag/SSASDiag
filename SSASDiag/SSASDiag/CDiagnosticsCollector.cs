@@ -30,7 +30,7 @@ namespace SSASDiag
     public class CDiagnosticsCollector : INotifyPropertyChanged
     {
         #region publics
-        public bool bScheduledStartPending = false, bRunning = false, bPerfMonRunning = false;
+        public bool bScheduledStartPending = false, bRunning = false, bPerfMonRunning = false, bCluster = false;
         public System.Action CompletionCallback;
         public NamedPipeServer<string> npServer;
         public string TraceID;
@@ -93,7 +93,7 @@ namespace SSASDiag
                 int RolloverMaxMB, bool Rollover, 
                 DateTime Start, bool UseStart, 
                 DateTime End, bool UseEnd, 
-                bool GetConfigDetails, bool GetProfiler, bool GetPerfMon, bool GetNetwork)
+                bool GetConfigDetails, bool GetProfiler, bool GetPerfMon, bool GetNetwork, bool Cluster, string ServiceOutputPath)
         {
             PerfMonAndUIPumpTimer.Interval = 1000;
             PerfMonAndUIPumpTimer.Elapsed += CollectorPumpTick;
@@ -101,13 +101,12 @@ namespace SSASDiag
             txtStatus = StatusTextBox;
             bGetXMLA = IncludeXMLA; bGetABF = IncludeABF; bGetBAK = IncludeBAK;
             iInterval = Interval;
-            bAutoRestart = AutoRestart; bCompress = Compress; bDeleteRaw = DeleteRaw; bPerfEvents = IncludePerfEventsInProfiler;
+            bAutoRestart = AutoRestart; bCompress = Compress; bDeleteRaw = DeleteRaw; bPerfEvents = IncludePerfEventsInProfiler; bCluster = Cluster ;
             iRollover = RolloverMaxMB; bRollover = Rollover;
             dtStart = Start; bUseStart = UseStart;
             dtEnd = End; bUseEnd = UseEnd;
             bGetConfigDetails = GetConfigDetails; bGetProfiler = GetProfiler; bGetNetwork = GetNetwork; bGetPerfMon = GetPerfMon;
-            svcOutputPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (InstanceName == "" ? "MSSQLSERVER" : InstanceName)).GetValue("ImagePath") as string;
-            svcOutputPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".exe")) + ".output.log";
+            svcOutputPath = ServiceOutputPath;
             PipeSecurity ps = new PipeSecurity();
             ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null) as IdentityReference, PipeAccessRights.FullControl, AccessControlType.Allow));
             ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), PipeAccessRights.ReadWrite | PipeAccessRights.Synchronize, AccessControlType.Allow));
@@ -282,7 +281,7 @@ namespace SSASDiag
                 SendMessageToClients("Collecting on computer " + Environment.MachineName + ".");
                 if (sInstanceVersion != "")  // This occurs when we aren't really capturing instance details with Network only capture.
                 {
-                    SendMessageToClients("Collecting for instance " + (sInstanceName == "" ? "Default instance (MSSQLServer)" : sInstanceName) + ".");
+                    SendMessageToClients("Collecting for instance " + (sInstanceName == "" ? "Default instance (MSSQLServer)" : sInstanceName + (bCluster ? " (Clustered Instance)" : "")) + ".");
                     SendMessageToClients("The version of the instance is " + sInstanceVersion + ".");
                     SendMessageToClients("The edition of the instance is " + sInstanceEdition + ".");
                     SendMessageToClients("The instance mode is " + sInstanceMode + ".");
@@ -935,7 +934,7 @@ namespace SSASDiag
                             Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
                             // Previously we connected before iterating through each db to be processed, but found if some misbehaving Cx databases were running, this leads to connection hangs!
                             // Now we connect directly to each database we need to capture, so other issues on the server may not impact then with locking conflicts to enumerate metadata on dbs not under consideration.
-                            string sConn = "Data source=" + Environment.MachineName + (sInstanceName == "" ? "" : "\\" + sInstanceName) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;Initial Catalog=" + db + ";";
+                            string sConn = "Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : "\\" + sInstanceName)) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;Initial Catalog=" + db + ";";
                             try { s.Connect(sConn); }
                             catch (Exception ex)
                             {
@@ -1090,7 +1089,7 @@ namespace SSASDiag
             try
             {
                 Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
-                s.Connect("Data source=" + Environment.MachineName + (sInstanceName == "" ? "" : "\\" + sInstanceName) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
+                s.Connect("Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : "\\" + sInstanceName)) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
                 try
                 {
                     XmlaResultCollection results = s.Execute(command);

@@ -110,13 +110,22 @@ namespace SSASDiag
                 // Copied simply into %Program Files%\CDB.
                 InstallCDB();
 
-                try {
-
-                if (!File.Exists(TempPath + "SSASDiag.exe") 
-                    || (File.Exists(TempPath + "SSASDiag.exe") && File.ReadAllBytes(TempPath + "SSASDiag.exe").SequenceEqual(File.ReadAllBytes(Application.ExecutablePath))) 
-                    || Debugger.IsAttached
-                    || !Environment.UserInteractive)
-                        File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true); } catch { } // may fail if file is in use, fine...
+                while (true)
+                {
+                    try
+                    {
+                        if (!File.Exists(TempPath + "SSASDiag.exe")
+                            || (File.Exists(TempPath + "SSASDiag.exe") && File.ReadAllBytes(TempPath + "SSASDiag.exe").SequenceEqual(File.ReadAllBytes(Application.ExecutablePath)))
+                            || Debugger.IsAttached
+                            || !Environment.UserInteractive)
+                            File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true);
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        Trace.WriteLine("Exception copying binary to temp cache: " + e.Message);
+                    } 
+                }
 
                 // Now decompress any compressed files we include.  This lets us cram more dependencies in as we add features and still not excessively bloat!  :D
                 // Although in our real compression work in assembling files for upload we will use the more flexible open source Ionic.Zip library included in our depenencies,

@@ -44,8 +44,8 @@ namespace SSASDiag
                     // Adjust UI to startup.
                     InitializeCaptureUI();
                     ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
-                    string TracePrefix = Environment.MachineName + (cbsdi == null ? "" : "_"
-                        + (cbInstances.SelectedIndex == 0 ? "" : cbsdi.Text + "_"));
+                    string TracePrefix = (cbsdi.Cluster ? cbsdi.Text.Replace(" (Clustered Instance)", "") : Environment.MachineName + (cbsdi == null ? "" : "_"
+                        + (cbInstances.SelectedIndex == 0 ? "" : cbsdi.Text + "_")));
                     
                     // Unhook the status text area from selection while we are actively using it.
                     // I do allow selection after but it was problematic to scroll correctly while allowing user selection during active collection.
@@ -56,12 +56,12 @@ namespace SSASDiag
                     
                     if (!Environment.UserInteractive)
                     {
-                        svcOutputPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text)).GetValue("ImagePath") as string;
-                        svcOutputPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".exe")) + ".output.log";
-                        dc = new CDiagnosticsCollector(TracePrefix, cbInstances.SelectedIndex == 0 || cbsdi == null ? "" : cbsdi.Text, cbsdi.ServiceName, cbsdi.InstanceID, cbsdi.SQLProgramDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
+                        string InstanceName = cbsdi.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
+                        svcOutputPath = Program.TempPath + "SSASDiagService_" + InstanceName + ".output.log";
+                        dc = new CDiagnosticsCollector(TracePrefix, (cbsdi == null ? "" : (InstanceName.ToUpper() == "MSSQLSERVER" ? "" : InstanceName)), cbsdi.ServiceName, cbsdi.InstanceID, cbsdi.SQLProgramDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
                             txtStatus,
                             (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
-                            chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked);
+                            chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked, cbsdi.Cluster, svcOutputPath);
                         while (!dc.npServer._connections.Exists(c => c.IsConnected))
                             Thread.Sleep(100);
                         
@@ -70,19 +70,20 @@ namespace SSASDiag
                                                     ",IncludeXMLA=" + chkXMLA.Checked + ",IncludeABF=" + chkABF.Checked + ",IncludeBAK=" + chkBAK.Checked + (chkRollover.Checked ? ",RolloverMB=" + udRollover.Value : "") +
                                                     (chkStartTime.Checked ? ",StartTime=" + dtStartTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "") +
                                                     (chkStopTime.Checked ? ",StopTime=" + dtStopTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "")
-                                                    + ",ConfigDetails=" + chkGetConfigDetails.Checked + ",Profiler=" + chkGetProfiler.Checked + ",PerfMon=" + chkGetPerfMon.Checked + ",NetworkTrace=" + chkGetNetwork.Checked + ",RunningAsService=" + !Environment.UserInteractive);
+                                                    + ",ConfigDetails=" + chkGetConfigDetails.Checked + ",Profiler=" + chkGetProfiler.Checked + ",PerfMon=" + chkGetPerfMon.Checked + ",NetworkTrace=" + chkGetNetwork.Checked + ",RunningAsService=" + !Environment.UserInteractive + ",Clustered=" + cbsdi.Cluster);
                         dc.CompletionCallback = callback_StartDiagnosticsComplete;
                         new Thread(new ThreadStart(() => dc.StartDiagnostics())).Start();
                     }
                     else
                     {
                         // Install the service for this instance
-                        string sInstanceServiceConfig = Program.TempPath + "SSASDiagService_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) + ".exe";
+                        string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
+                        string sInstanceServiceConfig = Program.TempPath + "SSASDiagService_" + InstanceName + ".exe";
                         File.Copy(Program.TempPath + "SSASDiagService.exe", sInstanceServiceConfig, true);
                         File.Copy(Program.TempPath + "SSASDiagService.ini", sInstanceServiceConfig.Replace(".exe", ".ini"), true);
                         List<string> svcconfig = new List<string>(File.ReadAllLines(sInstanceServiceConfig.Replace(".exe", ".ini")));
-                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceName="))] = "ServiceName=SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
-                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceLongName="))] = "ServiceLongName=SQL Server Analysis Services Diagnostic Collection Service (" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) + ")";
+                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceName="))] = "ServiceName=SSASDiag_" + InstanceName;
+                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceLongName="))] = "ServiceLongName=SQL Server Analysis Services Diagnostic Collection Service (" + InstanceName + ")";
                         svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceDesc="))] = "ServiceDesc=Launch SSASDiag.exe to administer data collection.  SSASDiag provides automated diagnostic collection for SQL Server Analysis Services.";
                         svcconfig[svcconfig.FindIndex(s => s.StartsWith("WorkingDir="))] = "WorkingDir=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string);
                         File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
@@ -100,7 +101,7 @@ namespace SSASDiag
                             "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe" +
                             " /workingdir \"" + txtSaveLocation.Text + "\"" +
                             (chkZip.Checked ? " /zip" : "") +
-                            " /instance " + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) +
+                            " /instance " + (InstanceName == "" ? "MSSQLServer" : InstanceName) +
                             (chkDeleteRaw.Checked ? " /deleteraw" : "") +
                             (chkRollover.Checked ? " /rollover " + udRollover.Value : "") +
                             (chkStartTime.Checked ? " /starttime \"" + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
@@ -133,11 +134,11 @@ namespace SSASDiag
                             npClient.ServerMessage -= NpClient_ServerMessage;
                             npClient = null;
                         }
-                        npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text));
+                        npClient = new NamedPipeClient<string>("SSASDiag_" + InstanceName);
                         npClient.ServerMessage += NpClient_ServerMessage;
                         npClient.Start();
                         npClient.PushMessage("forceopen");
-                        string svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
+                        string svcName = "SSASDiag_" + InstanceName;
                         new Thread(new ThreadStart(() => {
                             p = new ProcessStartInfo("cmd.exe", "/c net start " + svcName);
                             p.WindowStyle = ProcessWindowStyle.Hidden;
@@ -418,6 +419,7 @@ namespace SSASDiag
             public string ServiceName { get; set; }
             public string SQLProgramDir { get; set; }
             public string ServiceAccount { get; set; }
+            public bool Cluster { get; set; }
         }
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -441,7 +443,7 @@ namespace SSASDiag
                 ComboBoxServiceDetailsItem SelItem = cbInstances.Invoke(new Func<ComboBoxServiceDetailsItem>(() => { return (cbInstances.SelectedItem as ComboBoxServiceDetailsItem); })) as ComboBoxServiceDetailsItem;
                 if (SelItem != null)
                 {
-                    srv.Connect("Data source=" + Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
+                    srv.Connect("Data source=" + (SelItem.Cluster ? SelItem.Text.Replace(" (Clustered Instance)", "") : Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text)) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
                     System.Diagnostics.Trace.WriteLine("Connected to server with connection string: " + srv.ConnectionString);
                     lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
                     m_instanceType = srv.ServerMode.ToString();
@@ -458,7 +460,8 @@ namespace SSASDiag
                         {
                             ServiceController InstanceCollectionService = null;
                             string svcName = "";
-                            cbInstances.Invoke(new System.Action(() => svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text)));
+                            string InstanceName = SelItem.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
+                            cbInstances.Invoke(new System.Action(() => svcName = "SSASDiag_" + InstanceName));
                             InstanceCollectionService = new ServiceController(svcName);
                             RegistryKey svcKey = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName);
                             if (InstanceCollectionService != null &&  svcKey != null)
@@ -504,7 +507,7 @@ namespace SSASDiag
                                         npClient.ServerMessage -= NpClient_ServerMessage;
                                         npClient = null;
                                     }
-                                    cbInstances.Invoke(new System.Action(()=>npClient = new NamedPipeClient<string>("SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text))));
+                                    cbInstances.Invoke(new System.Action(()=>npClient = new NamedPipeClient<string>(svcName)));
                                     npClient.ServerMessage += NpClient_ServerMessage;
                                     npClient.Start();
                                     npClient.WaitForConnection();
@@ -574,7 +577,7 @@ namespace SSASDiag
             {
                 ServiceController[] services = ServiceController.GetServices();
                 foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
-                    if (s.DisplayName.Contains("Analysis Services") && !s.DisplayName.Contains("SQL Server Analysis Services CEIP ("))
+                    if (s.DisplayName.StartsWith("SQL Server Analysis Services") && !s.DisplayName.Contains("SQL Server Analysis Services CEIP (") && !s.DisplayName.Contains("Diagnostic Collection Service"))
                     {
                         SelectQuery sQuery = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\"");
                         ManagementObjectSearcher mgmtSearcher = new ManagementObjectSearcher(sQuery);
@@ -588,12 +591,17 @@ namespace SSASDiag
                         System.Diagnostics.Trace.WriteLine("Found AS instance: " + ConfigPath);
                         ConfigPath = ConfigPath.Substring(ConfigPath.IndexOf("-s \"") + "-s \"".Length).TrimEnd('\"');
                         string InstanceID = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "");
-                        InstanceID = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\OLAP", false).GetValue(InstanceID) as string;
+                        InstanceID = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\OLAP", false).GetValue(InstanceID, "") as string;
+                        if (InstanceID == "") InstanceID = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\OLAP", false).GetValue("MSSQLSERVER") as string;
+                        System.Diagnostics.Trace.WriteLine("InstanceID: " + InstanceID);
                         string SQLProgramDir = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Setup", false).GetValue("SQLProgramDir") as string;
+                        string ClusterName = "";
+                        try { ClusterName = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Cluster", false).GetValue("ClusterName") as string; }
+                        catch { }
                         if (s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "").ToUpper() == "MSSQLSERVER")
-                            LocalInstances.Insert(0, new ComboBoxServiceDetailsItem() { Text = "Default instance (MSSQLServer)", ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName });
+                            LocalInstances.Insert(0, new ComboBoxServiceDetailsItem() { Text = "Default instance (MSSQLServer)", ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName, Cluster = false });
                         else
-                            LocalInstances.Add(new ComboBoxServiceDetailsItem() { Text = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", ""), ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName });
+                            LocalInstances.Add(new ComboBoxServiceDetailsItem() { Text = (ClusterName == "" ? s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "") : ClusterName + " (Clustered Instance)"), ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName, Cluster = (ClusterName == "" ? false : true) });
                     }
             }
             catch (Exception ex)
@@ -617,7 +625,8 @@ namespace SSASDiag
             {
                 if (Args.ContainsKey("instance"))
                 {
-                    int i = LocalInstances.FindIndex(c => c.Text.ToLower() == Args["instance"].ToLower().TrimEnd().TrimStart());
+                    string instance = Args["instance"].ToLower().TrimEnd().TrimStart();
+                    int i = LocalInstances.FindIndex(c => c.Text.ToLower() == instance || c.Text.ToLower() == instance + " (clustered instance)");
                     if (i > 0)
                         cbInstances.SelectedIndex = i;
                 }
