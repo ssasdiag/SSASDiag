@@ -903,8 +903,11 @@ namespace SSASDiag
         {
             if (bGetProfiler)
             {
-               // SendMessageToClients("Waiting 20s to allow profiler trace to catch up with any lagging events...");
-                //System.Threading.Thread.Sleep(20000); // Wait 15s to allow profiler events to catch up a little bit.
+                if (!Debugger.IsAttached)
+                {
+                    SendMessageToClients("Waiting 15s to allow profiler trace to catch up with any lagging events...");
+                    System.Threading.Thread.Sleep(15000); // Wait 15s to allow profiler events to catch up a little bit.
+                }
                 SendMessageToClients("Executing AS server command to stop profiler trace...");
                 ServerExecute(Properties.Resources.ProfilerTraceStopXMLA.Replace("<TraceID/>", "<TraceID>" + TraceID + "</TraceID>"));
                 SendMessageToClients("Stopped profiler trace.");
