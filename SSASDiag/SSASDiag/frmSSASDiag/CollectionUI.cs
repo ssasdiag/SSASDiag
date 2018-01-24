@@ -156,11 +156,7 @@ namespace SSASDiag
                     if (!Environment.UserInteractive)
                         new Thread(new ThreadStart(() => dc.StopAndFinalizeAllDiagnostics())).Start();
                     else
-                    {
-                        string sInstance = (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
                         npClient.PushMessage("Stop");
-
-                    }
                 }
             }
         }
@@ -299,7 +295,8 @@ namespace SSASDiag
                     ProcessStartInfo p = null;
                     try
                     {
-                        svcName = "SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text);
+                        string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
+                        svcName = "SSASDiag_" + InstanceName;
                         // Stop the service via command line.
                         p = new ProcessStartInfo("cmd.exe", "/c net stop " + svcName);
                         p.WindowStyle = ProcessWindowStyle.Hidden;
