@@ -81,7 +81,7 @@ namespace SSASDiag
                         string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
                         string sInstanceServiceConfig = Program.TempPath + "SSASDiagService_" + InstanceName + ".exe";
                         svcOutputPath = sInstanceServiceConfig.Substring(0, sInstanceServiceConfig.IndexOf(".exe")) + ".output.log";
-                        File.CreateText(svcOutputPath).Close();
+                        
                         string sMsg = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\nInstalling collection service SSASDiag_" + InstanceName + ".";
                         txtStatus.Text = sMsg;
                         tPumpUIUpdatesPreServiceStart.Interval = 1000;
@@ -477,7 +477,9 @@ namespace SSASDiag
                             {
                                 string svcPath = svcKey.GetValue("ImagePath") as string;
                                 svcOutputPath = svcPath.Substring(0, svcPath.Length - 4) + ".output.log";
-                                List<string> CurrentStatus = File.ReadLines(svcOutputPath).ToList();
+                                List<string> CurrentStatus = new List<string>();
+                                if (File.Exists(svcOutputPath))
+                                    CurrentStatus = File.ReadLines(svcOutputPath).ToList();
                                 string RawStatusText = String.Join("\r\n", CurrentStatus.ToArray());
                                 // If we encounter a stopped service, this indicates unexpected halt in prior state.  Report and deliver service log to output directory, then clean up old service.
                                 if (InstanceCollectionService.Status == ServiceControllerStatus.Stopped)

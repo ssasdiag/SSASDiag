@@ -181,7 +181,7 @@ namespace SSASDiag
             string sSvcUser = "";
             ServiceController[] services = ServiceController.GetServices();
             foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
-                if (s.DisplayName.Contains("SQL Server (" + (connDB.DataSource.Contains("\\") ? connDB.DataSource.Substring(connDB.DataSource.IndexOf("\\")) : "MSSQLSERVER")))
+                if (s.DisplayName.Contains("SQL Server (" + (connDB.DataSource.Contains("\\") ? connDB.DataSource.Substring(connDB.DataSource.IndexOf("\\") + 1) : "MSSQLSERVER")))
                 {
                     SelectQuery sQuery = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\"");
                     ManagementObjectSearcher mgmtSearcher = new ManagementObjectSearcher(sQuery);
@@ -334,10 +334,17 @@ namespace SSASDiag
 
         private async Task<bool> PrivateSymbolServerAccessible()
         {
-            WebRequest wr = WebRequest.Create("http://symweb");
-            WebResponse wres = await wr.GetResponseAsync();
-            string res = (new StreamReader(wres.GetResponseStream())).ReadToEnd();
-            return res.StartsWith("<html>");
+            try
+            {
+                WebRequest wr = WebRequest.Create("http://symweb");
+                WebResponse wres = await wr.GetResponseAsync();
+                string res = (new StreamReader(wres.GetResponseStream())).ReadToEnd();
+                return res.StartsWith("<html>");
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private bool SomeSymDirExists(string SymDirList)
@@ -403,7 +410,7 @@ namespace SSASDiag
 
                         txtStatus.Text = "Dump analysis disabled because symbol resolution failed.\r\n" +
                             "Set a SYSTEM environment variable called _NT_SYMBOL_PATH.\r\nUse a valid path to private symbols for msmdsrv.exe.";
-                        splitDebugger.Panel1Collapsed = true;
+                        splitDebugger.Invoke(new System.Action(()=> splitDebugger.Panel1Collapsed = true));
                     }
                 }
                 Invoke(new System.Action(() =>Visible = true));
