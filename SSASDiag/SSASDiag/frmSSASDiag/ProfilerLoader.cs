@@ -608,13 +608,13 @@ namespace SSASDiag
 
             return q;
         }
-        private bool Validate2016ManagementComponents()
+        private bool Validate2017ManagementComponents()
         {
-            if (Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\\Classes\\ssms.sql.13.0") != null)
+            if (Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\\Classes\\ssms.sql.14.0") != null)
                 return true;
             else
-                if (MessageBox.Show("Profiler analysis requires SQL 2016 Management Studio Components.  Download now to install?", "SQL 2016 Management Components Missing", MessageBoxButtons.YesNo, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                    Process.Start("https://go.microsoft.com/fwlink/?LinkID=840946");
+                if (MessageBox.Show("Profiler analysis requires SQL 2017 Management Studio Components.  Download now to install?", "SQL 2017 Management Components Missing", MessageBoxButtons.YesNo, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                    Process.Start("https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms");
             return false;    
         }
 

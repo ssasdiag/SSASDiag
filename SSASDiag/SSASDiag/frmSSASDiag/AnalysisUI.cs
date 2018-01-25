@@ -161,9 +161,9 @@ namespace SSASDiag
                     ProfilerTraceStatusTextBox.Text = "";
                     tcAnalysis.TabPages.Add(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
                     HiddenTabPages.Remove(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
-                    if (!Validate2016ManagementComponents())
+                    if (!Validate2017ManagementComponents())
                     {
-                        ProfilerTraceStatusTextBox.Text = "SQL 2016 Management Studio components required.\r\nComplete install from https://go.microsoft.com/fwlink/?LinkID=840946 and then open Profiler Trace Analysis again.";
+                        ProfilerTraceStatusTextBox.Text = "SQL 2017 Management Studio components required.\r\nComplete install from https://go.microsoft.com/fwlink/?LinkID=840946 and then open Profiler Trace Analysis again.";
                         btnImportProfilerTrace.Visible = false;
                     }
                     else
