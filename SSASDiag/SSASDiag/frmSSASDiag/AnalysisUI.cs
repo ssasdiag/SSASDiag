@@ -278,8 +278,19 @@ namespace SSASDiag
             {
                 try
                 {
-                    z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").First().Extract(m_analysisPath + "\\Analysis", Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
-                    z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".ldf").First().Extract(m_analysisPath + "\\Analysis", Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                    FileStream fs;
+                    if (!File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
+                    {
+                        fs = new FileStream(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf", FileMode.Create);
+                        z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").First().Extract(fs);
+                        fs.Close();
+                    }
+                    if (!File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf"))
+                    {
+                        fs = new FileStream(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf", FileMode.Create);
+                        z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".ldf").First().Extract(fs);
+                        fs.Close();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -290,7 +301,14 @@ namespace SSASDiag
             else
                if (z.Entries.Where(f => f.FileName.Contains(".trc")).Count() > 0)
                 foreach (Ionic.Zip.ZipEntry e in z.Entries.Where(f => f.FileName.Contains(".trc")))
-                    e.Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                {
+                    if (!File.Exists(m_analysisPath + "\\" + e.FileName.Substring(e.FileName.LastIndexOf("/") + 1)))
+                    {
+                        FileStream fs = new FileStream(m_analysisPath + "\\" + e.FileName.Substring(e.FileName.LastIndexOf("/") + 1), FileMode.Create);
+                        e.Extract(fs);
+                        fs.Close();
+                    }
+                }
             if (z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log").Count() > 0)
                 z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log").First().Extract(m_analysisPath + "\\Analysis", Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
             else
