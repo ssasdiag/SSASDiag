@@ -74,6 +74,7 @@
     <Reference Include="MDXParser, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Resources\MDXParser.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.AnalysisServices, Version=13.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\..\..\Program Files\Microsoft SQL Server\130\SDK\Assemblies\Microsoft.AnalysisServices.DLL</HintPath>
@@ -243,9 +244,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Resources.zip" />
-    <None Include="Resources\RunAsTestUser.cmd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\play.png" />

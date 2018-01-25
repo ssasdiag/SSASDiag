@@ -83,75 +83,80 @@ namespace SSASDiag
                         svcOutputPath = sInstanceServiceConfig.Substring(0, sInstanceServiceConfig.IndexOf(".exe")) + ".output.log";
                         File.CreateText(svcOutputPath).Close();
                         string sMsg = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\nInstalling collection service SSASDiag_" + InstanceName + ".";
-                        File.WriteAllText(svcOutputPath, sMsg);
-                        txtStatus.Text = sMsg;                        
+                        txtStatus.Text = sMsg;
                         tPumpUIUpdatesPreServiceStart.Interval = 1000;
                         tPumpUIUpdatesPreServiceStart.Tick += TPumpUIUpdatesPreServiceStart_Tick;
                         tPumpUIUpdatesPreServiceStart.Start();
 
-                        // Install the service for this instance
-                        
-                        File.Copy(Program.TempPath + "SSASDiagService.exe", sInstanceServiceConfig, true);
-                        File.Copy(Program.TempPath + "SSASDiagService.ini", sInstanceServiceConfig.Replace(".exe", ".ini"), true);
-                        List<string> svcconfig = new List<string>(File.ReadAllLines(sInstanceServiceConfig.Replace(".exe", ".ini")));
-                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceName="))] = "ServiceName=SSASDiag_" + InstanceName;
-                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceLongName="))] = "ServiceLongName=SQL Server Analysis Services Diagnostic Collection Service (" + InstanceName + ")";
-                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceDesc="))] = "ServiceDesc=Launch SSASDiag.exe to administer data collection.  SSASDiag provides automated diagnostic collection for SQL Server Analysis Services.";
-                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("WorkingDir="))] = "WorkingDir=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string);
-                        File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
-                        ProcessStartInfo p = new ProcessStartInfo(sInstanceServiceConfig);
-                        p.CreateNoWindow = true;
-                        p.Verb = "runas"; // ensures elevation of priv
-                        p.WindowStyle = ProcessWindowStyle.Hidden;
-                        p.Arguments = "-i";
-                        Process proc = Process.Start(p);
-                        proc.WaitForExit();
-
-                        // Setup the service startup parameters according to user selections
-                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))]
-                            =
-                            "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe" +
-                            " /workingdir \"" + txtSaveLocation.Text + "\"" +
-                            (chkZip.Checked ? " /zip" : "") +
-                            " /instance " + (InstanceName == "" ? "MSSQLServer" : InstanceName) +
-                            (chkDeleteRaw.Checked ? " /deleteraw" : "") +
-                            (chkRollover.Checked ? " /rollover " + udRollover.Value : "") +
-                            (chkStartTime.Checked ? " /starttime \"" + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
-                            (chkStopTime.Checked ? " /stoptime \"" + dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
-                            (chkAutoRestart.Checked ? " /autorestartprofiler" : "") +
-                            " /perfmoninterval " + udInterval.Value +
-                            (chkGetConfigDetails.Checked ? " /config" : "") +
-                            (chkGetPerfMon.Checked ? " /perfmon" : "") +
-                            (chkGetProfiler.Checked ? " /profiler" : "") +
-                            (chkProfilerPerfDetails.Checked ? " /verbose" : "") +
-                            (chkABF.Checked ? " /abf" : "") +
-                            (chkBAK.Checked ? " /bak" : "") +
-                            (chkXMLA.Checked ? " /xmla" : "") +
-                            (chkGetNetwork.Checked ? " /network" : "") +
-                            (Args.ContainsKey("nowaitonstop") ? " /nowaitonstop" : "") +
-                            (Args.ContainsKey("debug") ? " /debug" : "") +
-                            (enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked ? " /reportusage" : "") +
-                            " /outputdir \"" + Environment.CurrentDirectory + "\"" +
-                            " /start";
-                        File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
-
-                        if (npClient != null)
+                        new Thread(new ThreadStart(() =>
                         {
-                            npClient.ServerMessage -= NpClient_ServerMessage;
-                            npClient = null;
-                        }
-                        txtStatus.Text += "\r\nStarting service...";
-                        npClient = new NamedPipeClient<string>("SSASDiag_" + InstanceName);
-                        npClient.ServerMessage += NpClient_ServerMessage;
-                        npClient.Start();
-                        npClient.PushMessage("forceopen");
-                        string svcName = "SSASDiag_" + InstanceName;
-                        new Thread(new ThreadStart(() => {
-                            p = new ProcessStartInfo("cmd.exe", "/c net start " + svcName);
-                            p.WindowStyle = ProcessWindowStyle.Hidden;
-                            p.Verb = "runas"; // ensures elevation of priv
+
+                            // Install the service for this instance
+
+                            File.Copy(Program.TempPath + "SSASDiagService.exe", sInstanceServiceConfig, true);
+                            File.Copy(Program.TempPath + "SSASDiagService.ini", sInstanceServiceConfig.Replace(".exe", ".ini"), true);
+                            List<string> svcconfig = new List<string>(File.ReadAllLines(sInstanceServiceConfig.Replace(".exe", ".ini")));
+                            svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceName="))] = "ServiceName=SSASDiag_" + InstanceName;
+                            svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceLongName="))] = "ServiceLongName=SQL Server Analysis Services Diagnostic Collection Service (" + InstanceName + ")";
+                            svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceDesc="))] = "ServiceDesc=Launch SSASDiag.exe to administer data collection.  SSASDiag provides automated diagnostic collection for SQL Server Analysis Services.";
+                            svcconfig[svcconfig.FindIndex(s => s.StartsWith("WorkingDir="))] = "WorkingDir=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string);
+                            File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
+                            ProcessStartInfo p = new ProcessStartInfo(sInstanceServiceConfig);
                             p.CreateNoWindow = true;
-                            Process.Start(p);
+                            p.Verb = "runas"; // ensures elevation of priv
+                            p.WindowStyle = ProcessWindowStyle.Hidden;
+                            p.Arguments = "-i";
+                            Process proc = Process.Start(p);
+                            proc.WaitForExit();
+
+                            // Setup the service startup parameters according to user selections
+                            svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))]
+                                =
+                                "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe" +
+                                " /workingdir \"" + txtSaveLocation.Text + "\"" +
+                                (chkZip.Checked ? " /zip" : "") +
+                                " /instance " + (InstanceName == "" ? "MSSQLServer" : InstanceName) +
+                                (chkDeleteRaw.Checked ? " /deleteraw" : "") +
+                                (chkRollover.Checked ? " /rollover " + udRollover.Value : "") +
+                                (chkStartTime.Checked ? " /starttime \"" + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
+                                (chkStopTime.Checked ? " /stoptime \"" + dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
+                                (chkAutoRestart.Checked ? " /autorestartprofiler" : "") +
+                                " /perfmoninterval " + udInterval.Value +
+                                (chkGetConfigDetails.Checked ? " /config" : "") +
+                                (chkGetPerfMon.Checked ? " /perfmon" : "") +
+                                (chkGetProfiler.Checked ? " /profiler" : "") +
+                                (chkProfilerPerfDetails.Checked ? " /verbose" : "") +
+                                (chkABF.Checked ? " /abf" : "") +
+                                (chkBAK.Checked ? " /bak" : "") +
+                                (chkXMLA.Checked ? " /xmla" : "") +
+                                (chkGetNetwork.Checked ? " /network" : "") +
+                                (Args.ContainsKey("nowaitonstop") ? " /nowaitonstop" : "") +
+                                (Args.ContainsKey("debug") ? " /debug" : "") +
+                                (enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked ? " /reportusage" : "") +
+                                " /outputdir \"" + Environment.CurrentDirectory + "\"" +
+                                " /start";
+                            File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
+
+                            if (npClient != null)
+                            {
+                                npClient.ServerMessage -= NpClient_ServerMessage;
+                                npClient = null;
+                            }
+                            txtStatus.Invoke(new System.Action(()=> txtStatus.Text += "\r\nStarting service..."));
+                            npClient = new NamedPipeClient<string>("SSASDiag_" + InstanceName);
+                            npClient.ServerMessage += NpClient_ServerMessage;
+                            npClient.Start();
+                            npClient.PushMessage("forceopen");
+                            string svcName = "SSASDiag_" + InstanceName;
+                            new Thread(new ThreadStart(() =>
+                            {
+                                p = new ProcessStartInfo("cmd.exe", "/c net start " + svcName);
+                                p.WindowStyle = ProcessWindowStyle.Hidden;
+                                p.Verb = "runas"; // ensures elevation of priv
+                                p.CreateNoWindow = true;
+                                Process.Start(p).WaitForExit();
+                                txtStatus.Invoke(new System.Action(()=> txtStatus.AppendText("\r\nCollection service SSASDiag_" + cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "") + " is running.\r\nCollection initializing...")));
+                            })).Start();
                         })).Start();
                     }
                 }
@@ -173,21 +178,14 @@ namespace SSASDiag
         private void TPumpUIUpdatesPreServiceStart_Tick(object sender, EventArgs e)
         {
             Invoke(new System.Action(() =>
-                    {
-                        if (txtStatus.Lines.Count() < 2)
-                        {
-                            if (txtStatus.Text.Substring(txtStatus.TextLength - 2) != "..")
-                                txtStatus.AppendText(".");
-                            else
-                            {
-                                string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
-                                txtStatus.AppendText("\r\nCollection service SSASDiag_" + InstanceName + " started.");
-                            }
-                        }
-                        else
-                            txtStatus.AppendText(".");
-                    }
-                ));
+            {
+                // output a "... ... ... " pattern as sign of life while starting/stopping stuff
+                int s = DateTime.Now.Second;
+                if (s % 4 != 0)
+                    txtStatus.AppendText(".");
+                else
+                    txtStatus.AppendText(" ");
+            }));
         }
 
         private void InitializeCaptureUI()
@@ -204,7 +202,10 @@ namespace SSASDiag
         private void NpClient_ServerMessage(NamedPipeConnection<string, string> connection, string message)
         {
             if (tPumpUIUpdatesPreServiceStart != null && tPumpUIUpdatesPreServiceStart.Enabled == true)
+            {
                 tPumpUIUpdatesPreServiceStart.Stop();
+                tPumpUIUpdatesPreServiceStart.Tick -= TPumpUIUpdatesPreServiceStart_Tick;
+            }
 
             if (message == "Initialize pipe")
             {
