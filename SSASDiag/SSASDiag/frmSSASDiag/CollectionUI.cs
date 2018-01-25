@@ -76,9 +76,21 @@ namespace SSASDiag
                     }
                     else
                     {
-                        // Install the service for this instance
+                        // Notify UI of start and start UI timer...
+
                         string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
                         string sInstanceServiceConfig = Program.TempPath + "SSASDiagService_" + InstanceName + ".exe";
+                        svcOutputPath = sInstanceServiceConfig.Substring(0, sInstanceServiceConfig.IndexOf(".exe")) + ".output.log";
+                        File.CreateText(svcOutputPath).Close();
+                        string sMsg = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\nInstalling collection service SSASDiag_" + InstanceName + ".";
+                        File.WriteAllText(svcOutputPath, sMsg);
+                        txtStatus.Text = sMsg;                        
+                        tPumpUIUpdatesPreServiceStart.Interval = 1000;
+                        tPumpUIUpdatesPreServiceStart.Tick += TPumpUIUpdatesPreServiceStart_Tick;
+                        tPumpUIUpdatesPreServiceStart.Start();
+
+                        // Install the service for this instance
+                        
                         File.Copy(Program.TempPath + "SSASDiagService.exe", sInstanceServiceConfig, true);
                         File.Copy(Program.TempPath + "SSASDiagService.ini", sInstanceServiceConfig.Replace(".exe", ".ini"), true);
                         List<string> svcconfig = new List<string>(File.ReadAllLines(sInstanceServiceConfig.Replace(".exe", ".ini")));
@@ -93,11 +105,11 @@ namespace SSASDiag
                         p.WindowStyle = ProcessWindowStyle.Hidden;
                         p.Arguments = "-i";
                         Process proc = Process.Start(p);
-                        
+                        proc.WaitForExit();
 
                         // Setup the service startup parameters according to user selections
-                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] 
-                            = 
+                        svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))]
+                            =
                             "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe" +
                             " /workingdir \"" + txtSaveLocation.Text + "\"" +
                             (chkZip.Checked ? " /zip" : "") +
@@ -116,24 +128,19 @@ namespace SSASDiag
                             (chkBAK.Checked ? " /bak" : "") +
                             (chkXMLA.Checked ? " /xmla" : "") +
                             (chkGetNetwork.Checked ? " /network" : "") +
+                            (Args.ContainsKey("nowaitonstop") ? " /nowaitonstop" : "") +
                             (Args.ContainsKey("debug") ? " /debug" : "") +
-                            (enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked  ? " /reportusage" : "") +
+                            (enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked ? " /reportusage" : "") +
                             " /outputdir \"" + Environment.CurrentDirectory + "\"" +
                             " /start";
                         File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
-                        svcOutputPath = sInstanceServiceConfig.Substring(0, sInstanceServiceConfig.IndexOf(".exe")) + ".output.log";
-                        File.CreateText(svcOutputPath).Close();
-                        string sMsg = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".";
-                        File.WriteAllText(svcOutputPath, sMsg);
-                        txtStatus.Text = sMsg;                        
-                        tPumpUIUpdatesPreServiceStart.Interval = 1000;
-                        tPumpUIUpdatesPreServiceStart.Tick += TPumpUIUpdatesPreServiceStart_Tick;
-                        tPumpUIUpdatesPreServiceStart.Start();
+
                         if (npClient != null)
                         {
                             npClient.ServerMessage -= NpClient_ServerMessage;
                             npClient = null;
                         }
+                        txtStatus.Text += "\r\nStarting service...";
                         npClient = new NamedPipeClient<string>("SSASDiag_" + InstanceName);
                         npClient.ServerMessage += NpClient_ServerMessage;
                         npClient.Start();
@@ -172,7 +179,10 @@ namespace SSASDiag
                             if (txtStatus.Text.Substring(txtStatus.TextLength - 2) != "..")
                                 txtStatus.AppendText(".");
                             else
-                                txtStatus.AppendText("\r\nCollection service SSASDiag_" + (cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : cbInstances.Text) + " started.");
+                            {
+                                string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
+                                txtStatus.AppendText("\r\nCollection service SSASDiag_" + InstanceName + " started.");
+                            }
                         }
                         else
                             txtStatus.AppendText(".");
@@ -206,8 +216,9 @@ namespace SSASDiag
             {
                 Invoke(new System.Action(() =>
                 {
+                    string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
                     txtStatus.Text = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n"
-                                    + "Collection service SSASDiag_MSSQLSERVER started.";
+                                    + "Collection service SSASDiag_" + InstanceName + " started.";
                     InitializeCaptureUI();
                 }));
             }
