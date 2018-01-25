@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Data.SqlClient;
-using Microsoft.Win32;
 using System.ServiceProcess;
 
 namespace SSASDiag
@@ -49,18 +48,11 @@ namespace SSASDiag
             foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
                 if (s.DisplayName.Contains("SQL Server ("))
                 {
-                    string InstanceShortID = s.DisplayName.Replace("SQL Server (", "").Replace(")", "").Replace("MSSQLSERVER", "");
-                    string InstanceID = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Microsoft SQL Server\\Instance Names\\SQL").GetValue(InstanceShortID, "") as string;
-                    RegistryKey InstanceKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Microsoft SQL Server\\" + InstanceID);
-                    string ClusterName = "";
-                    if (InstanceKey.GetSubKeyNames().Contains("Cluster"))
-                        ClusterName = InstanceKey.OpenSubKey("Cluster").GetValue("ClusterName") as string;
-                    string DataSource = (ClusterName == "" ? Environment.MachineName + (InstanceShortID == "" ? "" : "\\" + InstanceShortID) : ClusterName);                   
-
-                    SqlConnection conn = new SqlConnection("Data Source=" + DataSource + ";Integrated Security=true;Persist Security Info=false;Connection Timeout=1;");
+                    string InstanceName = s.DisplayName.Replace("SQL Server (", "").Replace(")", "").Replace("MSSQLSERVER", "");
+                    SqlConnection conn = new SqlConnection("Data Source=" + Environment.MachineName + (InstanceName == "" ? "" : "\\" + InstanceName) + ";Integrated Security=true;Persist Security Info=false;Connection Timeout=1;");
                     try {
                         conn.Open();
-                        cmbServer.Items.Add(DataSource);
+                        cmbServer.Items.Add(Environment.MachineName + (InstanceName == "" ? "" : "\\" + InstanceName));
                         
                     } catch { }
                     finally
