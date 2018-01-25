@@ -560,7 +560,8 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
-                LogException(ex);
+                if (ex.Message != "A connection cannot be made. Ensure that the server is running.")
+                    LogException(ex);
                 if (!lblInstanceDetails.IsDisposed) lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance details could not be obtained due to failure connecting:\r\n" + ex.Message));
             }
         }
