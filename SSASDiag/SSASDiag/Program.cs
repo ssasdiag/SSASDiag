@@ -288,8 +288,6 @@ namespace SSASDiag
                         newBin.Close();
                         if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
                         {
-                            //AppDomain.Unload(tempDomain);
-                            //Thread.Sleep(1000);
                             Process p = new Process();
                             p.StartInfo.UseShellExecute = true;
                             p.StartInfo.CreateNoWindow = true;
@@ -297,7 +295,8 @@ namespace SSASDiag
                             p.StartInfo.FileName = "cmd.exe";
                             string AssemblyLocation = (string)(AppDomain.CurrentDomain.GetData("originalbinlocation") as string != "" ? AppDomain.CurrentDomain.GetData("originalbinlocation") : Assembly.GetExecutingAssembly().Location);
                             p.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 1500 > nul & move /y \"" + sNewBin + "\" \"" +
-                                                     AssemblyLocation + "\\SSASDiag.exe\" & \"" +
+                                                     AssemblyLocation + "\\SSASDiag.exe\" & " +
+                                                     "del /q \"" + TempPath + "SSASDiag.exe\" & " + 
                                                      AssemblyLocation + "\\SSASDiag.exe\"";
                             p.Start();
                             Application.Exit();
