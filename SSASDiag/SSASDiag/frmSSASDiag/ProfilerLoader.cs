@@ -358,6 +358,8 @@ namespace SSASDiag
             cmd.ExecuteNonQuery();
             bProfilerTraceDbAttached = true;
 
+            ValidateProfilerTraceViews();
+
             Invoke(new System.Action(() =>
             {
                 splitProfilerAnalysis.Visible = true;

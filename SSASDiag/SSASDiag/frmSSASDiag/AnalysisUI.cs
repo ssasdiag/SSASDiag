@@ -265,9 +265,13 @@ namespace SSASDiag
                 Directory.CreateDirectory(m_analysisPath);
             if (!Directory.Exists(m_analysisPath + "\\Analysis"))
                 Directory.CreateDirectory(m_analysisPath + "\\Analysis");
-            
-            if (z["SSASDiag.log"] != null)
-                z["SSASDiag.log"].Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+
+            if (z.Count(ze => ze.FileName.Contains("SSASDiag.log")) > 0)
+            {
+                FileStream fs = new FileStream(m_analysisPath + "\\SSASDiag.log", FileMode.Create);
+                z.First(ze => ze.FileName.Contains("SSASDiag.log")).Extract(fs);
+                fs.Close();
+            }
             AnalysisTraceID = GetAnalysisIDFromLog();
 
             if (z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").Count() > 0)
