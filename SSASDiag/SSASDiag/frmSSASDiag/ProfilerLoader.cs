@@ -103,8 +103,14 @@ namespace SSASDiag
 
             string sSvcUser = "";
             ServiceController[] services = ServiceController.GetServices();
+            string instance = "";
+            if (connSqlDb.DataSource.ToUpper() == Environment.MachineName.ToUpper())
+                instance = "MSSQLSERVER";
+            else
+                instance = (connSqlDb.DataSource.Contains("\\") ? connSqlDb.DataSource.Substring(connSqlDb.DataSource.IndexOf("\\")) : "MSSQLSERVER");
+
             foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
-                if (s.DisplayName.Contains("SQL Server (" + (connSqlDb.DataSource.Contains("\\") ? connSqlDb.DataSource.Substring(connSqlDb.DataSource.IndexOf("\\")) : "MSSQLSERVER")))
+                if (s.DisplayName.Contains("SQL Server (" + instance + ")"))
                 {
                     SelectQuery sQuery = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\"");
                     ManagementObjectSearcher mgmtSearcher = new ManagementObjectSearcher(sQuery);
@@ -300,7 +306,12 @@ namespace SSASDiag
                     }
                     else
                     {
-                        Invoke(new System.Action(()=> ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Failure attaching to trace database: " + exMsg + "\r\n")));
+                        Invoke(new System.Action(()=>
+                        {
+                            ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Failure attaching to trace database: " + exMsg + "\r\n");
+                            btnImportProfilerTrace.Visible = true;
+                        }));
+                        
                         return false;
                     }
                 }
@@ -420,11 +431,22 @@ namespace SSASDiag
                     }
                     else if (ex.Message.Contains("Unable to open the physical file") || ex.Message.Contains("The path specified by"))
                     {
-                        ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.Text = (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Trace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n"));
+                        ProfilerTraceStatusTextBox.Invoke(new System.Action(() =>
+                        {
+                            ProfilerTraceStatusTextBox.Text = (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Trace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n";
+                            btnImportProfilerTrace.Visible = true;
+                        }));
                         return;
                     }
                     else
+                    {
                         ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to attach to database due to exception:\r\n" + ex.Message)));
+                        ProfilerTraceStatusTextBox.Invoke(new System.Action(() =>
+                        {
+                            ProfilerTraceStatusTextBox.Text = (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Trace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n";
+                            btnImportProfilerTrace.Visible = true;
+                        }));
+                    }
                 }
             }
             btnAnalysisFolder.Invoke(new System.Action(() => btnAnalysisFolder.Enabled = splitProfilerAnalysis.Enabled = true));
