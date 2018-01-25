@@ -266,31 +266,15 @@ namespace SSASDiag
             if (!Directory.Exists(m_analysisPath + "\\Analysis"))
                 Directory.CreateDirectory(m_analysisPath + "\\Analysis");
 
-            if (z.Count(ze => ze.FileName.Contains("SSASDiag.log")) > 0)
-            {
-                FileStream fs = new FileStream(m_analysisPath + "\\SSASDiag.log", FileMode.Create);
-                z.First(ze => ze.FileName.Contains("SSASDiag.log")).Extract(fs);
-                fs.Close();
-            }
+            ExtractFileToPath(z, m_analysisPath, "SSASDiag.log");
             AnalysisTraceID = GetAnalysisIDFromLog();
 
             if (z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").Count() > 0)
             {
                 try
                 {
-                    FileStream fs;
-                    if (!File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
-                    {
-                        fs = new FileStream(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf", FileMode.Create);
-                        z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").First().Extract(fs);
-                        fs.Close();
-                    }
-                    if (!File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf"))
-                    {
-                        fs = new FileStream(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf", FileMode.Create);
-                        z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".ldf").First().Extract(fs);
-                        fs.Close();
-                    }
+                    ExtractFileToPath(z, m_analysisPath + "\\Analysis", AnalysisTraceID + ".mdf");
+                    ExtractFileToPath(z, m_analysisPath + "\\Analysis", AnalysisTraceID + ".ldf");
                 }
                 catch (Exception ex)
                 {
@@ -299,37 +283,48 @@ namespace SSASDiag
                 }
             }
             else
-               if (z.Entries.Where(f => f.FileName.Contains(".trc")).Count() > 0)
-                foreach (Ionic.Zip.ZipEntry e in z.Entries.Where(f => f.FileName.Contains(".trc")))
-                {
-                    if (!File.Exists(m_analysisPath + "\\" + e.FileName.Substring(e.FileName.LastIndexOf("/") + 1)))
-                    {
-                        FileStream fs = new FileStream(m_analysisPath + "\\" + e.FileName.Substring(e.FileName.LastIndexOf("/") + 1), FileMode.Create);
-                        e.Extract(fs);
-                        fs.Close();
-                    }
-                }
+            if (z.Entries.Where(f => f.FileName.Contains(".trc")).Count() > 0)
+                ExtractAllFilesOfType(z, ".trc");
             if (z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log").Count() > 0)
-                z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log").First().Extract(m_analysisPath + "\\Analysis", Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                ExtractFileToPath(z, m_analysisPath + "\\Analysis", AnalysisTraceID + "_NetworkAnalysis.log");
             else
             {
                 if (z.Entries.Where(f => f.FileName == AnalysisTraceID + ".etl").Count() > 0)
-                    z.Entries.Where(f => f.FileName == AnalysisTraceID + ".etl").First().Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                    ExtractFileToPath(z, m_analysisPath, AnalysisTraceID + ".etl");
                 if (z.Entries.Where(f => f.FileName == AnalysisTraceID + ".cab").Count() > 0)
-                    z.Entries.Where(f => f.FileName == AnalysisTraceID + ".cab").First().Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                    ExtractFileToPath(z, m_analysisPath, AnalysisTraceID + ".cab");
             }
             if (z.Entries.Where(f => f.FileName.Contains(".blg")).Count() > 0)
-                foreach (Ionic.Zip.ZipEntry e in z.Entries.Where(f => f.FileName.Contains(".blg")))
-                    e.Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                ExtractAllFilesOfType(z, ".blg");
             if (z.Entries.Where(f => f.FileName.Contains(".mdmp")).Count() > 0)
-                foreach (Ionic.Zip.ZipEntry e in z.Entries.Where(f => f.FileName.Contains(".mdmp")))
-                    e.Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                ExtractAllFilesOfType(z, ".mdmp");
             if (z.Entries.Where(f => f.FileName.Contains(".evtx")).Count() > 0)
-                foreach (Ionic.Zip.ZipEntry e in z.Entries.Where(f => f.FileName.Contains(".evtx")))
-                    e.Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                ExtractAllFilesOfType(z, ".evtx");
             if (z.Entries.Where(f => f.FileName == "msmdsrv.ini").Count() > 0)
-                z.Entries.Where(f => f.FileName == "msmdsrv.ini").First().Extract(m_analysisPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                ExtractFileToPath(z, m_analysisPath, "msmdsrv.ini");
             z.Dispose();
+        }
+        private void ExtractFileToPath(Ionic.Zip.ZipFile z, string OutputPath, string FileName)
+        {
+            FileStream fs;
+            if (!File.Exists(OutputPath + "\\" + FileName) && z.Count(ze=>ze.FileName.Contains(FileName)) > 0)
+            {
+                fs = new FileStream(OutputPath + "\\" + FileName, FileMode.Create);
+                z.Entries.Where(f => f.FileName.Contains(FileName)).First().Extract(fs);
+                fs.Close();
+            }
+        }
+        private void ExtractAllFilesOfType(Ionic.Zip.ZipFile z, string ext)
+        {
+            foreach (Ionic.Zip.ZipEntry e in z.Entries.Where(f => f.FileName.Contains(ext)))
+            {
+                if (!File.Exists(m_analysisPath + "\\" + e.FileName.Substring(e.FileName.LastIndexOf("/") + 1)))
+                {
+                    FileStream fs = new FileStream(m_analysisPath + "\\" + e.FileName.Substring(e.FileName.LastIndexOf("/") + 1), FileMode.Create);
+                    e.Extract(fs);
+                    fs.Close();
+                }
+            }
         }
         private void btnAnalyzeNetworkTrace_Click(object sender, EventArgs e)
         {
