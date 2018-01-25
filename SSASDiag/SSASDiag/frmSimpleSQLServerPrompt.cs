@@ -49,13 +49,13 @@ namespace SSASDiag
             foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
                 if (s.DisplayName.Contains("SQL Server ("))
                 {
-                    string InstanceShortID = s.DisplayName.Replace("SQL Server (", "").Replace(")", "").Replace("MSSQLSERVER", "");
+                    string InstanceShortID = s.DisplayName.Replace("SQL Server (", "").Replace(")", "");
                     string InstanceID = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Microsoft SQL Server\\Instance Names\\SQL").GetValue(InstanceShortID, "") as string;
                     RegistryKey InstanceKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Microsoft SQL Server\\" + InstanceID);
                     string ClusterName = "";
                     if (InstanceKey.GetSubKeyNames().Contains("Cluster"))
                         ClusterName = InstanceKey.OpenSubKey("Cluster").GetValue("ClusterName") as string;
-                    string DataSource = (ClusterName == "" ? Environment.MachineName + (InstanceShortID == "" ? "" : "\\" + InstanceShortID) : ClusterName);                   
+                    string DataSource = (ClusterName == "" ? Environment.MachineName + (InstanceShortID == "MSSQLSERVER" ? "" : "\\" + InstanceShortID) : ClusterName);                   
 
                     SqlConnection conn = new SqlConnection("Data Source=" + DataSource + ";Integrated Security=true;Persist Security Info=false;Connection Timeout=1;");
                     try {
