@@ -197,7 +197,7 @@ namespace SSASDiag
             string[] logs = Directory.GetFiles(m_analysisPath, "SSASDiag.log", SearchOption.AllDirectories);
             if (logs.Length > 0)
             {
-                string[] lines = File.ReadAllLines(logs[0]);
+                string[] lines = File.ReadAllLines(logs[0]).Where(s=>s.Trim() != "").ToArray();
                 if (lines.Length >= 2 && lines[1].StartsWith("Initialized service for trace with ID: "))
                     return lines[1].Substring("Initialized service for trace with ID: ".Length);
                 else
