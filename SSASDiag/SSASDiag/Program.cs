@@ -115,7 +115,7 @@ namespace SSASDiag
                     try
                     {
                         if (!File.Exists(TempPath + "SSASDiag.exe")
-                            || (File.Exists(TempPath + "SSASDiag.exe") && File.ReadAllBytes(TempPath + "SSASDiag.exe").SequenceEqual(File.ReadAllBytes(Application.ExecutablePath)))
+                            || (File.Exists(TempPath + "SSASDiag.exe") && !File.ReadAllBytes(TempPath + "SSASDiag.exe").SequenceEqual(File.ReadAllBytes(Application.ExecutablePath)))
                             || Debugger.IsAttached
                             || !Environment.UserInteractive)
                             File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true);
