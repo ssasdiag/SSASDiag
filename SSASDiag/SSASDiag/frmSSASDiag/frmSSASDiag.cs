@@ -120,6 +120,7 @@ namespace SSASDiag
         {
             InitializeArgs();
             SetupDebugTrace();
+            grpDiagsToCapture.Enabled = false;
 
             if (!(Environment.OSVersion.Version.Major >= 7 || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)) && Environment.UserInteractive)
             {
