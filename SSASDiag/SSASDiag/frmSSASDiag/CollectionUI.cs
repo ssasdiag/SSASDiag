@@ -436,7 +436,7 @@ namespace SSASDiag
             if (cbInstances.DisplayMember != "")
             {
                 btnCapture.Enabled = false;
-                grpDiagsToCapture.Enabled = false;
+
                 BackgroundWorker bgPopulateInstanceDetails = new BackgroundWorker();
                 bgPopulateInstanceDetails.DoWork += BgPopulateInstanceDetails_DoWork;
                 bgPopulateInstanceDetails.RunWorkerCompleted += BgPopulateInstanceDetails_RunWorkerCompleted;
@@ -558,11 +558,7 @@ namespace SSASDiag
                             LogException(ex);
                         }
                     }
-                    btnCapture.Invoke(new System.Action(() =>
-                    {
-                        grpDiagsToCapture.Enabled = true;
-                        btnCapture.Enabled = true;
-                    }));
+                    btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = true));
                 }
             }
             catch (Exception ex)
