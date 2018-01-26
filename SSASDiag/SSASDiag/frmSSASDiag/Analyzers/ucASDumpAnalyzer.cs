@@ -200,15 +200,15 @@ namespace SSASDiag
             SqlCommand cmd;
             if (File.Exists(MDFPath()))
             {
-                cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') CREATE DATABASE [" + DBName() + "] ON (FILENAME = N'" + MDFPath() + "'),"
-                                            + "(FILENAME = N'" + LDFPath() + "') "
+                cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') CREATE DATABASE [" + DBName() + "] ON (FILENAME = N'" + MDFPath().Replace("'", "''") + "'),"
+                                            + "(FILENAME = N'" + LDFPath().Replace("'", "''") + "') "
                                             + "FOR ATTACH", connDB);
             }
             else
             {
                 cmd = new SqlCommand(Properties.Resources.CreateDBSQLScript.
-                                    Replace("<mdfpath/>", MDFPath()).
-                                    Replace("<ldfpath/>", LDFPath()).
+                                    Replace("<mdfpath/>", MDFPath().Replace("'", "''")).
+                                    Replace("<ldfpath/>", LDFPath().Replace("'", "''")).
                                     Replace("<dbname/>", DBName())
                                     , connDB);
             }
@@ -638,13 +638,9 @@ namespace SSASDiag
                         return;
                     d.ASVersion = SubmitDebuggerCommand("lmvm msmdsrv").Split(new char[] { '\r', '\n' }).Where(f => f.Contains("Product version:")).First().Replace("    Product version:  ", "");
                     d.Crash = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("This dump file has an exception of interest stored in it.")).Count() > 0;
-                    string pid = init.Substring(init.IndexOf("This dump file has an exception of interest stored in it."));
-                    pid = pid.Substring(pid.IndexOf("\r\n") + 2);
-                    pid = pid.Substring(pid.IndexOf("\r\n") + 2);
-                    pid = pid.Substring(0, pid.IndexOf("\r\n"));
-                    d.DumpException = pid.Substring(pid.IndexOf("): ") + "): ".Length);
-                    pid = pid.Substring(0, pid.IndexOf("): ")).Replace("(", "");
-                    pid = pid.Substring(0, pid.IndexOf("."));
+                    string pid = SubmitDebuggerCommand("|.");
+                    pid = pid.Substring(pid.IndexOf("\tid: ") + " id: ".Length);
+                    pid = pid.Substring(0, pid.IndexOf("\t"));
                     d.ProcessID = pid;
                     string debugTime = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("Debug session time: ")).First().Replace("Debug session time: ", "").Trim();
                     string[] timeparts = debugTime.Replace("   ", " ").Replace("  ", " ").Split(new char[] { ' ' });
@@ -683,7 +679,7 @@ namespace SSASDiag
                                 if (l.StartsWith(" # Child-SP") && !AllThreads[i - 1].StartsWith("#"))  // The exception thread already captured is denoted in output with # so we can skip it...
                                 {
                                     s = new Stack() { ExceptionThread = false };
-                                    s.ThreadID = Convert.ToInt32(AllThreads[i - 1].Substring(0, AllThreads[i - 1].IndexOf(" Id: ")).TrimStart());
+                                    s.ThreadID = Convert.ToInt32(AllThreads[i - 1].Substring(0, AllThreads[i - 1].IndexOf(" Id: ")).TrimStart('.').TrimStart());
                                     int j = i;
                                     for (; AllThreads[j] != ""; j++)
                                         s.CallStack += AllThreads[j] + "\r\n";
@@ -701,13 +697,13 @@ namespace SSASDiag
 
                     // Wait to do db inserts until we really have all data.
 
-                    cmd.CommandText = "INSERT INTO Dumps VALUES('" + d.DumpPath + "', '" + pid + "', '" + d.ASVersion + "', '" + dt.ToString() + "', " + (d.Crash ? 1 : 0) + ", '" + d.DumpException + "')";
+                    cmd.CommandText = "INSERT INTO Dumps VALUES('" + d.DumpPath.Replace("'", "''") + "', '" + pid + "', '" + d.ASVersion + "', '" + dt.ToString() + "', " + (d.Crash ? 1 : 0) + ", '" + d.DumpException + "')";
                     cmd.ExecuteNonQuery();
 
                     foreach (Stack st in d.Stacks)
                     {
                         cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + 
-                                d.DumpPath + "', '" + 
+                                d.DumpPath.Replace("'", "''") + "', '" + 
                                 pid + "', '" + 
                                 st.ThreadID + "', '" + 
                                 st.CallStack.Replace("'", "''") + "', " + 

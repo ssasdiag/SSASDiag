@@ -129,8 +129,8 @@ namespace SSASDiag
             if (AnalysisTraceID == "")
                 AnalysisTraceID = path.Substring(path.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
             SqlCommand cmd = new SqlCommand(Properties.Resources.CreateDBSQLScript.
-                                Replace("<mdfpath/>", path + "\\Analysis\\" + AnalysisTraceID + ".mdf").
-                                Replace("<ldfpath/>", path + "\\Analysis\\" + AnalysisTraceID + ".ldf").
+                                Replace("<mdfpath/>", (path + "\\Analysis\\" + AnalysisTraceID + ".mdf").Replace("'", "''")).
+                                Replace("<ldfpath/>", (path + "\\Analysis\\" + AnalysisTraceID + ".ldf").Replace("'", "''")).
                                 Replace("<dbname/>", AnalysisTraceID)
                                 , connSqlDb);
             int ret = cmd.ExecuteNonQuery();
@@ -363,8 +363,8 @@ namespace SSASDiag
             else
                 chkDettachProfilerAnalysisDBWhenDone.Invoke(new System.Action(() => chkDettachProfilerAnalysisDBWhenDone.Checked = true));
 
-            cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') CREATE DATABASE [" + AnalysisTraceID + "] ON (FILENAME = N'" + mdfPath + AnalysisTraceID + ".mdf'),"
-                                                + "(FILENAME = N'" + mdfPath + AnalysisTraceID + ".ldf') "
+            cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') CREATE DATABASE [" + AnalysisTraceID + "] ON (FILENAME = N'" + mdfPath.Replace("'", "''") + AnalysisTraceID + ".mdf'),"
+                                                + "(FILENAME = N'" + mdfPath.Replace("'", "''") + AnalysisTraceID + ".ldf') "
                                                 + "FOR ATTACH", connSqlDb);
             cmd.ExecuteNonQuery();
             bProfilerTraceDbAttached = true;

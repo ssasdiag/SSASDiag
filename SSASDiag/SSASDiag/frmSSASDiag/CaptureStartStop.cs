@@ -83,7 +83,6 @@ namespace SSASDiag
                     p.RedirectStandardError = true;
                     Process proc = Process.Start(p);
                     Debug.WriteLine("Output of net stop of process: " + proc.StandardOutput.ReadToEnd());
-                    
                 }
                 catch (Exception e)
                 { LogException(e); }
