@@ -254,9 +254,11 @@ namespace SSASDiag
                 // Reinitialize service config to start with only option to specify instance, which will trigger stop of service hereafter in service mode then, until UI configures new settings, should someone try to start manually.
                 string svcIniPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (MainForm.cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : MainForm.cbInstances.Text)).GetValue("ImagePath") as string;
                 svcIniPath = svcIniPath.Substring(0, svcIniPath.IndexOf(".exe")) + ".ini";
-                List<string> svcconfig = new List<string>(File.ReadAllLines(svcIniPath));
-                svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe /instance " + (MainForm.cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : MainForm.cbInstances.Text);
-                File.WriteAllLines(svcIniPath, svcconfig.ToArray());
+                List<string> svcConfig = new List<string>();
+                if (File.Exists(svcIniPath))
+                    svcConfig = new List<string>(File.ReadAllLines(svcIniPath));
+                svcConfig[svcConfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe /instance " + (MainForm.cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : MainForm.cbInstances.Text);
+                File.WriteAllLines(svcIniPath, svcConfig.ToArray());
             }
         }
 

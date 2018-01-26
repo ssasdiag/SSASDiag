@@ -537,7 +537,9 @@ namespace SSASDiag
             npServer.PushMessage(s);
             if (s.StartsWith("\r\nTime remaining until collection starts: ") || s.StartsWith("\r\nDiagnostics captured for "))
             {
-                string[] lines = File.ReadAllLines(svcOutputPath);
+                string[] lines = new string[0];
+                if (File.Exists(svcOutputPath))
+                    File.ReadAllLines(svcOutputPath);
                 if (lines[lines.Length - 1].StartsWith(s.Substring(2, 14)))
                 {
                     lines[lines.Length - 1] = s.Trim(new char[] { '\r', '\n' }) ;
