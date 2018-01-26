@@ -107,7 +107,7 @@ namespace SSASDiag
             if (connSqlDb.DataSource.ToUpper() == Environment.MachineName.ToUpper())
                 instance = "MSSQLSERVER";
             else
-                instance = (connSqlDb.DataSource.Contains("\\") ? connSqlDb.DataSource.Substring(connSqlDb.DataSource.IndexOf("\\")) : "MSSQLSERVER");
+                instance = (connSqlDb.DataSource.Contains("\\") ? connSqlDb.DataSource.Substring(connSqlDb.DataSource.IndexOf("\\") + 1) : "MSSQLSERVER");
 
             foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
                 if (s.DisplayName.Contains("SQL Server (" + instance + ")"))
