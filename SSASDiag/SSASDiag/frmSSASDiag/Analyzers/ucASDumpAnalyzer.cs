@@ -566,7 +566,7 @@ namespace SSASDiag
                 res = SubmitDebuggerCommand("dt in_pThreadContext m_pParentEC->m_spSession->p");  // obtains the pointer to PXSession for the thread
                 res = res.Substring(res.LastIndexOf(": ") + ": ".Length);
                 string PXSessionAddy = res.Substring(0, res.LastIndexOf(" "));
-                s.PXSessionAddyReferencedFromRemoteOwningThread = PXSessionAddy;
+                s.PXSessionAddyReferencedFromRemoteOwningThread = PXSessionAddy.Contains("Cannot find specified field") ? "" : PXSessionAddy;
             }
         }
 
@@ -580,23 +580,27 @@ namespace SSASDiag
                 string PXSessionLine = Lines.Where(l => l.Contains("PXSession")).Last();
                 res = SubmitDebuggerCommand(".frame " + PXSessionLine.Substring(0, PXSessionLine.IndexOf(" ")));
                 res = SubmitDebuggerCommand("dt this m_strLastRequest");
-                string addy = res.Substring(res.IndexOf("PXSession*\r\n") + "PXSession*\r\n".Length);
-                addy = addy.Substring(0, addy.IndexOf(" "));
-                s.PXSessionAddyOnThisStack = addy;
-                addy = res.Substring(res.IndexOf("Type PXSession*\r\n") + "Type PXSession*\r\n".Length);
-                addy = addy.Substring(0, addy.IndexOf(" "));
-                string offset = res.Substring(res.IndexOf(addy) + addy.Length);
-                offset = offset.Substring(offset.IndexOf("+"));
-                offset = offset.Substring(0, offset.IndexOf(" "));
-                res = SubmitDebuggerCommand("dt PFString " + addy + offset);
-                addy = res.Substring(res.IndexOf(" : ") + " : ".Length);
+                string offset = res.Substring(res.LastIndexOf("+0x"));
+                offset = offset.Substring(0, offset.IndexOf(" ")).TrimStart('+');
+                string addy = SubmitDebuggerCommand("dq /c1 this + " + offset).Split('\r').First();
+                addy = addy.Substring(addy.LastIndexOf(" ") + 1);
+                //string addy = res.Substring(res.IndexOf("PXSession*\r\n") + "PXSession*\r\n".Length);
+                //addy = addy.Substring(0, addy.IndexOf(" "));
+                //s.PXSessionAddyOnThisStack = addy;
+                //addy = res.Substring(res.IndexOf("Type PXSession*\r\n") + "Type PXSession*\r\n".Length);
+                //addy = addy.Substring(0, addy.IndexOf(" "));
+                //string offset = res.Substring(res.IndexOf(addy) + addy.Length);
+                //offset = offset.Substring(offset.IndexOf("+"));
+                //offset = offset.Substring(0, offset.IndexOf(" "));
+                //res = SubmitDebuggerCommand("dt PFString " + addy + offset);
+                //addy = res.Substring(res.IndexOf(" : ") + " : ".Length);
                 try
                 {
-                    addy = addy.Substring(0, addy.IndexOf("PFData<") - 1);
                     qry = SubmitDebuggerCommand(".printf \"%mu\", " + addy);
                     int PromptLocation = qry.LastIndexOf(CurrentPrompt);
                     if (PromptLocation != -1)
                         qry = qry.Substring(0, qry.LastIndexOf(CurrentPrompt));
+                    qry = qry.TrimStart(' ').TrimEnd(' ');
                 }
                 catch
                 {
@@ -668,7 +672,7 @@ namespace SSASDiag
                     // Process non-exception threads
                     List<string> AllThreads = new List<string>();
                     while (AllThreads.Count <= 1 && !bCancel)  // hack - sometimes it doesn't execute the first try, don't know why.
-                        AllThreads = SubmitDebuggerCommand("~*kN").Replace("\n", "").Split(new char[] { '\r'}).ToList();
+                        AllThreads = SubmitDebuggerCommand("~*kN").Replace("\n", "").Split(new char[] { '\r'}).Where(line => !line.StartsWith("*** ERROR:")).ToList();
                     if (!bCancel)
                     {
                         for (int i = 0; i < AllThreads.Count; i++)
