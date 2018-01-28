@@ -74,10 +74,13 @@ namespace SSASDiag
                     if (s.PXSessionAddyReferencedFromRemoteOwningThread != null && s.PXSessionAddyReferencedFromRemoteOwningThread != "")
                     {
                         Stack owner = _stacks.Find(st => st.PXSessionAddyOnThisStack == s.PXSessionAddyReferencedFromRemoteOwningThread);
-                        s.RemoteOwningThreadID = owner.ThreadID;
-                        if (owner.OwnedThreads == null)
-                            owner.OwnedThreads = new List<int>();
-                        owner.OwnedThreads.Add(s.ThreadID);
+                        if (owner != null)
+                        {
+                            s.RemoteOwningThreadID = owner.ThreadID;
+                            if (owner.OwnedThreads == null)
+                                owner.OwnedThreads = new List<int>();
+                            owner.OwnedThreads.Add(s.ThreadID);
+                        }
                     }
                 }
             }
@@ -582,7 +585,7 @@ namespace SSASDiag
                 res = SubmitDebuggerCommand("dt this m_strLastRequest");
                 string offset = res.Substring(res.LastIndexOf("+0x"));
                 offset = offset.Substring(0, offset.IndexOf(" ")).TrimStart('+');
-                string addy = SubmitDebuggerCommand("dq /c1 this + " + offset).Split('\r').First();
+                string addy = SubmitDebuggerCommand("dq /c1 poi(this) + " + offset).Split('\r').First();
                 addy = addy.Substring(addy.LastIndexOf(" ") + 1);
                 //string addy = res.Substring(res.IndexOf("PXSession*\r\n") + "PXSession*\r\n".Length);
                 //addy = addy.Substring(0, addy.IndexOf(" "));
