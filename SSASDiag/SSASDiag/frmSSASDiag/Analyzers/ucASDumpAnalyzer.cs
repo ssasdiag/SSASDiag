@@ -400,8 +400,7 @@ namespace SSASDiag
                 }
                 StatusFloater.Invoke(new System.Action(() =>
                 {
-                    StatusFloater.Close();
-                    StatusFloater = null;
+                    StatusFloater.Hide();
                 }));
                 if (!symbolsResolved)
                 {

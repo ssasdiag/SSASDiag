@@ -295,6 +295,7 @@ namespace SSASDiag
         private void BgSelectivelyExtractAnalysisDataFromZip_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             CompleteAnalysisTabsPopulationAfterZipExtraction();
+            StatusFloater.lblSubStatus.Text = "";
         }
 
         private void BgSelectivelyExtractAnalysisDataFromZip_DoWork(object sender, DoWorkEventArgs e)
@@ -350,7 +351,7 @@ namespace SSASDiag
 
             StatusFloater.Invoke(new System.Action(() =>
             {
-                StatusFloater.Close();
+                StatusFloater.Hide();
             }));
         }
 

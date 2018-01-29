@@ -551,7 +551,7 @@ namespace SSASDiag
         }
         private void BgDetachProfilerDB_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            StatusFloater.Close();
+            StatusFloater.Hide();
             Close();
         }
         private void frmSSASDiag_Resize(object sender, EventArgs e)
