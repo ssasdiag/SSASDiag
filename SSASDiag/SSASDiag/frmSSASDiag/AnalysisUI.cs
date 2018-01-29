@@ -88,120 +88,126 @@ namespace SSASDiag
             tcAnalysis.TabPages.Clear();
             btnImportProfilerTrace.Visible = true;
 
-            string mdfPath = "";
             if (m_analysisPath != null)
             {
                 if (m_analysisPath.EndsWith(".zip"))
                     SelectivelyExtractAnalysisDataFromZip();
+                else
+                    CompleteAnalysisTabsPopulationAfterZipExtraction();
+            }
+        }
 
-                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith("\\msmdsrv.ini")) || File.Exists(m_analysisPath + "\\msmdsrv.ini"))
-                {
-                    tcAnalysis.TabPages.Add(new TabPage("Configuration") { ImageIndex = 0, Name = "Configuration" });
-                    tcAnalysis.TabPages["Configuration"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of configuration details."));
-                }
-                bool dirhasdumps = false;
-                if (!File.Exists(m_analysisPath))
-                {
-                    foreach (string dir in Directory.EnumerateDirectories(m_analysisPath))
-                        if (!dir.Contains("\\$RECYCLE.BIN") &&
-                            !dir.Contains("\\System Volume Information") &&
-                            Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories).Count() > 0)
-                        {
-                            dirhasdumps = true;
-                            break;
-                        }
-                }
-                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdmp")) || dirhasdumps)
-                {
-                    if (ValidateProfilerTraceDBConnectionStatus())
+        void CompleteAnalysisTabsPopulationAfterZipExtraction()
+        {
+            string mdfPath = "";
+            if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith("\\msmdsrv.ini")) || File.Exists(m_analysisPath + "\\msmdsrv.ini"))
+            {
+                tcAnalysis.TabPages.Add(new TabPage("Configuration") { ImageIndex = 0, Name = "Configuration" });
+                tcAnalysis.TabPages["Configuration"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of configuration details."));
+            }
+            bool dirhasdumps = false;
+            if (!File.Exists(m_analysisPath))
+            {
+                foreach (string dir in Directory.EnumerateDirectories(m_analysisPath))
+                    if (!dir.Contains("\\$RECYCLE.BIN") &&
+                        !dir.Contains("\\System Volume Information") &&
+                        Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories).Count() > 0)
                     {
-                        ucASDumpAnalyzer DumpAnalyzer = new ucASDumpAnalyzer(m_analysisPath, connSqlDb);
-                        DumpAnalyzer.Dock = DockStyle.Fill;
-                        tcAnalysis.TabPages.Add(new TabPage("Memory Dumps") { ImageIndex = 1, Name = "Memory Dumps" });
-                        tcAnalysis.TabPages["Memory Dumps"].Controls.Add(DumpAnalyzer);
+                        dirhasdumps = true;
+                        break;
                     }
-                }
-                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".evtx")) || 
-                    File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_Application.evtx") ||
-                    File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_System.evtx"))
+            }
+            if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdmp")) || dirhasdumps)
+            {
+                if (ValidateProfilerTraceDBConnectionStatus())
                 {
-                    tcAnalysis.TabPages.Add(new TabPage("Event Logs") { ImageIndex = 2, Name = "Event Logs" });
-                    tcAnalysis.TabPages["Event Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of event logs."));
+                    ucASDumpAnalyzer DumpAnalyzer = new ucASDumpAnalyzer(m_analysisPath, connSqlDb);
+                    DumpAnalyzer.Dock = DockStyle.Fill;
+                    tcAnalysis.TabPages.Add(new TabPage("Memory Dumps") { ImageIndex = 1, Name = "Memory Dumps" });
+                    tcAnalysis.TabPages["Memory Dumps"].Controls.Add(DumpAnalyzer);
                 }
-                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".etl")) ||
-                    (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".cap")) ||
-                    File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".etl") || 
-                    File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log"))
-                {
-                    tcAnalysis.TabPages.Add(new TabPage("Network Trace") { ImageIndex = 3, Name = "Network Trace" });
-                    TextBox txtNetworkAnalysis = GetStatusTextBox();
-                    Button btnAnalyzeNetworkTrace = new Button() { Text = "Analyze Trace", Name = "btnAnalyzeNetworkTrace", Left = tcAnalysis.Width / 2 - 54, Width = 108, Top = 80, Visible = false };
-                    tcAnalysis.TabPages["Network Trace"].Controls.Add(btnAnalyzeNetworkTrace);
-                    btnAnalyzeNetworkTrace.Click += btnAnalyzeNetworkTrace_Click;
-                    tcAnalysis.TabPages["Network Trace"].Controls.Add(txtNetworkAnalysis);
+            }
+            if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".evtx")) ||
+                File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_Application.evtx") ||
+                File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_System.evtx"))
+            {
+                tcAnalysis.TabPages.Add(new TabPage("Event Logs") { ImageIndex = 2, Name = "Event Logs" });
+                tcAnalysis.TabPages["Event Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of event logs."));
+            }
+            if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".etl")) ||
+                (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".cap")) ||
+                File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".etl") ||
+                File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log"))
+            {
+                tcAnalysis.TabPages.Add(new TabPage("Network Trace") { ImageIndex = 3, Name = "Network Trace" });
+                TextBox txtNetworkAnalysis = GetStatusTextBox();
+                Button btnAnalyzeNetworkTrace = new Button() { Text = "Analyze Trace", Name = "btnAnalyzeNetworkTrace", Left = tcAnalysis.Width / 2 - 54, Width = 108, Top = 80, Visible = false };
+                tcAnalysis.TabPages["Network Trace"].Controls.Add(btnAnalyzeNetworkTrace);
+                btnAnalyzeNetworkTrace.Click += btnAnalyzeNetworkTrace_Click;
+                tcAnalysis.TabPages["Network Trace"].Controls.Add(txtNetworkAnalysis);
 
-                    if (File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log"))
-                    {
-                        txtNetworkAnalysis.Text = File.ReadAllText(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log");
-                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log");
-                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log");
-                    }
+                if (File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log"))
+                {
+                    txtNetworkAnalysis.Text = File.ReadAllText(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log");
+                    AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log");
+                    AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log");
+                }
+                else
+                {
+                    btnAnalyzeNetworkTrace.Visible = true;
+                }
+            }
+            if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".blg")) || File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".blg"))
+            {
+                tcAnalysis.TabPages.Add(new TabPage("Performance Logs") { ImageIndex = 4, Name = "Performance Logs" });
+                tcAnalysis.TabPages["Performance Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of performance logs."));
+            }
+            if (
+                    (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".trc")) ||
+                    (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdf")) ||
+                    (
+                        !File.Exists(m_analysisPath) &&
+                        (Directory.GetFiles(m_analysisPath, AnalysisTraceID + "*.trc").Count() > 0 ||
+                         File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
+                    )
+               )
+            {
+                SetupSQLTextbox();
+                LogFeatureUse("Profiler Analysis", "Initializing analysis tab");
+                splitProfilerAnalysis.Visible = false;
+                ProfilerTraceStatusTextBox.Text = "";
+                tcAnalysis.TabPages.Add(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
+                HiddenTabPages.Remove(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
+                if (!Validate2017ManagementComponents())
+                {
+                    ProfilerTraceStatusTextBox.Text = "SQL 2017 Management Studio components required.\r\nComplete install from https://go.microsoft.com/fwlink/?LinkID=840946 and then open Profiler Trace Analysis again.";
+                    btnImportProfilerTrace.Visible = false;
+                }
+                else
+                {
+                    btnImportProfilerTrace.Visible = true;
+                    string sqlForTraces = Properties.Settings.Default["SqlForProfilerTraceAnalysis"] as string;
+                    if (m_analysisPath.EndsWith(".trc"))
+                        mdfPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) + "Analysis" + m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\")).Replace(".trc", "").TrimEnd(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) + ".mdf";
                     else
+                        mdfPath = m_analysisPath;
+                    if (File.Exists(mdfPath) || File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
                     {
-                        btnAnalyzeNetworkTrace.Visible = true;
-                    }
-                }
-                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".blg")) || File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".blg"))
-                {
-                    tcAnalysis.TabPages.Add(new TabPage("Performance Logs") { ImageIndex = 4, Name = "Performance Logs" });
-                    tcAnalysis.TabPages["Performance Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of performance logs."));
-                }
-                if (
-                        (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".trc")) ||
-                        (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdf")) ||
-                        (
-                            !File.Exists(m_analysisPath) &&
-                            (Directory.GetFiles(m_analysisPath, AnalysisTraceID + "*.trc").Count() > 0 || 
-                             File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
-                        )
-                   )
-                {
-                    SetupSQLTextbox();
-                    LogFeatureUse("Profiler Analysis", "Initializing analysis tab");
-                    splitProfilerAnalysis.Visible = false;
-                    ProfilerTraceStatusTextBox.Text = "";
-                    tcAnalysis.TabPages.Add(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
-                    HiddenTabPages.Remove(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
-                    if (!Validate2017ManagementComponents())
-                    {
-                        ProfilerTraceStatusTextBox.Text = "SQL 2017 Management Studio components required.\r\nComplete install from https://go.microsoft.com/fwlink/?LinkID=840946 and then open Profiler Trace Analysis again.";
+                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
+                        AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
+                        ProfilerTraceStatusTextBox.AppendText("Using trace data loaded into SQL .mdf at " + m_analysisPath + (m_analysisPath.EndsWith(".mdf") ? ".\r\n" : "\\Analysis\\.\r\n"));
+                        new Thread(new ThreadStart(() => AttachProfilerTraceDB())).Start();
+                        splitProfilerAnalysis.Visible = true;
                         btnImportProfilerTrace.Visible = false;
                     }
                     else
                     {
-                        btnImportProfilerTrace.Visible = true;
-                        string sqlForTraces = Properties.Settings.Default["SqlForProfilerTraceAnalysis"] as string;
-                        if (m_analysisPath.EndsWith(".trc"))
-                            mdfPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) + "Analysis" + m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\")).Replace(".trc", "").TrimEnd(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) + ".mdf";
-                        else
-                            mdfPath = m_analysisPath;
-                        if (File.Exists(mdfPath) || File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
-                        {
-                            AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
-                            AddFileFromFolderIfAnlyzingZip(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
-                            ProfilerTraceStatusTextBox.AppendText("Using trace data loaded into SQL .mdf at " + m_analysisPath + (m_analysisPath.EndsWith(".mdf") ? ".\r\n" : "\\Analysis\\.\r\n"));
-                            new Thread(new ThreadStart(() => AttachProfilerTraceDB())).Start();
-                            splitProfilerAnalysis.Visible = true;
-                            btnImportProfilerTrace.Visible = false;
-                        }
-                        else
-                        {
-                            ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  Import to perform analysis.";
-                        }
+                        ProfilerTraceStatusTextBox.Text = "Trace file is not yet imported to database table for analysis.  Import to perform analysis.";
                     }
                 }
             }
         }
+
 
         string GetAnalysisIDFromLog()
         {
@@ -273,12 +279,29 @@ namespace SSASDiag
         }
         private void SelectivelyExtractAnalysisDataFromZip()
         {
+            StatusFloater.lblStatus.Text = "Extracting data from zip for analysis...";
+            StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
+            StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
+            StatusFloater.Show(this);
+            BackgroundWorker bgSelectivelyExtractAnalysisDataFromZip = new BackgroundWorker();
+            bgSelectivelyExtractAnalysisDataFromZip.DoWork += BgSelectivelyExtractAnalysisDataFromZip_DoWork;
+            bgSelectivelyExtractAnalysisDataFromZip.RunWorkerCompleted += BgSelectivelyExtractAnalysisDataFromZip_RunWorkerCompleted;
+            bgSelectivelyExtractAnalysisDataFromZip.RunWorkerAsync();
+        }
+
+        private void BgSelectivelyExtractAnalysisDataFromZip_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            CompleteAnalysisTabsPopulationAfterZipExtraction();
+        }
+
+        private void BgSelectivelyExtractAnalysisDataFromZip_DoWork(object sender, DoWorkEventArgs e)
+        {
             Ionic.Zip.ZipFile z = new Ionic.Zip.ZipFile(m_analysisPath);
             // Always extract directly into the current running location.
             // This ensures we don't accidentally fill up a temp drive or something with large files.
             AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag").Replace(".zip", "");
             m_analysisPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) + AnalysisTraceID;
-            
+
             if (!Directory.Exists(m_analysisPath))
                 Directory.CreateDirectory(m_analysisPath);
             if (!Directory.Exists(m_analysisPath + "\\Analysis"))
@@ -321,9 +344,16 @@ namespace SSASDiag
             if (z.Entries.Where(f => f.FileName == "msmdsrv.ini").Count() > 0)
                 ExtractFileToPath(z, m_analysisPath, "msmdsrv.ini");
             z.Dispose();
+
+            StatusFloater.Invoke(new System.Action(() =>
+            {
+                StatusFloater.Close();
+            }));
         }
+
         private void ExtractFileToPath(Ionic.Zip.ZipFile z, string OutputPath, string FileName)
         {
+            StatusFloater.Invoke(new System.Action(() => StatusFloater.lblSubStatus.Text = FileName));
             FileStream fs;
             if (!File.Exists(OutputPath + "\\" + FileName) && z.Count(ze=>ze.FileName.Contains(FileName)) > 0)
             {
@@ -336,6 +366,7 @@ namespace SSASDiag
         {
             foreach (Ionic.Zip.ZipEntry e in z.Entries.Where(f => f.FileName.Contains(ext)))
             {
+                StatusFloater.Invoke(new System.Action(() => StatusFloater.lblSubStatus.Text = e.FileName.Substring(e.FileName.LastIndexOf("/") + 1)));
                 if (!File.Exists(m_analysisPath + "\\" + e.FileName.Substring(e.FileName.LastIndexOf("/") + 1)))
                 {
                     FileStream fs = new FileStream(m_analysisPath + "\\" + e.FileName.Substring(e.FileName.LastIndexOf("/") + 1), FileMode.Create);

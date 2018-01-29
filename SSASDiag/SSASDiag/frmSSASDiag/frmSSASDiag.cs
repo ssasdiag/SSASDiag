@@ -244,6 +244,14 @@ namespace SSASDiag
 
         private void frmSSASDiag_Shown(object sender, EventArgs e)
         {
+            if (Args.ContainsKey("filename") && !Args.ContainsKey("start"))
+            {
+                tcCollectionAnalysisTabs.SelectedIndex = 1;
+                txtFolderZipForAnalysis.Text = m_analysisPath = Args["filename"];
+                LogFeatureUse("Analysis File Opened", Args["filename"].Substring(Args["filename"].LastIndexOf("\\") + 1));
+                PopulateAnalysisTabs();
+            }
+
             bool bUsageStatsAlreadySet = true;
             string s = Properties.Settings.Default.AllowUsageStats;
 
@@ -317,14 +325,6 @@ namespace SSASDiag
             if (Args.ContainsKey("levelofdata"))
                 try { tbLevelOfData.Value = Convert.ToInt32(Args["levelofdata"]); }
                 catch { }
-
-            if (Args.ContainsKey("filename") && !Args.ContainsKey("start"))
-            {
-                txtFolderZipForAnalysis.Text = m_analysisPath = Args["filename"];
-                LogFeatureUse("Analysis File Opened", Args["filename"].Substring(Args["filename"].LastIndexOf("\\") + 1));
-                PopulateAnalysisTabs();
-                tcCollectionAnalysisTabs.SelectedIndex = 1;
-            }
 
             LogFeatureUse("Startup", "Initialization complete.  AutoUpdate=" + automaticallyCheckForUpdatesToolStripMenuItem.Checked + ",AllowUsageStats=" + enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked);
 
