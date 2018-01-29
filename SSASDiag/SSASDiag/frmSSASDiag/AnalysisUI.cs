@@ -99,8 +99,19 @@ namespace SSASDiag
                     tcAnalysis.TabPages.Add(new TabPage("Configuration") { ImageIndex = 0, Name = "Configuration" });
                     tcAnalysis.TabPages["Configuration"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of configuration details."));
                 }
-                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdmp")) || 
-                    (!File.Exists(m_analysisPath) && Directory.GetFiles(m_analysisPath, "*.mdmp", SearchOption.AllDirectories).Count() > 0))
+                bool dirhasdumps = false;
+                if (!File.Exists(m_analysisPath))
+                {
+                    foreach (string dir in Directory.EnumerateDirectories(m_analysisPath))
+                        if (!dir.Contains("\\$RECYCLE.BIN") &&
+                            !dir.Contains("\\System Volume Information") &&
+                            Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories).Count() > 0)
+                        {
+                            dirhasdumps = true;
+                            break;
+                        }
+                }
+                if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdmp")) || dirhasdumps)
                 {
                     if (ValidateProfilerTraceDBConnectionStatus())
                     {
@@ -194,17 +205,24 @@ namespace SSASDiag
 
         string GetAnalysisIDFromLog()
         {
-            string[] logs = Directory.GetFiles(m_analysisPath, "SSASDiag.log", SearchOption.AllDirectories);
-            if (logs.Length > 0)
+            try
             {
-                string[] lines = File.ReadAllLines(logs[0]).Where(s=>s.Trim() != "").ToArray();
-                if (lines.Length >= 2 && lines[1].StartsWith("Initialized service for trace with ID: "))
-                    return lines[1].Substring("Initialized service for trace with ID: ".Length);
+                string[] logs = Directory.GetFiles(m_analysisPath, "SSASDiag.log", SearchOption.TopDirectoryOnly);
+                if (logs.Length > 0)
+                {
+                    string[] lines = File.ReadAllLines(logs[0]).Where(s => s.Trim() != "").ToArray();
+                    if (lines.Length >= 2 && lines[1].StartsWith("Initialized service for trace with ID: "))
+                        return lines[1].Substring("Initialized service for trace with ID: ".Length);
+                    else
+                        return m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
+                }
                 else
                     return m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
             }
-            else
+            catch
+            {
                 return m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag");
+            }
         }
 
         private void AnalysisMessagePumpTimer_Tick(object sender, EventArgs e)

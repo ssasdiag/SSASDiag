@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
@@ -73,6 +74,7 @@ namespace SSASDiag
                 {
                     if (s.PXSessionAddyReferencedFromRemoteOwningThread != null && s.PXSessionAddyReferencedFromRemoteOwningThread != "")
                     {
+                        List<Stack> sts = _stacks.Where(stk => stk.PXSessionAddyOnThisStack != null).ToList();
                         Stack owner = _stacks.Find(st => st.PXSessionAddyOnThisStack == s.PXSessionAddyReferencedFromRemoteOwningThread);
                         if (owner != null)
                         {
@@ -161,7 +163,10 @@ namespace SSASDiag
 
             if (Directory.Exists(dumpPath))
             {
-                List<string> dumpfiles = Directory.GetFiles(DumpPath, "*.mdmp", SearchOption.AllDirectories).ToList();
+                List<string> dumpfiles = new List<string>();
+                foreach (string dir in Directory.EnumerateDirectories(dumpPath))
+                    if (!dir.Contains("\\$RECYCLE.BIN") && !dir.Contains("\\System Volume Information"))
+                        dumpfiles.AddRange(Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories));
                 foreach (string f in dumpfiles)
                     DumpFiles.Add(new Dump() { DumpPath = f, Analyzed = false, Crash = false });
                 AnalysisPath = DumpPath + "\\Analysis";
@@ -233,6 +238,7 @@ namespace SSASDiag
                 Dump d = DumpFiles.Find(df => df.DumpPath == dr["DumpPath"] as string);
                 if (d != null)
                 {
+                    d.Stacks = new List<Stack>();
                     d.Analyzed = true;
                     d.ASVersion = dr["ASVersion"] as string;
                     d.DumpTime = (DateTime)dr["DumpTime"];
@@ -257,6 +263,7 @@ namespace SSASDiag
                             foreach (string s in (dr["OwnedThreads"] as string).Split(','))
                                 ownedThreads.Add(Convert.ToInt32(s));
                         int? OwningThread = dr["OwningThread"] as int?;
+                        if (d.Stacks == null) d.Stacks = new List<Stack>();
                         d.Stacks.Add(new Stack()
                         {
                             CallStack = dr["Stack"] as string,
@@ -267,8 +274,9 @@ namespace SSASDiag
                             RemoteOwningThreadID = OwningThread
                         });
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        Trace.WriteLine(ex.Message);
                         // This would fail only if there was some corruption in the database and needn't be handled, but better not to fail in that case, so adding empty try/catch...
                     }
                 }
@@ -370,6 +378,9 @@ namespace SSASDiag
             StatusFloater.Show(Program.MainForm);
             new Thread(new ThreadStart(() =>
             {
+                // Disable symbol load timeouts to favor symbol loading even if slow
+                Registry.LocalMachine.CreateSubKey("Software\\Microsoft\\Symbol Server Proxy", RegistryKeyPermissionCheck.ReadWriteSubTree, RegistryOptions.None).SetValue("MissTimeout", 0, RegistryValueKind.DWord);
+
                 bool symbolsResolved = false;
                 string sympath = Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH");
                 if (sympath != null && (sympath.Contains("http://symweb") || sympath.Contains("https://symweb")))
@@ -568,7 +579,7 @@ namespace SSASDiag
                 res = SubmitDebuggerCommand(".frame " + PFThreadPool_ExecuteJobLine.Substring(0, PFThreadPool_ExecuteJobLine.IndexOf(" ")));
                 res = SubmitDebuggerCommand("dt in_pThreadContext m_pParentEC->m_spSession->p");  // obtains the pointer to PXSession for the thread
                 res = res.Substring(res.LastIndexOf(": ") + ": ".Length);
-                string PXSessionAddy = res.Substring(0, res.LastIndexOf(" "));
+                string PXSessionAddy = res.Substring(0, res.LastIndexOf(" ")).Replace("0x", "");
                 s.PXSessionAddyReferencedFromRemoteOwningThread = PXSessionAddy.Contains("Cannot find specified field") ? "" : PXSessionAddy;
             }
         }
@@ -577,26 +588,18 @@ namespace SSASDiag
         {
             string qry = "";
             List<string> Lines = new List<string>(s.CallStack.Split(new char[] { '\r', '\n' }));
-            if (Lines.Where(c => c.Contains("PXSession")).Count() > 0)
+            if (Lines.Where(c => c.Contains("PXSession::InternalExecuteCommand")).Count() > 0)
             {
                 string res = SubmitDebuggerCommand("~" + s.ThreadID + "s");
-                string PXSessionLine = Lines.Where(l => l.Contains("PXSession")).Last();
+                string PXSessionLine = Lines.Where(l => l.Contains("PXSession::InternalExecuteCommand")).Last();
                 res = SubmitDebuggerCommand(".frame " + PXSessionLine.Substring(0, PXSessionLine.IndexOf(" ")));
                 res = SubmitDebuggerCommand("dt this m_strLastRequest");
                 string offset = res.Substring(res.LastIndexOf("+0x"));
                 offset = offset.Substring(0, offset.IndexOf(" ")).TrimStart('+');
                 string addy = SubmitDebuggerCommand("dq /c1 poi(this) + " + offset).Split('\r').First();
                 addy = addy.Substring(addy.LastIndexOf(" ") + 1);
-                //string addy = res.Substring(res.IndexOf("PXSession*\r\n") + "PXSession*\r\n".Length);
-                //addy = addy.Substring(0, addy.IndexOf(" "));
-                //s.PXSessionAddyOnThisStack = addy;
-                //addy = res.Substring(res.IndexOf("Type PXSession*\r\n") + "Type PXSession*\r\n".Length);
-                //addy = addy.Substring(0, addy.IndexOf(" "));
-                //string offset = res.Substring(res.IndexOf(addy) + addy.Length);
-                //offset = offset.Substring(offset.IndexOf("+"));
-                //offset = offset.Substring(0, offset.IndexOf(" "));
-                //res = SubmitDebuggerCommand("dt PFString " + addy + offset);
-                //addy = res.Substring(res.IndexOf(" : ") + " : ".Length);
+                s.PXSessionAddyOnThisStack = SubmitDebuggerCommand("dq /c1 this").Split('\r').First();
+                s.PXSessionAddyOnThisStack = s.PXSessionAddyOnThisStack.Substring(s.PXSessionAddyOnThisStack.LastIndexOf(" ") + 1);
                 try
                 {
                     qry = SubmitDebuggerCommand(".printf \"%mu\", " + addy);
@@ -617,6 +620,8 @@ namespace SSASDiag
         public void AnalyzeDump(string path)
         {
             LastResponse = "";
+            string pid = "";
+            DateTime dt = DateTime.Now;
             SqlCommand cmd = new SqlCommand();
             cmd.Connection = connDB;
             p.OutputDataReceived += P_OutputDataReceived;
@@ -641,66 +646,83 @@ namespace SSASDiag
                     ResultReady.WaitOne();
                     ResultReady.Reset();
                     string init = LastResponse;
-                    if (bCancel)
-                        return;
-                    d.ASVersion = SubmitDebuggerCommand("lmvm msmdsrv").Split(new char[] { '\r', '\n' }).Where(f => f.Contains("Product version:")).First().Replace("    Product version:  ", "");
-                    d.Crash = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("This dump file has an exception of interest stored in it.")).Count() > 0;
-                    string pid = SubmitDebuggerCommand("|.");
-                    pid = pid.Substring(pid.IndexOf("\tid: ") + " id: ".Length);
-                    pid = pid.Substring(0, pid.IndexOf("\t"));
-                    d.ProcessID = pid;
-                    string debugTime = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("Debug session time: ")).First().Replace("Debug session time: ", "").Trim();
-                    string[] timeparts = debugTime.Replace("   ", " ").Replace("  ", " ").Split(new char[] { ' ' });
-                    string properTime = timeparts[1] + " " + timeparts[2] + ", " + timeparts[4] + " " + timeparts[3] + " " + timeparts[6] + timeparts[7].Replace(")", "");
-                    DateTime dt;
-                    DateTime.TryParseExact(properTime, "MMM d, yyyy HH:mm:ss.fff zzz", null, System.Globalization.DateTimeStyles.AssumeLocal, out dt);
-                    d.DumpTime = dt;
-
-                    if (bCancel)
-                        return;
-
-                    d.Stacks = new List<Stack>();
-                    string stk = SubmitDebuggerCommand("kN").Trim();
-                    int tid = Convert.ToInt32((CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "")));
-                    Stack s = new Stack() { CallStack = stk, ThreadID = tid, ExceptionThread = true };
-                    GetQueryFromStack(s);
-                    GetOwningPXSessionFromStack(s);
-
-                    if (bCancel)
-                        return;
-                    
-                    d.Stacks.Add(s);
-                    frmSSASDiag.LogFeatureUse("Dump Analysis", ("Analysis of dump " + path + " shows the following exception stack:\r\n" + stk.Replace("'", "''")));
-
-                    // Process non-exception threads
-                    List<string> AllThreads = new List<string>();
-                    while (AllThreads.Count <= 1 && !bCancel)  // hack - sometimes it doesn't execute the first try, don't know why.
-                        AllThreads = SubmitDebuggerCommand("~*kN").Replace("\n", "").Split(new char[] { '\r'}).Where(line => !line.StartsWith("*** ERROR:")).ToList();
-                    if (!bCancel)
+                    if (init.StartsWith("ERROR: ") || init.Trim().EndsWith("ERROR:"))
                     {
-                        for (int i = 0; i < AllThreads.Count; i++)
+                        d.Crash = true;
+                        d.ProcessID = pid = "BAD DUMP";
+                        d.ASVersion = "BAD DUMP";
+                        d.Stacks = new List<Stack>();
+                        d.DumpTime = dt = DateTime.Now;
+                        d.DumpException = "BAD DUMP";
+                    }
+                    else
+                    {
+                        if (bCancel)
+                            return;
+                        d.ASVersion = SubmitDebuggerCommand("lmvm msmdsrv");
+                        if (d.ASVersion.Contains("Product version:"))
+                            d.ASVersion = d.ASVersion.Split(new char[] { '\r', '\n' }).Where(f => f.Contains("Product version:")).First().Replace("    Product version:  ", "");
+                        else d.ASVersion = "NOT LOADED";
+                        List<string> inits = init.Split(new char[] { '\r', '\n' }).ToList();
+                        d.Crash = inits.Where(f => f.StartsWith("This dump file has an exception of interest stored in it.")).Count() > 0;
+                        string exc = inits[inits.IndexOf("The stored exception information can be accessed via .ecxr.") + 2];
+                        d.DumpException = exc;
+                        pid = SubmitDebuggerCommand("|.");
+                        pid = pid.Substring(pid.IndexOf("\tid: ") + " id: ".Length);
+                        pid = pid.Substring(0, pid.IndexOf("\t"));
+                        d.ProcessID = pid;
+                        string debugTime = init.Split(new char[] { '\r', '\n' }).Where(f => f.StartsWith("Debug session time: ")).First().Replace("Debug session time: ", "").Trim();
+                        string[] timeparts = debugTime.Replace("   ", " ").Replace("  ", " ").Split(new char[] { ' ' });
+                        string properTime = timeparts[1] + " " + timeparts[2] + ", " + timeparts[4] + " " + timeparts[3] + " " + timeparts[6] + timeparts[7].Replace(")", "");
+                        DateTime.TryParseExact(properTime, "MMM d, yyyy HH:mm:ss.fff zzz", null, System.Globalization.DateTimeStyles.AssumeLocal, out dt);
+                        d.DumpTime = dt;
+
+                        if (bCancel)
+                            return;
+
+                        d.Stacks = new List<Stack>();
+                        string stk = SubmitDebuggerCommand("kN").Trim();
+                        int tid = Convert.ToInt32((CurrentPrompt.Replace(">", "").Replace(" ", "").Replace(":", "")));
+                        Stack s = new Stack() { CallStack = stk, ThreadID = tid, ExceptionThread = true };
+                        GetQueryFromStack(s);
+                        GetOwningPXSessionFromStack(s);
+
+                        if (bCancel)
+                            return;
+
+                        d.Stacks.Add(s);
+                        frmSSASDiag.LogFeatureUse("Dump Analysis", ("Analysis of dump " + path + " shows the following exception stack:\r\n" + stk.Replace("'", "''")));
+
+                        // Process non-exception threads
+                        List<string> AllThreads = new List<string>();
+                        while (AllThreads.Count <= 1 && !bCancel)  // hack - sometimes it doesn't execute the first try, don't know why.
+                            AllThreads = SubmitDebuggerCommand("~*kN").Replace("\n", "").Split(new char[] { '\r' }).Where(line => !line.StartsWith("*** ERROR:")).ToList();
+                        if (!bCancel)
                         {
-                            if (!bCancel)
+                            for (int i = 0; i < AllThreads.Count; i++)
                             {
-                                string l = AllThreads[i];
-                                if (l.StartsWith(" # Child-SP") && !AllThreads[i - 1].StartsWith("#"))  // The exception thread already captured is denoted in output with # so we can skip it...
+                                if (!bCancel)
                                 {
-                                    s = new Stack() { ExceptionThread = false };
-                                    s.ThreadID = Convert.ToInt32(AllThreads[i - 1].Substring(0, AllThreads[i - 1].IndexOf(" Id: ")).TrimStart('.').TrimStart());
-                                    int j = i;
-                                    for (; AllThreads[j] != ""; j++)
-                                        s.CallStack += AllThreads[j] + "\r\n";
-                                    i = j;
-                                    s.CallStack = s.CallStack.TrimEnd();
-                                    GetQueryFromStack(s);
-                                    if (d.Stacks.Find(st => st.ThreadID == s.ThreadID) == null && !bCancel)
-                                        d.Stacks.Add(s);
+                                    string l = AllThreads[i];
+                                    if (l.StartsWith(" # Child-SP") && !AllThreads[i - 1].StartsWith("#") && !AllThreads[i - 1].StartsWith("*** "))  // The exception thread already captured is denoted in output with # so we can skip it...
+                                    {
+                                        s = new Stack() { ExceptionThread = false };
+                                        s.ThreadID = Convert.ToInt32(AllThreads[i - 1].Substring(0, AllThreads[i - 1].IndexOf(" Id: ")).TrimStart('.').TrimStart());
+                                        int j = i;
+                                        for (; AllThreads[j] != ""; j++)
+                                            s.CallStack += AllThreads[j] + "\r\n";
+                                        i = j;
+                                        s.CallStack = s.CallStack.TrimEnd();
+                                        GetQueryFromStack(s);
+                                        if (d.Stacks.Find(st => st.ThreadID == s.ThreadID) == null && !bCancel)
+                                            d.Stacks.Add(s);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    d.IdentifyOwningThreadsAfterAllStacksLoaded();
+                        d.IdentifyOwningThreadsAfterAllStacksLoaded();
+                    }
 
                     // Wait to do db inserts until we really have all data.
 
@@ -709,15 +731,15 @@ namespace SSASDiag
 
                     foreach (Stack st in d.Stacks)
                     {
-                        cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" + 
-                                d.DumpPath.Replace("'", "''") + "', '" + 
-                                pid + "', '" + 
-                                st.ThreadID + "', '" + 
-                                st.CallStack.Replace("'", "''") + "', " + 
-                                (st.Query == null ? "NULL" : "'" + st.Query.Replace("'", "''") + "'") + ", " + 
-                                (st.ExceptionThread == true ? 1 : 0) + ", " + 
-                                (st.RemoteOwningThreadID == null ? "NULL" : st.RemoteOwningThreadID.ToString()) + ", " + 
-                                (st.OwnedThreads == null ? "NULL" : "'" + String.Join(", ", st.OwnedThreads) + "'") + 
+                        cmd.CommandText = "INSERT INTO StacksAndQueries VALUES('" +
+                                d.DumpPath.Replace("'", "''") + "', '" +
+                                pid + "', '" +
+                                st.ThreadID + "', '" +
+                                st.CallStack.Replace("'", "''") + "', " +
+                                (st.Query == null ? "NULL" : "'" + st.Query.Replace("'", "''") + "'") + ", " +
+                                (st.ExceptionThread == true ? 1 : 0) + ", " +
+                                (st.RemoteOwningThreadID == null ? "NULL" : st.RemoteOwningThreadID.ToString()) + ", " +
+                                (st.OwnedThreads == null ? "NULL" : "'" + String.Join(", ", st.OwnedThreads) + "'") +
                             ")";
                         cmd.ExecuteNonQuery();
                     }
@@ -740,7 +762,7 @@ namespace SSASDiag
                     else
                         d.Analyzed = true;
 
-                    SubmitDebuggerCommand("q");
+                    try { SubmitDebuggerCommand("q"); } catch { }
                 }
                 )).Start();
         }
@@ -859,26 +881,29 @@ namespace SSASDiag
             Dump dComp = null;
             int AnalyzedCount = 0;
             int CrashedCount = 0;
-            int selCount = dgdDumpList.SelectedCells.Count;
+            int selCount = (dgdDumpList.AreAllCellsSelected(true) ? dgdDumpList.RowCount : dgdDumpList.SelectedCells.Count);
             if (btnAnalyzeDumps.Text == "")
                 splitDebugger.Panel2Collapsed = true;
             foreach (DataGridViewCell c in dgdDumpList.SelectedCells)
             {
-                Dump d = c.OwningRow.DataBoundItem as Dump;                
-                if (d.Analyzed)
-                { 
-                    AnalyzedCount++;
-                
-                    if (dComp == null)
-                        dComp = d.Clone();
-                    else
-                        dComp.DumpPath = "\\<multiple>";
-                    if (d.Crash)
-                        CrashedCount++;
-                    if (d.ASVersion != dComp.ASVersion)
-                        dComp.ASVersion = "<multiple>";
-                    if (d.DumpException != dComp.DumpException)
-                        dComp.DumpException = "<multiple>";
+                if (c.Visible)
+                {
+                    Dump d = c.OwningRow.DataBoundItem as Dump;
+                    if (d.Analyzed)
+                    {
+                        AnalyzedCount++;
+
+                        if (dComp == null)
+                            dComp = d.Clone();
+                        else
+                            dComp.DumpPath = "\\<multiple>";
+                        if (d.Crash)
+                            CrashedCount++;
+                        if (d.ASVersion != dComp.ASVersion)
+                            dComp.ASVersion = "<multiple>";
+                        if (d.DumpException != dComp.DumpException)
+                            dComp.DumpException = "<multiple>";
+                    }
                 }
             }
             if (selCount > 0)
@@ -890,10 +915,10 @@ namespace SSASDiag
                 else
                 {
                     string pluralize = (selCount > 1 ? "s: " : ": ");
-                    rtDumpDetails.Text = "Dump file" + pluralize + dComp.DumpName + "\r\nAS Version" + pluralize + dComp.ASVersion + "\r\n" +
+                    rtDumpDetails.Text = "Dump file" + pluralize + dComp.DumpPath + "\r\nAS Version" + pluralize + dComp.ASVersion + "\r\n" +
                         "Dump date: " + (selCount > 1 ? "<multiple>" : dComp.DumpTime.ToString("MM/dd/yyyy")) + "\r\n" +
                         "Dump time: " + (selCount > 1 ? "<multiple>" : dComp.DumpTime.ToString("HH:mm:ss UTCzzz")) + "\r\n" +
-                        "Process id: " + (selCount > 1 ? "<multiple>" : dComp.ProcessID) + "\r\n" +
+                        "Process id: " + (selCount > 1 ? "<multiple>" : "0x" + dComp.ProcessID) + "\r\n" +
                         (AnalyzedCount < selCount ?
                             "Analysis found for " + AnalyzedCount + " of " + selCount + " dumps.\r\n" :
                             (selCount == 1 ? "" : "Analysis found for " + selCount + " dumps.\r\n")) +
@@ -934,52 +959,62 @@ namespace SSASDiag
         FastColoredTextBox xmlQuery = new FastColoredTextBox();
         private void cmbThreads_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Stack s = (cmbThreads.SelectedItem as Stack);
-            rtbStack.Text = "";
-            if (s.OwnedThreads != null && s.OwnedThreads.Count > 0)
+            if (cmbThreads.SelectedItem != null)
             {
-                if (s.OwnedThreads.Count == 1)
-                    rtbStack.SelectedText = "Another thread was launched from this thread: ";
+                Stack s = (cmbThreads.SelectedItem as Stack);
+                rtbStack.Text = "";
+                if (s.OwnedThreads != null && s.OwnedThreads.Count > 0)
+                {
+                    if (s.OwnedThreads.Count == 1)
+                        rtbStack.SelectedText = "Another thread was launched from this thread: ";
+                    else
+                        rtbStack.SelectedText = "Other threads were launched from this thread: ";
+                    foreach (int tid in s.OwnedThreads)
+                    {
+                        if (!rtbStack.Text.EndsWith(": "))
+                            rtbStack.SelectedText = ", ";
+                        rtbStack.InsertLink(tid.ToString());
+                    }
+                    rtbStack.SelectedText = "\r\n\r\n";
+                }
+                if (s.RemoteOwningThreadID != null)
+                {
+                    rtbStack.SelectedText = "This thread was launched from the originating job thread ";
+                    rtbStack.InsertLink(s.RemoteOwningThreadID.ToString());
+                    rtbStack.SelectedText = ".\r\n\r\n";
+                }
+                rtbStack.SelectedText = s.CallStack;
+                if (s.Query != "")
+                {
+                    lblQuery.Text = "A query was found on the thread.";
+                    splitDumpOutput.Panel2Collapsed = false;
+                    if (s.Query.Trim().StartsWith("<") || s.Query.Trim().StartsWith("{") || s.Query == "There was a query on this thread but its memory could not be read (possibly not captured in this minidump).")
+                    {
+                        xmlQuery.Text = s.Query;
+                        mdxQuery.Visible = false;
+                        xmlQuery.Visible = true;
+                    }
+                    else
+                    {
+                        xmlQuery.Visible = false;
+                        mdxQuery.Visible = true;
+                        mdxQuery.SuspendLayout();
+                        mdxQuery.Text = s.Query;
+                        mdxQuery.ZoomFactor = 1;
+                        mdxQuery.ZoomFactor = .75F;
+                        mdxQuery.ResumeLayout();
+                    }
+
+                }
                 else
-                    rtbStack.SelectedText = "Other threads were launched from this thread: ";
-                foreach (int tid in s.OwnedThreads)
-                {
-                    if (!rtbStack.Text.EndsWith(": "))
-                        rtbStack.SelectedText = ", ";
-                    rtbStack.InsertLink(tid.ToString());
-                }
-                rtbStack.SelectedText = "\r\n\r\n";
-            }
-            if (s.RemoteOwningThreadID != null)
-            {
-                rtbStack.SelectedText = "This thread was launched from the originating job thread ";
-                rtbStack.InsertLink(s.RemoteOwningThreadID.ToString());
-                rtbStack.SelectedText = ".\r\n\r\n";
-            }
-            rtbStack.SelectedText = s.CallStack;
-            if (s.Query != "")
-            {
-                lblQuery.Text = "A query was found on the thread.";
-                splitDumpOutput.Panel2Collapsed = false;
-                if (s.Query.Trim().StartsWith("<") || s.Query.Trim().StartsWith("{") || s.Query == "There was a query on this thread but its memory could not be read (possibly not captured in this minidump).")
-                {
-                    xmlQuery.Text = s.Query;
-                    mdxQuery.Visible = false;
-                    xmlQuery.Visible = true;
-                }
-                else
-                {
-                    xmlQuery.Visible = false;
-                    mdxQuery.Visible = true;
-                    mdxQuery.SuspendLayout();
-                    mdxQuery.Text = s.Query;
-                    mdxQuery.ZoomFactor = 1;
-                    mdxQuery.ZoomFactor = .75F;
-                    mdxQuery.ResumeLayout();
-                }
+                    splitDumpOutput.Panel2Collapsed = true;
             }
             else
+            {
+                rtbStack.Text = "This dump is corrupt.";
+                splitDebugger.Panel2Collapsed = true;
                 splitDumpOutput.Panel2Collapsed = true;
+            }
 
         }
     }
