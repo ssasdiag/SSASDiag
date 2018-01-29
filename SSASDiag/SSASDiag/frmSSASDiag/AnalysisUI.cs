@@ -108,7 +108,10 @@ namespace SSASDiag
             bool dirhasdumps = false;
             if (!File.Exists(m_analysisPath))
             {
-                foreach (string dir in Directory.EnumerateDirectories(m_analysisPath))
+                if (Directory.GetFiles(m_analysisPath, "*.mdmp", SearchOption.TopDirectoryOnly).Count() > 0)
+                    dirhasdumps = true;
+                else
+                    foreach (string dir in Directory.EnumerateDirectories(m_analysisPath))
                     if (!dir.Contains("\\$RECYCLE.BIN") &&
                         !dir.Contains("\\System Volume Information") &&
                         Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories).Count() > 0)

@@ -164,6 +164,7 @@ namespace SSASDiag
             if (Directory.Exists(dumpPath))
             {
                 List<string> dumpfiles = new List<string>();
+                dumpfiles.AddRange(Directory.GetFiles(dumpPath, "*.mdmp", SearchOption.TopDirectoryOnly));
                 foreach (string dir in Directory.EnumerateDirectories(dumpPath))
                     if (!dir.Contains("\\$RECYCLE.BIN") && !dir.Contains("\\System Volume Information"))
                         dumpfiles.AddRange(Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories));

@@ -121,6 +121,12 @@ namespace SSASDiag
             InitializeArgs();
             SetupDebugTrace();
 
+            if (Args.ContainsKey("filename") && !Args.ContainsKey("start"))
+            {
+                tcCollectionAnalysisTabs.SelectedIndex = 1;
+                txtFolderZipForAnalysis.Text = m_analysisPath = Args["filename"];
+            }
+
             if (!(Environment.OSVersion.Version.Major >= 7 || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)) && Environment.UserInteractive)
             {
                 if (Environment.UserInteractive && bFullyInitialized)
