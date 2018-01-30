@@ -250,6 +250,8 @@ namespace SSASDiag
 
         private void frmSSASDiag_Shown(object sender, EventArgs e)
         {
+            Text = "SSAS Diagnostics Tool v" + Application.ProductVersion;
+
             if (Args.ContainsKey("filename") && !Args.ContainsKey("start"))
             {
                 tcCollectionAnalysisTabs.SelectedIndex = 1;
@@ -261,7 +263,7 @@ namespace SSASDiag
             bool bUsageStatsAlreadySet = true;
             string s = Properties.Settings.Default.AllowUsageStats;
 
-            Text = Text + " v" + Application.ProductVersion;
+            
 
             if (Properties.Settings.Default.OpenWithEnabled)
                 enableOpenWithToolStripItem.Checked = true;

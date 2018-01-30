@@ -376,6 +376,7 @@ namespace SSASDiag
                 ExecuteProfilerAnalysisDrillthroughContextQuery();
             }
         }
+
         private List<KeyValuePair<int?,int?>> GetSelectedRowsFromProfilerAnalysisGrid(MenuItem sender)
         {
             List<KeyValuePair<int?, int?>> rows = new List<KeyValuePair<int?, int?>>();
