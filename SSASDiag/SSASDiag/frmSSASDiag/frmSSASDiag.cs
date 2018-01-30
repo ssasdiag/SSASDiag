@@ -558,6 +558,7 @@ namespace SSASDiag
         {
             btnSettings.Left = Width - btnSettings.Width - 15;
             lkAbout.Top = lkBugsIdeas.Top = lkFeedback.Top = Height - 56;
+            txtFolderZipForAnalysis.Width = Width - 164;
             tcCollectionAnalysisTabs.Height = Height - 59;
             tcAnalysis.Height = Height - 119;
             btnImportProfilerTrace.Left = Width / 2 - btnImportProfilerTrace.Width / 2;

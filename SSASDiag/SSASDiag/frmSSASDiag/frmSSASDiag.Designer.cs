@@ -157,16 +157,16 @@
             this.ttStatus.SetToolTip(this.lkFeedback, "Share the love!");
             this.lkFeedback.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkFeedback_LinkClicked);
             // 
-            // lkDiscussion
+            // lkBugsIdeas
             // 
             this.lkBugsIdeas.AutoSize = true;
             this.lkBugsIdeas.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lkBugsIdeas.ForeColor = System.Drawing.SystemColors.Highlight;
-            this.lkBugsIdeas.Image = ((System.Drawing.Image)(resources.GetObject("lkDiscussion.Image")));
+            this.lkBugsIdeas.Image = ((System.Drawing.Image)(resources.GetObject("lkBugsIdeas.Image")));
             this.lkBugsIdeas.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lkBugsIdeas.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
             this.lkBugsIdeas.Location = new System.Drawing.Point(77, 479);
-            this.lkBugsIdeas.Name = "lkDiscussion";
+            this.lkBugsIdeas.Name = "lkBugsIdeas";
             this.lkBugsIdeas.Padding = new System.Windows.Forms.Padding(2);
             this.lkBugsIdeas.Size = new System.Drawing.Size(84, 17);
             this.lkBugsIdeas.TabIndex = 20;

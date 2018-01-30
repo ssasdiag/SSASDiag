@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SSASDiag
 {
-    public partial class frmStatusFloater : Form
+    public partial class frmStatusFloater : ShadowedForm
     {
         public frmStatusFloater()
         {
