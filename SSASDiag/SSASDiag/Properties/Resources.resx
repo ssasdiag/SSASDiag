@@ -707,14 +707,14 @@ order by sum(a.Duration) desc</value>
   <data name="DrillThroughQueryAllRowsForQueryOrCommand" xml:space="preserve">
     <value>select 
 RowNumber, b.Duration, b.EventClass, EventClassName, EventSubClass, EventSubClassName, b.StartTime, CurrentTime, convert(nvarchar(max), TextData) TextData, 
-b.ConnectionID, DatabaseName, NTUserName, NTDomainName, SessionID, NTCanonicalUserName, SPID, ServerName, ActivityID, RequestID, CPUTime, IntegerData, Error, ClientProcessID, 
-ApplicationName, SessionType, ObjectID, ObjectType, ObjectName, ObjectPath, ObjectReference,
+b.ConnectionID, DatabaseName, NTUserName, NTDomainName, SessionID, NTCanonicalUserName, SPID, ServerName, CPUTime, IntegerData, Error, ClientProcessID, 
+ApplicationName, ObjectName, ObjectPath, 
 convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
 from 
 [Table_QueriesAndCommandsIncludingIncomplete] a,
 [Table_v] b
 where b.ConnectionID = a.ConnectionID and b.RowNumber &gt;= a.StartRow and (b.RowNumber &lt;= a.EndRow or a.EndRow is null) 
-and a.StartRow = &lt;RowNumber/&gt; or a.EndRow = &lt;RowNumber/&gt;</value>
+and a.StartRow = &lt;RowNumber/&gt; or a.EndRow = &lt;RowNumber/&gt; and b.ConnectionID = &lt;ConnectionID/&gt;</value>
   </data>
   <data name="QueryPossibleRunawaySessions" xml:space="preserve">
     <value>-- These sessions were active when the trace started and never showed any begin or end events.

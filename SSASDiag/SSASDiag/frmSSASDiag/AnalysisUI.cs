@@ -69,6 +69,7 @@ namespace SSASDiag
         }
         private void PopulateAnalysisTabs()
         {
+            tcAnalysis.Visible = false;
             lblInitialAnalysisPrompt.Visible = false;
             if (connSqlDb.State != ConnectionState.Closed)
                 connSqlDb.Close();
@@ -99,7 +100,6 @@ namespace SSASDiag
 
         void CompleteAnalysisTabsPopulationAfterZipExtraction()
         {
-            tcAnalysis.SuspendLayout();
             string mdfPath = "";
             if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith("\\msmdsrv.ini")) || File.Exists(m_analysisPath + "\\msmdsrv.ini"))
             {
@@ -210,7 +210,7 @@ namespace SSASDiag
                     }
                 }
             }
-            tcAnalysis.ResumeLayout();
+            tcAnalysis.Visible = true;
         }
 
 
