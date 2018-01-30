@@ -207,7 +207,11 @@ namespace SSASDiag
             TimeSpan newTime = (TimeSpan.FromMinutes(Convert.ToDouble(timeparts[0])) + TimeSpan.FromSeconds(Convert.ToDouble(timeparts[1])).Add(TimeSpan.FromSeconds(1)));
             StatusFloater.lblTime.Text = newTime.ToString("mm\\:ss");
             if (StatusFloater.EscapePressed)
-                ProfilerAnalysisQueryCmd.Cancel();
+            {
+                if (tcAnalysis.TabPages.Count > 0)
+                    ProfilerAnalysisQueryCmd.Cancel();
+            }
+
         }
         private void BgLoadProfilerAnalysis_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {

@@ -73,11 +73,11 @@
             // lblSubStatus
             // 
             this.lblSubStatus.AutoSize = true;
-            this.lblSubStatus.Font = new System.Drawing.Font("Segoe UI Semilight", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSubStatus.ForeColor = System.Drawing.Color.Gainsboro;
+            this.lblSubStatus.Font = new System.Drawing.Font("Segoe UI Semilight", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblSubStatus.ForeColor = System.Drawing.Color.LightSkyBlue;
             this.lblSubStatus.Location = new System.Drawing.Point(112, 51);
             this.lblSubStatus.Name = "lblSubStatus";
-            this.lblSubStatus.Size = new System.Drawing.Size(0, 12);
+            this.lblSubStatus.Size = new System.Drawing.Size(0, 13);
             this.lblSubStatus.TabIndex = 3;
             this.lblSubStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 

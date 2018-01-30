@@ -284,7 +284,11 @@ namespace SSASDiag
         }
         private void SelectivelyExtractAnalysisDataFromZip()
         {
-            StatusFloater.lblStatus.Text = "Extracting data from zip for analysis...";
+            StatusFloater.lblStatus.Text = "Extracting zipped files for analysis...";
+            StatusFloater.lblTime.Text = "00:00";
+            StatusFloater.lblTime.Visible = true;
+            AnalysisQueryExecutionPumpTimer.Interval = 1000;
+            AnalysisQueryExecutionPumpTimer.Start();
             StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
             StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
             StatusFloater.Show(this);
@@ -298,6 +302,8 @@ namespace SSASDiag
         {
             CompleteAnalysisTabsPopulationAfterZipExtraction();
             StatusFloater.lblSubStatus.Text = "";
+            StatusFloater.lblTime.Visible = false;
+            AnalysisMessagePumpTimer.Stop();
         }
 
         private void BgSelectivelyExtractAnalysisDataFromZip_DoWork(object sender, DoWorkEventArgs e)
