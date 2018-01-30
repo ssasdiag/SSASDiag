@@ -99,6 +99,7 @@ namespace SSASDiag
 
         void CompleteAnalysisTabsPopulationAfterZipExtraction()
         {
+            tcAnalysis.SuspendLayout();
             string mdfPath = "";
             if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith("\\msmdsrv.ini")) || File.Exists(m_analysisPath + "\\msmdsrv.ini"))
             {
@@ -209,6 +210,7 @@ namespace SSASDiag
                     }
                 }
             }
+            tcAnalysis.ResumeLayout();
         }
 
 
