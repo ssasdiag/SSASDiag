@@ -38,12 +38,12 @@
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.label1.Location = new System.Drawing.Point(59, 90);
+            this.label1.Location = new System.Drawing.Point(20, 69);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(194, 270);
+            this.label1.Size = new System.Drawing.Size(268, 300);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Anne Zorner\r\nYinn Wong\r\nVan To\r\nBeatrice Popa\r\nSrini Gajella\r\nSamarendra Panda\r\nM" +
-    "alcolm Stewart\r\nJon Burchel\r\nGert Christen";
+            this.label1.Text = "Anne Zorner\r\nYinn Wong\r\nVan To\r\nMalcolm Stewart\r\nGangadhara Sadashivappa\r\nBeatric" +
+    "e Popa\r\nSamarendra Panda\r\nSrini Gajella\r\nGert Christen\r\nJon Burchel";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
@@ -60,7 +60,7 @@
             // lblVersion
             // 
             this.lblVersion.AutoSize = true;
-            this.lblVersion.Location = new System.Drawing.Point(127, 356);
+            this.lblVersion.Location = new System.Drawing.Point(124, 369);
             this.lblVersion.Name = "lblVersion";
             this.lblVersion.Size = new System.Drawing.Size(58, 13);
             this.lblVersion.TabIndex = 2;

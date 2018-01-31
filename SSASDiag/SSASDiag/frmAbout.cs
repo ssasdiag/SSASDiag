@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SSASDiag
 {
-    public partial class frmAbout : Form  // Use Form instead if you need to open in designer, then revert to Shadowed for the cool effect in use...  :)
+    public partial class frmAbout : ShadowedForm  // Use Form instead if you need to open in designer, then revert to Shadowed for the cool effect in use...  :)
     {
         Timer t = new Timer();
         bool bOpening = true, bDecelerating = false;
