@@ -483,6 +483,7 @@ namespace SSASDiag
             s.Add(PerfMonInstanceID + ":Storage Engine Query\\*");
             s.Add(PerfMonInstanceID + ":Threads\\*");
 
+            System.Diagnostics.Trace.WriteLine("Starting PerfMon log: " + strSaveAs);
             // Add all the counters now to the query...
             m_PdhHelperInstance.AddCounters(ref s, false);
             uint ret = m_PdhHelperInstance.OpenLogForWriting(
@@ -492,6 +493,7 @@ namespace SSASDiag
                             0,
                             false,
                             "SSAS Diagnostics Performance Monitor Log");
+            System.Diagnostics.Trace.WriteLine("Retval starting PerfMon: " + ret);
 
             return ret;
         }
@@ -540,7 +542,7 @@ namespace SSASDiag
                 string[] lines = new string[0];
                 if (File.Exists(svcOutputPath))
                     File.ReadAllLines(svcOutputPath);
-                if (lines[lines.Length - 1].StartsWith(s.Substring(2, 14)))
+                if (lines.Length > 0 && lines[lines.Length - 1].StartsWith(s.Substring(2, 14)))
                 {
                     lines[lines.Length - 1] = s.Trim(new char[] { '\r', '\n' }) ;
                     File.WriteAllText(svcOutputPath, String.Join("\r\n", lines).TrimEnd(new char[] { '\r', '\n' }));
@@ -567,14 +569,8 @@ namespace SSASDiag
             }
             else
             {
-                //    SendMessageToClients(lines[lines.Count - 2] + (lines[lines.Count - 2].Length - lines[lines.Count - 2].LastIndexOf(" ") < 4 ? "." : " "));
-                //    if (lines[lines.Count - 1].StartsWith("Executing AS server command to stop profiler trace... ..."))
-                //    {
-                //        SendMessageToClients("\r\nStarting of Profiler tracing usually completes instantly.  Since it has not completed yet, the server may be hung.  "
-                //                        + "You may need to manually stop the SSAS service or kill the msmdsrv.exe process to complete capture of the diagnostic then.  "
-                //                        + "All other diagnostics have been stopped already, so this may only impact the data not yet flushed to file for the Profiler trace, even in a worst case scenario.\r\n");
-                //    }
-                //}
+                iCurrentTimerTicksSinceLastInterval++;
+
                 if (!bSuspendUITicking)
                 {
                     if (!bCollectionFullyInitialized)
@@ -590,9 +586,12 @@ namespace SSASDiag
                         SendMessageToClients("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss"));
                 }
 
+                System.Diagnostics.Trace.WriteLine("Ticks since last log: " + iCurrentTimerTicksSinceLastInterval + ", Interval: " + iInterval + ", bPerfMonRunning: " + bPerfMonRunning);
+
                 if (iCurrentTimerTicksSinceLastInterval >= iInterval && bPerfMonRunning)
                 {
                     // If perfmon logging failed we still want to tick our timer so just fail past this with try/catch anything...
+                    System.Diagnostics.Trace.WriteLine("Updating log " + sInstanceName);
                     try { m_PdhHelperInstance.UpdateLog("SSASDiag" + sInstanceName); }
                     catch (Exception ex)
                     {
@@ -605,13 +604,12 @@ namespace SSASDiag
                         {
                             string sCurFile = m_PdhHelperInstance.LogName.Substring(m_PdhHelperInstance.LogName.LastIndexOf(TraceID) + TraceID.Length).Replace(".blg", "");
                             int iCurFile = sCurFile == "" ? 0 : Convert.ToInt32(sCurFile);
+                            System.Diagnostics.Trace.WriteLine("Disposing PerfMon log to open new file: " + TraceID + "\\" + TraceID.Replace(".blg", "") + (iCurFile + 1) + ".blg");
                             m_PdhHelperInstance.Dispose();
                             InitializePerfLog(TraceID + "\\" + TraceID.Replace(".blg", "") + (iCurFile + 1) + ".blg");
                         }
                     }
                 }
-                else
-                    iCurrentTimerTicksSinceLastInterval++;
 
                 if (DateTime.Now > dtEnd && bUseEnd)
                     StopAndFinalizeAllDiagnostics();
@@ -628,8 +626,8 @@ namespace SSASDiag
                 bRunning = false;
                 if (bGetPerfMon)
                 {
-                    m_PdhHelperInstance.Dispose();
                     bPerfMonRunning = false;
+                    m_PdhHelperInstance.Dispose();
                     SendMessageToClients("Stopped performance monitor logging.");
                 }
 
