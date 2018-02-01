@@ -382,8 +382,12 @@ namespace SSASDiag
             }));
 
         }
+
+        List<string> CurrentProfilerTraceColumnList = new List<string>();
+
         private void AttachProfilerTraceDB()
         {
+            CurrentProfilerTraceColumnList = new List<string>();
             splitProfilerAnalysis.Invoke(new System.Action(() => splitProfilerAnalysis.Visible = splitProfilerAnalysis.Enabled = btnAnalysisFolder.Enabled = false));
             tcAnalysis.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.Text += (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") || ProfilerTraceStatusTextBox.Text == "" ? "" : "\r\n") + "Attaching profiler trace database..."));
             ValidateProfilerTraceDBConnectionStatus();           
@@ -392,7 +396,14 @@ namespace SSASDiag
                 connSqlDb.ChangeDatabase("master");
                 SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET MULTI_USER", connSqlDb);
                 cmd.ExecuteNonQuery();
-                try { ExecuteProfilerAttachSQL(cmd); }
+                try {
+                    ExecuteProfilerAttachSQL(cmd);
+                    cmd.CommandText = "select column_name from [" + AnalysisTraceID + "].INFORMATION_SCHEMA.COLUMNS where table_name = N'" + AnalysisTraceID + "'";
+                    SqlDataReader dr = cmd.ExecuteReader();
+                    while (dr.Read())
+                        CurrentProfilerTraceColumnList.Add((dr["column_name"] as string).ToLower());
+                    dr.Close();
+                }
                 catch (SqlException ex)
                 {
                     LogException(ex);
@@ -414,6 +425,11 @@ namespace SSASDiag
                                 try
                                 {
                                     ExecuteProfilerAttachSQL(cmd);
+                                    cmd.CommandText = "select column_name from [" + AnalysisTraceID + "].INFORMATION_SCHEMA.COLUMNS where table_name = N'" + AnalysisTraceID + "'";
+                                    SqlDataReader dr = cmd.ExecuteReader();
+                                    while (dr.Read())
+                                        CurrentProfilerTraceColumnList.Add((dr["column_name"] as string).ToLower());
+                                    dr.Close();
                                     break;
                                 }
                                 catch (Exception ex2)

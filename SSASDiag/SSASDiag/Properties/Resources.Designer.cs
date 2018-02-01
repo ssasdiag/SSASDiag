@@ -130,11 +130,9 @@ namespace SSASDiag.Properties {
         /// <summary>
         ///   Looks up a localized string similar to select 
         ///RowNumber, b.Duration, b.EventClass, EventClassName, EventSubClass, EventSubClassName, b.StartTime, CurrentTime, convert(nvarchar(max), TextData) TextData, 
-        ///b.ConnectionID, DatabaseName, NTUserName, NTDomainName, SessionID, NTCanonicalUserName, SPID, ServerName, CPUTime, IntegerData, Error, ClientProcessID, 
-        ///ApplicationName, ObjectName, ObjectPath, 
-        ///convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarchar(max), RequestProperties) RequestProperties
-        ///from 
-        ///[Table_QueriesAndCo [rest of string was truncated]&quot;;.
+        ///b.ConnectionID, DatabaseName, NTUserName, NTDomainName, SessionID, NTCanonicalUserName, SPID, ServerName, ActivityID, RequestID, CPUTime, IntegerData, Error, ClientProcessID, 
+        ///ApplicationName, SessionType, ObjectID, ObjectType, ObjectName, ObjectPath, ObjectReference,
+        ///convert(nvarchar(max), RequestParameters) RequestParameters, convert(nvarc [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DrillThroughQueryAllRowsForQueryOrCommand {
             get {

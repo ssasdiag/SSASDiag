@@ -350,13 +350,26 @@ namespace SSASDiag
             }
             else if ((sender as MenuItem).Text == "Lookup detail rows for selected queries/commands")
             {
+                string strBaseQry = Properties.Resources.DrillThroughQueryAllRowsForQueryOrCommand;
+                foreach (string col in strBaseQry.Split(','))
+                {
+                    string colTrimmed = col.TrimStart(new char[] { ' ', '\r', '\n' }).TrimEnd().ToLower().Replace("a.", "").Replace("b.", "");
+                    if (!colTrimmed.StartsWith("[table_v]") && !colTrimmed.StartsWith("requestproperties") && !colTrimmed.StartsWith("requestparameters") && 
+                        !colTrimmed.StartsWith("select") && colTrimmed != "eventclassname" && colTrimmed != "eventsubclassname" && 
+                        !colTrimmed.StartsWith("convert(nvarchar") && !colTrimmed.Contains("textdata"))
+                    {
+                        if (!CurrentProfilerTraceColumnList.Contains(colTrimmed))
+                            strBaseQry = strBaseQry.Replace("," + col, "");
+                    }
+                }
+                    
                 foreach (int? row in rows)
                 {
                     string strBase = "";
                     if (row < 0)
-                        strBase = Properties.Resources.DrillThroughQueryAllRowsForQueryOrCommand.Replace("[Table", "[" + AnalysisTraceID).Replace("<RowNumber/>", Convert.ToString(-row));
+                        strBase = strBaseQry.Replace("[Table", "[" + AnalysisTraceID).Replace("<RowNumber/>", Convert.ToString(-row));
                     else
-                        strBase = Properties.Resources.DrillThroughQueryAllRowsForQueryOrCommand.Replace("[Table", "[" + AnalysisTraceID).Replace("<RowNumber/>", Convert.ToString(row));
+                        strBase = strBaseQry.Replace("[Table", "[" + AnalysisTraceID).Replace("<RowNumber/>", Convert.ToString(row));
                     strQry += (strQry == "" ? strBase : "\r\nunion\r\n" + strBase);
                 }
                 txtProfilerAnalysisQuery.Text = strQry + "\r\norder by RowNumber";
