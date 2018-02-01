@@ -167,7 +167,10 @@ namespace SSASDiag
                 dumpfiles.AddRange(Directory.GetFiles(dumpPath, "*.mdmp", SearchOption.TopDirectoryOnly));
                 foreach (string dir in Directory.EnumerateDirectories(dumpPath))
                     if (!dir.Contains("\\$RECYCLE.BIN") && !dir.Contains("\\System Volume Information"))
-                        dumpfiles.AddRange(Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories));
+                    {
+                        try { dumpfiles.AddRange(Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories)); }
+                        catch (Exception ex) { Trace.WriteLine("Exception enumerating dumps from subdirectories: " + ex.Message); }
+                    }
                 foreach (string f in dumpfiles)
                     DumpFiles.Add(new Dump() { DumpPath = f, Analyzed = false, Crash = false });
                 AnalysisPath = DumpPath + "\\Analysis";
