@@ -714,7 +714,7 @@ from
 [Table_QueriesAndCommandsIncludingIncomplete] a,
 [Table_v] b
 where b.ConnectionID = a.ConnectionID and b.RowNumber &gt;= a.StartRow and (b.RowNumber &lt;= a.EndRow or a.EndRow is null) 
-and a.StartRow = &lt;RowNumber/&gt; or a.EndRow = &lt;RowNumber/&gt; and b.ConnectionID = &lt;ConnectionID/&gt;</value>
+and (a.StartRow = &lt;RowNumber/&gt; or a.EndRow = &lt;RowNumber/&gt;)</value>
   </data>
   <data name="QueryPossibleRunawaySessions" xml:space="preserve">
     <value>-- These sessions were active when the trace started and never showed any begin or end events.

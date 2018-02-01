@@ -310,7 +310,7 @@ namespace SSASDiag
             string QueryName = cmbProfilerAnalyses.Text;
             if (ProcessCopyMenuClicks(sender))
                 return;
-            List<KeyValuePair<int?,int?>> rows = GetSelectedRowsFromProfilerAnalysisGrid(sender as MenuItem);
+            List<int?> rows = GetSelectedRowsFromProfilerAnalysisGrid(sender as MenuItem);
             cmbProfilerAnalyses.SelectedIndex = 0;
             if (rows.Count == 0 && !QueryName.Contains("collectively expensive"))
             {
@@ -323,26 +323,26 @@ namespace SSASDiag
             string strQry = "";           
             if ((sender as MenuItem).Text == "Find all queries/commands overlapping with selection")
             {
-                foreach (KeyValuePair<int?,int?> row in rows)
+                foreach (int? row in rows)
                 {
-                    if (row.Key < 0)
-                        strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from [" + AnalysisTraceID + "_v] a, (select * from[" + AnalysisTraceID + "_QueriesAndCommandsIncludingIncomplete] where StartRow > " + -row.Key + " or EndRow > " + -row.Key + " or EndRow is null and StartRow <> " + -row.Key + ") b where (b.EndRow is null and a.RowNumber = b.StartRow) or(not b.EndRow is null and a.RowNumber = b.EndRow)")
-                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[" + AnalysisTraceID + "_v] a, (select * from[" + AnalysisTraceID + "_QueriesAndCommandsIncludingIncomplete] where StartRow > " + -row.Key + " or EndRow > " + -row.Key + " or EndRow is null and StartRow <> " + -row.Key + ") b where (b.EndRow is null and a.RowNumber = b.StartRow) or(not b.EndRow is null and a.RowNumber = b.EndRow)"));
+                    if (row < 0)
+                        strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from [" + AnalysisTraceID + "_v] a, (select * from[" + AnalysisTraceID + "_QueriesAndCommandsIncludingIncomplete] where StartRow > " + -row + " or EndRow > " + -row + " or EndRow is null and StartRow <> " + -row + ") b where (b.EndRow is null and a.RowNumber = b.StartRow) or(not b.EndRow is null and a.RowNumber = b.EndRow)")
+                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[" + AnalysisTraceID + "_v] a, (select * from[" + AnalysisTraceID + "_QueriesAndCommandsIncludingIncomplete] where StartRow > " + -row + " or EndRow > " + -row + " or EndRow is null and StartRow <> " + -row + ") b where (b.EndRow is null and a.RowNumber = b.StartRow) or(not b.EndRow is null and a.RowNumber = b.EndRow)"));
                     else if (QueryName.Contains("not completed"))
-                        strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[" + AnalysisTraceID + "_v] a, (select StartTime from[" + AnalysisTraceID + "] where RowNumber > " + row.Key + ") b where a.eventclass in (10, 16) and a.CurrentTime >= b.StartTime").Replace("[Table", "[" + AnalysisTraceID)
-                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[" + AnalysisTraceID + "_v] a, (select StartTime from[" + AnalysisTraceID + "] where RowNumber > " + row.Key + ") b where a.eventclass in (10, 16) and a.CurrentTime >= b.StartTime").Replace("[Table", "[" + AnalysisTraceID));
+                        strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[" + AnalysisTraceID + "_v] a, (select StartTime from[" + AnalysisTraceID + "] where RowNumber > " + row + ") b where a.eventclass in (10, 16) and a.CurrentTime >= b.StartTime").Replace("[Table", "[" + AnalysisTraceID)
+                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties) from[" + AnalysisTraceID + "_v] a, (select StartTime from[" + AnalysisTraceID + "] where RowNumber > " + row + ") b where a.eventclass in (10, 16) and a.CurrentTime >= b.StartTime").Replace("[Table", "[" + AnalysisTraceID));
                     else
-                        strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [" + AnalysisTraceID + "_v] a,\r\n(select StartTime, CurrentTime from [" + AnalysisTraceID + "] where RowNumber = " + row.Key + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID)
-                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [" + AnalysisTraceID + "_v] a,\r\n(select StartTime, CurrentTime from [" + AnalysisTraceID + "] where RowNumber = " + row.Key + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID));
+                        strQry += (strQry == "" ? ("select a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [" + AnalysisTraceID + "_v] a,\r\n(select StartTime, CurrentTime from [" + AnalysisTraceID + "] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID)
+                                 : ("\r\nunion\r\nselect a.RowNumber, a.Duration, a.EventClass, a.EventClassName, a.CurrentTime, a.StartTime, a.ConnectionID, a.NTUserName, a.NTDomainName, a.DatabaseName, a.TextData, a.ClientProcessID, a.ApplicationName, a.CPUTime, a.EventSubclass, a.SPID, convert(nvarchar(max), a.RequestParameters), convert(nvarchar(max), a.RequestProperties)\r\nfrom [" + AnalysisTraceID + "_v] a,\r\n(select StartTime, CurrentTime from [" + AnalysisTraceID + "] where RowNumber = " + row + ") b\r\nwhere a.eventclass in (10, 16)\r\nand a.CurrentTime >= b.StartTime and a.CurrentTime <= b.CurrentTime").Replace("[Table", "[" + AnalysisTraceID));
                 }
                 txtProfilerAnalysisQuery.Text = "--All queries started or finished during the execution of the quer" + (rows.Count > 1 ? "ies" : "y") + " at row" + (rows.Count > 1 ? "s " : " ") + String.Join(", ", rows.ToArray()) + ".\r\n\r\n" + strQry + "\r\norder by duration desc, starttime desc";
                 ExecuteProfilerAnalysisDrillthroughContextQuery();
             }
             else if ((sender as MenuItem).Text == "Lookup query statistics for selected queries")
             {
-                foreach (KeyValuePair<int?,int?> row in rows)
+                foreach (int? row in rows)
                 {
-                    string strBase = Properties.Resources.QueryFESEStats.Replace("[Table", "[" + AnalysisTraceID).Replace("order by Duration desc", "") + "and c.RowNumber = " + row.Key;
+                    string strBase = Properties.Resources.QueryFESEStats.Replace("[Table", "[" + AnalysisTraceID).Replace("order by Duration desc", "") + "and c.RowNumber = " + row;
                     strQry += (strQry == "" ? strBase : "\r\nunion\r\n" + strBase);
                 }
                 txtProfilerAnalysisQuery.Text = strQry;
@@ -350,15 +350,13 @@ namespace SSASDiag
             }
             else if ((sender as MenuItem).Text == "Lookup detail rows for selected queries/commands")
             {
-                foreach (KeyValuePair<int?, int?> row in rows)
+                foreach (int? row in rows)
                 {
                     string strBase = "";
-                    if (row.Key < 0)
-                        strBase = Properties.Resources.DrillThroughQueryAllRowsForQueryOrCommand.Replace("[Table", "[" + AnalysisTraceID).Replace("<RowNumber/>", Convert.ToString(-row.Key))
-                            .Replace("<ConnectionID/>", Convert.ToString(row.Value));
+                    if (row < 0)
+                        strBase = Properties.Resources.DrillThroughQueryAllRowsForQueryOrCommand.Replace("[Table", "[" + AnalysisTraceID).Replace("<RowNumber/>", Convert.ToString(-row));
                     else
-                        strBase = Properties.Resources.DrillThroughQueryAllRowsForQueryOrCommand.Replace("[Table", "[" + AnalysisTraceID).Replace("<RowNumber/>", Convert.ToString(row.Key))
-                            .Replace("<ConnectionID/>", Convert.ToString(row.Value));
+                        strBase = Properties.Resources.DrillThroughQueryAllRowsForQueryOrCommand.Replace("[Table", "[" + AnalysisTraceID).Replace("<RowNumber/>", Convert.ToString(row));
                     strQry += (strQry == "" ? strBase : "\r\nunion\r\n" + strBase);
                 }
                 txtProfilerAnalysisQuery.Text = strQry + "\r\norder by RowNumber";
@@ -366,10 +364,10 @@ namespace SSASDiag
             }
             else if ((sender as MenuItem).Text == "Lookup all the specific executions of this request")
             {
-                foreach (KeyValuePair<int?, int?> row in rows)
+                foreach (int? row in rows)
                 {
                     string strBase = "";
-                    strBase = "select * from [" + AnalysisTraceID + "_v] where EventClass in (10,16) and convert(nvarchar(max), TextData) = (select convert(nvarchar(max), TextData) from [" + AnalysisTraceID + "] where RowNumber = " + row.Key + ")";
+                    strBase = "select * from [" + AnalysisTraceID + "_v] where EventClass in (10,16) and convert(nvarchar(max), TextData) = (select convert(nvarchar(max), TextData) from [" + AnalysisTraceID + "] where RowNumber = " + row + ")";
                     strQry += (strQry == "" ? strBase : "\r\nunion\r\n" + strBase);
                 }
                 txtProfilerAnalysisQuery.Text = strQry + "\r\norder by RowNumber";
@@ -377,9 +375,9 @@ namespace SSASDiag
             }
         }
 
-        private List<KeyValuePair<int?,int?>> GetSelectedRowsFromProfilerAnalysisGrid(MenuItem sender)
+        private List<int?> GetSelectedRowsFromProfilerAnalysisGrid(MenuItem sender)
         {
-            List<KeyValuePair<int?, int?>> rows = new List<KeyValuePair<int?, int?>>();
+            List<int?> rows = new List<int?>();
             foreach (DataGridViewCell c in dgdProfilerAnalyses.SelectedCells)
             {
                 if (!(dgdProfilerAnalyses.Columns.Contains("EventClass") &&
@@ -388,18 +386,18 @@ namespace SSASDiag
                     )))
                 {
                     if (dgdProfilerAnalyses.Columns.Contains("RowNumber"))
-                        rows.Add(new KeyValuePair<int?,int?>(Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["RowNumber"].Value), Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["ConnectionID"].Value)));
+                        rows.Add(Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["RowNumber"].Value));
                     else if (dgdProfilerAnalyses.Columns.Contains("EndRow"))
                     {
                         int iRow;
                         if (Int32.TryParse(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["EndRow"].Value.ToString(), out iRow))
-                            rows.Add(new KeyValuePair<int?, int?>(iRow, Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["ConnectionID"].Value)));
+                            rows.Add(iRow);
                         else if (dgdProfilerAnalyses.Columns.Contains("StartRow"))
-                            rows.Add(new KeyValuePair<int?, int?>(-Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["StartRow"].Value), Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["ConnectionID"].Value)));
+                            rows.Add(-Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["StartRow"].Value));
                     }
                 }
                 if (cmbProfilerAnalyses.Text.Contains("collectively expensive"))
-                    rows.Add(new KeyValuePair<int?, int?>(Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["LastRow"].Value), Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["ConnectionID"].Value)));
+                    rows.Add(Convert.ToInt32(dgdProfilerAnalyses.Rows[c.RowIndex].Cells["LastRow"].Value));
             }
             return rows.Distinct().ToList();
         }
