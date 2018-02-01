@@ -1215,7 +1215,6 @@
             this.enableOpenWithToolStripItem.Size = new System.Drawing.Size(312, 22);
             this.enableOpenWithToolStripItem.Text = "Enable context menu to Open With SSASDiag";
             this.enableOpenWithToolStripItem.ToolTipText = "Current supported file types include .zip, .trc, .cap, .etl.";
-            this.enableOpenWithToolStripItem.CheckedChanged += new System.EventHandler(this.enableOpenWithToolStripItem_CheckedChanged);
             // 
             // frmSSASDiag
             // 

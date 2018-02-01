@@ -236,12 +236,18 @@ namespace SSASDiag
             }
             else
             {
-                RegistryKey ProgIds = BaseKey.OpenSubKey("OpenWithProgids", true);
+                RegistryKey ProgIds = BaseKey.CreateSubKey("OpenWithProgids", RegistryKeyPermissionCheck.ReadWriteSubTree, RegistryOptions.None);
                 if (ProgIds != null)
                      ProgIds.DeleteValue(KeyName, false);
                 Registry.CurrentUser.OpenSubKey("Software\\Classes\\", true).DeleteSubKeyTree(KeyName, false);
                 ProgIds.Close();
             }
+            BaseKey.Close();
+            // Move the SSASDiag MRU selection to the lowest priority in the OpenWith list.  We don't want to be disruptive.  We just want to be there when the user wants us!
+            BaseKey = Registry.CurrentUser.CreateSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\" + Extension + "\\OpenWithList", RegistryKeyPermissionCheck.Default);
+            foreach (string val in BaseKey.GetValueNames())
+                if (BaseKey.GetValue(val) as string == "SSASDiag.exe")
+                    BaseKey.SetValue("MRUList", (BaseKey.GetValue("MRUList") as string).Replace(val, "") + val, RegistryValueKind.String);
             BaseKey.Close();
 
             // Tell explorer the file association has been changed
@@ -269,6 +275,8 @@ namespace SSASDiag
                 enableOpenWithToolStripItem.Checked = true;
             else
                 enableOpenWithToolStripItem.Checked = false;
+            enableOpenWithToolStripItem_CheckedChanged(null, null);
+            enableOpenWithToolStripItem.CheckedChanged += new EventHandler(enableOpenWithToolStripItem_CheckedChanged);
 
             if (Args.ContainsKey("reportusage"))
                 enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked = true;
