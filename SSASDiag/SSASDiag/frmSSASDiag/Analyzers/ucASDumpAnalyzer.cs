@@ -610,6 +610,8 @@ namespace SSASDiag
                     if (PromptLocation != -1)
                         qry = qry.Substring(0, qry.LastIndexOf(CurrentPrompt));
                     qry = qry.TrimStart(' ').TrimEnd(' ');
+                    if (qry == "<Win32 error 0n30>")
+                        qry = "There was a query on this thread but its memory could not be read (possibly not captured in this minidump).";
                 }
                 catch
                 {
