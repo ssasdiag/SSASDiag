@@ -55,7 +55,7 @@ namespace SSASDiag
             txtStatus.GotFocus -= txtStatus_GotFocusWhileRunning;
             txtStatus.Cursor = Cursors.Default;
             if (bClosing)
-                Close();
+                BeginInvoke(new System.Action(()=>Close()));
             tbAnalysis.ForeColor = SystemColors.ControlText;
             tcCollectionAnalysisTabs.Refresh();
             
@@ -89,7 +89,7 @@ namespace SSASDiag
                 Application.Exit();
             }
             if (bExitAfterStop)
-                Close();
+                BeginInvoke(new System.Action(() => Close()));
             LogFeatureUse("Collection " + (Environment.UserInteractive ? "stopped and delivered to client." : "service stopped."));
         }
         #endregion CaptureStartAndStop

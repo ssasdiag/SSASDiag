@@ -103,6 +103,8 @@ namespace SSASDiag
 
         void CompleteAnalysisTabsPopulationAfterZipExtraction()
         {
+            StatusFloater.lblStatus.Text = "Initializing analysis and attaching trace databases...";
+            StatusFloater.Visible = true;
             string mdfPath = "";
             if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith("\\msmdsrv.ini")) || File.Exists(m_analysisPath + "\\msmdsrv.ini"))
             {
@@ -214,6 +216,7 @@ namespace SSASDiag
                     }
                 }
             }
+            StatusFloater.Visible = false;
             tcAnalysis.Visible = true;
         }
 
