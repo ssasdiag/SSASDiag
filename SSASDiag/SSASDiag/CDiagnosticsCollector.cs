@@ -989,6 +989,7 @@ namespace SSASDiag
                 {
                     // Zip up all output into a single zip file.
                     ZipFile z = new ZipFile();
+                    z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
                     z.AddDirectory(TraceID);
                     z.MaxOutputSegmentSize = 1024 * 1024 * (int)iRollover;
                     z.Encryption = EncryptionAlgorithm.None;

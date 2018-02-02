@@ -255,11 +255,11 @@ namespace SSASDiag
             if (txtFolderZipForAnalysis.Text.EndsWith(".zip"))
             {
                 Ionic.Zip.ZipFile z = new Ionic.Zip.ZipFile(txtFolderZipForAnalysis.Text);
+                z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
                 if (z.Entries.Where(f => f.FileName.Substring(f.FileName.LastIndexOf("/") + 1) == file.Substring(file.LastIndexOf("\\") + 1)).Count() == 0)
                 {
                     try
                     {
-                        z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
                         z.AddFile(file, AnalysisTraceID + "/Analysis");
                         z.Save();
                     }
@@ -313,6 +313,7 @@ namespace SSASDiag
         private void BgSelectivelyExtractAnalysisDataFromZip_DoWork(object sender, DoWorkEventArgs e)
         {
             Ionic.Zip.ZipFile z = new Ionic.Zip.ZipFile(m_analysisPath);
+            z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
             // Always extract directly into the current running location.
             // This ensures we don't accidentally fill up a temp drive or something with large files.
             AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag").Replace(".zip", "");
@@ -331,7 +332,7 @@ namespace SSASDiag
                 try
                 {
                     foreach (Ionic.Zip.ZipEntry ze in z.Entries.Where(f => f.FileName.Contains(".mdf") || f.FileName.Contains(".ldf")).ToList())
-                        ExtractFileToPath(z, m_analysisPath + "\\Analysis", ze.FileName.Substring(ze.FileName.LastIndexOf("/")));
+                        ExtractFileToPath(z, m_analysisPath + "\\Analysis", ze.FileName.Substring(ze.FileName.LastIndexOf("/") + 1));
                 }
                 catch (Exception ex)
                 {
@@ -370,12 +371,15 @@ namespace SSASDiag
 
         private void ExtractFileToPath(Ionic.Zip.ZipFile z, string OutputPath, string FileName)
         {
+            z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
             StatusFloater.Invoke(new System.Action(() => StatusFloater.lblSubStatus.Text = FileName));
             FileStream fs;
             if (!File.Exists(OutputPath + "\\" + FileName) && z.Count(ze=>ze.FileName.Contains(FileName)) > 0)
             {
                 fs = new FileStream(OutputPath + "\\" + FileName, FileMode.Create);
-                z.Entries.Where(f => f.FileName.Contains(FileName)).First().Extract(fs);
+                Ionic.Zip.ZipEntry ze = z.Entries.Where(f => f.FileName.Contains(FileName)).First();
+                ze.Extract(fs);
+                fs.Flush(true);
                 fs.Close();
             }
         }
