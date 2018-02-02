@@ -107,7 +107,7 @@ namespace SSASDiag
             if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith("\\msmdsrv.ini")) || File.Exists(m_analysisPath + "\\msmdsrv.ini"))
             {
                 tcAnalysis.TabPages.Add(new TabPage("Configuration") { ImageIndex = 0, Name = "Configuration" });
-                tcAnalysis.TabPages["Configuration"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of configuration details."));
+                tcAnalysis.TabPages["Configuration"].Controls.Add(GetStatusTextBox(File.ReadAllText(m_analysisPath + "\\msmdsrv.ini")));
             }
             bool dirhasdumps = false;
             if (!File.Exists(m_analysisPath))

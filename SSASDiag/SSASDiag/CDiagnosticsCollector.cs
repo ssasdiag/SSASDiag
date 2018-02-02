@@ -904,7 +904,7 @@ namespace SSASDiag
         {
             if (bGetProfiler)
             {
-                if (Environment.GetCommandLineArgs().Where(a=>a == "/nowaitonstop").Count() == 0)
+                if (Environment.GetCommandLineArgs().Where(a=>a.Contains("nowaitonstop")).Count() == 0)
                 {
                     SendMessageToClients("Waiting 15s to allow profiler trace to catch up with any lagging events...");
                     System.Threading.Thread.Sleep(15000); // Wait 15s to allow profiler events to catch up a little bit.
