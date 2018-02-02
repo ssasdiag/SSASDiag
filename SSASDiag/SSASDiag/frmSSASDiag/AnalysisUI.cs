@@ -259,6 +259,7 @@ namespace SSASDiag
                 {
                     try
                     {
+                        z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
                         z.AddFile(file, AnalysisTraceID + "/Analysis");
                         z.Save();
                     }
