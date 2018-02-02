@@ -148,7 +148,7 @@ namespace SSASDiag
                 File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.diag.log"))
             {
                 tcAnalysis.TabPages.Add(new TabPage("Network Trace") { ImageIndex = 3, Name = "Network Trace" });
-                TextBox txtNetworkAnalysis = GetStatusTextBox();
+                RichTextBox txtNetworkAnalysis = GetStatusTextBox();
                 Button btnAnalyzeNetworkTrace = new Button() { Text = "Analyze Trace", Name = "btnAnalyzeNetworkTrace", Left = tcAnalysis.Width / 2 - 54, Width = 108, Top = 80, Visible = false };
                 tcAnalysis.TabPages["Network Trace"].Controls.Add(btnAnalyzeNetworkTrace);
                 btnAnalyzeNetworkTrace.Click += btnAnalyzeNetworkTrace_Click;
@@ -273,9 +273,9 @@ namespace SSASDiag
                 }
             }
         }
-        public TextBox GetStatusTextBox(string Text = "")
+        public RichTextBox GetStatusTextBox(string Text = "")
         {
-            TextBox txtStatus = new TextBox();
+            RichTextBox txtStatus = new RichTextBox();
             txtStatus.Name = "StatusTextbox";
             txtStatus.Multiline = true;
             txtStatus.ReadOnly = true;
@@ -284,7 +284,7 @@ namespace SSASDiag
             txtStatus.Font = (HiddenTabPages.Find(t => t.Name == "tbProfilerTraces") == null ? tcAnalysis.TabPages["tbProfilerTraces"] : HiddenTabPages.Find(t => t.Name == "tbProfilerTraces")).Font;
             txtStatus.Dock = DockStyle.Fill;
             txtStatus.WordWrap = false;
-            txtStatus.ScrollBars = ScrollBars.Both;
+            txtStatus.ScrollBars = RichTextBoxScrollBars.Both;
             txtStatus.Text = Text;
             return txtStatus;
         }
