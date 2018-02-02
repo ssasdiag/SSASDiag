@@ -124,7 +124,8 @@ namespace SSASDiag
                         break;
                     }
             }
-            if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdmp")) || dirhasdumps || Directory.GetFiles(m_analysisPath + "\\Analysis", "SSASDiag_MemoryDump_Analysis_*.mdf", SearchOption.TopDirectoryOnly).Count() > 0)
+            if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdmp")) || dirhasdumps || 
+                (Directory.Exists(m_analysisPath) && Directory.GetFiles(m_analysisPath + "\\Analysis", "SSASDiag_MemoryDump_Analysis_*.mdf", SearchOption.TopDirectoryOnly).Count() > 0))
             {
                 if (ValidateProfilerTraceDBConnectionStatus())
                 {
