@@ -254,6 +254,19 @@ namespace SSASDiag
                     d.ProcessID = dr["DumpProcessID"] as string;
                     d.Stacks = new List<Stack>();
                 }
+                else
+                {
+                    d = new Dump();
+                    d.DumpPath = dr["DumpPath"] as string;
+                    d.Stacks = new List<Stack>();
+                    d.ProcessID = dr["DumpProcessID"] as string;
+                    d.DumpTime = Convert.ToDateTime(dr["DumpTime"] as string);
+                    d.DumpException = dr["DumpException"] as string;
+                    d.ASVersion = dr["ASVersion"] as string;
+                    d.Analyzed = true;
+                    d.Crash = Convert.ToBoolean(dr["CrashDump"]);
+                    DumpFiles.Add(d);
+                }
             }
             dr.Close();
             cmd.CommandText = "select * from StacksAndQueries";
