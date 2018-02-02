@@ -192,16 +192,6 @@ Generated trace/log files are saved with file names of the format:
 Generated trace/log files are saved with file names of the format:
 &lt;hostname&gt;_&lt;instance if named&gt;_&lt;UTC time&gt;.&lt;file extension&gt;</value>
   </data>
-  <data name="lblInitialAnalysisPrompt.Text" xml:space="preserve">
-    <value>To analyze SSAS Diagnostics, choose a supported data type.
-
-Supported types include:
-
-* SSASDiag capture folders 
-* SSASDiag capture .zip files
-* Analysis Services profiler trace files (.trc) 
-* Network trace files (.cap or .etl)</value>
-  </data>
   <metadata name="imgAnalyzerIcons.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>221, 17</value>
   </metadata>
@@ -210,7 +200,7 @@ Supported types include:
         AAEAAAD/////AQAAAAAAAAAMAgAAAFdTeXN0ZW0uV2luZG93cy5Gb3JtcywgVmVyc2lvbj00LjAuMC4w
         LCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWI3N2E1YzU2MTkzNGUwODkFAQAAACZTeXN0
         ZW0uV2luZG93cy5Gb3Jtcy5JbWFnZUxpc3RTdHJlYW1lcgEAAAAERGF0YQcCAgAAAAkDAAAADwMAAABM
-        GgAAAk1TRnQBSQFMAgEBBgEAARABBgEQAQYBGAEAARgBAAT/AQkBAAj/AUIBTQE2AQQGAAE2AQQCAAEo
+        GgAAAk1TRnQBSQFMAgEBBgEAAUgBBgFIAQYBGAEAARgBAAT/AQkBAAj/AUIBTQE2AQQGAAE2AQQCAAEo
         AwABYAMAATADAAEBAQABCAYAARIYAAGAAgABgAMAAoABAAGAAwABgAEAAYABAAKAAgADwAEAAcAB3AHA
         AQAB8AHKAaYBAAEzBQABMwEAATMBAAEzAQACMwIAAxYBAAMcAQADIgEAAykBAANVAQADTQEAA0IBAAM5
         AQABgAF8Af8BAAJQAf8BAAGTAQAB1gEAAf8B7AHMAQABxgHWAe8BAAHWAucBAAGQAakBrQIAAf8BMwMA
@@ -324,6 +314,16 @@ Supported types include:
         AcABAAEBAYACAAHgAQABHwIAAQMBwAEAAQMBwAIAAeABAAEfAgABAwHAAQABAwHgAgAB4AEAAR8CAAEH
         AcEC/wHwAQABAQP/AgABPws=
 </value>
+  </data>
+  <data name="lblInitialAnalysisPrompt.Text" xml:space="preserve">
+    <value>To analyze SSAS Diagnostics, choose a supported data type.
+
+Supported types include:
+
+* SSASDiag capture folders 
+* SSASDiag capture .zip files
+* Analysis Services profiler trace files (.trc) 
+* Network trace files (.cap or .etl)</value>
   </data>
   <data name="btnSettings.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

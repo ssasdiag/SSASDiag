@@ -20,11 +20,14 @@ using System.Data.SqlClient;
 using System.IO;
 using SimpleMDXParser;
 using FastColoredTextBoxNS;
+using Ionic.Zip;
 
 namespace SSASDiag
 {
     public partial class ucASDumpAnalyzer : UserControl
     {
+        
+
         public string DumpPath { get; set; }
         ManualResetEvent ResultReady = new ManualResetEvent(false);
         SqlConnection connDB;
@@ -175,7 +178,7 @@ namespace SSASDiag
                     DumpFiles.Add(new Dump() { DumpPath = f, Analyzed = false, Crash = false });
                 AnalysisPath = DumpPath + "\\Analysis";
             }
-            else
+            else 
             {
                 AnalysisPath = DumpPath.Substring(0, DumpPath.LastIndexOf("\\") + 1) + "Analysis";
                 DumpFiles.Add(new Dump() { DumpPath = dumpPath, Analyzed = false, Crash = false });
@@ -449,6 +452,20 @@ namespace SSASDiag
             catch
             {
                 // Closing connection could fail if the database is in use or something.  Just ignore - we're closing, don't notify user...
+            }
+            try
+            {
+                string AnalysisZipFile = Directory.GetParent(Directory.GetParent(AnalysisPath).FullName).FullName + "\\" + Directory.GetParent(AnalysisPath).Name + ".zip";
+                if (File.Exists(AnalysisZipFile))
+                {
+                    ZipFile z = new ZipFile(AnalysisZipFile);
+                    z.AddFiles(new string[] { MDFPath(), LDFPath() }, Directory.GetParent(AnalysisPath).Name + "/Analysis");
+                    z.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("Exception adding dump analysis to zip folder: " + ex.Message);
             }
         }
 

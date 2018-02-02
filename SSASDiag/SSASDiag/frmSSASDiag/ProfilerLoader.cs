@@ -207,9 +207,9 @@ namespace SSASDiag
         }
         private void bgImportProfilerTraceComplete(object sender, RunWorkerCompletedEventArgs e)
         {
-            Debug.WriteLine("Import Trace Complete");
             if (!bCancelProfilerImport)  // We take care of cleanup and completion in cancellation worker if we're cancelled.
             {
+                Debug.WriteLine("Import Trace Complete");
                 if (File.Exists(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf"))
                 {
                     btnImportProfilerTrace.Visible = false;
@@ -229,9 +229,9 @@ namespace SSASDiag
         {
             EventWaitHandle doneWithInit = new EventWaitHandle(false, EventResetMode.ManualReset, "ASProfilerTraceImporterCmdCancelSignal");
             doneWithInit.Set();
-            ASProfilerTraceImporterProcess.WaitForExit();
-            connSqlDb.ChangeDatabase("master");
             doneWithInit.Close();
+            bool bExited = ASProfilerTraceImporterProcess.WaitForExit(1000);
+            connSqlDb.ChangeDatabase("master");
             SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') ALTER DATABASE [" + AnalysisTraceID + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connSqlDb);
             cmd.ExecuteNonQuery();
             cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + AnalysisTraceID + "') DROP DATABASE [" + AnalysisTraceID + "]", connSqlDb);
@@ -247,6 +247,8 @@ namespace SSASDiag
                 File.Delete(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".mdf");
                 File.Delete(m_analysisPath + "\\Analysis\\" + AnalysisTraceID + ".ldf");
             }
+            if (!bExited)
+                Process.GetProcessesByName("ASProfilerTraceImporterCmd").First().Kill();
         }
         private void BgCancelTrace_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -335,8 +337,13 @@ namespace SSASDiag
                 if (cmd.Connection.State == ConnectionState.Open)
                 {
                     // This isn't immediately required and we save 1-2s by doing it off this thread.
-                    EndOfTrace = Convert.ToDateTime(cmd.ExecuteScalar());
-                    System.Diagnostics.Trace.WriteLine("End of trace [" + AnalysisTraceID + "] noted at " + EndOfTrace);
+                    EndOfTrace = DateTime.MinValue;
+                    object dt = cmd.ExecuteScalar();
+                    if (!Convert.IsDBNull(dt))
+                    {
+                        EndOfTrace = Convert.ToDateTime(dt);
+                        System.Diagnostics.Trace.WriteLine("End of trace [" + AnalysisTraceID + "] noted at " + EndOfTrace);
+                    }
                     conn.Close();
                 }
             })).Start();

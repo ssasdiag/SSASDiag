@@ -259,7 +259,7 @@ namespace SSASDiag
                 {
                     try
                     {
-                        z.AddFile(file, "Analysis");
+                        z.AddFile(file, AnalysisTraceID + "/Analysis");
                         z.Save();
                     }
                     catch (Exception ex)
@@ -325,12 +325,12 @@ namespace SSASDiag
             ExtractFileToPath(z, m_analysisPath, "SSASDiag.log");
             AnalysisTraceID = GetAnalysisIDFromLog();
 
-            if (z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + ".mdf").Count() > 0)
+            if (z.Entries.Where(f => f.FileName.Contains(".mdf")).Count() > 0)
             {
                 try
                 {
-                    ExtractFileToPath(z, m_analysisPath + "\\Analysis", AnalysisTraceID + ".mdf");
-                    ExtractFileToPath(z, m_analysisPath + "\\Analysis", AnalysisTraceID + ".ldf");
+                    foreach (Ionic.Zip.ZipEntry ze in z.Entries.Where(f => f.FileName.Contains(".mdf") || f.FileName.Contains(".ldf")).ToList())
+                        ExtractFileToPath(z, m_analysisPath + "\\Analysis", ze.FileName.Substring(ze.FileName.LastIndexOf("/")));
                 }
                 catch (Exception ex)
                 {
@@ -339,9 +339,9 @@ namespace SSASDiag
                 }
             }
             else
-            if (z.Entries.Where(f => f.FileName.Contains(".trc")).Count() > 0)
+            if (z.Entries.Where(f => f.FileName == AnalysisTraceID + "/Analysis/" + AnalysisTraceID + ".mdf").Count() == 0 && z.Entries.Where(f => f.FileName.Contains(".trc")).Count() > 0)
                 ExtractAllFilesOfType(z, ".trc");
-            if (z.Entries.Where(f => f.FileName == "Analysis\\" + AnalysisTraceID + "_NetworkAnalysis.log").Count() > 0)
+            if (z.Entries.Where(f => f.FileName == AnalysisTraceID + "/Analysis/" + AnalysisTraceID + "_NetworkAnalysis.log").Count() > 0)
                 ExtractFileToPath(z, m_analysisPath + "\\Analysis", AnalysisTraceID + "_NetworkAnalysis.log");
             else
             {
@@ -352,7 +352,8 @@ namespace SSASDiag
             }
             if (z.Entries.Where(f => f.FileName.Contains(".blg")).Count() > 0)
                 ExtractAllFilesOfType(z, ".blg");
-            if (z.Entries.Where(f => f.FileName.Contains(".mdmp")).Count() > 0)
+            if (z.Entries.Where(f=>f.FileName.Contains("SSASDiag_MemoryDump_Analysis_")).Count() == 0
+                && (z.Entries.Where(f => f.FileName.Contains(".mdmp")).Count() > 0))
                 ExtractAllFilesOfType(z, ".mdmp");
             if (z.Entries.Where(f => f.FileName.Contains(".evtx")).Count() > 0)
                 ExtractAllFilesOfType(z, ".evtx");

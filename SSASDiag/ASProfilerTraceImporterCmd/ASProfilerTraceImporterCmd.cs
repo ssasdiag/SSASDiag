@@ -132,7 +132,7 @@ namespace ASProfilerTraceImporterCmd
                 cols = String.Empty;
                 tfps = new List<TraceFileProcessor>();
 
-                Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
+                Semaphore s = new Semaphore(1, 1 + System.Environment.ProcessorCount * 2); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
                 foreach (string f in files)
                 {
                     if (!bCancel)
@@ -273,20 +273,29 @@ namespace ASProfilerTraceImporterCmd
                         bool bFirstFile = false;
                         if (String.IsNullOrEmpty(cols) || String.IsNullOrWhiteSpace(cols))
                         {
-                            // get column list from first trace file...
-                            SetText("Retreiving column list from trace file " + FileName + ".");
-                            string c = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
-                            object o = new object();
-                            lock (o)
+                            try
                             {
-                                cols = c;
-                                bFirstFile = true;
+                                // get column list from first trace file...
+                                SetText("Retreiving column list from trace file " + FileName + ".");
+                                string c = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
+                                object o = new object();
+                                lock (o)
+                                {
+                                    cols = c;
+                                    bFirstFile = true;
+                                }
+                                Sem.Release(-1 + System.Environment.ProcessorCount * 2);  // We blocked everything until we got initial cols, now we release them all to run...
                             }
-                            Sem.Release(-1 + System.Environment.ProcessorCount * 2);  // We blocked everything until we got initial cols, now we release them all to run...
+                            catch(Exception ex)
+                            {
+                                SetText("Exception loading trace file: " + FileName + "\r\n" + ex.Message + "\r\n" + ex.StackTrace);
+                            }
                         }
                         else
                         {
-                            string newCols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '##" + Table + "_" + CurFile + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
+                            string newCols = "";
+                            while (newCols == "") // sometimes SQL's own internal mechanism delays availability of the column data for querying after table initialized, so we just loop requesting the same until we get data back
+                                newCols = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM tempdb.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + tempTable + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
                             if (cols != newCols)
                             {
                                 SetText("File " + FileName + " has mismatched columns from existing columns already defined by the first file found in the rollover trace series.  The columns defined in the current file are:\r\n" + newCols
