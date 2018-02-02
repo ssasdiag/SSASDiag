@@ -256,6 +256,7 @@ namespace SSASDiag
             {
                 Ionic.Zip.ZipFile z = new Ionic.Zip.ZipFile(txtFolderZipForAnalysis.Text);
                 z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
+                z.ParallelDeflateThreshold = -1;
                 if (z.Entries.Where(f => f.FileName.Substring(f.FileName.LastIndexOf("/") + 1) == file.Substring(file.LastIndexOf("\\") + 1)).Count() == 0)
                 {
                     try
@@ -314,6 +315,7 @@ namespace SSASDiag
         {
             Ionic.Zip.ZipFile z = new Ionic.Zip.ZipFile(m_analysisPath);
             z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
+            z.ParallelDeflateThreshold = -1;
             // Always extract directly into the current running location.
             // This ensures we don't accidentally fill up a temp drive or something with large files.
             AnalysisTraceID = m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\") + 1).Replace("_SSASDiagOutput", "_SSASDiag").Replace(".zip", "");

@@ -460,6 +460,7 @@ namespace SSASDiag
                 {
                     ZipFile z = new ZipFile(AnalysisZipFile);
                     z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
+                    z.ParallelDeflateThreshold = -1;
                     z.AddFiles(new string[] { MDFPath(), LDFPath() }, Directory.GetParent(AnalysisPath).Name + "/Analysis");
                     z.Save();
                 }
