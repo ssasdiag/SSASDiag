@@ -99,10 +99,9 @@ namespace SSASDiag
                 new Thread(new ThreadStart(() =>
                 {
                     while (de.MoveNext() == true)
-                        if (de.Entry.Value is byte[] && de.Key.ToString() != "ResourcesZip")
-                            File.WriteAllBytes(TempPath
-                                + de.Key.ToString().Replace('_', '.') + ".exe",
-                                de.Entry.Value as byte[]);
+                        if (!File.Exists(TempPath + de.Key.ToString().Replace('_', '.') + ".exe") 
+                            && de.Entry.Value is byte[] && de.Key.ToString() != "ResourcesZip")
+                                File.WriteAllBytes(TempPath + de.Key.ToString().Replace('_', '.') + ".exe", de.Entry.Value as byte[]);
                 })).Start();
 
                 // Symbolic debugger binaries required for dump parsing. 
@@ -110,7 +109,8 @@ namespace SSASDiag
                 // Copied simply into %Program Files%\CDB.
                 InstallCDB();
 
-                while (true)
+                int iCopyTries = 0;
+                while (iCopyTries < 3)
                 {
                     try
                     {
@@ -124,6 +124,8 @@ namespace SSASDiag
                     catch (Exception e)
                     {
                         Trace.WriteLine("Exception copying binary to temp cache: " + e.Message);
+                        Thread.Sleep(100);
+                        iCopyTries++;
                     } 
                 }
 
