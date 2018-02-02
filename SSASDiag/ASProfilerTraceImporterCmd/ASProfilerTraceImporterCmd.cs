@@ -21,6 +21,7 @@ namespace ASProfilerTraceImporterCmd
         static string ConnStr = "";
         static string Table = "";
         static volatile public string cols = "";
+        static volatile bool bFirstFileProcessed = false;
         static bool bCancel = false;
         static public SqlConnectionInfo2 cib = new SqlConnectionInfo2();
         static public List<TraceFileProcessor> tfps = new List<TraceFileProcessor>();
@@ -132,7 +133,7 @@ namespace ASProfilerTraceImporterCmd
                 cols = String.Empty;
                 tfps = new List<TraceFileProcessor>();
 
-                Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
+                Semaphore s = new Semaphore(1, System.Environment.ProcessorCount * 2, "profilerloadersemaphore"); // throttles simultaneous threads to number of processors, starts with just 1 free thread until cols are initialized
                 foreach (string f in files)
                 {
                     if (!bCancel)
@@ -142,6 +143,8 @@ namespace ASProfilerTraceImporterCmd
                         tfps.Add(tfp);
                         workers.Add(new Thread(() => tfp.ProcessTraceFile()));
                         workers.Last().Start();
+                        while (!bFirstFileProcessed)
+                            Thread.Sleep(100);
                     }
                 }
 
@@ -271,20 +274,17 @@ namespace ASProfilerTraceImporterCmd
                         SqlConnection conn = new SqlConnection(ConnStr);
                         conn.Open();
                         bool bFirstFile = false;
-                        if (String.IsNullOrEmpty(cols) || String.IsNullOrWhiteSpace(cols))
+                        if (!bFirstFileProcessed)
                         {
+                            bFirstFileProcessed = true;
                             try
                             {
                                 // get column list from first trace file...
                                 SetText("Retreiving column list from trace file " + FileName + ".");
                                 string c = new SqlCommand("SELECT SUBSTRING((SELECT ', ' + QUOTENAME(COLUMN_NAME) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + Table + "' AND COLUMN_NAME <> 'RowNumber' ORDER BY ORDINAL_POSITION FOR XML path('')), 3, 200000);", conn).ExecuteScalar() as string;
-                                object o = new object();
-                                lock (o)
-                                {
-                                    cols = c;
-                                }
+                                cols = c;
                                 bFirstFile = true;
-                                try { Sem.Release(System.Environment.ProcessorCount * 2); } catch { }  // We blocked everything until we got initial cols, now we release them all to run...
+                                Sem.Release(System.Environment.ProcessorCount * 2);  // We blocked everything until we got initial cols, now we release them all to run...
                             }
                             catch(Exception ex)
                             {
@@ -301,7 +301,7 @@ namespace ASProfilerTraceImporterCmd
                                 SetText("File " + FileName + " has mismatched columns from existing columns already defined by the first file found in the rollover trace series.  The columns defined in the current file are:\r\n" + newCols
                                                 + "\r\nThe columns defined in the first trace file encountered were:\r\n" + cols + "\r\nThe trace cannot be loaded and will be cancelled.  Try deleting non-matching file(s) to reload the actual contiguous rollover series.\r\n");
                                 SetText("Columns not matched for file " + FileName + ".  Skipping this file from import.");
-                                //Sem.Release(1); // release this code for next thread waiting on the semaphore 
+                                Sem.Release(); // release this code for next thread waiting on the semaphore 
                                 return;  // only happens if there is column mismatch between files - we won't read the whole file, just skip over...
                             }
                         }
@@ -321,7 +321,7 @@ namespace ASProfilerTraceImporterCmd
                         }
                         if (!bFirstFile && !bCancel)
                         {
-                            //Sem.Release(1); // release this code for next thread waiting on the semaphore 
+                            Sem.Release(); // release this code for next thread waiting on the semaphore 
                         }
                     }
                 }
@@ -331,7 +331,6 @@ namespace ASProfilerTraceImporterCmd
                     {
                         SetText(e.ToString() + "\r\n\r\nException occurred while loading file " + FileName + ".\r\nStack:\r\n" + e.StackTrace + "\r\n\r\n" + e.Source);
                         bCancel = true;
-                        try { Sem.Release(System.Environment.ProcessorCount * 2); } catch { }
                     }
                 }
             }
