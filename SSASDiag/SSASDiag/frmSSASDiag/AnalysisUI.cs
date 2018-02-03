@@ -277,7 +277,7 @@ namespace SSASDiag
             }
             if (tcAnalysis.SelectedTab.Name == "Network Trace")
             {
-                (tcAnalysis.SelectedTab.Controls["StatusTextBox"] as TextBox).AppendText(".");
+                (tcAnalysis.SelectedTab.Controls["StatusTextBox"] as RichTextBox).AppendText(".");
             }
         }
         private void AddFileFromFolderIfAnlyzingZip(string file)
@@ -429,7 +429,7 @@ namespace SSASDiag
             if (!Directory.Exists(AnalysisDir))
                 Directory.CreateDirectory(AnalysisDir);
 
-            TextBox txtNetworkAnalysis = tcAnalysis.TabPages["Network Trace"].Controls["StatusTextbox"] as TextBox;
+            RichTextBox txtNetworkAnalysis = tcAnalysis.TabPages["Network Trace"].Controls["StatusTextbox"] as RichTextBox;
             tcAnalysis.TabPages["Network Trace"].Controls[0].Visible = false;
             txtNetworkAnalysis.Text = "Analysis of network trace started...";
             AnalysisMessagePumpTimer.Interval = 1000;

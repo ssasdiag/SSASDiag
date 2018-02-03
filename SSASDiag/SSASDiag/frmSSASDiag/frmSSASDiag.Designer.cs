@@ -283,7 +283,7 @@
             this.chkGetNetwork.Name = "chkGetNetwork";
             this.chkGetNetwork.Size = new System.Drawing.Size(102, 17);
             this.chkGetNetwork.TabIndex = 7;
-            this.chkGetNetwork.Text = "Network Traces";
+            this.chkGetNetwork.Text = "Network Trace";
             this.ttStatus.SetToolTip(this.chkGetNetwork, "Network traces are useful for connectivity investigations most often.");
             this.chkGetNetwork.UseVisualStyleBackColor = true;
             this.chkGetNetwork.CheckedChanged += new System.EventHandler(this.chkGetNetwork_CheckedChanged);
