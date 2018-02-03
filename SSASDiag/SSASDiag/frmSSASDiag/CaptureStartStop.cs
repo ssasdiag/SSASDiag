@@ -58,7 +58,10 @@ namespace SSASDiag
                 BeginInvoke(new System.Action(()=>Close()));
             tbAnalysis.ForeColor = SystemColors.ControlText;
             tcCollectionAnalysisTabs.Refresh();
-            
+
+            if(File.Exists(svcOutputPath)) 
+                File.Delete(svcOutputPath);
+
             if (Environment.UserInteractive)
             {
                 // Reinitialize service config to start with no command options - immediately terminating hereafter in service mode then, until UI configures new settings, should someone try to start manually.

@@ -485,11 +485,14 @@ namespace SSASDiag
                             if (InstanceCollectionService != null &&  svcKey != null)
                             {
                                 string svcPath = svcKey.GetValue("ImagePath") as string;
-                                svcOutputPath = svcPath.Substring(0, svcPath.Length - 4) + ".output.log";
+                                svcOutputPath = Environment.GetFolderPath(Environment.SpecialFolder.Windows) + "\\TEMP\\SSASDiag\\SSASDiagService_" + InstanceName + ".output.log";
                                 List<string> CurrentStatus = new List<string>();
                                 if (File.Exists(svcOutputPath))
-                                    CurrentStatus = File.ReadLines(svcOutputPath).ToList();
-                                string RawStatusText = String.Join("\r\n", CurrentStatus.ToArray());
+                                    CurrentStatus = File.ReadAllLines(svcOutputPath).ToList();
+                                string capturedelapsedtime = CurrentStatus.Where(l => l.StartsWith("Diagnostics captured for ")).Last();
+                                CurrentStatus = CurrentStatus.Where(l => !l.StartsWith("Diagnostics captured for ")).ToList();
+                                CurrentStatus.Add(capturedelapsedtime);
+                                string RawStatusText = String.Join("\r\n", CurrentStatus.ToArray()).TrimStart(new char[] { '\r', '\n' });
                                 // If we encounter a stopped service, this indicates unexpected halt in prior state.  Report and deliver service log to output directory, then clean up old service.
                                 if (InstanceCollectionService.Status == ServiceControllerStatus.Stopped)
                                 {
@@ -500,7 +503,7 @@ namespace SSASDiag
                                         // In the future it would be better to not use strings but constants for different message types (control/status/etc.) and send a message class through the pipe.
                                         // But this is simpler and easier and low priority.  Later if we try to localize or whatnot we could have a little work to fix it up though...
                                         CurrentStatus.RemoveAt(CurrentStatus.Count - 1);
-                                        RawStatusText = String.Join("\r\n", CurrentStatus.ToArray());
+                                        RawStatusText = String.Join("\r\n", CurrentStatus.ToArray()).TrimStart(new char[] { '\r', '\n' });
                                         txtStatus.Invoke(new System.Action(() => txtStatus.Text = RawStatusText));
                                         NpClient_ServerMessage(null, "\r\nStop");
                                         if (!Args.ContainsKey("noui"))
