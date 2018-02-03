@@ -367,7 +367,7 @@ namespace SSASDiag
             if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug"))
                 System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\SSASDiagDebugTrace_" + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC" + ".log"));
             System.Diagnostics.Trace.AutoFlush = true;
-            System.Diagnostics.Trace.WriteLine("Started diagnostic trace.");
+            System.Diagnostics.Trace.WriteLine("Started debug trace.");
             if (!Environment.UserInteractive)
                 System.Diagnostics.Trace.WriteLine("Running as a service.");
         }

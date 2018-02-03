@@ -132,10 +132,12 @@ namespace SSASDiag
             }
         }
 
+        frmStatusFloater StatusFloater = null;
 
-        public ucASDumpAnalyzer(string dumpPath, SqlConnection conndb)
+        public ucASDumpAnalyzer(string dumpPath, SqlConnection conndb, frmStatusFloater statusFloater)
         {
             InitializeComponent();
+            StatusFloater = statusFloater;
             DumpPath = dumpPath;
             connDB = new SqlConnection(conndb.ConnectionString);
             connDB.Open();
@@ -387,15 +389,15 @@ namespace SSASDiag
             return SymDirExists;
         }
 
-        frmStatusFloater StatusFloater = new frmStatusFloater();
         private void ValidateSymbolResolution()
         {
-            
-            StatusFloater.lblStatus.Text = "Checking symbol resolution for dump analysis...";
-            StatusFloater.Left = Program.MainForm.Left + Program.MainForm.Width / 2 - StatusFloater.Width / 2;
-            StatusFloater.Top = Program.MainForm.Top + Program.MainForm.Height / 2 - StatusFloater.Height / 2;
-            Visible = false;
-            StatusFloater.Show(Program.MainForm);
+            StatusFloater.Invoke(new System.Action(()=>
+                {
+                    StatusFloater.lblStatus.Text = "Checking symbol resolution for dump analysis...";
+                    StatusFloater.Left = Program.MainForm.Left + Program.MainForm.Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.Top = Program.MainForm.Top + Program.MainForm.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.Visible = true;
+                }));
             new Thread(new ThreadStart(() =>
             {
                 // Disable symbol load timeouts to favor symbol loading even if slow

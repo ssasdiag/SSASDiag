@@ -456,7 +456,7 @@ namespace SSASDiag
                     {
                         ProfilerTraceStatusTextBox.Invoke(new System.Action(() =>
                         {
-                            ProfilerTraceStatusTextBox.Text = (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Trace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n";
+                            ProfilerTraceStatusTextBox.Text = (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") && !String.IsNullOrWhiteSpace(ProfilerTraceStatusTextBox.Text) ? "" : "\r\n") + "Trace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n";
                             btnImportProfilerTrace.Visible = true;
                         }));
                         return;
@@ -466,7 +466,7 @@ namespace SSASDiag
                         ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Unable to attach to database due to exception:\r\n" + ex.Message)));
                         ProfilerTraceStatusTextBox.Invoke(new System.Action(() =>
                         {
-                            ProfilerTraceStatusTextBox.Text = (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Trace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n";
+                            ProfilerTraceStatusTextBox.Text = (ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") && !String.IsNullOrWhiteSpace(ProfilerTraceStatusTextBox.Text) ? "" : "\r\n") + "Trace file is not yet imported to database table for analysis.  Import to perform analysis.\r\n";
                             btnImportProfilerTrace.Visible = true;
                         }));
                     }

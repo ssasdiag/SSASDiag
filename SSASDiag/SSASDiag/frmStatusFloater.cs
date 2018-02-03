@@ -15,6 +15,7 @@ namespace SSASDiag
         public frmStatusFloater()
         {
             InitializeComponent();
+            CreateHandle();
         }
         public bool EscapePressed { get; set; } = false;
 

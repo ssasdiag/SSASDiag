@@ -71,16 +71,21 @@ namespace SSASDiag
         }
         private void PopulateAnalysisTabs()
         {
-            StatusFloater.lblTime.Text = "00:00";
-            StatusFloater.lblTime.Visible = true;
-            AnalysisQueryExecutionPumpTimer.Interval = 1000;
-            AnalysisQueryExecutionPumpTimer.Start();
-            StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
-            StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
-            StatusFloater.lblStatus.Text = "Initializing and attaching analysis database(s)...";
-            StatusFloater.PerformLayout();
-            StatusFloater.Show(this);
-
+            new Thread(new ThreadStart(() =>
+            {
+                StatusFloater.Invoke(new System.Action(() =>
+                {
+                    StatusFloater.lblTime.Text = "00:00";
+                    StatusFloater.lblTime.Visible = true;
+                    AnalysisQueryExecutionPumpTimer.Interval = 1000;
+                    AnalysisQueryExecutionPumpTimer.Start();
+                    StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.lblStatus.Text = "Initializing and attaching analysis database(s)...";
+                    StatusFloater.Visible = true;
+                }));
+            })).Start();
+            
             Text = "SSAS Diagnostics Analysis: " + txtFolderZipForAnalysis.Text.Substring(txtFolderZipForAnalysis.Text.LastIndexOf("\\") + 1);
             tcAnalysis.Visible = false;
             lblInitialAnalysisPrompt.Visible = false;
@@ -139,7 +144,7 @@ namespace SSASDiag
             {
                 if (ValidateProfilerTraceDBConnectionStatus())
                 {
-                    ucASDumpAnalyzer DumpAnalyzer = new ucASDumpAnalyzer(m_analysisPath, connSqlDb);
+                    ucASDumpAnalyzer DumpAnalyzer = new ucASDumpAnalyzer(m_analysisPath, connSqlDb, StatusFloater);
                     DumpAnalyzer.Dock = DockStyle.Fill;
                     tcAnalysis.TabPages.Add(new TabPage("Memory Dumps") { ImageIndex = 1, Name = "Memory Dumps" });
                     tcAnalysis.TabPages["Memory Dumps"].Controls.Add(DumpAnalyzer);
@@ -237,7 +242,7 @@ namespace SSASDiag
 
             }
                 
-            StatusFloater.Visible = false;
+            StatusFloater.Invoke(new System.Action(()=> StatusFloater.Visible = false));
             tcAnalysis.Visible = true;
         }
 
@@ -314,7 +319,7 @@ namespace SSASDiag
         }
         private void SelectivelyExtractAnalysisDataFromZip()
         {
-            StatusFloater.lblStatus.Text = "Extracting zipped files for analysis...";
+            StatusFloater.Invoke(new System.Action(()=>StatusFloater.lblStatus.Text = "Extracting zipped files for analysis..."));
             BackgroundWorker bgSelectivelyExtractAnalysisDataFromZip = new BackgroundWorker();
             bgSelectivelyExtractAnalysisDataFromZip.DoWork += BgSelectivelyExtractAnalysisDataFromZip_DoWork;
             bgSelectivelyExtractAnalysisDataFromZip.RunWorkerCompleted += BgSelectivelyExtractAnalysisDataFromZip_RunWorkerCompleted;
