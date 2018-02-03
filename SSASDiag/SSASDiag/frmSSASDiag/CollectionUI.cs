@@ -584,7 +584,11 @@ namespace SSASDiag
 
         private void BgPopulateInstanceDetails_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (btnCapture.Enabled && cbInstances.Items.Count > 0 && (Args.ContainsKey("start") || Args.ContainsKey("stop")))
+            if ((Args.ContainsKey("stop") && !(btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit" || btnCapture.Image.Tag as string == "Play Half Lit")) ||
+                (Args.ContainsKey("start") && !(btnCapture.Image.Tag as string == "Play" || btnCapture.Image.Tag as string == "Play Lit")))
+                Invoke(new System.Action(() => Close()));
+            else if (btnCapture.Enabled && cbInstances.Items.Count > 0 && 
+                (Args.ContainsKey("start") || Args.ContainsKey("stop")))
                 btnCapture_Click(sender, e);
         }
 
