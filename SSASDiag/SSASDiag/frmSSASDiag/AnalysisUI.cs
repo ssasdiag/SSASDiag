@@ -77,6 +77,8 @@ namespace SSASDiag
             AnalysisQueryExecutionPumpTimer.Start();
             StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
             StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
+            StatusFloater.lblStatus.Text = "Initializing and attaching analysis database(s)...";
+            StatusFloater.PerformLayout();
             StatusFloater.Show(this);
 
             Text = "SSAS Diagnostics Analysis: " + txtFolderZipForAnalysis.Text.Substring(txtFolderZipForAnalysis.Text.LastIndexOf("\\") + 1);
@@ -111,7 +113,6 @@ namespace SSASDiag
 
         void CompleteAnalysisTabsPopulationAfterZipExtraction()
         {
-            StatusFloater.lblStatus.Text = "Initializing and attaching analysis database(s)...";
             string mdfPath = "";
             if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith("\\msmdsrv.ini")) || File.Exists(m_analysisPath + "\\msmdsrv.ini"))
             {

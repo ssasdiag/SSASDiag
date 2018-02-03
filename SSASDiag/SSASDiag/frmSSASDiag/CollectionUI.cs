@@ -162,7 +162,7 @@ namespace SSASDiag
                         })).Start();
                     }
                 }
-                else if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit")
+                else if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit" || btnCapture.Image.Tag as string == "Play Half Lit")
                 {
                     btnCapture.Click -= btnCapture_Click;
                     btnCapture.Image = imgStopHalfLit;
@@ -223,6 +223,10 @@ namespace SSASDiag
                     txtStatus.Text = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n"
                                     + "Collection service SSASDiag_" + InstanceName + " started.";
                     InitializeCaptureUI();
+                    if (Args.ContainsKey("noui"))
+                    {
+                        Invoke(new System.Action(() => Close()));
+                    }
                 }));
             }
 
@@ -346,6 +350,9 @@ namespace SSASDiag
                             p.UseShellExecute = true;
                             p.CreateNoWindow = true;
                             Process.Start(p);
+
+                            if (Args.ContainsKey("noui"))
+                                Invoke(new System.Action(() => Close()));
                         }
                     }
                     catch (Exception e)
@@ -577,7 +584,6 @@ namespace SSASDiag
 
         private void BgPopulateInstanceDetails_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-
             if (btnCapture.Enabled && cbInstances.Items.Count > 0 && (Args.ContainsKey("start") || Args.ContainsKey("stop")))
                 btnCapture_Click(sender, e);
         }

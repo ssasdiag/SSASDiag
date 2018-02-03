@@ -123,7 +123,7 @@ namespace SSASDiag
         {
             SetupDebugTrace();
             InitializeArgs();
-            if (Args.ContainsKey("noui") && (Args.ContainsKey("start") || Args.ContainsKey("stop")))
+            if (Args.ContainsKey("noui"))
             {
                 Visible = false;
                 ShowInTaskbar = false;
