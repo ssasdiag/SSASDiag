@@ -41,6 +41,10 @@ namespace SSASDiag
             btnCapture.Click += btnCapture_Click;
             if (dc != null)
                 dc.CompletionCallback = callback_StopAndFinalizeAllDiagnosticsComplete;
+            if (Args.ContainsKey("noui"))
+            {
+                Invoke(new System.Action(()=>Close()));
+            }
         }
         private void callback_StopAndFinalizeAllDiagnosticsComplete()
         {

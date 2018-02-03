@@ -30,14 +30,11 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSSASDiag));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
-            this.lkFeedback = new System.Windows.Forms.LinkLabel();
-            this.lkBugsIdeas = new System.Windows.Forms.LinkLabel();
-            this.lkAbout = new System.Windows.Forms.LinkLabel();
             this.label3 = new System.Windows.Forms.Label();
             this.txtSaveLocation = new System.Windows.Forms.TextBox();
             this.btnSaveLocation = new System.Windows.Forms.Button();
@@ -51,6 +48,10 @@
             this.chkGetNetwork = new System.Windows.Forms.CheckBox();
             this.chkXMLA = new System.Windows.Forms.CheckBox();
             this.btnHangDumps = new System.Windows.Forms.Button();
+            this.lkHelp = new System.Windows.Forms.LinkLabel();
+            this.lkAbout = new System.Windows.Forms.LinkLabel();
+            this.lkBugsIdeas = new System.Windows.Forms.LinkLabel();
+            this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.tcCollectionAnalysisTabs = new System.Windows.Forms.TabControl();
             this.tbCollection = new System.Windows.Forms.TabPage();
             this.splitCollectionUI = new System.Windows.Forms.SplitContainer();
@@ -113,6 +114,7 @@
             this.automaticallyCheckForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableOpenWithToolStripItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pnlLinks = new System.Windows.Forms.Panel();
             this.tcCollectionAnalysisTabs.SuspendLayout();
             this.tbCollection.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitCollectionUI)).BeginInit();
@@ -142,61 +144,8 @@
             this.pnlProfilerAnalysisStatus.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdProfilerAnalyses)).BeginInit();
             this.ctxSettings.SuspendLayout();
+            this.pnlLinks.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // lkFeedback
-            // 
-            this.lkFeedback.AutoSize = true;
-            this.lkFeedback.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lkFeedback.ForeColor = System.Drawing.SystemColors.Highlight;
-            this.lkFeedback.Image = ((System.Drawing.Image)(resources.GetObject("lkFeedback.Image")));
-            this.lkFeedback.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lkFeedback.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkFeedback.Location = new System.Drawing.Point(1, 479);
-            this.lkFeedback.Name = "lkFeedback";
-            this.lkFeedback.Padding = new System.Windows.Forms.Padding(2);
-            this.lkFeedback.Size = new System.Drawing.Size(77, 17);
-            this.lkFeedback.TabIndex = 18;
-            this.lkFeedback.TabStop = true;
-            this.lkFeedback.Text = "      Feedback";
-            this.ttStatus.SetToolTip(this.lkFeedback, "Share the love!");
-            this.lkFeedback.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkFeedback_LinkClicked);
-            // 
-            // lkBugsIdeas
-            // 
-            this.lkBugsIdeas.AutoSize = true;
-            this.lkBugsIdeas.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lkBugsIdeas.ForeColor = System.Drawing.SystemColors.Highlight;
-            this.lkBugsIdeas.Image = ((System.Drawing.Image)(resources.GetObject("lkBugsIdeas.Image")));
-            this.lkBugsIdeas.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lkBugsIdeas.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkBugsIdeas.Location = new System.Drawing.Point(77, 479);
-            this.lkBugsIdeas.Name = "lkBugsIdeas";
-            this.lkBugsIdeas.Padding = new System.Windows.Forms.Padding(2);
-            this.lkBugsIdeas.Size = new System.Drawing.Size(84, 17);
-            this.lkBugsIdeas.TabIndex = 20;
-            this.lkBugsIdeas.TabStop = true;
-            this.lkBugsIdeas.Text = "      Bugs/Ideas";
-            this.ttStatus.SetToolTip(this.lkBugsIdeas, "Make it better!");
-            this.lkBugsIdeas.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkDiscussion_LinkClicked);
-            // 
-            // lkAbout
-            // 
-            this.lkAbout.AutoSize = true;
-            this.lkAbout.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lkAbout.ForeColor = System.Drawing.SystemColors.Highlight;
-            this.lkAbout.Image = ((System.Drawing.Image)(resources.GetObject("lkAbout.Image")));
-            this.lkAbout.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lkAbout.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
-            this.lkAbout.Location = new System.Drawing.Point(158, 479);
-            this.lkAbout.Name = "lkAbout";
-            this.lkAbout.Padding = new System.Windows.Forms.Padding(2);
-            this.lkAbout.Size = new System.Drawing.Size(57, 17);
-            this.lkAbout.TabIndex = 22;
-            this.lkAbout.TabStop = true;
-            this.lkAbout.Text = "      About";
-            this.ttStatus.SetToolTip(this.lkAbout, "Who we are");
-            this.lkAbout.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkAbout_LinkClicked);
             // 
             // label3
             // 
@@ -378,6 +327,78 @@
             this.btnHangDumps.UseVisualStyleBackColor = false;
             this.btnHangDumps.Visible = false;
             this.btnHangDumps.Click += new System.EventHandler(this.btnHangDumps_Click);
+            // 
+            // lkHelp
+            // 
+            this.lkHelp.AutoSize = true;
+            this.lkHelp.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lkHelp.ForeColor = System.Drawing.SystemColors.Highlight;
+            this.lkHelp.Image = global::SSASDiag.Properties.Resources.helpimg;
+            this.lkHelp.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lkHelp.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
+            this.lkHelp.Location = new System.Drawing.Point(217, 2);
+            this.lkHelp.Name = "lkHelp";
+            this.lkHelp.Padding = new System.Windows.Forms.Padding(2);
+            this.lkHelp.Size = new System.Drawing.Size(51, 17);
+            this.lkHelp.TabIndex = 53;
+            this.lkHelp.TabStop = true;
+            this.lkHelp.Text = "      Help";
+            this.ttStatus.SetToolTip(this.lkHelp, "Usage arguments");
+            this.lkHelp.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkHelp_LinkClicked);
+            // 
+            // lkAbout
+            // 
+            this.lkAbout.AutoSize = true;
+            this.lkAbout.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lkAbout.ForeColor = System.Drawing.SystemColors.Highlight;
+            this.lkAbout.Image = ((System.Drawing.Image)(resources.GetObject("lkAbout.Image")));
+            this.lkAbout.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lkAbout.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
+            this.lkAbout.Location = new System.Drawing.Point(4, 2);
+            this.lkAbout.Name = "lkAbout";
+            this.lkAbout.Padding = new System.Windows.Forms.Padding(2);
+            this.lkAbout.Size = new System.Drawing.Size(57, 17);
+            this.lkAbout.TabIndex = 52;
+            this.lkAbout.TabStop = true;
+            this.lkAbout.Text = "      About";
+            this.ttStatus.SetToolTip(this.lkAbout, "Who we are");
+            this.lkAbout.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkAbout_LinkClicked);
+            // 
+            // lkBugsIdeas
+            // 
+            this.lkBugsIdeas.AutoSize = true;
+            this.lkBugsIdeas.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lkBugsIdeas.ForeColor = System.Drawing.SystemColors.Highlight;
+            this.lkBugsIdeas.Image = ((System.Drawing.Image)(resources.GetObject("lkBugsIdeas.Image")));
+            this.lkBugsIdeas.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lkBugsIdeas.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
+            this.lkBugsIdeas.Location = new System.Drawing.Point(59, 2);
+            this.lkBugsIdeas.Name = "lkBugsIdeas";
+            this.lkBugsIdeas.Padding = new System.Windows.Forms.Padding(2);
+            this.lkBugsIdeas.Size = new System.Drawing.Size(84, 17);
+            this.lkBugsIdeas.TabIndex = 51;
+            this.lkBugsIdeas.TabStop = true;
+            this.lkBugsIdeas.Text = "      Bugs/Ideas";
+            this.ttStatus.SetToolTip(this.lkBugsIdeas, "Make it better!");
+            this.lkBugsIdeas.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkDiscussion_LinkClicked);
+            // 
+            // lkFeedback
+            // 
+            this.lkFeedback.AutoSize = true;
+            this.lkFeedback.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lkFeedback.ForeColor = System.Drawing.SystemColors.Highlight;
+            this.lkFeedback.Image = global::SSASDiag.Properties.Resources.heart;
+            this.lkFeedback.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.lkFeedback.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
+            this.lkFeedback.Location = new System.Drawing.Point(141, 2);
+            this.lkFeedback.Name = "lkFeedback";
+            this.lkFeedback.Padding = new System.Windows.Forms.Padding(2);
+            this.lkFeedback.Size = new System.Drawing.Size(77, 17);
+            this.lkFeedback.TabIndex = 50;
+            this.lkFeedback.TabStop = true;
+            this.lkFeedback.Text = "      Feedback";
+            this.ttStatus.SetToolTip(this.lkFeedback, "Share the love!");
+            this.lkFeedback.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkFeedback_LinkClicked);
             // 
             // tcCollectionAnalysisTabs
             // 
@@ -932,7 +953,7 @@
             this.tbProfilerTraces.Name = "tbProfilerTraces";
             this.tbProfilerTraces.Size = new System.Drawing.Size(579, 371);
             this.tbProfilerTraces.TabIndex = 0;
-            this.tbProfilerTraces.Text = "Profiler Traces";
+            this.tbProfilerTraces.Text = "Profiler Trace";
             // 
             // splitProfilerStatus
             // 
@@ -1102,43 +1123,43 @@
             this.dgdProfilerAnalyses.AllowUserToDeleteRows = false;
             this.dgdProfilerAnalyses.AllowUserToOrderColumns = true;
             this.dgdProfilerAnalyses.AllowUserToResizeRows = false;
-            dataGridViewCellStyle9.BackColor = System.Drawing.Color.AliceBlue;
-            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle5.BackColor = System.Drawing.Color.AliceBlue;
+            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle5;
             this.dgdProfilerAnalyses.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
             this.dgdProfilerAnalyses.BackgroundColor = System.Drawing.SystemColors.ControlDark;
             this.dgdProfilerAnalyses.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdProfilerAnalyses.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle10.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle10.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle10.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle10.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle10.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle10.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdProfilerAnalyses.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdProfilerAnalyses.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle6;
             this.dgdProfilerAnalyses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle11.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle11.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle11.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle11.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle11.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle11.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle11;
+            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle7.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle7.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle7.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle7;
             this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
             this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 0);
             this.dgdProfilerAnalyses.Margin = new System.Windows.Forms.Padding(0);
             this.dgdProfilerAnalyses.Name = "dgdProfilerAnalyses";
             this.dgdProfilerAnalyses.ReadOnly = true;
             this.dgdProfilerAnalyses.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle12.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle12.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle12.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle12.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle12.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdProfilerAnalyses.RowHeadersDefaultCellStyle = dataGridViewCellStyle12;
+            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle8.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle8.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdProfilerAnalyses.RowHeadersDefaultCellStyle = dataGridViewCellStyle8;
             this.dgdProfilerAnalyses.RowHeadersWidth = 16;
             this.dgdProfilerAnalyses.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.dgdProfilerAnalyses.RowTemplate.Height = 18;
@@ -1242,17 +1263,27 @@
             this.enableOpenWithToolStripItem.Text = "Enable context menu to Open With SSASDiag";
             this.enableOpenWithToolStripItem.ToolTipText = "Current supported file types include .zip, .trc, .cap, .etl.";
             // 
+            // pnlLinks
+            // 
+            this.pnlLinks.Controls.Add(this.lkHelp);
+            this.pnlLinks.Controls.Add(this.lkAbout);
+            this.pnlLinks.Controls.Add(this.lkBugsIdeas);
+            this.pnlLinks.Controls.Add(this.lkFeedback);
+            this.pnlLinks.Location = new System.Drawing.Point(164, 475);
+            this.pnlLinks.Margin = new System.Windows.Forms.Padding(0);
+            this.pnlLinks.Name = "pnlLinks";
+            this.pnlLinks.Size = new System.Drawing.Size(273, 20);
+            this.pnlLinks.TabIndex = 50;
+            // 
             // frmSSASDiag
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(601, 496);
+            this.Controls.Add(this.pnlLinks);
             this.Controls.Add(this.btnSettings);
-            this.Controls.Add(this.lkAbout);
             this.Controls.Add(this.tcCollectionAnalysisTabs);
-            this.Controls.Add(this.lkBugsIdeas);
-            this.Controls.Add(this.lkFeedback);
             this.DoubleBuffered = true;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(617, 427);
@@ -1304,15 +1335,14 @@
             this.pnlProfilerAnalysisStatus.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdProfilerAnalyses)).EndInit();
             this.ctxSettings.ResumeLayout(false);
+            this.pnlLinks.ResumeLayout(false);
+            this.pnlLinks.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
         private System.Windows.Forms.ToolTip ttStatus;
-        private System.Windows.Forms.LinkLabel lkFeedback;
-        private System.Windows.Forms.LinkLabel lkBugsIdeas;
         private System.Windows.Forms.TabControl tcCollectionAnalysisTabs;
         private System.Windows.Forms.TabPage tbCollection;
         private System.Windows.Forms.TabPage tbAnalysis;
@@ -1323,7 +1353,6 @@
         private System.Windows.Forms.ImageList imgAnalyzerIcons;
         private System.Windows.Forms.TabPage tbProfilerTraces;
         private System.Windows.Forms.TextBox ProfilerTraceStatusTextBox;
-        private System.Windows.Forms.LinkLabel lkAbout;
         private System.Windows.Forms.SplitContainer splitProfilerAnalysis;
         private System.Windows.Forms.Label lblAnalysisQueries;
         private System.Windows.Forms.ComboBox cmbProfilerAnalyses;
@@ -1389,6 +1418,11 @@
         private System.Windows.Forms.ToolStripMenuItem enableOpenWithToolStripItem;
         private System.Windows.Forms.Label lblInitialAnalysisPrompt;
         private System.Windows.Forms.SplitContainer splitProfilerStatus;
+        private System.Windows.Forms.Panel pnlLinks;
+        private System.Windows.Forms.LinkLabel lkHelp;
+        private System.Windows.Forms.LinkLabel lkAbout;
+        private System.Windows.Forms.LinkLabel lkBugsIdeas;
+        private System.Windows.Forms.LinkLabel lkFeedback;
     }
 }
 

@@ -113,14 +113,27 @@ namespace SSASDiag
                     LogException(ex);
                 }
             }
+            if (Args.ContainsKey("noui") && !(Args.ContainsKey("start") || Args.ContainsKey("stop")))
+                Args.Remove("noui");
         }
 
         #region frmSSASDiagEvents
+
+        protected override void OnLoad(EventArgs e)
+        {
+            SetupDebugTrace();
+            InitializeArgs();
+            if (Args.ContainsKey("noui") && (Args.ContainsKey("start") || Args.ContainsKey("stop")))
+            {
+                Visible = false;
+                ShowInTaskbar = false;
+                Opacity = 0;
+                bExitAfterStop = true;
+            }
+            base.OnLoad(e);
+        }
         private void frmSSASDiag_Load(object sender, EventArgs e)
         {
-            InitializeArgs();
-            SetupDebugTrace();
-
             if (Args.ContainsKey("filename") && !Args.ContainsKey("start"))
             {
                 tcCollectionAnalysisTabs.SelectedIndex = 1;
@@ -207,6 +220,7 @@ namespace SSASDiag
             if (Args.ContainsKey("perfmoninterval"))
                 try { udInterval.Value = Convert.ToInt32(Args["perfmoninterval"]); }
                 catch { }
+
         }
 
         private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
@@ -504,47 +518,51 @@ namespace SSASDiag
         {
             try
             {
-                if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit" || ((string)btnCapture.Image.Tag as string) == ("Play Half Lit"))
+                if (!Args.ContainsKey("noui"))
                 {
-                    if (!Environment.UserInteractive || MessageBox.Show("Continue collecting data as a service until SSASDiag runs again to stop manually " + (chkStopTime.Checked ? "or the automatic stop time is reached" : "") + "?\r\n\r\nIf you select No, SSASDiag will close after collection stops immediately.", "Data collection in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
+                    if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit" || ((string)btnCapture.Image.Tag as string) == ("Play Half Lit"))
                     {
-                        btnCapture_Click(null, null);
-                        bExitAfterStop = true;
+                        if (!Environment.UserInteractive || MessageBox.Show("Continue collecting data as a service until SSASDiag runs again to stop manually " + (chkStopTime.Checked ? "or the automatic stop time is reached" : "") + "?\r\n\r\nIf you select No, SSASDiag will close after collection stops immediately.", "Data collection in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
+                        {
+                            btnCapture_Click(null, null);
+                            bExitAfterStop = true;
+                            e.Cancel = true;
+                        }
+                    }
+                    else if (((string)btnCapture.Image.Tag as string) == ("Stop Half Lit"))
+                    {
+                        if (!Environment.UserInteractive || MessageBox.Show("Disconnect this SSASDiag client from the in-progress shutdown?\r\n\r\nShutdown will continue but may take time to complete.\r\nRerun SSASDiag to monitor shutdown.", "Diagnostic shutdown in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
+                            e.Cancel = true;
+                        else
+                        {
+                            if (Application.OpenForms.Count > 1)
+                                Application.OpenForms["PasswordPrompt"].Invoke(new System.Action(() => Application.OpenForms["PasswordPrompt"].Close()));
+                        }
+                    }
+
+                    if (bProfilerTraceDbAttached && chkDettachProfilerAnalysisDBWhenDone.Checked)
+                    {
+                        StatusFloater.lblStatus.Text = "Detaching attached profiler trace database...";
+                        StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
+                        StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
+                        StatusFloater.Show(this);
+                        Enabled = false;
+                        BackgroundWorker bgDetachProfilerDB = new BackgroundWorker();
+                        bgDetachProfilerDB.DoWork += BgDetachProfilerDB_DoWork; ;
+                        bgDetachProfilerDB.RunWorkerCompleted += BgDetachProfilerDB_RunWorkerCompleted;
+                        bgDetachProfilerDB.RunWorkerAsync();
                         e.Cancel = true;
                     }
-                }
-                else if (((string)btnCapture.Image.Tag as string) == ("Stop Half Lit"))
-                {
-                    if (!Environment.UserInteractive || MessageBox.Show("Disconnect this SSASDiag client from the in-progress shutdown?\r\n\r\nShutdown will continue but may take time to complete.\r\nRerun SSASDiag to monitor shutdown.", "Diagnostic shutdown in progress", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)
-                        e.Cancel = true;
-                    else
+                    if (!e.Cancel)
                     {
-                        if (Application.OpenForms.Count > 1)
-                            Application.OpenForms["PasswordPrompt"].Invoke(new System.Action(() => Application.OpenForms["PasswordPrompt"].Close()));
-                    }
-                }
-                if (bProfilerTraceDbAttached && chkDettachProfilerAnalysisDBWhenDone.Checked)
-                {
-                    StatusFloater.lblStatus.Text = "Detaching attached profiler trace database...";
-                    StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
-                    StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
-                    StatusFloater.Show(this);
-                    Enabled = false;
-                    BackgroundWorker bgDetachProfilerDB = new BackgroundWorker();
-                    bgDetachProfilerDB.DoWork += BgDetachProfilerDB_DoWork; ;
-                    bgDetachProfilerDB.RunWorkerCompleted += BgDetachProfilerDB_RunWorkerCompleted;
-                    bgDetachProfilerDB.RunWorkerAsync();
-                    e.Cancel = true;
-                }
-                if (!e.Cancel)
-                {
-                    if (tcAnalysis.TabPages.ContainsKey("Memory Dumps"))
-                    {
-                        ucASDumpAnalyzer da = (tcAnalysis.TabPages["Memory Dumps"].Controls[0] as ucASDumpAnalyzer);
-                        if (da.btnAnalyzeDumps.Text.StartsWith("Cancel"))
-                            da.btnAnalyzeDumps.PerformClick();
-                        while (da.btnAnalyzeDumps.Text.StartsWith("Cancel"))
-                            Thread.Sleep(50);
+                        if (tcAnalysis.TabPages.ContainsKey("Memory Dumps"))
+                        {
+                            ucASDumpAnalyzer da = (tcAnalysis.TabPages["Memory Dumps"].Controls[0] as ucASDumpAnalyzer);
+                            if (da.btnAnalyzeDumps.Text.StartsWith("Cancel"))
+                                da.btnAnalyzeDumps.PerformClick();
+                            while (da.btnAnalyzeDumps.Text.StartsWith("Cancel"))
+                                Thread.Sleep(50);
+                        }
                     }
                 }
             }
@@ -567,7 +585,8 @@ namespace SSASDiag
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
             btnSettings.Left = Width - btnSettings.Width - 15;
-            lkAbout.Top = lkBugsIdeas.Top = lkFeedback.Top = Height - 56;
+            pnlLinks.Top = Height - 59;
+            pnlLinks.Left = Width / 2 - pnlLinks.Width / 2;
             txtFolderZipForAnalysis.Width = Width - 164;
             tcCollectionAnalysisTabs.Height = Height - 59;
             tcAnalysis.Height = Height - 119;
@@ -617,6 +636,12 @@ namespace SSASDiag
             frmAbout f = new frmAbout();
             f.ShowDialog(this);
         }
+        private void lkHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            frmCmdLineUsage f = new frmCmdLineUsage();
+            f.ShowDialog(this);
+        }
+
         #endregion FeedbackUI
     }
 }

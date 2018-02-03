@@ -58,6 +58,8 @@ namespace SSASDiag
                     {
                         string InstanceName = cbsdi.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
                         svcOutputPath = Program.TempPath + "SSASDiagService_" + InstanceName + ".output.log";
+                        if (File.Exists(svcOutputPath))
+                            File.Delete(svcOutputPath);
                         dc = new CDiagnosticsCollector(TracePrefix, (cbsdi == null ? "" : (InstanceName.ToUpper() == "MSSQLSERVER" ? "" : InstanceName)), cbsdi.ServiceName, cbsdi.InstanceID, cbsdi.SQLProgramDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
                             txtStatus,
                             (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
@@ -494,7 +496,8 @@ namespace SSASDiag
                                         RawStatusText = String.Join("\r\n", CurrentStatus.ToArray());
                                         txtStatus.Invoke(new System.Action(() => txtStatus.Text = RawStatusText));
                                         NpClient_ServerMessage(null, "\r\nStop");
-                                        MessageBox.Show("Status log displayed for the last collection since no clients were connected when it completed.",
+                                        if (!Args.ContainsKey("noui"))
+                                            MessageBox.Show("Status log displayed for the last collection since no clients were connected when it completed.",
                                                         "Prior collection completed" + CurrentStatus.Last().Replace("SSASDiag completed", "").TrimEnd('.') + ".",
                                                         MessageBoxButtons.OK,
                                                         MessageBoxIcon.Information);
@@ -504,7 +507,8 @@ namespace SSASDiag
                                         // This state should only be reached if there was an unexpected interruption like service or server crash...
                                         txtStatus.Invoke(new System.Action(() => txtStatus.Text = RawStatusText));
                                         NpClient_ServerMessage(null, "\r\nStop");
-                                        MessageBox.Show("Partial log displayed for the last collection,\r\nwhich terminated unexpectedly.",
+                                        if (!Args.ContainsKey("noui"))
+                                            MessageBox.Show("Partial log displayed for the last collection,\r\nwhich terminated unexpectedly.",
                                                         "Prior collection terminated without complete shutdown",
                                                         MessageBoxButtons.OK,
                                                         MessageBoxIcon.Warning);
@@ -536,7 +540,8 @@ namespace SSASDiag
                                         string uiMsg = String.Join("\r\n", CurrentStatus.GetRange(CurrentStatus.Count - 3, 3)).Replace("TryingAgain", "");
                                         CurrentStatus = CurrentStatus.GetRange(0, CurrentStatus.Count - 4);
                                         txtStatus.Invoke(new System.Action(() => txtStatus.Text = String.Join("\r\n", CurrentStatus).TrimEnd(new char[] { '\r', '\n' })));
-                                        MessageBox.Show("Connecting to the in-progress data capture running for this instance.\r\nThe data capture is currently awaiting user interaction.",
+                                        if (!Args.ContainsKey("noui"))
+                                            MessageBox.Show("Connecting to the in-progress data capture running for this instance.\r\nThe data capture is currently awaiting user interaction.",
                                                         "Existing data capture in-progress",
                                                         MessageBoxButtons.OK,
                                                         MessageBoxIcon.Information);
@@ -545,7 +550,8 @@ namespace SSASDiag
                                     {
                                         txtStatus.Invoke(new System.Action(() => txtStatus.Text = RawStatusText));
                                         // If we aren't waiting for client interaction but service is not in a stoped state, then just update the status and continue monitoring as a newly connected client.
-                                        MessageBox.Show("Connecting to the in-progress data capture running for this instance.",
+                                        if (!Args.ContainsKey("noui"))
+                                            MessageBox.Show("Connecting to the in-progress data capture running for this instance.",
                                                         "Existing data capture in-progress",
                                                         MessageBoxButtons.OK,
                                                         MessageBoxIcon.Information);
@@ -572,8 +578,8 @@ namespace SSASDiag
         private void BgPopulateInstanceDetails_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
 
-            if (btnCapture.Enabled && Args.ContainsKey("start") && cbInstances.Items.Count > 0)
-                    btnCapture_Click(sender, e);
+            if (btnCapture.Enabled && cbInstances.Items.Count > 0 && (Args.ContainsKey("start") || Args.ContainsKey("stop")))
+                btnCapture_Click(sender, e);
         }
 
         private void PopulateInstanceDropdown()

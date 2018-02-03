@@ -71,6 +71,14 @@ namespace SSASDiag
         }
         private void PopulateAnalysisTabs()
         {
+            StatusFloater.lblTime.Text = "00:00";
+            StatusFloater.lblTime.Visible = true;
+            AnalysisQueryExecutionPumpTimer.Interval = 1000;
+            AnalysisQueryExecutionPumpTimer.Start();
+            StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
+            StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
+            StatusFloater.Show(this);
+
             Text = "SSAS Diagnostics Analysis: " + txtFolderZipForAnalysis.Text.Substring(txtFolderZipForAnalysis.Text.LastIndexOf("\\") + 1);
             tcAnalysis.Visible = false;
             lblInitialAnalysisPrompt.Visible = false;
@@ -103,8 +111,7 @@ namespace SSASDiag
 
         void CompleteAnalysisTabsPopulationAfterZipExtraction()
         {
-            StatusFloater.lblStatus.Text = "Initializing analysis and attaching trace databases...";
-            StatusFloater.Visible = true;
+            StatusFloater.lblStatus.Text = "Initializing and attaching analysis database(s)...";
             string mdfPath = "";
             if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith("\\msmdsrv.ini")) || File.Exists(m_analysisPath + "\\msmdsrv.ini"))
             {
@@ -186,8 +193,8 @@ namespace SSASDiag
                 LogFeatureUse("Profiler Analysis", "Initializing analysis tab");
                 splitProfilerAnalysis.Visible = false;
                 ProfilerTraceStatusTextBox.Text = "";
-                tcAnalysis.TabPages.Add(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
-                HiddenTabPages.Remove(HiddenTabPages.Where(t => t.Text == "Profiler Traces").First());
+                tcAnalysis.TabPages.Add(HiddenTabPages.Where(t => t.Text == "Profiler Trace").First());
+                HiddenTabPages.Remove(HiddenTabPages.Where(t => t.Text == "Profiler Trace").First());
                 if (!Validate2017ManagementComponents())
                 {
                     ProfilerTraceStatusTextBox.Text = "SQL 2017 Management Studio components required.\r\nComplete install from https://go.microsoft.com/fwlink/?LinkID=840946 and then open Profiler Trace Analysis again.";
@@ -216,6 +223,19 @@ namespace SSASDiag
                     }
                 }
             }
+            // Prefer loading some tabs before others (Order of pref: Configuration (default if it exists anyway by alpha ordering as first tab), Network, Profiler, Memory Dump, then the others are all just placeholders so ignored.
+            if (!tcAnalysis.TabPages.ContainsKey("Configuration"))
+            {
+                if (tcAnalysis.TabPages.ContainsKey("tbProfilerTraces"))
+                    tcAnalysis.SelectedTab = tcAnalysis.TabPages["tbProfilerTraces"];
+                else if (tcAnalysis.TabPages.ContainsKey("Network Trace"))
+                    tcAnalysis.SelectedTab = tcAnalysis.TabPages["Network Trace"];
+                else if (tcAnalysis.TabPages.ContainsKey("Memory Dumps"))
+                    tcAnalysis.SelectedTab = tcAnalysis.TabPages["Memory Dumps"];
+
+
+            }
+                
             StatusFloater.Visible = false;
             tcAnalysis.Visible = true;
         }
@@ -294,13 +314,6 @@ namespace SSASDiag
         private void SelectivelyExtractAnalysisDataFromZip()
         {
             StatusFloater.lblStatus.Text = "Extracting zipped files for analysis...";
-            StatusFloater.lblTime.Text = "00:00";
-            StatusFloater.lblTime.Visible = true;
-            AnalysisQueryExecutionPumpTimer.Interval = 1000;
-            AnalysisQueryExecutionPumpTimer.Start();
-            StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
-            StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
-            StatusFloater.Show(this);
             BackgroundWorker bgSelectivelyExtractAnalysisDataFromZip = new BackgroundWorker();
             bgSelectivelyExtractAnalysisDataFromZip.DoWork += BgSelectivelyExtractAnalysisDataFromZip_DoWork;
             bgSelectivelyExtractAnalysisDataFromZip.RunWorkerCompleted += BgSelectivelyExtractAnalysisDataFromZip_RunWorkerCompleted;

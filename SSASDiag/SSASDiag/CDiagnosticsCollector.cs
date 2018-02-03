@@ -979,7 +979,8 @@ namespace SSASDiag
             // Just before zip, write out last line of this capture log and save that file...
             // The last line captured in text file here:
             SendMessageToClients("Stoppped SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-            File.Copy(svcOutputPath, TraceID + "\\SSASDiag.log");
+            
+            File.WriteAllLines(TraceID + "\\SSASDiag.log", File.ReadAllLines(svcOutputPath).Where(l => !l.StartsWith("Diagnostics captured for ") && !String.IsNullOrWhiteSpace(l)));
 
             if (bCompress)
             {

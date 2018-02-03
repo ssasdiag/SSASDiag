@@ -170,6 +170,16 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap helpimg {
+            get {
+                object obj = ResourceManager.GetObject("helpimg", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;sqlpp_request&gt;&lt;clientid&gt;dpriver-9094-8133-2031&lt;/clientid&gt;&lt;dbvendor&gt;mdx&lt;/dbvendor&gt;&lt;outputfmt&gt;html2&lt;/outputfmt&gt;&lt;inputsql&gt;&lt;/inputsql&gt;&lt;formatoptions&gt;&lt;keywordcs&gt;Uppercase&lt;/keywordcs&gt;&lt;tablenamecs&gt;Lowercase&lt;/tablenamecs&gt;&lt;columnnamecs&gt;Lowercase&lt;/columnnamecs&gt;&lt;functioncs&gt;InitCap&lt;/functioncs&gt;&lt;datatypecs&gt;Uppercase&lt;/datatypecs&gt;&lt;variablecs&gt;Unchanged&lt;/variablecs&gt;&lt;aliascs&gt;Unchanged&lt;/aliascs&gt;&lt;quotedidentifiercs&gt;Unchanged&lt;/quotedidentifiercs&gt;&lt;identifiercs&gt;Lowercase&lt;/identifiercs&gt;&lt;lnbrwithcomma&gt;after&lt;/lnbrwithcomma&gt;&lt;liststy [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string MDXConversionPostData {
