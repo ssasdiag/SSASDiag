@@ -803,7 +803,11 @@ namespace SSASDiag
                 OleDbDataReader rdr = cmd.ExecuteReader();
                 while (rdr.Read())
                     BackupDir = rdr["Data"] as string;
-                if (srvName != "." && srvName.ToLower() != "localhost" && srvName.ToLower() != Environment.MachineName.ToLower())
+                string domainName = "." + IPGlobalProperties.GetIPGlobalProperties().DomainName;
+                string fqhostName = Dns.GetHostName();
+                if (!fqhostName.EndsWith(domainName))  // if hostname does not already include domain name
+                    fqhostName += domainName;   // add the domain name part
+                if (srvName != "." && srvName.ToLower() != "localhost" && srvName.ToLower() != Environment.MachineName.ToLower() && srvName.ToLower() != fqhostName)
                     SendMessageToClients("Confirming remote file share access to copy remote database backup locally.");
                 if (!Directory.Exists("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$")))
                 {
