@@ -148,7 +148,7 @@ namespace SSASDiag
                             npClient = new NamedPipeClient<string>("SSASDiag_" + InstanceName);
                             npClient.ServerMessage += NpClient_ServerMessage;
                             npClient.Start();
-                            npClient.PushMessage("forceopen");
+                            npClient.PushMessage("Initialize Pipe");
                             string svcName = "SSASDiag_" + InstanceName;
                             new Thread(new ThreadStart(() =>
                             {

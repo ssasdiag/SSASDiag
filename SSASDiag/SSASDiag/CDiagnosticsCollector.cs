@@ -812,7 +812,7 @@ namespace SSASDiag
                 }
                     
                 SendMessageToClients("Initiating backup of relational database " + SQLDBName + ".bak on SQL server " + srvName + ".");
-                cmd = new OleDbCommand(@"BACKUP DATABASE [" + SQLDBName + "] TO  DISK = N'" + BackupDir + "\\SSASDiag_" + SQLDBName + ".bak' WITH NOFORMAT, INIT, NAME = N'SSASDag_" + SQLDBName + "-Full Database Backup', SKIP, NOREWIND, NOUNLOAD, COMPRESSION, STATS = 10", conn);
+                cmd = new OleDbCommand(@"BACKUP DATABASE [" + SQLDBName + "] TO  DISK = N'" + BackupDir + "\\SSASDiag_" + SQLDBName + ".bak' WITH FORMAT, INIT, NAME = N'SSASDag_" + SQLDBName + "-Full Database Backup', SKIP, NOREWIND, NOUNLOAD, COMPRESSION, STATS = 10", conn);
                 int ret = cmd.ExecuteNonQuery();
                 SendMessageToClients("Database backup completed.");
                 SendMessageToClients("Moving SQL backup to local capture directory...");
@@ -841,19 +841,19 @@ namespace SSASDiag
                                 }
                                 catch (Exception ex2)
                                 {
-                                    SendMessageToClients("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex2.Message);
+                                    SendMessageToClients("Failure type 1 collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex2.Message);
                                 }
                             }
                         }
                         catch(Exception)
                         {
                             frmSSASDiag.LogException(ex);
-                            SendMessageToClients("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ".");
+                            SendMessageToClients("Failure type 2 collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message);
                             SendMessageToClients("For local administrator accounts except Administrator to access the remote SQL backups, create a DWORD32 value LocalAccountTokenFilterPolicy=1 in HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Policies\\System on the server " + srvName + ".");
                         }
                     }
                     else
-                        SendMessageToClients("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message + "");
+                        SendMessageToClients("Failure type 3 collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message + "");
                     SendMessageToClients("Please collect .bak manually from " + BackupDir + " on server " + srvName + ".");
                     return false;
                 }
@@ -864,7 +864,7 @@ namespace SSASDiag
                 if (ex.Message.StartsWith("Remote file share access failed for user "))
                     throw ex;
                 frmSSASDiag.LogException(ex);
-                SendMessageToClients("Failure collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message + "");
+                SendMessageToClients("Failure type 4 collecting SQL data source .bak for data source " + dsName + " in database " + ASdbName + ":\r\n" + ex.Message + "");
             }
             return true;
         }
