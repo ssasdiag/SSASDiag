@@ -1034,14 +1034,14 @@ namespace SSASDiag
                     else
                     {
                         xmlQuery.Visible = false;
-                        mdxQuery.Visible = true;
                         mdxQuery.SuspendLayout();
-                        mdxQuery.Text = s.Query;
+                        mdxQuery.Visible = true;
                         mdxQuery.ZoomFactor = 1;
+                        mdxQuery.Text = s.Query;
                         mdxQuery.ZoomFactor = .75F;
+                        mdxQuery.Update();
                         mdxQuery.ResumeLayout();
                     }
-
                 }
                 else
                     splitDumpOutput.Panel2Collapsed = true;
