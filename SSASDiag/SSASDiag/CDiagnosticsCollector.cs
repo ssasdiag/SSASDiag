@@ -808,11 +808,13 @@ namespace SSASDiag
                 if (!fqhostName.EndsWith(domainName))  // if hostname does not already include domain name
                     fqhostName += domainName;   // add the domain name part
                 if (srvName != "." && srvName.ToLower() != "localhost" && srvName.ToLower() != Environment.MachineName.ToLower() && srvName.ToLower() != fqhostName)
-                    SendMessageToClients("Confirming remote file share access to copy remote database backup locally.");
-                if (!Directory.Exists("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$")))
                 {
-                    SendMessageToClients("Remote file share access failed for user " + (sRemoteAdminDomain == "" ? Environment.UserDomainName : sRemoteAdminDomain) + "\\" + (sRemoteAdminUser == "" ? Environment.UserName : sRemoteAdminUser) + " to server " + srvName + ".");
-                    return false;
+                    SendMessageToClients("Confirming remote file share access to copy remote database backup locally.");
+                    if (!Directory.Exists("\\\\" + srvName + "\\" + BackupDir.Replace(":", "$")))
+                    {
+                        SendMessageToClients("Remote file share access failed for user " + (sRemoteAdminDomain == "" ? Environment.UserDomainName : sRemoteAdminDomain) + "\\" + (sRemoteAdminUser == "" ? Environment.UserName : sRemoteAdminUser) + " to server " + srvName + ".");
+                        return false;
+                    }
                 }
                     
                 SendMessageToClients("Initiating backup of relational database " + SQLDBName + ".bak on SQL server " + srvName + ".");
