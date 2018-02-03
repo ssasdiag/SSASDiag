@@ -839,7 +839,6 @@
             this.cbInstances.Name = "cbInstances";
             this.cbInstances.Size = new System.Drawing.Size(252, 21);
             this.cbInstances.TabIndex = 46;
-            this.cbInstances.SelectedIndexChanged += new System.EventHandler(this.cbInstances_SelectedIndexChanged);
             // 
             // label2
             // 

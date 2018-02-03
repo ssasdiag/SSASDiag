@@ -128,7 +128,6 @@ namespace SSASDiag
                 Visible = false;
                 ShowInTaskbar = false;
                 Opacity = 0;
-                bExitAfterStop = true;
             }
             base.OnLoad(e);
         }

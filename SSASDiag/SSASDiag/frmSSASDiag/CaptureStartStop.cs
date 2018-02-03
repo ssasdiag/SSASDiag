@@ -66,7 +66,8 @@ namespace SSASDiag
             {
                 // Reinitialize service config to start with no command options - immediately terminating hereafter in service mode then, until UI configures new settings, should someone try to start manually.
                 string svcIniPath = svcOutputPath.Substring(0, svcOutputPath.IndexOf(".output.log")) + ".ini";
-                List<string> svcconfig = new List<string>();
+                svcIniPath = AppDomain.CurrentDomain.BaseDirectory + svcIniPath.Substring(svcIniPath.LastIndexOf("\\") + 1);
+                List <string> svcconfig = new List<string>();
                 if (File.Exists(svcIniPath))
                     svcconfig = new List<string>(File.ReadAllLines(svcIniPath));
                 string svcName = svcIniPath.Substring(svcIniPath.LastIndexOf("\\") + 1).Replace(".ini", "");
@@ -92,7 +93,7 @@ namespace SSASDiag
                 Application.Exit();
             }
             if (bExitAfterStop)
-                BeginInvoke(new System.Action(() => Close()));
+                Invoke(new System.Action(() => Close()));
             LogFeatureUse("Collection " + (Environment.UserInteractive ? "stopped and delivered to client." : "service stopped."));
         }
         #endregion CaptureStartAndStop

@@ -162,7 +162,7 @@ namespace SSASDiag
                         })).Start();
                     }
                 }
-                else if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit" || btnCapture.Image.Tag as string == "Play Half Lit")
+                else if (btnCapture.Image.Tag as string == "Stop" || btnCapture.Image.Tag as string == "Stop Lit" || (btnCapture.Image.Tag as string == "Play Half Lit" && Args.ContainsKey("stop") && Args.ContainsKey("noui")))
                 {
                     btnCapture.Click -= btnCapture_Click;
                     btnCapture.Image = imgStopHalfLit;
@@ -350,7 +350,6 @@ namespace SSASDiag
                             p.UseShellExecute = true;
                             p.CreateNoWindow = true;
                             Process.Start(p);
-
                             if (Args.ContainsKey("noui"))
                                 Invoke(new System.Action(() => Close()));
                         }
@@ -489,13 +488,17 @@ namespace SSASDiag
                                 List<string> CurrentStatus = new List<string>();
                                 if (File.Exists(svcOutputPath))
                                     CurrentStatus = File.ReadAllLines(svcOutputPath).ToList();
-                                string capturedelapsedtime = CurrentStatus.Where(l => l.StartsWith("Diagnostics captured for ")).Last();
-                                CurrentStatus = CurrentStatus.Where(l => !l.StartsWith("Diagnostics captured for ")).ToList();
-                                CurrentStatus.Add(capturedelapsedtime);
+                                string capturedelapsedtime = "";
+                                if (CurrentStatus.Where(l => l.StartsWith("Diagnostics captured for ")).Count() > 0)
+                                {
+                                    capturedelapsedtime = CurrentStatus.Where(l => l.StartsWith("Diagnostics captured for ")).Last();
+                                    CurrentStatus = CurrentStatus.Where(l => !l.StartsWith("Diagnostics captured for ")).ToList();
+                                }
                                 string RawStatusText = String.Join("\r\n", CurrentStatus.ToArray()).TrimStart(new char[] { '\r', '\n' });
                                 // If we encounter a stopped service, this indicates unexpected halt in prior state.  Report and deliver service log to output directory, then clean up old service.
                                 if (InstanceCollectionService.Status == ServiceControllerStatus.Stopped)
                                 {
+                                    if (capturedelapsedtime != "") CurrentStatus.Add(capturedelapsedtime);
                                     if (CurrentStatus.Count > 0 && CurrentStatus.Last() == "Stop")
                                     {
                                         // Service stopped normally and is just awaiting cleanup by any client.  
@@ -662,8 +665,10 @@ namespace SSASDiag
                         cbInstances.SelectedIndex = i;
                 }
             }
+            cbInstances.SelectedIndexChanged += cbInstances_SelectedIndexChanged;
+            cbInstances_SelectedIndexChanged(null, null);
         }
-
+        
         #endregion BlockingUIComponentsBesidesCapture
 
         #region VariousNonBlockingUIElements
