@@ -100,11 +100,12 @@ namespace SSASDiag
                         Args.Add(argArray[i].TrimStart(new char[] { '-', '/' }).ToLower(),
                             (argArray.Length > i + 1
                              && !(argArray[i + 1].StartsWith("/") || argArray[i + 1].StartsWith("-"))
+                             && new string[] { "/instance", "/starttime", "/stoptime", "/rollover", "/workingdir" }.Contains(argArray[i].ToLower())
                              ? argArray[i + 1]
                              : ""));
                     else
                     {
-                        if (i > 0 && !argArray[i - 1].StartsWith("/") && !argArray[i - 1].StartsWith("-") && !Args.ContainsKey("filename") && File.Exists(argArray[i]))
+                        if (i > 0 && !Args.ContainsKey("filename") && File.Exists(argArray[i]))
                             Args.Add("filename", argArray[i]);
                     }
                 }

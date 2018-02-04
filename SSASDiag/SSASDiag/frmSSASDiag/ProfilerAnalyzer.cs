@@ -33,37 +33,40 @@ namespace SSASDiag
         {
             try
             {
-                txtProfilerAnalysisQuery.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Query.Replace("[Table", "[" + AnalysisTraceID);
-                txtProfilerAnalysisDescription.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Description;
-                txtProfilerAnalysisQuery.ShowLineNumbers = true;
-                if (cmbProfilerAnalyses.Text != "")
-                    LogFeatureUse("Profiler Analysis", "Running analysis query " + cmbProfilerAnalyses.Text);
+                if (bProfilerTraceDbAttached)
+                {
+                    txtProfilerAnalysisQuery.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Query.Replace("[Table", "[" + AnalysisTraceID);
+                    txtProfilerAnalysisDescription.Text = (cmbProfilerAnalyses.DataSource as List<ProfilerTraceQuery>).First(kv => kv.Name == cmbProfilerAnalyses.Text).Description;
+                    txtProfilerAnalysisQuery.ShowLineNumbers = true;
+                    if (cmbProfilerAnalyses.Text != "")
+                        LogFeatureUse("Profiler Analysis", "Running analysis query " + cmbProfilerAnalyses.Text);
 
-                if (txtProfilerAnalysisQuery.Text != "")
-                {
-                    BackgroundWorker bgLoadProfilerAnalysis = new BackgroundWorker();
-                    bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
-                    bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
-                    lblProfilerAnalysisStatusRight.Text = lblProfilerAnalysisStatusLeft.Text = lblProfilerAnalysisStatusCenter.Text = "";
-                    Enabled = false;
-                    SuspendLayout();
-                    StatusFloater.lblStatus.Text = "Running analysis query. (Esc to cancel...)";
-                    StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
-                    StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
-                    StatusFloater.lblTime.Visible = true;
-                    StatusFloater.lblTime.Text = "00:00";
-                    StatusFloater.EscapePressed = false;
-                    AnalysisQueryExecutionPumpTimer.Interval = 1000;
-                    AnalysisQueryExecutionPumpTimer.Start();
-                    if (!StatusFloater.Visible)
-                        StatusFloater.Show(this);
-                    bgLoadProfilerAnalysis.RunWorkerAsync();
-                }
-                else
-                {
-                    txtProfilerAnalysisQuery.ShowLineNumbers = false;
-                    dgdProfilerAnalyses.DataSource = null;
-                    dgdProfilerAnalyses.Refresh();
+                    if (txtProfilerAnalysisQuery.Text != "")
+                    {
+                        BackgroundWorker bgLoadProfilerAnalysis = new BackgroundWorker();
+                        bgLoadProfilerAnalysis.DoWork += BgLoadProfilerAnalysis_DoWork;
+                        bgLoadProfilerAnalysis.RunWorkerCompleted += BgLoadProfilerAnalysis_RunWorkerCompleted;
+                        lblProfilerAnalysisStatusRight.Text = lblProfilerAnalysisStatusLeft.Text = lblProfilerAnalysisStatusCenter.Text = "";
+                        Enabled = false;
+                        SuspendLayout();
+                        StatusFloater.lblStatus.Text = "Running analysis query. (Esc to cancel...)";
+                        StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
+                        StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
+                        StatusFloater.lblTime.Visible = true;
+                        StatusFloater.lblTime.Text = "00:00";
+                        StatusFloater.EscapePressed = false;
+                        AnalysisQueryExecutionPumpTimer.Interval = 1000;
+                        AnalysisQueryExecutionPumpTimer.Start();
+                        if (!StatusFloater.Visible)
+                            StatusFloater.Show(this);
+                        bgLoadProfilerAnalysis.RunWorkerAsync();
+                    }
+                    else
+                    {
+                        txtProfilerAnalysisQuery.ShowLineNumbers = false;
+                        dgdProfilerAnalyses.DataSource = null;
+                        dgdProfilerAnalyses.Refresh();
+                    }
                 }
             }
             catch (Exception ex)
