@@ -499,11 +499,9 @@ namespace SSASDiag
                             Process.Start(SSMSPath, filename + " -S " + connSqlDb.DataSource + " -d " + connSqlDb.Database + " -E");
                         }
                         )));
+                    cm.Show(txtProfilerAnalysisQuery, e.Location);
                 }
-                cm.Show(txtProfilerAnalysisQuery, e.Location);
-            }
-            
-                
+            }     
         }
 
         TextStyle bracketsStyle = new TextStyle(Brushes.Black, Brushes.LightGray, FontStyle.Regular);

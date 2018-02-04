@@ -155,6 +155,7 @@
             this.dgdDumpList.RowHeadersVisible = false;
             this.dgdDumpList.Size = new System.Drawing.Size(227, 167);
             this.dgdDumpList.TabIndex = 3;
+            this.dgdDumpList.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgdDumpList_CellMouseClick);
             // 
             // rtDumpDetails
             // 

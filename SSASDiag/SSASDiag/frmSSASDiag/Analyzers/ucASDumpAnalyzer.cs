@@ -1054,7 +1054,32 @@ namespace SSASDiag
                 splitDebugger.Panel2Collapsed = true;
                 splitDumpOutput.Panel2Collapsed = true;
             }
+        }
 
+        private void dgdDumpList_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            dgdDumpList.ClearSelection();
+            dgdDumpList.Rows[e.RowIndex].Selected = true;
+            if (e.Button == MouseButtons.Right)
+            {
+                ContextMenu cm = new ContextMenu();
+                RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"Applications\windbg.exe\shell\open\command");
+                string WinDbgPath = "";
+                if (key != null)
+                {
+                    WinDbgPath = key.GetValue("") as string;
+                    WinDbgPath = WinDbgPath.Substring(0, WinDbgPath.IndexOf(".exe") + ".exe".Length).Replace("\"", "");
+                }
+                if (WinDbgPath != "")
+                {
+                    cm.MenuItems.Add(new MenuItem("Open this memory dump in WinDbg for further analysis...",
+                        new EventHandler((object o, EventArgs ea) =>
+                            Process.Start(WinDbgPath, "-z " + (dgdDumpList.Rows[e.RowIndex].DataBoundItem as Dump).DumpPath))
+                        ));
+                    cm.Show(ParentForm, new Point(MousePosition.X - ParentForm.Left - 10, MousePosition.Y - ParentForm.Top - 26));
+                }
+
+            }
         }
     }
 
