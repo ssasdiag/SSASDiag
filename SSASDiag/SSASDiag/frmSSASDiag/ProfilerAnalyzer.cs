@@ -12,6 +12,7 @@ using System.Management;
 using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Threading;
+using Microsoft.Win32;
 using System.Windows.Forms;
 
 namespace SSASDiag
@@ -464,6 +465,7 @@ namespace SSASDiag
             txtProfilerAnalysisQuery.Multiline = true;
             txtProfilerAnalysisQuery.BackColor = SystemColors.Control;
             txtProfilerAnalysisQuery.TextChanged += TxtProfilerAnalysisQuery_TextChanged;
+            txtProfilerAnalysisQuery.MouseClick += TxtProfilerAnalysisQuery_MouseClick;
             txtProfilerAnalysisQuery.WordWrapMode = WordWrapMode.WordWrapControlWidth;
             txtProfilerAnalysisQuery.ShowLineNumbers = false;
             txtProfilerAnalysisQuery.WordWrapAutoIndent = true;
@@ -474,6 +476,36 @@ namespace SSASDiag
             txtProfilerAnalysisQuery.Size = new System.Drawing.Size(363, 103);
             txtProfilerAnalysisQuery.TabIndex = 29;
         }
+
+        private void TxtProfilerAnalysisQuery_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                ContextMenu cm = new ContextMenu();
+                RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"ssms.sql.14.0\Shell\Open\Command");
+                string SSMSPath = "";
+                if (key != null)
+                {
+                    SSMSPath = key.GetValue("") as string;
+                    SSMSPath = SSMSPath.Substring(0, SSMSPath.IndexOf(".exe") + ".exe".Length).Replace("\"", "");
+                }
+                if (SSMSPath != "")
+                {
+                    cm.MenuItems.Add(new MenuItem("Open this analysis query in Management Studio for further exploration...",
+                        new EventHandler((object o, EventArgs ea) =>
+                        {
+                            string filename = Program.TempPath + "~SSASDiagAnalysisQuery_" + Guid.NewGuid().ToString() + ".sql";
+                            File.WriteAllText(filename, txtProfilerAnalysisQuery.Text);
+                            Process.Start(SSMSPath, filename + " -S " + connSqlDb.DataSource + " -d " + connSqlDb.Database + " -E");
+                        }
+                        )));
+                }
+                cm.Show(txtProfilerAnalysisQuery, e.Location);
+            }
+            
+                
+        }
+
         TextStyle bracketsStyle = new TextStyle(Brushes.Black, Brushes.LightGray, FontStyle.Regular);
         private void TxtProfilerAnalysisQuery_TextChanged(object sender, TextChangedEventArgs e)
         {
