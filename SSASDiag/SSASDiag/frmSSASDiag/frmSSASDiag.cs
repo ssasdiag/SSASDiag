@@ -584,35 +584,38 @@ namespace SSASDiag
         }
         private void frmSSASDiag_Resize(object sender, EventArgs e)
         {
-            btnSettings.Left = Width - btnSettings.Width - 15;
-            pnlLinks.Top = Height - 59;
-            pnlLinks.Left = Width / 2 - pnlLinks.Width / 2;
-            txtFolderZipForAnalysis.Width = Width - 164;
-            tcCollectionAnalysisTabs.Height = Height - 59;
-            tcAnalysis.Height = Height - 119;
-            btnImportProfilerTrace.Left = Width / 2 - btnImportProfilerTrace.Width / 2;
-            txtProfilerAnalysisQuery.Width = Width - 254;
-            if (splitProfilerStatus.SplitterDistance > splitProfilerStatus.Height - 200)
-                splitProfilerStatus.SplitterDistance = splitProfilerStatus.Height - 200;
-            lblProfilerAnalysisStatusCenter.Left = Width / 2 - lblProfilerAnalysisStatusCenter.Width / 2;
-            if (tcAnalysis.TabPages.ContainsKey("Network Trace") || HiddenTabPages.Where(t => t.Name == "Network Trace").Count() > 0)
+            if (WindowState != FormWindowState.Minimized)
             {
-                Button btnAnalyzeNetworkTrace = tcAnalysis.TabPages.ContainsKey("Network Trace") ? 
-                    tcAnalysis.TabPages["Network Trace"].Controls["btnAnalyzeNetworkTrace"] as Button : 
-                    HiddenTabPages.First(t => t.Name == "Network Trace").Controls["btnAnalyzeNetworkTrace"] as Button;
-                btnAnalyzeNetworkTrace.Left = Width / 2 - btnAnalyzeNetworkTrace.Width / 2;
-            }
-            // Expand last column of profiler analysis grid
-            if (dgdProfilerAnalyses.Columns.Count > 0)
-            {
-                if (dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode == DataGridViewAutoSizeColumnMode.None)
-                    dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                if (dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width < 80)
-                    dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
-                dgdProfilerAnalyses.Refresh();
-                int lastCellFullHeaderWidth = dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width;
-                dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width = lastCellFullHeaderWidth;
+                btnSettings.Left = Width - btnSettings.Width - 15;
+                pnlLinks.Top = Height - 59;
+                pnlLinks.Left = Width / 2 - pnlLinks.Width / 2;
+                txtFolderZipForAnalysis.Width = Width - 164;
+                tcCollectionAnalysisTabs.Height = Height - 59;
+                tcAnalysis.Height = Height - 119;
+                btnImportProfilerTrace.Left = Width / 2 - btnImportProfilerTrace.Width / 2;
+                txtProfilerAnalysisQuery.Width = Width - 254;
+                if (splitProfilerStatus.SplitterDistance > splitProfilerStatus.Height - 200)
+                    splitProfilerStatus.SplitterDistance = splitProfilerStatus.Height - 200;
+                lblProfilerAnalysisStatusCenter.Left = Width / 2 - lblProfilerAnalysisStatusCenter.Width / 2;
+                if (tcAnalysis.TabPages.ContainsKey("Network Trace") || HiddenTabPages.Where(t => t.Name == "Network Trace").Count() > 0)
+                {
+                    Button btnAnalyzeNetworkTrace = tcAnalysis.TabPages.ContainsKey("Network Trace") ?
+                        tcAnalysis.TabPages["Network Trace"].Controls["btnAnalyzeNetworkTrace"] as Button :
+                        HiddenTabPages.First(t => t.Name == "Network Trace").Controls["btnAnalyzeNetworkTrace"] as Button;
+                    btnAnalyzeNetworkTrace.Left = Width / 2 - btnAnalyzeNetworkTrace.Width / 2;
+                }
+                // Expand last column of profiler analysis grid
+                if (dgdProfilerAnalyses.Columns.Count > 0)
+                {
+                    if (dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode == DataGridViewAutoSizeColumnMode.None)
+                        dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    if (dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width < 80)
+                        dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                    dgdProfilerAnalyses.Refresh();
+                    int lastCellFullHeaderWidth = dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width;
+                    dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                    dgdProfilerAnalyses.Columns[dgdProfilerAnalyses.Columns.Count - 1].Width = lastCellFullHeaderWidth;
+                }
             }
         }
         public static void LogException(Exception ex)
