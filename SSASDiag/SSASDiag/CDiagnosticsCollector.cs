@@ -459,6 +459,7 @@ namespace SSASDiag
             // Add our PerfMon counters
             System.Collections.Specialized.StringCollection s = new System.Collections.Specialized.StringCollection();
             s.Add("\\Process(*)\\*");
+            s.Add("\\Processor(*)\\*");
             s.Add("\\Memory\\*");
             s.Add("\\PhysicalDisk(*)\\*");
             s.Add("\\LogicalDisk(*)\\*");
