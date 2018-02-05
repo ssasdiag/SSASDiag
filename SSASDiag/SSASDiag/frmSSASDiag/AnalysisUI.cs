@@ -155,7 +155,10 @@ namespace SSASDiag
                 File.Exists(m_analysisPath + "\\" + AnalysisTraceID + "_System.evtx"))
             {
                 tcAnalysis.TabPages.Add(new TabPage("Event Logs") { ImageIndex = 2, Name = "Event Logs" });
-                tcAnalysis.TabPages["Event Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of event logs."));
+                RichTextBox eventlogstatus = GetStatusTextBox("Right-click to open captured logs in Event Viewer.  Check back soon for automated analysis of event logs.");
+                eventlogstatus.MouseUp += Eventlogstatus_MouseClick;
+                tcAnalysis.TabPages["Event Logs"].Controls.Add(eventlogstatus);
+
             }
             if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".etl")) ||
                 (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".cap")) ||
@@ -246,6 +249,21 @@ namespace SSASDiag
             tcAnalysis.Visible = true;
         }
 
+        private void Eventlogstatus_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                ContextMenu cm = new ContextMenu();
+                cm.MenuItems.Add(new MenuItem("Open event logs for further analysis...",
+                    new EventHandler((object o, EventArgs ea) =>
+                    {
+                        Process.Start("eventvwr.exe", "/l:\"" + m_analysisPath + "\\" + AnalysisTraceID + "_Application.evtx\"");
+                        Process.Start("eventvwr.exe", "/l:\"" + m_analysisPath + "\\" + AnalysisTraceID + "_System.evtx\"");
+                    }
+                    )));
+                cm.Show(sender as Control, e.Location);
+            }
+        }
 
         string GetAnalysisIDFromLog()
         {
