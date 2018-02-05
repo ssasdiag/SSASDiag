@@ -106,7 +106,7 @@ namespace SSASMagicNumberLookupService
                 if (!Directory.Exists(localcache))
                     Directory.CreateDirectory(localcache);
 
-                HttpWebRequest wr = WebRequest.CreateHttp("http://symweb/msmdsrv.exe/" + sym + "/file.ptr");
+                HttpWebRequest wr = WebRequest.CreateHttp("https://symweb/msmdsrv.exe/" + sym + "/file.ptr");
                 string sympath = new StreamReader(wr.GetResponse().GetResponseStream()).ReadToEnd().Replace("PATH:", "");
                 if (sympath.StartsWith("MSG"))
                     return "Error: " + sympath;

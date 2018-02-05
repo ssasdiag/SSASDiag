@@ -369,7 +369,7 @@ namespace SSASDiag
         {
             try
             {
-                WebRequest wr = WebRequest.Create("http://symweb");
+                WebRequest wr = WebRequest.Create("https://symweb");
                 WebResponse wres = await wr.GetResponseAsync();
                 string res = (new StreamReader(wres.GetResponseStream())).ReadToEnd();
                 return res.StartsWith("<html>");
@@ -415,7 +415,7 @@ namespace SSASDiag
                     if (PrivateSymbolServerAccessible().Result)
                     {
                         Directory.CreateDirectory(AnalysisPath + "\\Symbols");
-                        Environment.SetEnvironmentVariable("_NT_SYMBOL_PATH", "srv*" + AnalysisPath + "\\Symbols*http://symweb", EnvironmentVariableTarget.Machine);
+                        Environment.SetEnvironmentVariable("_NT_SYMBOL_PATH", "srv*" + AnalysisPath + "\\Symbols*https://symweb", EnvironmentVariableTarget.Machine);
                         symbolsResolved = true;
                     }
                 }
