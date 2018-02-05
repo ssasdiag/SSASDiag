@@ -441,7 +441,7 @@ namespace SSASDiag
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
             // Only act if we are already fully initialized
-            if (cbInstances.DisplayMember != "")
+            if (cbInstances.DisplayMember != "" && tcCollectionAnalysisTabs.SelectedIndex == 0)
             {
                 btnCapture.Enabled = false;
 

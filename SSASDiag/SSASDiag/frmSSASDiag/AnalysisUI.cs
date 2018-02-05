@@ -44,8 +44,11 @@ namespace SSASDiag
                 else
                     lblInitialAnalysisPrompt.Visible = true;
             }
-            else
+            else if (tcCollectionAnalysisTabs.SelectedIndex == 0)
+            {
+                cbInstances_SelectedIndexChanged(sender, e);
                 Text = "SSAS Diagnostics Tool v" + Application.ProductVersion;
+            }
         }
         private void btnAnalysisFolder_Click(object sender, EventArgs e)
         {
