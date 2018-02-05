@@ -1058,8 +1058,6 @@ namespace SSASDiag
 
         private void dgdDumpList_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            dgdDumpList.ClearSelection();
-            dgdDumpList.Rows[e.RowIndex].Selected = true;
             if (e.Button == MouseButtons.Right)
             {
                 ContextMenu cm = new ContextMenu();
@@ -1072,13 +1070,13 @@ namespace SSASDiag
                 }
                 if (WinDbgPath != "")
                 {
-                    cm.MenuItems.Add(new MenuItem("Open this memory dump in WinDbg for further analysis...",
+                    Dump d = (dgdDumpList.Rows[e.RowIndex].DataBoundItem as Dump);
+                    cm.MenuItems.Add(new MenuItem("Open " + d.DumpName + " in WinDbg for further analysis...",
                         new EventHandler((object o, EventArgs ea) =>
-                            Process.Start(WinDbgPath, "-z " + (dgdDumpList.Rows[e.RowIndex].DataBoundItem as Dump).DumpPath))
+                            Process.Start(WinDbgPath, "-z \"" + d.DumpPath + "\""))
                         ));
                     cm.Show(ParentForm, new Point(MousePosition.X - ParentForm.Left - 10, MousePosition.Y - ParentForm.Top - 26));
                 }
-
             }
         }
     }
