@@ -629,7 +629,7 @@ namespace SSASDiag
         #region FeedbackUI
         private void lkFeedback_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("mailto:ssasdiagchamps@service.microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
+            Process.Start("mailto:ssasdiagchamps@microsoft.com?subject=Feedback on SSAS Diagnostics Collector Tool&cc=jburchel@microsoft.com");
         }
         private void lkDiscussion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
