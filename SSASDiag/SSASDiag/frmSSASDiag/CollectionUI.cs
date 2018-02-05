@@ -56,6 +56,7 @@ namespace SSASDiag
                     
                     if (!Environment.UserInteractive)
                     {
+                        if (Args.ContainsKey("workingdir")) Environment.CurrentDirectory = Args["workingdir"];
                         string InstanceName = cbsdi.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
                         svcOutputPath = Program.TempPath + "SSASDiagService_" + InstanceName + ".output.log";
                         if (File.Exists(svcOutputPath))
