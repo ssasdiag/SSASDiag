@@ -281,7 +281,10 @@ namespace SSASDiag
                     }
                     catch (Exception ex)
                     {
-                        LogException(ex);
+                        if (!ex.Message.StartsWith("A network-related or instance-specific error occurred while establishing a connection to SQL Server."))
+                        {
+                            LogException(ex);
+                        }
                         sqlForTraces = "";
                         exMsg = ex.Message;
                     }
