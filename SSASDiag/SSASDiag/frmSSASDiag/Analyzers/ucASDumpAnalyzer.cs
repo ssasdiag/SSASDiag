@@ -456,6 +456,7 @@ namespace SSASDiag
         {
             try
             {
+                SubmitDebuggerCommand("q");
                 frmSSASDiag.LogFeatureUse("Dump Analysis", "Detatching from dump analysis database on exit.");
                 connDB.ChangeDatabase("master");
                 SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') ALTER DATABASE [" + DBName() + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connDB);
@@ -464,9 +465,10 @@ namespace SSASDiag
                 cmd.ExecuteNonQuery();
                 connDB.Close();
             }
-            catch
+            catch (Exception ex)
             {
-                // Closing connection could fail if the database is in use or something.  Just ignore - we're closing, don't notify user...
+                Trace.WriteLine("Exception detaching dump analysis database on exit: " + ex.Message);
+                // Closing connection could fail if the database is otherwise in use or something.  Just ignore - we're closing, don't notify user...
             }
             try
             {
