@@ -155,6 +155,9 @@ namespace SSASDiag
             {
                 ImpersonateNamedPipeConnection(connection);
                 clientWaiter.Set();
+                ImpersonateNamedPipeConnection(connection);
+                if (Environment.UserName != "SYSTEM")
+                    Program.LaunchingUser = Environment.UserName;
             }
             if (message.StartsWith("Administrator="))
             {

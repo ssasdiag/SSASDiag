@@ -22,6 +22,7 @@ namespace SSASDiag
         public static Guid RunID;
         public static frmSSASDiag MainForm;
         public static string TempPath = "";
+        public static string LaunchingUser = "";
 
         /// <summary> /// 
         /// The main entry point for the application.

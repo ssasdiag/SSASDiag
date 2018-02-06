@@ -372,7 +372,7 @@ namespace SSASDiag
             if (!Environment.UserInteractive)
                 System.Diagnostics.Trace.WriteLine("Running as a service.");
         }
-
+        
         public static void LogFeatureUse(string FeatureName, string FeatureDetail = "")
         {
             // For internal Microsoft users we can collect basic usage data without requiring consent.
@@ -399,7 +399,12 @@ namespace SSASDiag
                                 domain = domain.Substring(domain.LastIndexOf('.') + 1) + domainend;
                                 nvc.Add("UpnSuffix", domain);
                                 if (domain.EndsWith("microsoft.com"))
-                                    nvc.Add("MicrosoftInternal", WebUtility.UrlEncode(Environment.UserName));
+                                {
+                                    if (Environment.UserName != "SYSTEM")
+                                        nvc.Add("MicrosoftInternal", WebUtility.UrlEncode(Environment.UserName));
+                                    else
+                                        nvc.Add("MicrosoftInternal", WebUtility.UrlEncode(Program.LaunchingUser));
+                                }
                             }
                             catch
                             {
