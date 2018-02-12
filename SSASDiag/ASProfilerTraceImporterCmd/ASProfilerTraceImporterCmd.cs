@@ -246,7 +246,7 @@ namespace ASProfilerTraceImporterCmd
                         // I had to do the same thing with TraceTable after it...  It now reliably loads all files after long frustrating investigation to find this root cause.
                         while (true)
                         {
-                            tIn.InitializeAsReader(FileName);
+                            try { tIn.InitializeAsReader(FileName); } catch { /* This may throw exception sometimes until we try several times - internal glitch of component we can't control so we ignore */ }
                             if (tIn == null)
                             {
                                 tIn = new TraceFile();
