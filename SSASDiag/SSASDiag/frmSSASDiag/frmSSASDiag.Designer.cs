@@ -281,7 +281,7 @@
             this.chkGetNetwork.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chkGetNetwork.Location = new System.Drawing.Point(3, 163);
             this.chkGetNetwork.Name = "chkGetNetwork";
-            this.chkGetNetwork.Size = new System.Drawing.Size(102, 17);
+            this.chkGetNetwork.Size = new System.Drawing.Size(97, 17);
             this.chkGetNetwork.TabIndex = 7;
             this.chkGetNetwork.Text = "Network Trace";
             this.ttStatus.SetToolTip(this.chkGetNetwork, "Network traces are useful for connectivity investigations most often.");
