@@ -114,7 +114,7 @@ namespace SSASDiag
                     if (dgdProfilerAnalyses.Columns["Duration"] != null || dgdProfilerAnalyses.Columns["StartTime"] != null || dgdProfilerAnalyses.Columns["EndTime"] != null 
                         || dgdProfilerAnalyses.Columns["CurrentTime"] != null || dgdProfilerAnalyses.Columns["Requests Completed"] != null)
                     {
-                        // This sectino formats rows, calculation total duration, start, end time...
+                        // This section formats rows, calculation total duration, start, end time...
                         foreach (DataGridViewRow r in dgdProfilerAnalyses.Rows)
                         {
                             if (dgdProfilerAnalyses.Columns["Duration"] != null && r.Cells["Duration"].FormattedValue as string != "") TotalDuration += Convert.ToInt64(r.Cells["Duration"].Value);

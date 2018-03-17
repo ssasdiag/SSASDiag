@@ -335,7 +335,21 @@ namespace SSASDiag
             else
                 bProfilerEventClassSublcassViewPresent = false;
             ProfilerTraceStatusTextBox.Invoke(new System.Action(() => ProfilerTraceStatusTextBox.AppendText((ProfilerTraceStatusTextBox.Text.EndsWith("\r\n") ? "" : "\r\n") + "Confirmed event class/subclass view is " + (bProfilerEventClassSublcassViewPresent ? "present." : "not present."))));
-            cmd.CommandText = "SELECT MAX(CurrentTime) FROM [" + AnalysisTraceID + "]";
+            cmd.CommandText =
+                @"
+                declare @sql nvarchar(max) =
+                    (case when exists (select *
+                                       from INFORMATION_SCHEMA.COLUMNS 
+                                       where TABLE_NAME = '" + AnalysisTraceID + @"' and
+                                             COLUMN_NAME = 'currentTime' -- and schema name too, if you like
+                                      )
+                          then 'select max(currentTime) from [" + AnalysisTraceID + @"]'
+                          else 'select NULL as currentTime'
+                     end)
+                ;
+
+                exec sp_executesql @sql;
+                ";
             new Thread(new ThreadStart(() =>
             {
                 if (cmd.Connection.State == ConnectionState.Open)
