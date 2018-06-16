@@ -114,6 +114,7 @@
             this.automaticallyCheckForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableOpenWithToolStripItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.enableDiagnosticLoggingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlLinks = new System.Windows.Forms.Panel();
             this.tcCollectionAnalysisTabs.SuspendLayout();
             this.tbCollection.SuspendLayout();
@@ -765,7 +766,11 @@
             this.udRollover.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.udRollover.ThousandsSeparator = true;
             this.udRollover.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
-            this.udRollover.Value = 512;
+            this.udRollover.Value = new decimal(new int[] {
+            512,
+            0,
+            0,
+            0});
             // 
             // chkAutoRestart
             // 
@@ -1225,11 +1230,12 @@
             this.ctxSettings.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.automaticallyCheckForUpdatesToolStripMenuItem,
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem,
-            this.enableOpenWithToolStripItem});
+            this.enableOpenWithToolStripItem,
+            this.enableDiagnosticLoggingToolStripMenuItem});
             this.ctxSettings.Name = "contextMenuStrip1";
             this.ctxSettings.ShowCheckMargin = true;
             this.ctxSettings.ShowImageMargin = false;
-            this.ctxSettings.Size = new System.Drawing.Size(313, 70);
+            this.ctxSettings.Size = new System.Drawing.Size(313, 114);
             // 
             // automaticallyCheckForUpdatesToolStripMenuItem
             // 
@@ -1257,6 +1263,13 @@
             this.enableOpenWithToolStripItem.Size = new System.Drawing.Size(312, 22);
             this.enableOpenWithToolStripItem.Text = "Enable context menu to Open With SSASDiag";
             this.enableOpenWithToolStripItem.ToolTipText = "Current supported file types include .zip, .trc, .cap, .etl.";
+            // 
+            // enableDiagnosticLoggingToolStripMenuItem
+            // 
+            this.enableDiagnosticLoggingToolStripMenuItem.CheckOnClick = true;
+            this.enableDiagnosticLoggingToolStripMenuItem.Name = "enableDiagnosticLoggingToolStripMenuItem";
+            this.enableDiagnosticLoggingToolStripMenuItem.Size = new System.Drawing.Size(312, 22);
+            this.enableDiagnosticLoggingToolStripMenuItem.Text = "Enable diagnostic logging";
             // 
             // pnlLinks
             // 
@@ -1418,6 +1431,7 @@
         private System.Windows.Forms.LinkLabel lkAbout;
         private System.Windows.Forms.LinkLabel lkBugsIdeas;
         private System.Windows.Forms.LinkLabel lkFeedback;
+        private System.Windows.Forms.ToolStripMenuItem enableDiagnosticLoggingToolStripMenuItem;
     }
 }
 
