@@ -765,11 +765,7 @@
             this.udRollover.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.udRollover.ThousandsSeparator = true;
             this.udRollover.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
-            this.udRollover.Value = new decimal(new int[] {
-            64,
-            0,
-            0,
-            0});
+            this.udRollover.Value = 512;
             // 
             // chkAutoRestart
             // 
