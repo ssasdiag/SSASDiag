@@ -174,7 +174,7 @@ namespace SSASDiag
                     if (!dir.Contains("\\$RECYCLE.BIN") && !dir.Contains("\\System Volume Information"))
                     {
                         try { dumpfiles.AddRange(Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories)); }
-                        catch (Exception ex) { Trace.WriteLine("Exception enumerating dumps from subdirectories: " + ex.Message); }
+                        catch (Exception ex) { Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception enumerating dumps from subdirectories: " + ex.Message); }
                     }
                 foreach (string f in dumpfiles)
                     DumpFiles.Add(new Dump() { DumpPath = f, Analyzed = false, Crash = false });
@@ -467,7 +467,7 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
-                Trace.WriteLine("Exception detaching dump analysis database on exit: " + ex.Message);
+                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception detaching dump analysis database on exit: " + ex.Message);
                 // Closing connection could fail if the database is otherwise in use or something.  Just ignore - we're closing, don't notify user...
             }
             try
@@ -484,7 +484,7 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
-                Trace.WriteLine("Exception adding dump analysis to zip folder: " + ex.Message);
+                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception adding dump analysis to zip folder: " + ex.Message);
             }
         }
 

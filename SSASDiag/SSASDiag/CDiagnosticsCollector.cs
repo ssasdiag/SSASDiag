@@ -487,7 +487,7 @@ namespace SSASDiag
             s.Add(PerfMonInstanceID + ":Storage Engine Query\\*");
             s.Add(PerfMonInstanceID + ":Threads\\*");
 
-            System.Diagnostics.Trace.WriteLine("Starting PerfMon log: " + strSaveAs);
+            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Starting PerfMon log: " + strSaveAs);
             // Add all the counters now to the query...
             m_PdhHelperInstance.AddCounters(ref s, false);
             uint ret = m_PdhHelperInstance.OpenLogForWriting(
@@ -497,7 +497,7 @@ namespace SSASDiag
                             0,
                             false,
                             "SSAS Diagnostics Performance Monitor Log");
-            System.Diagnostics.Trace.WriteLine("Retval starting PerfMon: " + ret);
+            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Retval starting PerfMon: " + ret);
 
             return ret;
         }
@@ -518,7 +518,7 @@ namespace SSASDiag
             p.StartInfo.Arguments = "trace start fileMode=" + (bRollover ? "circular" : "single") + " capture=yes tracefile=\"" + Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + ".etl\" maxSize=" + (bRollover ? iRollover.ToString() : "0");
             p.Start();
             sOut = p.StandardOutput.ReadToEnd();
-            System.Diagnostics.Trace.WriteLine("netsh trace start's output: " + sOut);
+            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": netsh trace start's output: " + sOut);
             p.WaitForExit();
             SendMessageToClients("Network tracing started to file: " + TraceID + ".etl.");
         }
@@ -590,12 +590,12 @@ namespace SSASDiag
                         SendMessageToClients("Diagnostics captured for " + ((TimeSpan)(DateTime.Now - m_StartTime)).ToString("hh\\:mm\\:ss"));
                 }
 
-                System.Diagnostics.Trace.WriteLine("Ticks since last log: " + iCurrentTimerTicksSinceLastInterval + ", Interval: " + iInterval + ", bPerfMonRunning: " + bPerfMonRunning);
+                System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Ticks since last log: " + iCurrentTimerTicksSinceLastInterval + ", Interval: " + iInterval + ", bPerfMonRunning: " + bPerfMonRunning);
 
                 if (iCurrentTimerTicksSinceLastInterval >= iInterval && bPerfMonRunning)
                 {
                     // If perfmon logging failed we still want to tick our timer so just fail past this with try/catch anything...
-                    System.Diagnostics.Trace.WriteLine("Updating log " + sInstanceName);
+                    System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Updating log " + sInstanceName);
                     try { m_PdhHelperInstance.UpdateLog("SSASDiag" + sInstanceName); }
                     catch (Exception ex)
                     {
@@ -608,7 +608,7 @@ namespace SSASDiag
                         {
                             string sCurFile = m_PdhHelperInstance.LogName.Substring(m_PdhHelperInstance.LogName.LastIndexOf(TraceID) + TraceID.Length).Replace(".blg", "");
                             int iCurFile = sCurFile == "" ? 0 : Convert.ToInt32(sCurFile);
-                            System.Diagnostics.Trace.WriteLine("Disposing PerfMon log to open new file: " + TraceID + "\\" + TraceID.Replace(".blg", "") + (iCurFile + 1) + ".blg");
+                            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Disposing PerfMon log to open new file: " + TraceID + "\\" + TraceID.Replace(".blg", "") + (iCurFile + 1) + ".blg");
                             m_PdhHelperInstance.Dispose();
                             InitializePerfLog(TraceID + "\\" + TraceID.Replace(".blg", "") + (iCurFile + 1) + ".blg");
                         }
@@ -897,7 +897,7 @@ namespace SSASDiag
             p.StartInfo.Arguments = "trace stop";
             p.Start();
             string sOut = p.StandardOutput.ReadToEnd();
-            System.Diagnostics.Trace.WriteLine("netsh trace stop output: " + sOut);
+            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": netsh trace stop output: " + sOut);
             if (sOut == "There is no trace session currently in progress.")
                 SendMessageToClients("Network trace failed to capture for unknown reason.  Manual collection may be necessary.");
             p.WaitForExit();

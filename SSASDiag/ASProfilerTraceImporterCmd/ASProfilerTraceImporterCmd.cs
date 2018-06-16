@@ -194,7 +194,6 @@ namespace ASProfilerTraceImporterCmd
                         catch (Exception ex)
                         {
                             SetText("Exception creating event class/subclass view:\r\n" + ex.Message);
-                            Trace.WriteLine("Can safely ignore since view creation will fail if necessary EvenClass and/or EventSubclass events are missing.");
                         }
                         SqlCommandInfiniteConstructor("if exists(select * from sys.views where name = '" + Table + "EventClassIndex') drop view [" + Table + "EventClassIndex];", conn2).ExecuteNonQuery();
                         SqlCommandInfiniteConstructor("create index [" + Table + "EventClassIndex] on [" + Table + "] (EventClass)", conn2).ExecuteNonQuery();

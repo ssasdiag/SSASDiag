@@ -157,7 +157,7 @@ namespace SSASDiag
                 ASProfilerTraceImporterProcess.StartInfo.RedirectStandardOutput = true;
                 ASProfilerTraceImporterProcess.StartInfo.FileName = Program.TempPath + "ASProfilerTraceImporterCmd.exe";
                 ASProfilerTraceImporterProcess.StartInfo.Arguments = "\"" + Directory.GetFiles(m_analysisPath, AnalysisTraceID + "*.trc")[0] + "\" \"" + connstr + "\" \"" + AnalysisTraceID + "\"";
-                Trace.WriteLine("Starting AS trace import with command arguments: " + ASProfilerTraceImporterProcess.StartInfo.Arguments);
+                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Starting AS trace import with command arguments: " + ASProfilerTraceImporterProcess.StartInfo.Arguments);
                 ASProfilerTraceImporterProcess.Start();
                 while (!ASProfilerTraceImporterProcess.HasExited)
                 {
@@ -360,7 +360,7 @@ namespace SSASDiag
                     if (!Convert.IsDBNull(dt))
                     {
                         EndOfTrace = Convert.ToDateTime(dt);
-                        System.Diagnostics.Trace.WriteLine("End of trace [" + AnalysisTraceID + "] noted at " + EndOfTrace);
+                        System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": End of trace [" + AnalysisTraceID + "] noted at " + EndOfTrace);
                     }
                     conn.Close();
                 }

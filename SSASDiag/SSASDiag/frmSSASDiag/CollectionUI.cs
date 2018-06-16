@@ -462,7 +462,7 @@ namespace SSASDiag
                 if (SelItem != null)
                 {
                     srv.Connect("Data source=" + (SelItem.Cluster ? SelItem.Text.Replace(" (Clustered Instance)", "") : Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text)) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
-                    System.Diagnostics.Trace.WriteLine("Connected to server with connection string: " + srv.ConnectionString);
+                    System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Connected to server with connection string: " + srv.ConnectionString);
                     lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
                     m_instanceType = srv.ServerMode.ToString();
                     m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
@@ -623,12 +623,12 @@ namespace SSASDiag
                         if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
 
                         string ConfigPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + s.ServiceName, false).GetValue("ImagePath") as string;
-                        System.Diagnostics.Trace.WriteLine("Found AS instance: " + ConfigPath);
+                        System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Found AS instance: " + ConfigPath);
                         ConfigPath = ConfigPath.Substring(ConfigPath.IndexOf("-s \"") + "-s \"".Length).TrimEnd('\"');
                         string InstanceID = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "");
                         InstanceID = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\OLAP", false).GetValue(InstanceID, "") as string;
                         if (InstanceID == "") InstanceID = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\OLAP", false).GetValue("MSSQLSERVER") as string;
-                        System.Diagnostics.Trace.WriteLine("InstanceID: " + InstanceID);
+                        System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": InstanceID: " + InstanceID);
                         string SQLProgramDir = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Setup", false).GetValue("SQLProgramDir") as string;
                         string ClusterName = "";
                         try { ClusterName = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Cluster", false).GetValue("ClusterName") as string; }
@@ -641,7 +641,7 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine("Failure during instance enumeration - could be because no instances were there.  Move on quietly then.");
+                System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Failure during instance enumeration - could be because no instances were there.  Move on quietly then.");
                 System.Diagnostics.Trace.WriteLine(ex);
             }
             if (LocalInstances.Count == 0)

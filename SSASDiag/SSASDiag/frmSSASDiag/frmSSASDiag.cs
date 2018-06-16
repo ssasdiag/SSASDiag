@@ -375,19 +375,13 @@ namespace SSASDiag
             pp.FormClosed += Pp_FormClosed;
         }
 
-        private string CurrentFormattedLocalDateTime()
-        {
-            return DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz");
-        }
-
-
         private void enableDiagnosticLoggingToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
             if (enableDiagnosticLoggingToolStripMenuItem.Checked)
                 SetupDebugTrace();
             else
             {
-                Debug.WriteLine(CurrentFormattedLocalDateTime() + ": Stopping debug trace.");
+                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Stopping debug trace.");
                 Trace.Flush();
                 for (int i = 0; i < Trace.Listeners.Count; i++)
                     if (Trace.Listeners[i].Name == "debuglistener")
@@ -411,7 +405,7 @@ namespace SSASDiag
                 if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Properties.Settings.Default.LoggingEnabled)
                     Trace.Listeners.Add(new TextWriterTraceListener(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\SSASDiagDebugTrace.log", "debuglistener"));
                 Trace.AutoFlush = true;
-                Debug.WriteLine(CurrentFormattedLocalDateTime() + ": Started debug trace.");
+                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Started debug trace.");
                 if (!Environment.UserInteractive)
                     Debug.WriteLine("Running as a service.");
             }
@@ -621,7 +615,7 @@ namespace SSASDiag
                 LogException(ex);
                 // This should never happen but might if we are summarily killing midway through something.  Don't get hung up just close.
             }
-            System.Diagnostics.Trace.WriteLine("SSASDiag form closed, Cancel set to: " + e.Cancel);
+            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": SSASDiag form closed, Cancel set to: " + e.Cancel);
         }
         private void BgDetachProfilerDB_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -670,7 +664,7 @@ namespace SSASDiag
         }
         public static void LogException(Exception ex)
         {
-            System.Diagnostics.Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
             LogFeatureUse("Exception", "Message:\n" + ex.Message + "\n at stack:\n" + ex.StackTrace);   
         }
         #endregion frmSSASDiagEvents

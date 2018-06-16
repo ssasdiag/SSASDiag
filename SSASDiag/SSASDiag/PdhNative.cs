@@ -1277,7 +1277,7 @@ namespace PdhNative
 
                     bAtLeastOneAdded = true;
                 }
-                else System.Diagnostics.Trace.WriteLine("Bad counter path encountered: " + counterPath);
+                else System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Bad counter path encountered: " + counterPath);
             }
 
             return bAtLeastOneAdded ? 0 : res;

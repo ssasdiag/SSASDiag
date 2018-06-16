@@ -124,7 +124,7 @@ namespace SSASDiag
                     }
                     catch (Exception e)
                     {
-                        Trace.WriteLine("Exception copying binary to temp cache: " + e.Message);
+                        Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception copying binary to temp cache: " + e.Message);
                         Thread.Sleep(100);
                         iCopyTries++;
                     } 
@@ -160,7 +160,7 @@ namespace SSASDiag
                                     }
                                     catch (Exception ex2)
                                     {
-                                        Trace.WriteLine("Extraction Exception: " + ex2.Message);
+                                        Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extraction Exception: " + ex2.Message);
                                     }
                                 }
                             }
@@ -168,7 +168,7 @@ namespace SSASDiag
                         }
                         catch (Exception ex)
                         {
-                            Trace.WriteLine("Extraction Exception: " + ex.Message);
+                            Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extraction Exception: " + ex.Message);
                         }
                     }
                 try
@@ -192,7 +192,7 @@ namespace SSASDiag
                 catch (AppDomainUnloadedException ex)
                 {
                     /* This happens normally if we terminate due to update process... */
-                    Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                 }
                 catch (Exception ex)
                 {
@@ -200,7 +200,7 @@ namespace SSASDiag
                     // which catches any previously uncaught exceptions originating from the tempDomain.
                     // This should avoid any crashes of the app in theory, instead providing graceful error messaging.
                     //
-                    Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                     string msg = "There was an unexpected error in the SSAS Diagnostics Collector and the application will close.  " 
                                     + "Details of the error are provided for debugging purposes, and copied on the clipboard.\r\n\r\n"
                                     + "An email will also be generated to the tool's author after you click OK.  Please paste the details there to report the issue.\r\n\r\n" 
@@ -237,11 +237,11 @@ namespace SSASDiag
             }
             catch (Exception ex)
             {
-                Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                 if (Environment.UserInteractive)
                     MessageBox.Show("SSASDiag encountered an unexpected exception:\n\t" + ex.Message + "\n\tat\n" + ex.StackTrace, "SSASDiag Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            System.Diagnostics.Trace.WriteLine("Exiting SSASDiag.");
+            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exiting SSASDiag.");
         }
 
         private static void Application_ApplicationExit(object sender, EventArgs e)
@@ -309,7 +309,7 @@ namespace SSASDiag
                         }
                     }
                 }
-                catch (Exception ex) { Trace.WriteLine("Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
+                catch (Exception ex) { Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
             })).Start();
         }
 
@@ -331,6 +331,11 @@ namespace SSASDiag
                 }
             }
             )).Start();
+        }
+
+        public static string CurrentFormattedLocalDateTime()
+        {
+            return DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz");
         }
 
         private static bool ServerFileIsNewer(string clientFileVersion, string serverFile)
