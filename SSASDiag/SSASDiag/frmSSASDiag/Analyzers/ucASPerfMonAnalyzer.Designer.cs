@@ -178,6 +178,7 @@
             this.splitAnalysis.Name = "splitAnalysis";
             this.splitAnalysis.Orientation = System.Windows.Forms.Orientation.Horizontal;
             this.splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
+            this.splitAnalysis.Visible = false;
             // 
             // splitAnalysis.Panel1
             // 
@@ -265,6 +266,7 @@
             legend1.Name = "Legend";
             legend1.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
             this.chartPerfMon.Legends.Add(legend1);
+            this.chartPerfMon.SuppressExceptions = true;
             this.chartPerfMon.Location = new System.Drawing.Point(0, 0);
             this.chartPerfMon.Name = "chartPerfMon";
             this.chartPerfMon.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Bright;
@@ -306,7 +308,7 @@
             this.cmbServers.Name = "cmbServers";
             this.cmbServers.Size = new System.Drawing.Size(149, 20);
             this.cmbServers.TabIndex = 1;
-            this.cmbServers.Visible = false;
+            this.cmbServers.Visible = true;
             this.cmbServers.SelectedIndexChanged += new System.EventHandler(this.cmbServers_SelectedIndexChanged);
             // 
             // pnAnalyses

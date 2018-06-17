@@ -152,7 +152,7 @@ namespace SSASDiag
 
             try
             {
-                dr = new SqlCommand("select distinct MachineName from CounterDetails", connDB).ExecuteReader();
+                dr = new SqlCommand("select distinct MachineName from CounterDetails order by MachineName", connDB).ExecuteReader();
                 cmbServers.Items.Clear();
                 while (dr.Read())
                     cmbServers.Items.Add(dr["MachineName"]);
@@ -160,12 +160,13 @@ namespace SSASDiag
                 if (cmbServers.Items.Count > 0)
                 {
                     cmbServers.SelectedIndex = 0;
-                    cmbServers.Visible = true;
+                    splitAnalysis.Visible = true;
                 }
             }
             catch (Exception e)
             {
-                ;
+                if (e.Message.Contains("CounterDetails"))
+                    splitAnalysis.Visible = false;
             }
 
             dgdLogList.DataSource = LogFiles;
@@ -367,15 +368,19 @@ namespace SSASDiag
                             }));
                         }
 
-                        try
+                        SqlDataReader dr = new SqlCommand("select distinct MachineName from CounterDetails order by MachineName", connDB).ExecuteReader();
+                        cmbServers.Invoke(new System.Action(() =>
                         {
-                            SqlDataReader dr = new SqlCommand("select distinct MachineName from CounterDetails", connDB).ExecuteReader();
                             cmbServers.Items.Clear();
                             while (dr.Read())
                                 cmbServers.Items.Add(dr["MachineName"]);
                             dr.Close();
-                        }
-                        catch { }
+                            if (cmbServers.Items.Count > 0)
+                            {
+                                splitAnalysis.Visible = true;
+                                cmbServers.SelectedIndex = 0;
+                            }
+                        }));
                     }
                 })).Start();
             }
@@ -429,100 +434,108 @@ namespace SSASDiag
             string InstancePath = "";
             int? InstanceIndex = null;
 
-            if (Counters.Rows.Count > 0)
+            try
             {
-                if (dgdGrouping.Columns["Counter"].DisplayIndex == 0)
-                {
-                    DataRow[] rows = Counters.Select("", "objectname, countername, instancepath, instanceindex");
 
-                    int i = 0;
-                    while (i < rows.Count())
-                    {
-                        if (CounterName != rows[i]["CounterName"] as string)
-                        {
-                            CounterName = rows[i]["CounterName"] as string;
-                            System.Windows.Forms.TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName);
-                            n.Tag = rows[i]["CounterID"];
-                            InstancePath = "";
-                            while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
-                            {
-                                if (rows[i]["InstancePath"] as string != null && InstancePath != rows[i]["InstancePath"] as string)
-                                {
-                                    InstancePath = rows[i]["InstancePath"] as string;                                    
-                                    System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstancePath);
-                                    nn.Tag = rows[i]["CounterID"];
-                                    InstanceIndex = null;
-                                    while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
-                                    {
-                                        if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
-                                        {
-                                            InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                            nn.Nodes.Add(InstanceIndex.ToString()).Tag = rows[i]["CounterID"]; ;
-                                        }
-                                        i++;
-                                    }
-                                    if (i == rows.Count()) break;
-                                    i--;
-                                }
-                                i++;
-                            }
-                            if (i == rows.Count()) break;
-                            i--;
-                        }
-                        i++;
-                    }
-                }
-                else
+                if (Counters.Rows.Count > 0)
                 {
-                    DataRow[] rows = Counters.Select("", "objectname, instancepath, instanceindex, countername");
-
-                    int i = 0;
-                    while (i < rows.Count())
+                    if (dgdGrouping.Columns["Counter"].DisplayIndex == 0)
                     {
-                        if (InstancePath != rows[i]["InstancePath"] as string || rows[i]["InstancePath"] as string == "")
+                        DataRow[] rows = Counters.Select("", "objectname, countername, instancepath, instanceindex");
+
+                        int i = 0;
+                        while (i < rows.Count())
                         {
-                            InstancePath = rows[i]["InstancePath"] as string;
-                            System.Windows.Forms.TreeNode n = null;
-                            if (InstancePath != "")
+                            if (CounterName != rows[i]["CounterName"] as string)
                             {
-                                n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath);
-                                n.Tag = rows[i]["CounterID"];
-                                while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
+                                CounterName = rows[i]["CounterName"] as string;
+                                System.Windows.Forms.TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName);
+                                n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                InstancePath = "";
+                                while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
                                 {
-                                    if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
+                                    if (rows[i]["InstancePath"] as string != null && InstancePath != rows[i]["InstancePath"] as string)
                                     {
-                                        InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                        System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstanceIndex.ToString()); 
-                                        while (i < rows.Count() && rows[i]["InstanceIndex"] as int? == InstanceIndex)
+                                        InstancePath = rows[i]["InstancePath"] as string;
+                                        System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstancePath);
+                                        nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                        InstanceIndex = null;
+                                        while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
                                         {
-                                            CounterName = rows[i]["CounterName"] as string;
-                                            nn.Nodes.Add(CounterName);
-                                            nn.Tag = rows[i]["CounterID"];
+                                            if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
+                                            {
+                                                InstanceIndex = rows[i]["InstanceIndex"] as int?;
+                                                nn.Nodes.Add(InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                            }
                                             i++;
                                         }
                                         if (i == rows.Count()) break;
                                         i--;
                                     }
-                                    else
-                                    {
-                                        CounterName = rows[i]["CounterName"] as string;
-                                        n.Nodes.Add(CounterName).Tag = rows[i]["CounterID"];
-                                    }
                                     i++;
                                 }
+                                if (i == rows.Count()) break;
+                                i--;
                             }
-                            else
-                            {
-                                CounterName = rows[i]["CounterName"] as string;
-                                tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName).Tag = rows[i]["CounterID"];
-                                i++;
-                            }
-                            if (i == rows.Count()) break;
-                            i--;
+                            i++;
                         }
-                        i++;
+                    }
+                    else
+                    {
+                        DataRow[] rows = Counters.Select("", "objectname, instancepath, instanceindex, countername");
+
+                        int i = 0;
+                        while (i < rows.Count())
+                        {
+                            if (InstancePath != rows[i]["InstancePath"] as string || rows[i]["InstancePath"] as string == "")
+                            {
+                                InstancePath = rows[i]["InstancePath"] as string;
+                                System.Windows.Forms.TreeNode n = null;
+                                if (InstancePath != "")
+                                {
+                                    n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath);
+                                    n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                    while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
+                                    {
+                                        if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
+                                        {
+                                            InstanceIndex = rows[i]["InstanceIndex"] as int?;
+                                            System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstanceIndex.ToString());
+                                            while (i < rows.Count() && rows[i]["InstanceIndex"] as int? == InstanceIndex)
+                                            {
+                                                CounterName = rows[i]["CounterName"] as string;
+                                                nn.Nodes.Add(CounterName);
+                                                nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                                i++;
+                                            }
+                                            if (i == rows.Count()) break;
+                                            i--;
+                                        }
+                                        else
+                                        {
+                                            CounterName = rows[i]["CounterName"] as string;
+                                            n.Nodes.Add(CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                        }
+                                        i++;
+                                    }
+                                }
+                                else
+                                {
+                                    CounterName = rows[i]["CounterName"] as string;
+                                    tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                    i++;
+                                }
+                                if (i == rows.Count()) break;
+                                i--;
+                            }
+                            i++;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Exception: " + ex.Message);
             }
             tvCounters.CollapseAll();
             tvCounters.ResumeLayout();
@@ -536,8 +549,9 @@ namespace SSASDiag
                 tvCounters.Nodes.Add(dr["ObjectName"] as string, dr["ObjectName"] as string);
             dr.Close();
 
+            Counters.Clear();
             Counters.Load(new SqlCommand(@" select
-                                            CounterID, ObjectName, CounterName,
+                                            CounterID, ObjectName, CounterName, DefaultScale,
                                             case 
 
                                                 when ParentName is null then
@@ -566,12 +580,9 @@ namespace SSASDiag
                     {
                         s = new Series(e.Node.FullPath);
                         s.ChartType = SeriesChartType.Line;
-                        SqlDataReader dr = new SqlCommand("select * from CounterData where CounterID = " + e.Node.Tag + " order by CounterDateTime asc", connDB).ExecuteReader();
+                        SqlDataReader dr = new SqlCommand("select * from CounterData where CounterID = " + (e.Node.Tag as string).Split(',')[0] + " order by CounterDateTime asc", connDB).ExecuteReader();
                         while (dr.Read())
-                        {
-                            s.Points.AddXY(dr["CounterDateTime"], dr["CounterValue"]);
-
-                        }
+                            s.Points.AddXY(dr["CounterDateTime"], (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
                         dr.Close();
                         chartPerfMon.Series.Add(s);
                     }
