@@ -143,7 +143,7 @@ namespace SSASDiag
                     }
             }
             if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdmp")) || dirhasdumps || 
-                (Directory.Exists(m_analysisPath) && Directory.GetFiles(m_analysisPath + "\\Analysis", "SSASDiag_MemoryDump_Analysis_*.mdf", SearchOption.TopDirectoryOnly).Count() > 0))
+                (Directory.Exists(m_analysisPath + "\\Analysis") && Directory.GetFiles(m_analysisPath + "\\Analysis", "SSASDiag_MemoryDump_Analysis_*.mdf", SearchOption.TopDirectoryOnly).Count() > 0))
             {
                 if (ValidateProfilerTraceDBConnectionStatus())
                 {
@@ -186,11 +186,32 @@ namespace SSASDiag
                     btnAnalyzeNetworkTrace.Visible = true;
                 }
             }
-            if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".blg")) || File.Exists(m_analysisPath + "\\" + AnalysisTraceID + ".blg"))
+
+            bool dirhasblgs = false;
+            if (!File.Exists(m_analysisPath))
             {
-                tcAnalysis.TabPages.Add(new TabPage("Performance Logs") { ImageIndex = 4, Name = "Performance Logs" });
-                tcAnalysis.TabPages["Performance Logs"].Controls.Add(GetStatusTextBox("Check back soon for automated analysis of performance logs."));
+                if (Directory.GetFiles(m_analysisPath, "*.blg", SearchOption.TopDirectoryOnly).Count() > 0)
+                    dirhasblgs = true;
+                else
+                    foreach (string dir in Directory.EnumerateDirectories(m_analysisPath))
+                        if (!dir.Contains("\\$RECYCLE.BIN") &&
+                            !dir.Contains("\\System Volume Information") &&
+                            Directory.GetFiles(dir, "*.blg", SearchOption.AllDirectories).Count() > 0)
+                        {
+                            dirhasblgs = true;
+                            break;
+                        }
             }
+            if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".blg")) || dirhasblgs  ||
+                (Directory.Exists(m_analysisPath + "\\Analysis") && Directory.GetFiles(m_analysisPath + "\\Analysis", "SSASDiag_PerfMon_Analysis_*.mdf", SearchOption.TopDirectoryOnly).Count() > 0))
+            {
+                if (ValidateProfilerTraceDBConnectionStatus())
+                {
+                    tcAnalysis.TabPages.Add(new TabPage("Performance Logs") { ImageIndex = 4, Name = "Performance Logs" });
+                    tcAnalysis.TabPages["Performance Logs"].Controls.Add(new ucASPerfMonAnalyzer(m_analysisPath, connSqlDb, StatusFloater));
+                }
+            }
+
             if (
                     (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".trc")) ||
                     (File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".mdf")) ||
