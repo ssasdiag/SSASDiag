@@ -143,7 +143,22 @@ namespace SSASDiag
                 }
             }
             dr.Close();
-            
+
+            try
+            {
+                dr = new SqlCommand("select distinct MachineName from CounterDetails", connDB).ExecuteReader();
+                cmbServers.Items.Clear();
+                while (dr.Read())
+                    cmbServers.Items.Add(dr["MachineName"]);
+                dr.Close();
+                if (cmbServers.Items.Count > 0)
+                {
+                    cmbServers.SelectedIndex = 0;
+                    cmbServers.Visible = true;
+                }
+            }
+            catch { }
+
             dgdLogList.DataSource = LogFiles;
             dgdLogList.DataBindingComplete += DgdLogList_DataBindingComplete;
 
@@ -342,6 +357,16 @@ namespace SSASDiag
                                 frmSSASDiag.LogFeatureUse("PerfMon Analysis", "Completed import of " + LogsRequiringAnalysis + " log" + (LogsRequiringAnalysis > 1 ? "s." : "."));
                             }));
                         }
+
+                        try
+                        {
+                            SqlDataReader dr = new SqlCommand("select distinct MachineName from CounterDetails", connDB).ExecuteReader();
+                            cmbServers.Items.Clear();
+                            while (dr.Read())
+                                cmbServers.Items.Add(dr["MachineName"]);
+                            dr.Close();
+                        }
+                        catch { }
                     }
                 })).Start();
             }
@@ -376,6 +401,23 @@ namespace SSASDiag
                 dgdLogList[0, i].Value = ((CheckBox)dgdLogList.Controls.Find("checkboxHeader", true)[0]).Checked;
             }
             dgdLogList.EndEdit();
+        }
+
+        private void cmbServers_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            tvCounters.Nodes.Clear();
+            SqlDataReader dr = new SqlCommand("select distinct ObjectName from CounterDetails where MachineName = '" + cmbServers.SelectedItem + "' order by ObjectName", connDB).ExecuteReader();
+            while (dr.Read())
+                tvCounters.Nodes.Add(dr["ObjectName"] as string, dr["ObjectName"] as string);
+            dr.Close();
+            dr = new SqlCommand("select distinct ObjectName, CounterName from CounterDetails where MachineName = '" + cmbServers.SelectedItem + "' order by CounterName", connDB).ExecuteReader();
+            while (dr.Read())
+                tvCounters.Nodes[dr["ObjectName"] as string].Nodes.Add(dr["CounterName"] as string, dr["CounterName"] as string);
+            dr.Close();
+            dr = new SqlCommand("select distinct ObjectName, CounterName, ParentName from CounterDetails where ParentName is not null and  MachineName = '" + cmbServers.SelectedItem + "' order by ParentName", connDB).ExecuteReader();
+            while (dr.Read())
+                tvCounters.Nodes[dr["ObjectName"] as string].Nodes[dr["CounterName"] as string].Nodes.Add(dr["ParentName"] as string, dr["ParentName"] as string);
+            dr.Close();
         }
 
         private void dgdLogList_SelectionChanged(object sender, EventArgs e)
@@ -414,16 +456,7 @@ namespace SSASDiag
                             (selCount == 1 ? "This log has been imported already." : selCount + " logs already imported for analysis.\r\n"));
                 }
             }
-            if ((selCount & AnalyzedCount) == 1)
-            {
-                cmbServers.Visible = true;
-            }
-            else
-            {
-                cmbServers.Visible = false;
-                lblOutputStatus.Text = "";
-                splitAnalysis.Panel2Collapsed = true;
-            }
+
             if (btnAnalyzeLogs.Text == "Import Selection" || btnAnalyzeLogs.Text == "")
             {
                 btnAnalyzeLogs.Enabled = (AnalyzedCount < selCount);

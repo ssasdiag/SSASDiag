@@ -208,7 +208,9 @@ namespace SSASDiag
                 if (ValidateProfilerTraceDBConnectionStatus())
                 {
                     tcAnalysis.TabPages.Add(new TabPage("Performance Logs") { ImageIndex = 4, Name = "Performance Logs" });
-                    tcAnalysis.TabPages["Performance Logs"].Controls.Add(new ucASPerfMonAnalyzer(m_analysisPath, connSqlDb, StatusFloater));
+                    ucASPerfMonAnalyzer PerfMonAnalyzer = new ucASPerfMonAnalyzer(m_analysisPath, connSqlDb, StatusFloater);
+                    PerfMonAnalyzer.Dock = DockStyle.Fill;
+                    tcAnalysis.TabPages["Performance Logs"].Controls.Add(PerfMonAnalyzer);
                 }
             }
 

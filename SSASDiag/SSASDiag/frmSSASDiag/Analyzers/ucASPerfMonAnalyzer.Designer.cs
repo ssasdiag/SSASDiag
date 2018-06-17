@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitLogList = new System.Windows.Forms.SplitContainer();
             this.splitLogDetails = new System.Windows.Forms.SplitContainer();
             this.dgdLogList = new System.Windows.Forms.DataGridView();
@@ -40,6 +40,8 @@
             this.cmbServers = new System.Windows.Forms.ComboBox();
             this.pnAnalyses = new System.Windows.Forms.Panel();
             this.lblAnalysesStatus = new System.Windows.Forms.Label();
+            this.splitPerfMonCountersAndChart = new System.Windows.Forms.SplitContainer();
+            this.tvCounters = new System.Windows.Forms.TreeView();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -55,6 +57,9 @@
             this.splitAnalysis.SuspendLayout();
             this.pnServers.SuspendLayout();
             this.pnAnalyses.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitPerfMonCountersAndChart)).BeginInit();
+            this.splitPerfMonCountersAndChart.Panel1.SuspendLayout();
+            this.splitPerfMonCountersAndChart.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitLogList
@@ -93,7 +98,7 @@
             this.splitLogDetails.Panel2.Controls.Add(this.rtLogDetails);
             this.splitLogDetails.Panel2MinSize = 100;
             this.splitLogDetails.Size = new System.Drawing.Size(227, 411);
-            this.splitLogDetails.SplitterDistance = 278;
+            this.splitLogDetails.SplitterDistance = 253;
             this.splitLogDetails.TabIndex = 3;
             // 
             // dgdLogList
@@ -107,20 +112,20 @@
             this.dgdLogList.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdLogList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdLogList.ColumnHeadersVisible = false;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle3;
             this.dgdLogList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdLogList.Location = new System.Drawing.Point(0, 0);
             this.dgdLogList.Name = "dgdLogList";
             this.dgdLogList.ReadOnly = true;
             this.dgdLogList.RowHeadersVisible = false;
-            this.dgdLogList.Size = new System.Drawing.Size(227, 278);
+            this.dgdLogList.Size = new System.Drawing.Size(227, 253);
             this.dgdLogList.TabIndex = 3;
             this.dgdLogList.DataBindingComplete += new System.Windows.Forms.DataGridViewBindingCompleteEventHandler(this.DgdLogList_DataBindingComplete);
             // 
@@ -135,7 +140,7 @@
             this.rtLogDetails.Location = new System.Drawing.Point(0, 0);
             this.rtLogDetails.Name = "rtLogDetails";
             this.rtLogDetails.ReadOnly = true;
-            this.rtLogDetails.Size = new System.Drawing.Size(227, 129);
+            this.rtLogDetails.Size = new System.Drawing.Size(227, 154);
             this.rtLogDetails.TabIndex = 40;
             this.rtLogDetails.Text = "";
             // 
@@ -164,13 +169,14 @@
             // 
             // splitAnalysis.Panel1
             // 
+            this.splitAnalysis.Panel1.Controls.Add(this.splitPerfMonCountersAndChart);
             this.splitAnalysis.Panel1.Controls.Add(this.pnServers);
             // 
             // splitAnalysis.Panel2
             // 
             this.splitAnalysis.Panel2.Controls.Add(this.pnAnalyses);
             this.splitAnalysis.Size = new System.Drawing.Size(407, 432);
-            this.splitAnalysis.SplitterDistance = 301;
+            this.splitAnalysis.SplitterDistance = 286;
             this.splitAnalysis.TabIndex = 0;
             // 
             // pnServers
@@ -207,6 +213,7 @@
             this.cmbServers.Size = new System.Drawing.Size(149, 20);
             this.cmbServers.TabIndex = 1;
             this.cmbServers.Visible = false;
+            this.cmbServers.SelectedIndexChanged += new System.EventHandler(this.cmbServers_SelectedIndexChanged);
             // 
             // pnAnalyses
             // 
@@ -226,6 +233,28 @@
             this.lblAnalysesStatus.Size = new System.Drawing.Size(0, 12);
             this.lblAnalysesStatus.TabIndex = 4;
             this.lblAnalysesStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // splitPerfMonCountersAndChart
+            // 
+            this.splitPerfMonCountersAndChart.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitPerfMonCountersAndChart.Location = new System.Drawing.Point(0, 21);
+            this.splitPerfMonCountersAndChart.Name = "splitPerfMonCountersAndChart";
+            // 
+            // splitPerfMonCountersAndChart.Panel1
+            // 
+            this.splitPerfMonCountersAndChart.Panel1.Controls.Add(this.tvCounters);
+            this.splitPerfMonCountersAndChart.Size = new System.Drawing.Size(407, 265);
+            this.splitPerfMonCountersAndChart.SplitterDistance = 180;
+            this.splitPerfMonCountersAndChart.TabIndex = 47;
+            // 
+            // tvCounters
+            // 
+            this.tvCounters.CheckBoxes = true;
+            this.tvCounters.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tvCounters.Location = new System.Drawing.Point(0, 0);
+            this.tvCounters.Name = "tvCounters";
+            this.tvCounters.Size = new System.Drawing.Size(180, 265);
+            this.tvCounters.TabIndex = 0;
             // 
             // ucASPerfMonAnalyzer
             // 
@@ -252,6 +281,9 @@
             this.pnServers.PerformLayout();
             this.pnAnalyses.ResumeLayout(false);
             this.pnAnalyses.PerformLayout();
+            this.splitPerfMonCountersAndChart.Panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitPerfMonCountersAndChart)).EndInit();
+            this.splitPerfMonCountersAndChart.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -269,5 +301,7 @@
         private System.Windows.Forms.ComboBox cmbServers;
         private System.Windows.Forms.Panel pnAnalyses;
         private System.Windows.Forms.Label lblAnalysesStatus;
+        private System.Windows.Forms.SplitContainer splitPerfMonCountersAndChart;
+        private System.Windows.Forms.TreeView tvCounters;
     }
 }
