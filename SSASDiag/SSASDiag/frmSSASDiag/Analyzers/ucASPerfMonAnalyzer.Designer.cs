@@ -28,20 +28,28 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             this.splitLogList = new System.Windows.Forms.SplitContainer();
             this.splitLogDetails = new System.Windows.Forms.SplitContainer();
             this.dgdLogList = new System.Windows.Forms.DataGridView();
             this.rtLogDetails = new System.Windows.Forms.RichTextBox();
             this.btnAnalyzeLogs = new System.Windows.Forms.Button();
             this.splitAnalysis = new System.Windows.Forms.SplitContainer();
+            this.splitPerfMonCountersAndChart = new System.Windows.Forms.SplitContainer();
+            this.dgdGrouping = new System.Windows.Forms.DataGridView();
+            this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Instance = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            //this.tvCounters = new System.Windows.Forms.TreeView();
+            this.tvCounters = new TriStateTreeView();
+            this.chartPerfMon = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.pnServers = new System.Windows.Forms.Panel();
-            this.lblOutputStatus = new System.Windows.Forms.Label();
+            this.lblCounterGrouping = new System.Windows.Forms.Label();
             this.cmbServers = new System.Windows.Forms.ComboBox();
             this.pnAnalyses = new System.Windows.Forms.Panel();
             this.lblAnalysesStatus = new System.Windows.Forms.Label();
-            this.splitPerfMonCountersAndChart = new System.Windows.Forms.SplitContainer();
-            this.tvCounters = new System.Windows.Forms.TreeView();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -55,11 +63,14 @@
             this.splitAnalysis.Panel1.SuspendLayout();
             this.splitAnalysis.Panel2.SuspendLayout();
             this.splitAnalysis.SuspendLayout();
-            this.pnServers.SuspendLayout();
-            this.pnAnalyses.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitPerfMonCountersAndChart)).BeginInit();
             this.splitPerfMonCountersAndChart.Panel1.SuspendLayout();
+            this.splitPerfMonCountersAndChart.Panel2.SuspendLayout();
             this.splitPerfMonCountersAndChart.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgdGrouping)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.chartPerfMon)).BeginInit();
+            this.pnServers.SuspendLayout();
+            this.pnAnalyses.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitLogList
@@ -77,7 +88,7 @@
             // splitLogList.Panel2
             // 
             this.splitLogList.Panel2.Controls.Add(this.splitAnalysis);
-            this.splitLogList.Size = new System.Drawing.Size(638, 432);
+            this.splitLogList.Size = new System.Drawing.Size(1000, 545);
             this.splitLogList.SplitterDistance = 227;
             this.splitLogList.TabIndex = 1;
             // 
@@ -97,8 +108,8 @@
             // 
             this.splitLogDetails.Panel2.Controls.Add(this.rtLogDetails);
             this.splitLogDetails.Panel2MinSize = 100;
-            this.splitLogDetails.Size = new System.Drawing.Size(227, 411);
-            this.splitLogDetails.SplitterDistance = 253;
+            this.splitLogDetails.Size = new System.Drawing.Size(227, 524);
+            this.splitLogDetails.SplitterDistance = 366;
             this.splitLogDetails.TabIndex = 3;
             // 
             // dgdLogList
@@ -112,20 +123,20 @@
             this.dgdLogList.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdLogList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdLogList.ColumnHeadersVisible = false;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle1;
             this.dgdLogList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdLogList.Location = new System.Drawing.Point(0, 0);
             this.dgdLogList.Name = "dgdLogList";
             this.dgdLogList.ReadOnly = true;
             this.dgdLogList.RowHeadersVisible = false;
-            this.dgdLogList.Size = new System.Drawing.Size(227, 253);
+            this.dgdLogList.Size = new System.Drawing.Size(227, 366);
             this.dgdLogList.TabIndex = 3;
             this.dgdLogList.DataBindingComplete += new System.Windows.Forms.DataGridViewBindingCompleteEventHandler(this.DgdLogList_DataBindingComplete);
             // 
@@ -166,6 +177,7 @@
             this.splitAnalysis.Location = new System.Drawing.Point(0, 0);
             this.splitAnalysis.Name = "splitAnalysis";
             this.splitAnalysis.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
             // 
             // splitAnalysis.Panel1
             // 
@@ -175,30 +187,112 @@
             // splitAnalysis.Panel2
             // 
             this.splitAnalysis.Panel2.Controls.Add(this.pnAnalyses);
-            this.splitAnalysis.Size = new System.Drawing.Size(407, 432);
-            this.splitAnalysis.SplitterDistance = 286;
+            this.splitAnalysis.Size = new System.Drawing.Size(769, 545);
+            this.splitAnalysis.SplitterDistance = 360;
             this.splitAnalysis.TabIndex = 0;
+            // 
+            // splitPerfMonCountersAndChart
+            // 
+            this.splitPerfMonCountersAndChart.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitPerfMonCountersAndChart.Location = new System.Drawing.Point(0, 21);
+            this.splitPerfMonCountersAndChart.Name = "splitPerfMonCountersAndChart";
+            // 
+            // splitPerfMonCountersAndChart.Panel1
+            // 
+            this.splitPerfMonCountersAndChart.Panel1.Controls.Add(this.dgdGrouping);
+            this.splitPerfMonCountersAndChart.Panel1.Controls.Add(this.tvCounters);
+            // 
+            // splitPerfMonCountersAndChart.Panel2
+            // 
+            this.splitPerfMonCountersAndChart.Panel2.Controls.Add(this.chartPerfMon);
+            this.splitPerfMonCountersAndChart.Size = new System.Drawing.Size(769, 339);
+            this.splitPerfMonCountersAndChart.SplitterDistance = 340;
+            this.splitPerfMonCountersAndChart.TabIndex = 47;
+            // 
+            // dgdGrouping
+            // 
+            this.dgdGrouping.AllowUserToOrderColumns = true;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdGrouping.ColumnDisplayIndexChanged += DgdGrouping_ColumnDisplayIndexChanged;
+            this.dgdGrouping.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            this.dgdGrouping.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgdGrouping.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Counter,
+            this.Instance});
+            this.dgdGrouping.Dock = System.Windows.Forms.DockStyle.Top;
+            this.dgdGrouping.Location = new System.Drawing.Point(0, 0);
+            this.dgdGrouping.Name = "dgdGrouping";
+            this.dgdGrouping.RowHeadersVisible = false;
+            this.dgdGrouping.Size = new System.Drawing.Size(340, 21);
+            this.dgdGrouping.TabIndex = 1;
+            // 
+            // Counter
+            // 
+            this.Counter.HeaderText = "Counter";
+            this.Counter.Name = "Counter";
+            this.Counter.ReadOnly = true;
+            // 
+            // Instance
+            // 
+            this.Instance.HeaderText = "Instance";
+            this.Instance.Name = "Instance";
+            this.Instance.ReadOnly = true;
+            // 
+            // tvCounters
+            // 
+            this.tvCounters.CheckBoxes = true;
+            this.tvCounters.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.tvCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tvCounters.Location = new System.Drawing.Point(0, 101);
+            this.tvCounters.Name = "tvCounters";
+            this.tvCounters.Size = new System.Drawing.Size(340, 238);
+            this.tvCounters.TabIndex = 0;
+            // 
+            // chartPerfMon
+            // 
+            chartArea1.Name = "ChartArea1";
+            this.chartPerfMon.ChartAreas.Add(chartArea1);
+            this.chartPerfMon.Dock = System.Windows.Forms.DockStyle.Fill;
+            legend1.AutoFitMinFontSize = 6;
+            legend1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+            legend1.IsTextAutoFit = false;
+            legend1.Name = "Legend";
+            legend1.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
+            this.chartPerfMon.Legends.Add(legend1);
+            this.chartPerfMon.Location = new System.Drawing.Point(0, 0);
+            this.chartPerfMon.Name = "chartPerfMon";
+            this.chartPerfMon.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Bright;
+            this.chartPerfMon.Size = new System.Drawing.Size(425, 339);
+            this.chartPerfMon.TabIndex = 0;
+            this.chartPerfMon.Text = "Counter Data";
             // 
             // pnServers
             // 
-            this.pnServers.Controls.Add(this.lblOutputStatus);
+            this.pnServers.Controls.Add(this.lblCounterGrouping);
             this.pnServers.Controls.Add(this.cmbServers);
             this.pnServers.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnServers.Location = new System.Drawing.Point(0, 0);
             this.pnServers.Margin = new System.Windows.Forms.Padding(0);
             this.pnServers.Name = "pnServers";
-            this.pnServers.Size = new System.Drawing.Size(407, 21);
+            this.pnServers.Size = new System.Drawing.Size(769, 21);
             this.pnServers.TabIndex = 46;
             // 
-            // lblOutputStatus
+            // lblCounterGrouping
             // 
-            this.lblOutputStatus.AutoSize = true;
-            this.lblOutputStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblOutputStatus.Location = new System.Drawing.Point(4, 5);
-            this.lblOutputStatus.Name = "lblOutputStatus";
-            this.lblOutputStatus.Size = new System.Drawing.Size(0, 12);
-            this.lblOutputStatus.TabIndex = 2;
-            this.lblOutputStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lblCounterGrouping.AutoSize = true;
+            this.lblCounterGrouping.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblCounterGrouping.Location = new System.Drawing.Point(4, 5);
+            this.lblCounterGrouping.Name = "lblCounterGrouping";
+            this.lblCounterGrouping.Size = new System.Drawing.Size(146, 12);
+            this.lblCounterGrouping.TabIndex = 2;
+            this.lblCounterGrouping.Text = "Drag headers to reorder groupings:";
+            this.lblCounterGrouping.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // cmbServers
             // 
@@ -208,7 +302,7 @@
             this.cmbServers.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbServers.FormattingEnabled = true;
             this.cmbServers.ItemHeight = 12;
-            this.cmbServers.Location = new System.Drawing.Point(258, 0);
+            this.cmbServers.Location = new System.Drawing.Point(620, 0);
             this.cmbServers.Name = "cmbServers";
             this.cmbServers.Size = new System.Drawing.Size(149, 20);
             this.cmbServers.TabIndex = 1;
@@ -221,7 +315,7 @@
             this.pnAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnAnalyses.Location = new System.Drawing.Point(0, 0);
             this.pnAnalyses.Name = "pnAnalyses";
-            this.pnAnalyses.Size = new System.Drawing.Size(407, 18);
+            this.pnAnalyses.Size = new System.Drawing.Size(769, 18);
             this.pnAnalyses.TabIndex = 2;
             // 
             // lblAnalysesStatus
@@ -234,35 +328,14 @@
             this.lblAnalysesStatus.TabIndex = 4;
             this.lblAnalysesStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // splitPerfMonCountersAndChart
-            // 
-            this.splitPerfMonCountersAndChart.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitPerfMonCountersAndChart.Location = new System.Drawing.Point(0, 21);
-            this.splitPerfMonCountersAndChart.Name = "splitPerfMonCountersAndChart";
-            // 
-            // splitPerfMonCountersAndChart.Panel1
-            // 
-            this.splitPerfMonCountersAndChart.Panel1.Controls.Add(this.tvCounters);
-            this.splitPerfMonCountersAndChart.Size = new System.Drawing.Size(407, 265);
-            this.splitPerfMonCountersAndChart.SplitterDistance = 180;
-            this.splitPerfMonCountersAndChart.TabIndex = 47;
-            // 
-            // tvCounters
-            // 
-            this.tvCounters.CheckBoxes = true;
-            this.tvCounters.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tvCounters.Location = new System.Drawing.Point(0, 0);
-            this.tvCounters.Name = "tvCounters";
-            this.tvCounters.Size = new System.Drawing.Size(180, 265);
-            this.tvCounters.TabIndex = 0;
-            // 
             // ucASPerfMonAnalyzer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.splitLogList);
             this.Name = "ucASPerfMonAnalyzer";
-            this.Size = new System.Drawing.Size(638, 432);
+            this.Size = new System.Drawing.Size(1000, 545);
+            this.SizeChanged += new System.EventHandler(this.ucASPerfMonAnalyzer_SizeChanged);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.ucASPerfMonAnalyzer_Paint);
             this.splitLogList.Panel1.ResumeLayout(false);
             this.splitLogList.Panel2.ResumeLayout(false);
@@ -277,13 +350,16 @@
             this.splitAnalysis.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitAnalysis)).EndInit();
             this.splitAnalysis.ResumeLayout(false);
+            this.splitPerfMonCountersAndChart.Panel1.ResumeLayout(false);
+            this.splitPerfMonCountersAndChart.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitPerfMonCountersAndChart)).EndInit();
+            this.splitPerfMonCountersAndChart.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgdGrouping)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.chartPerfMon)).EndInit();
             this.pnServers.ResumeLayout(false);
             this.pnServers.PerformLayout();
             this.pnAnalyses.ResumeLayout(false);
             this.pnAnalyses.PerformLayout();
-            this.splitPerfMonCountersAndChart.Panel1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitPerfMonCountersAndChart)).EndInit();
-            this.splitPerfMonCountersAndChart.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -297,11 +373,16 @@
         public System.Windows.Forms.Button btnAnalyzeLogs;
         private System.Windows.Forms.SplitContainer splitAnalysis;
         private System.Windows.Forms.Panel pnServers;
-        private System.Windows.Forms.Label lblOutputStatus;
+        private System.Windows.Forms.Label lblCounterGrouping;
         private System.Windows.Forms.ComboBox cmbServers;
         private System.Windows.Forms.Panel pnAnalyses;
         private System.Windows.Forms.Label lblAnalysesStatus;
         private System.Windows.Forms.SplitContainer splitPerfMonCountersAndChart;
-        private System.Windows.Forms.TreeView tvCounters;
+        private TriStateTreeView tvCounters;
+        //private System.Windows.Forms.TreeView tvCounters;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chartPerfMon;
+        private System.Windows.Forms.DataGridView dgdGrouping;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Counter;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Instance;
     }
 }
