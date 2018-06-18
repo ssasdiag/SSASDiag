@@ -62,10 +62,10 @@ namespace SSASDiag
         private Color colorShadowLight = Color.FromKnownColor(KnownColor.ControlLightLight);
         private Color colorShadowDark = Color.FromKnownColor(KnownColor.ControlDarkDark);
         private int sizeShadow = 1;
-        private double Minimum = 0;
-        private double Maximum = 10;
-        private double rangeMin = 3;
-        private double rangeMax = 5;
+        private double Minimum = DateTime.MinValue.Ticks;
+        private double Maximum = DateTime.MaxValue.Ticks;
+        private double rangeMin = DateTime.MinValue.Ticks;
+        private double rangeMax = DateTime.MaxValue.Ticks;
         private ActiveMarkType ActiveMark = ActiveMarkType.none;
 
 
@@ -184,7 +184,7 @@ namespace SSASDiag
         {
             set
             {
-                rangeMax = ((DateTime)value).ToOADate() * Math.Pow(10, 6);
+                rangeMax = ((DateTime)value).Ticks;
                 if (rangeMax < Minimum)
                     rangeMax = Minimum;
                 else if (rangeMax > Maximum)
@@ -194,7 +194,7 @@ namespace SSASDiag
                 Range2Pos();
                 Invalidate(true);
             }
-            get { return DateTime.FromOADate((float)rangeMax / Math.Pow(10, 6)); }
+            get { return new DateTime((long)rangeMax); }
         }
 
 
@@ -205,7 +205,7 @@ namespace SSASDiag
         {
             set
             {
-                rangeMin = ((DateTime)value).ToOADate() * Math.Pow(10, 6);
+                rangeMin = ((DateTime)value).Ticks;
                 if (rangeMin < Minimum)
                     rangeMin = Minimum;
                 else if (rangeMin > Maximum)
@@ -217,7 +217,7 @@ namespace SSASDiag
             }
             get
             {
-                return DateTime.FromOADate((float)rangeMin / Math.Pow(10, 6));
+                return new DateTime((long)rangeMin);
             }
         }
 
@@ -229,13 +229,13 @@ namespace SSASDiag
         {
             set
             {
-                Maximum = ((DateTime)value).ToOADate() * Math.Pow(10, 6);
+                Maximum = ((DateTime)value).Ticks;
                 if (rangeMax > Maximum)
                     rangeMax = Maximum;
                 Range2Pos();
                 Invalidate(true);
             }
-            get { return DateTime.FromOADate((float)Maximum / Math.Pow(10, 6)); }
+            get { return new DateTime((long)Maximum); }
         }
 
 
@@ -246,13 +246,13 @@ namespace SSASDiag
         {
             set
             {
-                Minimum = ((DateTime)value).ToOADate() * Math.Pow(10, 6);
+                Minimum = ((DateTime)value).Ticks;
                 if (rangeMin < Minimum)
                     rangeMin = Minimum;
                 Range2Pos();
                 Invalidate(true);
             }
-            get { return DateTime.FromOADate((float)Minimum / Math.Pow(10, 6)); }
+            get { return new DateTime((long)Minimum); }
         }
 
 
@@ -305,8 +305,8 @@ namespace SSASDiag
         /// <param name="right">right side of range limit</param>
         public void SetRangeLimit(DateTime left, DateTime right)
         {
-            Maximum = right.ToOADate() * Math.Pow(10, 6);
-            Minimum = left.ToOADate() * Math.Pow(10, 6);
+            Maximum = right.Ticks;
+            Minimum = left.Ticks;
             
             Range2Pos();
             Invalidate(true);
@@ -446,22 +446,22 @@ namespace SSASDiag
 
                 if (MoveLMark)
                 {
-                    Font fontMark = new Font("Microsoft Sans Serif", 7.25F);
+                    Font fontMark = new Font("Microsoft Sans Serif", 6.5F);
                     SolidBrush brushMark = new SolidBrush(colorShadowDark);
                     StringFormat strformat = new StringFormat();
                     strformat.Alignment = StringAlignment.Near;
                     strformat.LineAlignment = StringAlignment.Far;
-                    e.Graphics.DrawString(DateTime.FromOADate((float)rangeMin / Math.Pow(10, 6)).ToString("yyyy-MM-dd\nhh:mm:ss tt"), fontMark, brushMark, PosL, markyoff + 5, strformat);
+                    e.Graphics.DrawString(new DateTime((long)rangeMin).ToString("yyyy-MM-dd\nHH:mm:ss"), fontMark, brushMark, PosL, markyoff + 5, strformat);
                 }
 
                 if (MoveRMark)
                 {
-                    Font fontMark = new Font("Microsoft Sans Serif", 7.25F);
+                    Font fontMark = new Font("Microsoft Sans Serif", 6.5F);
                     SolidBrush brushMark = new SolidBrush(colorShadowDark);
                     StringFormat strformat = new StringFormat();
                     strformat.Alignment = StringAlignment.Far;
                     strformat.LineAlignment = StringAlignment.Far;
-                    e.Graphics.DrawString(DateTime.FromOADate((float)rangeMax / Math.Pow(10, 6)).ToString("yyyy-MM-dd\nhh:mm:ss tt"), fontMark, brushMark, PosR, markyoff + 5, strformat);
+                    e.Graphics.DrawString(new DateTime((long)rangeMax).ToString("yyyy-MM-dd\nHH:mm:ss"), fontMark, brushMark, PosR, markyoff + 5, strformat);
                 }
 
             }

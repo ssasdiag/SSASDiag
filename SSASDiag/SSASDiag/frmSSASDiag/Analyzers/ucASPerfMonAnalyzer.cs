@@ -48,11 +48,14 @@ namespace SSASDiag
         }
 
         TimeRangeBar trb = new TimeRangeBar();
+        private TriStateTreeView tvCounters;
 
         public ucASPerfMonAnalyzer(string logPath, SqlConnection conndb, frmStatusFloater statusFloater)
         {
             InitializeComponent();
 
+
+            #region non-designer controls
             trb.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             trb.BackColor = System.Drawing.SystemColors.Control;
             trb.DivisionNum = 15;
@@ -64,29 +67,40 @@ namespace SSASDiag
             trb.InnerColor = System.Drawing.Color.LightCyan;
             trb.Orientation = TimeRangeBar.RangeBarOrientation.horizontal;
             trb.ScaleOrientation = TimeRangeBar.TopBottomOrientation.bottom;
-            trb.Dock = DockStyle.Fill;
-            trb.SetRangeLimit(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1));
-            trb.SelectRange(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1));
-            this.pnlSeriesDetails.SetColumnSpan(trb, 10);
+            trb.Dock = DockStyle.Top;
             this.pnlSeriesDetails.Controls.Add(trb);
-            this.pnlSeriesDetails.Controls.SetChildIndex(trb, 0);
+
+            // 
+            // tvCounters
+            // 
+            tvCounters = new TriStateTreeView();
+            tvCounters.CheckBoxes = true;
+            tvCounters.Dock = System.Windows.Forms.DockStyle.Bottom;
+            tvCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            tvCounters.Location = new System.Drawing.Point(0, 130);
+            tvCounters.Name = "tvCounters";
+            tvCounters.Size = new System.Drawing.Size(200, 238);
+            tvCounters.TabIndex = 0;
+            tvCounters.AfterCheck += TvCounters_AfterCheck;
+            tvCounters.AfterCheck += TvCounters_AfterCheck;
+            tvCounters.AfterSelect += TvCounters_AfterSelect;
+            splitPerfMonCountersAndChart.Panel1.Controls.Add(tvCounters);
+
+            #endregion non-designer controls
 
             StatusFloater = statusFloater;
             LogPath = logPath;
             connDB = new SqlConnection(conndb.ConnectionString);
             connDB.Open();
             HandleDestroyed += UcASPerfMonAnalyzer_HandleDestroyed;
-
-
-            tvCounters.AfterCheck += TvCounters_AfterCheck;
+            
             ChartArea c = chartPerfMon.ChartAreas[0];
             c.IsSameFontSizeForAllAxes = true;
             c.AxisX.LabelAutoFitMaxFontSize = c.AxisY.LabelAutoFitMaxFontSize = c.AxisX2.LabelAutoFitMaxFontSize = c.AxisY2.LabelAutoFitMaxFontSize = 7;
             this.chartPerfMon.MouseClick += ChartPerfMon_MouseClick;
             this.chartPerfMon.MouseMove += ChartPerfMon_MouseMove;
             this.dgdGrouping.Columns[0].SortMode = this.dgdGrouping.Columns[1].SortMode = DataGridViewColumnSortMode.NotSortable;
-            tvCounters.AfterCheck += TvCounters_AfterCheck;
-            tvCounters.AfterSelect += TvCounters_AfterSelect;
+            
             splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
 
             if (Directory.Exists(logPath))
@@ -664,11 +678,22 @@ namespace SSASDiag
                                             convert(int, case when ParentName is not null and ParentName <> InstanceName then InstanceName end) InstanceIndex
                                             from counterdetails where MachineName = '" + cmbServers.SelectedItem + "'",
                                             connDB).ExecuteReader());
-            txtDur.Text = new SqlCommand(@" select format(convert(int, format(a.intervaloffset, 'dd')) - 1, '00') + ':' + format(a.intervaloffset, 'HH:mm:ss.fff')
+            dr = new SqlCommand(@" select   format(convert(int, format(a.intervaloffset, 'dd')) - 1, '00') + ':' + format(a.intervaloffset, 'HH:mm:ss.fff') Duration,
+                                            StartTime,
+                                            StopTime
                                             from
                                             (
-                                            select convert(datetime, LogStopTime) - convert(datetime, LogStartTime) intervaloffset
-                                            from DisplayToID where GUID = (select top 1 GUID from CounterData where CounterID = (select top 1 CounterID from CounterDetails where machinename = '" + cmbServers.SelectedItem + "'))) a", connDB).ExecuteScalar() as string;
+                                            select convert(datetime, LogStopTime) - convert(datetime, LogStartTime) IntervalOffset, 
+                                            convert(datetime, LogStartTime) StartTime, 
+                                            convert(datetime, LogStopTime) StopTime
+                                            from DisplayToID where GUID = (select top 1 GUID from CounterData where CounterID = (select top 1 CounterID from CounterDetails where machinename = '" + cmbServers.SelectedItem + "'))) a", connDB).ExecuteReader();
+            dr.Read();
+            txtDur.Text = dr["Duration"] as string;
+
+            trb.SetRangeLimit((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
+            trb.SelectRange((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
+            dr.Close();
+
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
 
         }

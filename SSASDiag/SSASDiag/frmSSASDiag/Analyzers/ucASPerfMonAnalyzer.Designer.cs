@@ -28,10 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             this.splitLogList = new System.Windows.Forms.SplitContainer();
             this.splitLogDetails = new System.Windows.Forms.SplitContainer();
             this.dgdLogList = new System.Windows.Forms.DataGridView();
@@ -40,17 +40,14 @@
             this.splitAnalysis = new System.Windows.Forms.SplitContainer();
             this.splitPerfMonCountersAndChart = new System.Windows.Forms.SplitContainer();
             this.dgdGrouping = new System.Windows.Forms.DataGridView();
-            this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Instance = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.tvCounters = new System.Windows.Forms.TreeView();
-            this.pnlSeriesDetails = new System.Windows.Forms.TableLayoutPanel();
+            this.pnlSeriesDetails = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.txtDur = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.txtAvg = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.txtMin = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.txtMax = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.chartPerfMon = new System.Windows.Forms.DataVisualization.Charting.Chart();
@@ -59,6 +56,8 @@
             this.cmbServers = new System.Windows.Forms.ComboBox();
             this.pnAnalyses = new System.Windows.Forms.Panel();
             this.lblAnalysesStatus = new System.Windows.Forms.Label();
+            this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Instance = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -133,14 +132,14 @@
             this.dgdLogList.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdLogList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdLogList.ColumnHeadersVisible = false;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle1;
             this.dgdLogList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdLogList.Location = new System.Drawing.Point(0, 0);
             this.dgdLogList.Name = "dgdLogList";
@@ -210,7 +209,6 @@
             // splitPerfMonCountersAndChart.Panel1
             // 
             this.splitPerfMonCountersAndChart.Panel1.Controls.Add(this.dgdGrouping);
-            this.splitPerfMonCountersAndChart.Panel1.Controls.Add(this.tvCounters);
             // 
             // splitPerfMonCountersAndChart.Panel2
             // 
@@ -224,14 +222,14 @@
             // 
             this.dgdGrouping.AllowUserToOrderColumns = true;
             this.dgdGrouping.AllowUserToResizeColumns = false;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdGrouping.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdGrouping.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dgdGrouping.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdGrouping.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Counter,
@@ -243,63 +241,38 @@
             this.dgdGrouping.Size = new System.Drawing.Size(200, 21);
             this.dgdGrouping.TabIndex = 1;
             // 
-            // Counter
-            // 
-            this.Counter.HeaderText = "Counter";
-            this.Counter.Name = "Counter";
-            this.Counter.ReadOnly = true;
-            // 
-            // Instance
-            // 
-            this.Instance.HeaderText = "Instance";
-            this.Instance.Name = "Instance";
-            this.Instance.ReadOnly = true;
-            // 
-            // tvCounters
-            // 
-            this.tvCounters.CheckBoxes = true;
-            this.tvCounters.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.tvCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tvCounters.Location = new System.Drawing.Point(0, 130);
-            this.tvCounters.Name = "tvCounters";
-            this.tvCounters.Size = new System.Drawing.Size(200, 238);
-            this.tvCounters.TabIndex = 0;
-            // 
             // pnlSeriesDetails
             // 
-            this.pnlSeriesDetails.ColumnCount = 10;
-            this.pnlSeriesDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 50F));
-            this.pnlSeriesDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 90F));
-            this.pnlSeriesDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 30F));
-            this.pnlSeriesDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 110F));
-            this.pnlSeriesDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 30F));
-            this.pnlSeriesDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 110F));
-            this.pnlSeriesDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 30F));
-            this.pnlSeriesDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 110F));
-            this.pnlSeriesDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.pnlSeriesDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.pnlSeriesDetails.Controls.Add(this.label1);
             this.pnlSeriesDetails.Controls.Add(this.label6);
             this.pnlSeriesDetails.Controls.Add(this.txtDur);
             this.pnlSeriesDetails.Controls.Add(this.label3);
             this.pnlSeriesDetails.Controls.Add(this.txtAvg);
             this.pnlSeriesDetails.Controls.Add(this.label2);
             this.pnlSeriesDetails.Controls.Add(this.txtMin);
-            this.pnlSeriesDetails.Controls.Add(this.label1);
             this.pnlSeriesDetails.Controls.Add(this.txtMax);
             this.pnlSeriesDetails.Controls.Add(this.label4);
             this.pnlSeriesDetails.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlSeriesDetails.Location = new System.Drawing.Point(0, 248);
+            this.pnlSeriesDetails.Location = new System.Drawing.Point(0, 308);
             this.pnlSeriesDetails.Name = "pnlSeriesDetails";
-            this.pnlSeriesDetails.RowCount = 2;
-            this.pnlSeriesDetails.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
-            this.pnlSeriesDetails.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.pnlSeriesDetails.Size = new System.Drawing.Size(603, 80);
+            this.pnlSeriesDetails.Size = new System.Drawing.Size(603, 60);
             this.pnlSeriesDetails.TabIndex = 2;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(387, 44);
+            this.label1.Margin = new System.Windows.Forms.Padding(0, 2, 0, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(27, 13);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Max";
             // 
             // label6
             // 
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(0, 0);
+            this.label6.Location = new System.Drawing.Point(1, 42);
             this.label6.Margin = new System.Windows.Forms.Padding(0);
             this.label6.Name = "label6";
             this.label6.Padding = new System.Windows.Forms.Padding(0, 2, 0, 0);
@@ -312,7 +285,7 @@
             this.txtDur.BackColor = System.Drawing.SystemColors.ControlLight;
             this.txtDur.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtDur.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtDur.Location = new System.Drawing.Point(50, 0);
+            this.txtDur.Location = new System.Drawing.Point(51, 42);
             this.txtDur.Margin = new System.Windows.Forms.Padding(0);
             this.txtDur.Name = "txtDur";
             this.txtDur.ReadOnly = true;
@@ -324,7 +297,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(140, 2);
+            this.label3.Location = new System.Drawing.Point(133, 44);
             this.label3.Margin = new System.Windows.Forms.Padding(0, 2, 0, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(26, 13);
@@ -336,7 +309,7 @@
             this.txtAvg.BackColor = System.Drawing.SystemColors.ControlLight;
             this.txtAvg.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtAvg.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtAvg.Location = new System.Drawing.Point(170, 0);
+            this.txtAvg.Location = new System.Drawing.Point(159, 42);
             this.txtAvg.Margin = new System.Windows.Forms.Padding(0);
             this.txtAvg.Name = "txtAvg";
             this.txtAvg.ReadOnly = true;
@@ -348,7 +321,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(280, 2);
+            this.label2.Location = new System.Drawing.Point(261, 44);
             this.label2.Margin = new System.Windows.Forms.Padding(0, 2, 0, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(24, 13);
@@ -360,7 +333,7 @@
             this.txtMin.BackColor = System.Drawing.SystemColors.ControlLight;
             this.txtMin.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtMin.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtMin.Location = new System.Drawing.Point(310, 0);
+            this.txtMin.Location = new System.Drawing.Point(285, 42);
             this.txtMin.Margin = new System.Windows.Forms.Padding(0);
             this.txtMin.Name = "txtMin";
             this.txtMin.ReadOnly = true;
@@ -368,23 +341,12 @@
             this.txtMin.TabIndex = 2;
             this.txtMin.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(420, 2);
-            this.label1.Margin = new System.Windows.Forms.Padding(0, 2, 0, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(27, 13);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "Max";
-            // 
             // txtMax
             // 
             this.txtMax.BackColor = System.Drawing.SystemColors.ControlLight;
             this.txtMax.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtMax.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtMax.Location = new System.Drawing.Point(450, 0);
+            this.txtMax.Location = new System.Drawing.Point(414, 42);
             this.txtMax.Margin = new System.Windows.Forms.Padding(0);
             this.txtMax.Name = "txtMax";
             this.txtMax.ReadOnly = true;
@@ -394,26 +356,26 @@
             // 
             // label4
             // 
-            this.label4.Location = new System.Drawing.Point(563, 0);
+            this.label4.Location = new System.Drawing.Point(563, 60);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(1, 20);
             this.label4.TabIndex = 0;
             // 
             // chartPerfMon
             // 
-            chartArea2.AxisX.LabelStyle.Angle = 90;
-            chartArea2.AxisX.LabelStyle.Format = "yyyy-MM-dd hh:mm:ss tt";
-            chartArea2.AxisX.Title = "Date/Time UTC";
-            chartArea2.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            chartArea2.Name = "ChartArea1";
-            this.chartPerfMon.ChartAreas.Add(chartArea2);
+            chartArea1.AxisX.LabelStyle.Angle = 90;
+            chartArea1.AxisX.LabelStyle.Format = "yyyy-MM-dd hh:mm:ss tt";
+            chartArea1.AxisX.Title = "Date/Time UTC";
+            chartArea1.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            chartArea1.Name = "ChartArea1";
+            this.chartPerfMon.ChartAreas.Add(chartArea1);
             this.chartPerfMon.Dock = System.Windows.Forms.DockStyle.Top;
-            legend2.AutoFitMinFontSize = 6;
-            legend2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
-            legend2.IsTextAutoFit = false;
-            legend2.Name = "Legend";
-            legend2.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
-            this.chartPerfMon.Legends.Add(legend2);
+            legend1.AutoFitMinFontSize = 6;
+            legend1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+            legend1.IsTextAutoFit = false;
+            legend1.Name = "Legend";
+            legend1.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
+            this.chartPerfMon.Legends.Add(legend1);
             this.chartPerfMon.Location = new System.Drawing.Point(0, 0);
             this.chartPerfMon.Margin = new System.Windows.Forms.Padding(0);
             this.chartPerfMon.Name = "chartPerfMon";
@@ -478,6 +440,20 @@
             this.lblAnalysesStatus.TabIndex = 4;
             this.lblAnalysesStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // Counter
+            // 
+            this.Counter.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Counter.HeaderText = "Counter";
+            this.Counter.Name = "Counter";
+            this.Counter.ReadOnly = true;
+            // 
+            // Instance
+            // 
+            this.Instance.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Instance.HeaderText = "Instance";
+            this.Instance.Name = "Instance";
+            this.Instance.ReadOnly = true;
+            // 
             // ucASPerfMonAnalyzer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -530,13 +506,9 @@
         private System.Windows.Forms.Panel pnAnalyses;
         private System.Windows.Forms.Label lblAnalysesStatus;
         private System.Windows.Forms.SplitContainer splitPerfMonCountersAndChart;
-        //private TriStateTreeView tvCounters;
-        private System.Windows.Forms.TreeView tvCounters;
         private System.Windows.Forms.DataVisualization.Charting.Chart chartPerfMon;
         private System.Windows.Forms.DataGridView dgdGrouping;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Counter;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Instance;
-        private System.Windows.Forms.TableLayoutPanel pnlSeriesDetails;
+        private System.Windows.Forms.Panel pnlSeriesDetails;
         private System.Windows.Forms.TextBox txtMax;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtMin;
@@ -547,5 +519,7 @@
 
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox txtDur;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Counter;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Instance;
     }
 }
