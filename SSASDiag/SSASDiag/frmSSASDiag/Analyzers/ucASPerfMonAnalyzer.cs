@@ -450,7 +450,7 @@ namespace SSASDiag
                             if (CounterName != rows[i]["CounterName"] as string)
                             {
                                 CounterName = rows[i]["CounterName"] as string;
-                                System.Windows.Forms.TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName);
+                                System.Windows.Forms.TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName);
                                 n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                 InstancePath = "";
                                 while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
@@ -458,7 +458,7 @@ namespace SSASDiag
                                     if (rows[i]["InstancePath"] as string != null && InstancePath != rows[i]["InstancePath"] as string)
                                     {
                                         InstancePath = rows[i]["InstancePath"] as string;
-                                        System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstancePath);
+                                        System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstancePath, InstancePath);
                                         nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                         InstanceIndex = null;
                                         while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
@@ -466,7 +466,7 @@ namespace SSASDiag
                                             if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
                                             {
                                                 InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                                nn.Nodes.Add(InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                                nn.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                             }
                                             i++;
                                         }
@@ -494,18 +494,18 @@ namespace SSASDiag
                                 System.Windows.Forms.TreeNode n = null;
                                 if (InstancePath != "")
                                 {
-                                    n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath);
+                                    n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath, InstancePath);
                                     n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                     while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
                                     {
                                         if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
                                         {
                                             InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                            System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstanceIndex.ToString());
+                                            System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString());
                                             while (i < rows.Count() && rows[i]["InstanceIndex"] as int? == InstanceIndex)
                                             {
                                                 CounterName = rows[i]["CounterName"] as string;
-                                                nn.Nodes.Add(CounterName);
+                                                nn.Nodes.Add(CounterName, CounterName);
                                                 nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                                 i++;
                                             }
@@ -515,7 +515,7 @@ namespace SSASDiag
                                         else
                                         {
                                             CounterName = rows[i]["CounterName"] as string;
-                                            n.Nodes.Add(CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                            n.Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                         }
                                         i++;
                                     }
@@ -523,7 +523,7 @@ namespace SSASDiag
                                 else
                                 {
                                     CounterName = rows[i]["CounterName"] as string;
-                                    tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                    tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                     i++;
                                 }
                                 if (i == rows.Count()) break;
@@ -579,7 +579,14 @@ namespace SSASDiag
             {
                 foreach (Series s in chartPerfMon.Series)
                     s.BorderWidth = 1;
-                chartPerfMon.Series[CurrentSeriesUnderMouse].BorderWidth = 4;
+                Series sr = chartPerfMon.Series[CurrentSeriesUnderMouse];
+                sr.BorderWidth = 4;
+                string[] NodeList = sr.LegendText.Split('\\');
+                System.Windows.Forms.TreeNode n = tvCounters.Nodes[NodeList[0]];
+                for (int i = 1; i < NodeList.Length; i++)
+                    n = n.Nodes[NodeList[i]];
+                tvCounters.SelectedNode = n;
+                    
             }
         }
 
