@@ -61,7 +61,11 @@ namespace SSASDiag
             c.IsSameFontSizeForAllAxes = true;
             c.AxisX.LabelAutoFitMaxFontSize = c.AxisY.LabelAutoFitMaxFontSize = c.AxisX2.LabelAutoFitMaxFontSize = c.AxisY2.LabelAutoFitMaxFontSize = 7;
             this.chartPerfMon.MouseClick += ChartPerfMon_MouseClick;
+            this.chartPerfMon.MouseMove += ChartPerfMon_MouseMove;
             this.dgdGrouping.Columns[0].SortMode = this.dgdGrouping.Columns[1].SortMode = DataGridViewColumnSortMode.NotSortable;
+            tvCounters.AfterCheck += TvCounters_AfterCheck;
+            tvCounters.AfterSelect += TvCounters_AfterSelect;
+            splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
 
             if (Directory.Exists(logPath))
             {
@@ -562,7 +566,7 @@ namespace SSASDiag
                     {
                         var pointXPixel = result.ChartArea.AxisX.ValueToPixelPosition(prop.XValue);
                         var pointYPixel = result.ChartArea.AxisY.ValueToPixelPosition(prop.YValues[0]);
-                        tooltip.Show(prop.LegendText + ": " + DateTime.FromOADate(prop.XValue) + ", " + prop.YValues[0], this.chartPerfMon, pos.X, pos.Y - 20, 1750);
+                        tooltip.Show(prop.LegendText + "\n" + DateTime.FromOADate(prop.XValue) + "\nValue: " + prop.YValues[0], this.chartPerfMon, pos.X + 10, pos.Y);
                         CurrentSeriesUnderMouse = prop.LegendText;
                     }
                 }
@@ -604,7 +608,14 @@ namespace SSASDiag
             {
                 foreach (Series s in chartPerfMon.Series)
                     s.BorderWidth = 1;
+                txtAvg.Text = txtMin.Text = txtMax.Text = "";
                 chartPerfMon.Series[e.Node.FullPath].BorderWidth = 4;
+                SqlDataReader dr = new SqlCommand("select avg(countervalue), max(countervalue), min(countervalue) from CounterData where CounterID = " + (e.Node.Tag as string).Split(',')[0], connDB).ExecuteReader();
+                dr.Read();
+                txtAvg.Text = (dr[0] as double?).Value.ToString();
+                txtMin.Text = (dr[2] as double?).Value.ToString();
+                txtMax.Text = (dr[1] as double?).Value.ToString();
+                dr.Close();
             }
         }
 
@@ -631,7 +642,11 @@ namespace SSASDiag
                                             convert(int, case when ParentName is not null and ParentName <> InstanceName then InstanceName end) InstanceIndex
                                             from counterdetails where MachineName = '" + cmbServers.SelectedItem + "'",
                                             connDB).ExecuteReader());
-
+            txtDur.Text = new SqlCommand(@" select format(convert(int, format(a.intervaloffset, 'dd')) - 1, '00') + ':' + format(a.intervaloffset, 'HH:mm:ss.fff')
+                                            from
+                                            (
+                                            select convert(datetime, LogStopTime) - convert(datetime, LogStartTime) intervaloffset
+                                            from DisplayToID where GUID = (select top 1 GUID from CounterData where CounterID = (select top 1 CounterID from CounterDetails where machinename = '" + cmbServers.SelectedItem + "'))) a", connDB).ExecuteScalar() as string;
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
 
         }
@@ -669,6 +684,7 @@ namespace SSASDiag
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)
         {
             tvCounters.Height = splitPerfMonCountersAndChart.Height - dgdGrouping.Height;
+            chartPerfMon.Height = splitPerfMonCountersAndChart.Height - pnlSeriesDetails.Height;
         }
 
         private void SplitAnalysis_SplitterMoved(object sender, System.Windows.Forms.SplitterEventArgs e)
