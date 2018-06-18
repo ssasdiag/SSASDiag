@@ -47,6 +47,8 @@ namespace SSASDiag
             public bool Analyzed { get; set; }
         }
 
+        TimeRangeBar trb = new TimeRangeBar();
+
         public ucASPerfMonAnalyzer(string logPath, SqlConnection conndb, frmStatusFloater statusFloater)
         {
             InitializeComponent();
@@ -55,6 +57,22 @@ namespace SSASDiag
             connDB = new SqlConnection(conndb.ConnectionString);
             connDB.Open();
             HandleDestroyed += UcASPerfMonAnalyzer_HandleDestroyed;
+
+            trb.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
+            trb.BackColor = System.Drawing.SystemColors.Control;
+            trb.DivisionNum = 10;
+            trb.HeightOfBar = 8;
+            trb.HeightOfMark = 24;
+            trb.HeightOfTick = 6;
+            trb.InnerColor = System.Drawing.Color.LightGreen;
+            trb.Orientation = TimeRangeBar.RangeBarOrientation.horizontal;
+            trb.ScaleOrientation = TimeRangeBar.TopBottomOrientation.bottom;
+            trb.Dock = DockStyle.Fill;
+            trb.Width = 500;
+            trb.Margin = new Padding(50, 0, 50, 0);
+            trb.SetRangeLimit(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1));
+            trb.SelectRange(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1));
+            splitAnalysis.Panel2.Controls.Add(trb);
 
             tvCounters.AfterCheck += TvCounters_AfterCheck;
             ChartArea c = chartPerfMon.ChartAreas[0];
