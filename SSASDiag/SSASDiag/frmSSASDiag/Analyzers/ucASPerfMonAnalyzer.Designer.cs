@@ -223,6 +223,7 @@
             this.dgdGrouping.ColumnDisplayIndexChanged += DgdGrouping_ColumnDisplayIndexChanged;
             this.dgdGrouping.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dgdGrouping.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgdGrouping.AllowUserToResizeColumns = false;
             this.dgdGrouping.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Counter,
             this.Instance});

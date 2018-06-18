@@ -61,7 +61,7 @@ namespace SSASDiag
             c.IsSameFontSizeForAllAxes = true;
             c.AxisX.LabelAutoFitMaxFontSize = c.AxisY.LabelAutoFitMaxFontSize = c.AxisX2.LabelAutoFitMaxFontSize = c.AxisY2.LabelAutoFitMaxFontSize = 7;
             this.chartPerfMon.MouseClick += ChartPerfMon_MouseClick;
-            
+            this.dgdGrouping.Columns[0].SortMode = this.dgdGrouping.Columns[1].SortMode = DataGridViewColumnSortMode.NotSortable;
 
             if (Directory.Exists(logPath))
             {
