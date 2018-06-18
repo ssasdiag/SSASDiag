@@ -255,6 +255,7 @@
             this.tvCounters.Name = "tvCounters";
             this.tvCounters.Size = new System.Drawing.Size(340, 238);
             this.tvCounters.TabIndex = 0;
+            this.tvCounters.AfterSelect += TvCounters_AfterSelect;
             // 
             // chartPerfMon
             // 

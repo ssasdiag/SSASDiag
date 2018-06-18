@@ -589,6 +589,15 @@ namespace SSASDiag
                     
             }
         }
+        private void TvCounters_AfterSelect(object sender, System.Windows.Forms.TreeViewEventArgs e)
+        {
+            if (e.Node.Nodes.Count == 0 && e.Node.Checked)
+            {
+                foreach (Series s in chartPerfMon.Series)
+                    s.BorderWidth = 1;
+                chartPerfMon.Series[e.Node.FullPath].BorderWidth = 4;
+            }
+        }
 
         private void cmbServers_SelectedIndexChanged(object sender, EventArgs e)
         {
