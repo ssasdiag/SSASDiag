@@ -552,8 +552,7 @@ namespace SSASDiag
                 return;
             tooltip.RemoveAll();
             prevPosition = pos;
-            var results = chartPerfMon.HitTest(pos.X, pos.Y, false,
-                                            ChartElementType.DataPoint);
+            var results = chartPerfMon.HitTest(pos.X, pos.Y, false, ChartElementType.DataPoint);
             foreach (var result in results)
             {
                 if (result.ChartElementType == ChartElementType.DataPoint)
@@ -575,6 +574,16 @@ namespace SSASDiag
         string CurrentSeriesUnderMouse = "";
         private void ChartPerfMon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            if (CurrentSeriesUnderMouse == "")
+            {
+                var results = chartPerfMon.HitTest(e.Location.X, e.Location.Y, false, ChartElementType.LegendItem);
+                foreach (var result in results)
+                {
+                    var LegendItem = result.Object as LegendItem;
+                    CurrentSeriesUnderMouse = LegendItem.SeriesName;
+                    break;
+                }
+            }
             if (CurrentSeriesUnderMouse != "")
             {
                 foreach (Series s in chartPerfMon.Series)
@@ -586,8 +595,8 @@ namespace SSASDiag
                 for (int i = 1; i < NodeList.Length; i++)
                     n = n.Nodes[NodeList[i]];
                 tvCounters.SelectedNode = n;
-                    
             }
+            CurrentSeriesUnderMouse = "";
         }
         private void TvCounters_AfterSelect(object sender, System.Windows.Forms.TreeViewEventArgs e)
         {
@@ -639,7 +648,6 @@ namespace SSASDiag
                         s = new Series(e.Node.FullPath);
                         s.ChartType = SeriesChartType.Line;
                         s.Name = e.Node.FullPath;
-                        s.EmptyPointStyle.CustomProperties = "EmptyPointValue = Zero";
                         s.LegendText = e.Node.FullPath;
                         SqlDataReader dr = new SqlCommand("select * from CounterData where CounterID = " + (e.Node.Tag as string).Split(',')[0] + " order by CounterDateTime asc", connDB).ExecuteReader();
                         while (dr.Read())
