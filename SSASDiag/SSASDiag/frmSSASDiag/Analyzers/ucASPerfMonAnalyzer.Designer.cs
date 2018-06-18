@@ -260,6 +260,10 @@
             // chartPerfMon
             // 
             chartArea1.Name = "ChartArea1";
+            chartArea1.AxisX.TitleFont = new System.Drawing.Font(chartArea1.AxisX.TitleFont.Name, 6.5f);
+            chartArea1.AxisX.Title = "Date/Time UTC";
+            chartArea1.AxisX.LabelStyle.Format = "yyyy-MM-dd hh:mm:ss tt";
+            chartArea1.AxisX.LabelStyle.Angle = 90;
             this.chartPerfMon.ChartAreas.Add(chartArea1);
             this.chartPerfMon.Dock = System.Windows.Forms.DockStyle.Fill;
             legend1.AutoFitMinFontSize = 6;

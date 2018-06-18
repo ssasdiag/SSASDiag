@@ -562,7 +562,7 @@ namespace SSASDiag
                     {
                         var pointXPixel = result.ChartArea.AxisX.ValueToPixelPosition(prop.XValue);
                         var pointYPixel = result.ChartArea.AxisY.ValueToPixelPosition(prop.YValues[0]);
-                        tooltip.Show(prop.LegendText + ": " + prop.AxisLabel.Trim('\0') + ", " + prop.YValues[0], this.chartPerfMon, pos.X, pos.Y - 20, 1750);
+                        tooltip.Show(prop.LegendText + ": " + DateTime.FromOADate(prop.XValue) + ", " + prop.YValues[0], this.chartPerfMon, pos.X, pos.Y - 20, 1750);
                         CurrentSeriesUnderMouse = prop.LegendText;
                     }
                 }
@@ -648,10 +648,11 @@ namespace SSASDiag
                         s = new Series(e.Node.FullPath);
                         s.ChartType = SeriesChartType.Line;
                         s.Name = e.Node.FullPath;
+                        s.XValueType = ChartValueType.DateTime;
                         s.LegendText = e.Node.FullPath;
-                        SqlDataReader dr = new SqlCommand("select * from CounterData where CounterID = " + (e.Node.Tag as string).Split(',')[0] + " order by CounterDateTime asc", connDB).ExecuteReader();
+                        SqlDataReader dr = new SqlCommand("select a.*, b.MinutesToUTC from CounterData a, DisplayToID b where a.GUID = b.GUID and CounterID = " + (e.Node.Tag as string).Split(',')[0] + " order by CounterDateTime asc", connDB).ExecuteReader();
                         while (dr.Read())
-                            s.Points.AddXY(dr["CounterDateTime"], (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
+                            s.Points.AddXY(DateTime.Parse((dr["CounterDateTime"] as string).Trim('\0')).AddMinutes((dr["MinutesToUTC"] as int?).Value), (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
                         dr.Close();
                         chartPerfMon.Series.Add(s);
                     }
