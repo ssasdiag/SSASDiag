@@ -767,7 +767,7 @@
             this.udRollover.ThousandsSeparator = true;
             this.udRollover.UpDownAlign = System.Windows.Forms.LeftRightAlignment.Left;
             this.udRollover.Value = new decimal(new int[] {
-            512,
+            128,
             0,
             0,
             0});
