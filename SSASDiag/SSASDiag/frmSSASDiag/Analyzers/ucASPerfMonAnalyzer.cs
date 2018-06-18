@@ -52,27 +52,31 @@ namespace SSASDiag
         public ucASPerfMonAnalyzer(string logPath, SqlConnection conndb, frmStatusFloater statusFloater)
         {
             InitializeComponent();
+
+            trb.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            trb.BackColor = System.Drawing.SystemColors.Control;
+            trb.DivisionNum = 15;
+            trb.HeightOfBar = 6;
+            trb.HeightOfMark = 16;
+            trb.HeightOfTick = 4;
+            trb.Height = 60;
+            trb.Margin = new Padding(3, 0, 3, 0);
+            trb.InnerColor = System.Drawing.Color.LightCyan;
+            trb.Orientation = TimeRangeBar.RangeBarOrientation.horizontal;
+            trb.ScaleOrientation = TimeRangeBar.TopBottomOrientation.bottom;
+            trb.Dock = DockStyle.Fill;
+            trb.SetRangeLimit(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1));
+            trb.SelectRange(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1));
+            this.pnlSeriesDetails.SetColumnSpan(trb, 10);
+            this.pnlSeriesDetails.Controls.Add(trb);
+            this.pnlSeriesDetails.Controls.SetChildIndex(trb, 0);
+
             StatusFloater = statusFloater;
             LogPath = logPath;
             connDB = new SqlConnection(conndb.ConnectionString);
             connDB.Open();
             HandleDestroyed += UcASPerfMonAnalyzer_HandleDestroyed;
 
-            trb.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
-            trb.BackColor = System.Drawing.SystemColors.Control;
-            trb.DivisionNum = 10;
-            trb.HeightOfBar = 8;
-            trb.HeightOfMark = 24;
-            trb.HeightOfTick = 6;
-            trb.InnerColor = System.Drawing.Color.LightGreen;
-            trb.Orientation = TimeRangeBar.RangeBarOrientation.horizontal;
-            trb.ScaleOrientation = TimeRangeBar.TopBottomOrientation.bottom;
-            trb.Dock = DockStyle.Fill;
-            trb.Width = 500;
-            trb.Margin = new Padding(50, 0, 50, 0);
-            trb.SetRangeLimit(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1));
-            trb.SelectRange(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1));
-            splitAnalysis.Panel2.Controls.Add(trb);
 
             tvCounters.AfterCheck += TvCounters_AfterCheck;
             ChartArea c = chartPerfMon.ChartAreas[0];

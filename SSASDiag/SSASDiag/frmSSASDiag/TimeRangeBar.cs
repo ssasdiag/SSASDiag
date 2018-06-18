@@ -446,12 +446,12 @@ namespace SSASDiag
 
                 if (MoveLMark)
                 {
-                    Font fontMark = new Font("Arial", MarkWidth);
+                    Font fontMark = new Font("Microsoft Sans Serif", 7.25F);
                     SolidBrush brushMark = new SolidBrush(colorShadowDark);
                     StringFormat strformat = new StringFormat();
-                    strformat.Alignment = StringAlignment.Center;
-                    strformat.LineAlignment = StringAlignment.Near;
-                    e.Graphics.DrawString(DateTime.FromOADate((float)rangeMin / Math.Pow(10, 6)).ToString("yyyy-MM-dd\nhh:mm:ss tt"), fontMark, brushMark, PosL, tickyoff1 + TickHeight, strformat);
+                    strformat.Alignment = StringAlignment.Near;
+                    strformat.LineAlignment = StringAlignment.Far;
+                    e.Graphics.DrawString(DateTime.FromOADate((float)rangeMin / Math.Pow(10, 6)).ToString("yyyy-MM-dd\nhh:mm:ss tt"), fontMark, brushMark, PosL, markyoff + 5, strformat);
                 }
 
                 if (MoveRMark)
@@ -459,9 +459,9 @@ namespace SSASDiag
                     Font fontMark = new Font("Microsoft Sans Serif", 7.25F);
                     SolidBrush brushMark = new SolidBrush(colorShadowDark);
                     StringFormat strformat = new StringFormat();
-                    strformat.Alignment = StringAlignment.Center;
-                    strformat.LineAlignment = StringAlignment.Near;
-                    e.Graphics.DrawString(DateTime.FromOADate((float)rangeMax / Math.Pow(10, 6)).ToString("yyyy-MM-dd\nhh:mm:ss tt"), fontMark, brushMark, PosR, tickyoff1 + TickHeight, strformat);
+                    strformat.Alignment = StringAlignment.Far;
+                    strformat.LineAlignment = StringAlignment.Far;
+                    e.Graphics.DrawString(DateTime.FromOADate((float)rangeMax / Math.Pow(10, 6)).ToString("yyyy-MM-dd\nhh:mm:ss tt"), fontMark, brushMark, PosR, markyoff + 5, strformat);
                 }
 
             }

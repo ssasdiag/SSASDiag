@@ -28,10 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             this.splitLogList = new System.Windows.Forms.SplitContainer();
             this.splitLogDetails = new System.Windows.Forms.SplitContainer();
             this.dgdLogList = new System.Windows.Forms.DataGridView();
@@ -133,14 +133,14 @@
             this.dgdLogList.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdLogList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdLogList.ColumnHeadersVisible = false;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle3;
             this.dgdLogList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdLogList.Location = new System.Drawing.Point(0, 0);
             this.dgdLogList.Name = "dgdLogList";
@@ -224,14 +224,14 @@
             // 
             this.dgdGrouping.AllowUserToOrderColumns = true;
             this.dgdGrouping.AllowUserToResizeColumns = false;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdGrouping.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdGrouping.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dgdGrouping.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdGrouping.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Counter,
@@ -288,10 +288,12 @@
             this.pnlSeriesDetails.Controls.Add(this.txtMax);
             this.pnlSeriesDetails.Controls.Add(this.label4);
             this.pnlSeriesDetails.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlSeriesDetails.Location = new System.Drawing.Point(0, 350);
+            this.pnlSeriesDetails.Location = new System.Drawing.Point(0, 248);
             this.pnlSeriesDetails.Name = "pnlSeriesDetails";
+            this.pnlSeriesDetails.RowCount = 2;
+            this.pnlSeriesDetails.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
             this.pnlSeriesDetails.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.pnlSeriesDetails.Size = new System.Drawing.Size(603, 18);
+            this.pnlSeriesDetails.Size = new System.Drawing.Size(603, 80);
             this.pnlSeriesDetails.TabIndex = 2;
             // 
             // label6
@@ -399,19 +401,19 @@
             // 
             // chartPerfMon
             // 
-            chartArea1.AxisX.LabelStyle.Angle = 90;
-            chartArea1.AxisX.LabelStyle.Format = "yyyy-MM-dd hh:mm:ss tt";
-            chartArea1.AxisX.Title = "Date/Time UTC";
-            chartArea1.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            chartArea1.Name = "ChartArea1";
-            this.chartPerfMon.ChartAreas.Add(chartArea1);
+            chartArea2.AxisX.LabelStyle.Angle = 90;
+            chartArea2.AxisX.LabelStyle.Format = "yyyy-MM-dd hh:mm:ss tt";
+            chartArea2.AxisX.Title = "Date/Time UTC";
+            chartArea2.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            chartArea2.Name = "ChartArea1";
+            this.chartPerfMon.ChartAreas.Add(chartArea2);
             this.chartPerfMon.Dock = System.Windows.Forms.DockStyle.Top;
-            legend1.AutoFitMinFontSize = 6;
-            legend1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
-            legend1.IsTextAutoFit = false;
-            legend1.Name = "Legend";
-            legend1.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
-            this.chartPerfMon.Legends.Add(legend1);
+            legend2.AutoFitMinFontSize = 6;
+            legend2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+            legend2.IsTextAutoFit = false;
+            legend2.Name = "Legend";
+            legend2.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
+            this.chartPerfMon.Legends.Add(legend2);
             this.chartPerfMon.Location = new System.Drawing.Point(0, 0);
             this.chartPerfMon.Margin = new System.Windows.Forms.Padding(0);
             this.chartPerfMon.Name = "chartPerfMon";
