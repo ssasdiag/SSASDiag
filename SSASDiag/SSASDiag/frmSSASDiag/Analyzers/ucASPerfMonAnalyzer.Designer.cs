@@ -273,6 +273,7 @@
             this.chartPerfMon.Size = new System.Drawing.Size(425, 339);
             this.chartPerfMon.TabIndex = 0;
             this.chartPerfMon.Text = "Counter Data";
+            this.chartPerfMon.MouseMove += ChartPerfMon_MouseMove;
             // 
             // pnServers
             // 
