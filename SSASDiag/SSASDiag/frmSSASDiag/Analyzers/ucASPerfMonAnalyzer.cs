@@ -47,7 +47,7 @@ namespace SSASDiag
             public bool Analyzed { get; set; }
         }
 
-        TimeRangeBar trb = new TimeRangeBar();
+        TimeRangeBar trTimeRange = new TimeRangeBar();
         private TriStateTreeView tvCounters;
 
         public ucASPerfMonAnalyzer(string logPath, SqlConnection conndb, frmStatusFloater statusFloater)
@@ -56,19 +56,20 @@ namespace SSASDiag
 
 
             #region non-designer controls
-            trb.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            trb.BackColor = System.Drawing.SystemColors.Control;
-            trb.DivisionNum = 15;
-            trb.HeightOfBar = 6;
-            trb.HeightOfMark = 16;
-            trb.HeightOfTick = 4;
-            trb.Height = 60;
-            trb.Margin = new Padding(3, 0, 3, 0);
-            trb.InnerColor = System.Drawing.Color.LightCyan;
-            trb.Orientation = TimeRangeBar.RangeBarOrientation.horizontal;
-            trb.ScaleOrientation = TimeRangeBar.TopBottomOrientation.bottom;
-            trb.Dock = DockStyle.Top;
-            this.pnlSeriesDetails.Controls.Add(trb);
+            trTimeRange.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            trTimeRange.BackColor = System.Drawing.SystemColors.Control;
+            trTimeRange.DivisionNum = 15;
+            trTimeRange.HeightOfBar = 6;
+            trTimeRange.HeightOfMark = 16;
+            trTimeRange.HeightOfTick = 4;
+            trTimeRange.Height = 60;
+            trTimeRange.Margin = new Padding(3, 0, 3, 0);
+            trTimeRange.InnerColor = System.Drawing.Color.LightCyan;
+            trTimeRange.Orientation = TimeRangeBar.RangeBarOrientation.horizontal;
+            trTimeRange.ScaleOrientation = TimeRangeBar.TopBottomOrientation.bottom;
+            trTimeRange.Dock = DockStyle.Top;
+            trTimeRange.RangeChanged += TrTimeRange_RangeChanged;
+            this.pnlSeriesDetails.Controls.Add(trTimeRange);
 
             // 
             // tvCounters
@@ -655,6 +656,7 @@ namespace SSASDiag
             }
         }
 
+
         private void cmbServers_SelectedIndexChanged(object sender, EventArgs e)
         {
             tvCounters.Nodes.Clear();
@@ -683,15 +685,16 @@ namespace SSASDiag
                                             StopTime
                                             from
                                             (
-                                            select convert(datetime, LogStopTime) - convert(datetime, LogStartTime) IntervalOffset, 
-                                            convert(datetime, LogStartTime) StartTime, 
-                                            convert(datetime, LogStopTime) StopTime
+                                            select 
+                                            convert(datetime, LogStopTime) - convert(datetime, LogStartTime) IntervalOffset, 
+                                            dateadd(mi, MinutesToUTC, convert(datetime, LogStartTime)) StartTime, 
+                                            dateadd(mi, MinutesToUTC, convert(datetime, LogStopTime)) StopTime
                                             from DisplayToID where GUID = (select top 1 GUID from CounterData where CounterID = (select top 1 CounterID from CounterDetails where machinename = '" + cmbServers.SelectedItem + "'))) a", connDB).ExecuteReader();
             dr.Read();
             txtDur.Text = dr["Duration"] as string;
 
-            trb.SetRangeLimit((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
-            trb.SelectRange((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
+            trTimeRange.SetRangeLimit((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
+            trTimeRange.SelectRange((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
             dr.Close();
 
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
@@ -712,7 +715,12 @@ namespace SSASDiag
                         s.Name = e.Node.FullPath;
                         s.XValueType = ChartValueType.DateTime;
                         s.LegendText = e.Node.FullPath;
-                        SqlDataReader dr = new SqlCommand("select a.*, b.MinutesToUTC from CounterData a, DisplayToID b where a.GUID = b.GUID and CounterID = " + (e.Node.Tag as string).Split(',')[0] + " order by CounterDateTime asc", connDB).ExecuteReader();
+
+                        string qry = @" select a.*, b.MinutesToUTC from CounterData a, DisplayToID b where a.GUID = b.GUID and CounterID = 26173 and
+                                        dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) >= convert(datetime, '" + trTimeRange.RangeMinimum.ToString("yyyy-MM-dd hh:mm:ss.fff tt") + @"', 121) and
+                                        dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.RangeMaximum.ToString("yyyy-MM-dd hh:mm:ss.fff tt") + @"', 121)
+                                        order by CounterDateTime asc";
+                        SqlDataReader dr = new SqlCommand(qry, connDB).ExecuteReader();
                         while (dr.Read())
                             s.Points.AddXY(DateTime.Parse((dr["CounterDateTime"] as string).Trim('\0')).AddMinutes((dr["MinutesToUTC"] as int?).Value), (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
                         dr.Close();
@@ -726,6 +734,13 @@ namespace SSASDiag
                         chartPerfMon.Series.Remove(s);
                 }
             }
+        }
+
+        private void TrTimeRange_RangeChanged(object sender, EventArgs e)
+        {
+            chartPerfMon.Series.Clear();
+            foreach (System.Windows.Forms.TreeNode n in tvCounters.GetCheckedLeafNodes())
+                TvCounters_AfterCheck(sender, new TreeViewEventArgs(n));
         }
 
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)
@@ -850,6 +865,27 @@ namespace SSASDiag
 
                 StateImageList.Images.Add(bmp);
             }
+        }
+
+        public List<System.Windows.Forms.TreeNode> GetCheckedLeafNodes()
+        {
+            return GetCheckedLeafNodes(this.Nodes);
+        }
+
+        private List<System.Windows.Forms.TreeNode> GetCheckedLeafNodes(System.Windows.Forms.TreeNodeCollection nodes)
+        {
+            List<System.Windows.Forms.TreeNode> cn = new List<System.Windows.Forms.TreeNode>();
+            foreach (System.Windows.Forms.TreeNode aNode in nodes)
+            {
+                if (aNode.Nodes.Count != 0)
+                    cn.AddRange(GetCheckedLeafNodes(aNode.Nodes));
+                else
+                {
+                    if (aNode.Checked)
+                        cn.Add(aNode);
+                }
+            }
+            return cn;
         }
 
         protected override void OnCreateControl()
