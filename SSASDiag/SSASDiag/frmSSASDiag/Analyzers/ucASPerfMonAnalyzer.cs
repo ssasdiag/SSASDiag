@@ -307,7 +307,6 @@ namespace SSASDiag
         }
         public bool bCancel = false;
         int LogCountAnalyzedInCurrentRun = 0;
-        Process p;
         
         private void btnAnalyzeLogs_Click(object sender, EventArgs e)
         {
@@ -345,6 +344,13 @@ namespace SSASDiag
                         dsnKey.SetValue("Database", DBName());
                         dsnKey.SetValue("Trusted_Connection", "Yes");
 
+                        List<Thread> importthreads = new List<Thread>();
+
+                        rtLogDetails.Invoke(new System.Action(() => rtLogDetails.Text = "Importing " + TotalSelectedLogsCount + " logs in parallel. "));
+
+                        DateTime lastUIUpdate = DateTime.Now;
+                        bool bUpdatedUI = false;
+                        
                         foreach (DataGridViewRow r in LogsToProcess)
                         {
                             if (!bCancel)
@@ -353,51 +359,60 @@ namespace SSASDiag
                                 DataGridViewCell c = r.Cells[1];
                                 if (!l.Analyzed)
                                 {
-                                    rtLogDetails.Invoke(new System.Action(() =>
+                                    importthreads.Add(new Thread(new ThreadStart(() =>
                                     {
-                                        splitAnalysis.Panel2Collapsed = false;
-                                        rtLogDetails.Text = "Importing log " + (LogCountAnalyzedInCurrentRun + 1) + " of " + TotalSelectedLogsCount + ":\r\n" + l.LogPath;
-                                    }));
+                                        Process p = new Process();
+                                        p.StartInfo.UseShellExecute = false;
+                                        p.StartInfo.CreateNoWindow = true;
+                                        p.StartInfo.FileName = "relog.exe";
+                                        p.StartInfo.Arguments = "\"" + l.LogPath + "\" -f SQL -o SQL:SSASDiagPerfMonDSN!logfile -y";
+                                        p.Start();
 
-                                    p = new Process();
-                                    p.StartInfo.UseShellExecute = false;
-                                    p.StartInfo.CreateNoWindow = true;
-                                    p.StartInfo.FileName = "relog.exe";
-                                    p.StartInfo.Arguments = "\"" + l.LogPath + "\" -f SQL -o SQL:SSASDiagPerfMonDSN!logfile -y";
-                                    p.Start();
-
-                                    int iSleepCount = 0;
-                                    while (!bCancel && !p.HasExited)
-                                    {
-                                        Thread.Sleep(500);
-                                        iSleepCount++;
-                                        if (iSleepCount % 4 == 0) rtLogDetails.Invoke(new System.Action(() => rtLogDetails.AppendText(".")));
-                                    }
-                                    // Clean up the old process and reinitialize.
-                                    if (bCancel)
-                                    {
-                                        p.CancelOutputRead();
-                                        p.CancelErrorRead();
-                                        if (!p.HasExited)
-                                            p.Kill();
-                                    }
-                                    else
-                                    {
-                                        SqlCommand cmd = new SqlCommand("insert into PerfMonLogs values ('" + l.LogPath + "')", connDB);
-                                        cmd.ExecuteNonQuery();
-                                        l.Analyzed = true;
-                                        dgdLogList.Invoke(new System.Action(() =>
+                                        while (!bCancel && !p.HasExited)
                                         {
-                                            c.Style.ForeColor = SystemColors.ControlText;
-                                            c.ToolTipText = "";
-                                        }));
+                                            Thread.Sleep(500);
+                                            if (DateTime.Now - lastUIUpdate > TimeSpan.FromSeconds(1.5))
+                                            {
+                                                if (!bUpdatedUI)
+                                                {
+                                                    bUpdatedUI = true;
+                                                    lastUIUpdate = DateTime.Now;
+                                                    rtLogDetails.Invoke(new System.Action(() => { rtLogDetails.AppendText("."); }));
+                                                }
+                                            }
+                                        }
+                                        // Clean up the old process and reinitialize.
+                                        if (bCancel)
+                                        {
+                                            if (!p.HasExited)
+                                                p.Kill();
+                                        }
+                                        else
+                                        {
+                                            SqlConnection connLocal = new SqlConnection(connDB.ConnectionString);
+                                            connLocal.Open();
+                                            new SqlCommand("USE[" + DBName() + "]", connLocal).ExecuteNonQuery();
+                                            new SqlCommand("insert into PerfMonLogs values ('" + l.LogPath + "')", connLocal).ExecuteNonQuery();
+                                            l.Analyzed = true;
+                                            dgdLogList.Invoke(new System.Action(() =>
+                                            {
+                                                c.Style.ForeColor = SystemColors.ControlText;
+                                                c.ToolTipText = "";
+                                            }));
 
-                                        LogCountAnalyzedInCurrentRun++;
-                                    }
-                                    p.Close();
-
+                                            LogCountAnalyzedInCurrentRun++;
+                                        }
+                                        p.Close();
+                                    })));
+                                    importthreads.Last().Start();
                                 }
                             }
+                        }
+
+                        while (importthreads.Any(t => t.ThreadState != System.Threading.ThreadState.Stopped))
+                        {
+                            Thread.Sleep(1500);
+                            rtLogDetails.Invoke(new System.Action(() => rtLogDetails.AppendText(".")));
                         }
 
                         Registry.LocalMachine.CreateSubKey("SOFTWARE\\ODBC\\ODBC.INI").DeleteSubKey("SSASDiagPerfMonDSN");
@@ -689,22 +704,27 @@ namespace SSASDiag
                                             convert(int, case when ParentName is not null and ParentName <> InstanceName then InstanceName end) InstanceIndex
                                             from counterdetails where MachineName = '" + cmbServers.SelectedItem + "'",
                                             connDB).ExecuteReader());
-            dr = new SqlCommand(@" select   format(convert(int, format(a.intervaloffset, 'dd')) - 1, '00') + ':' + format(a.intervaloffset, 'HH:mm:ss.fff') Duration,
-                                            StartTime,
-                                            StopTime
-                                            from
-                                            (
-                                            select 
-                                            convert(datetime, LogStopTime) - convert(datetime, LogStartTime) IntervalOffset, 
-                                            dateadd(mi, MinutesToUTC, convert(datetime, LogStartTime)) StartTime, 
-                                            dateadd(mi, MinutesToUTC, convert(datetime, LogStopTime)) StopTime
-                                            from DisplayToID where GUID = (select top 1 GUID from CounterData where CounterID = (select top 1 CounterID from CounterDetails where machinename = '" + cmbServers.SelectedItem + "'))) a", connDB).ExecuteReader();
+            dr = new SqlCommand(@"  select 
+                                    format(convert(int,format(a.intervaloffset, 'dd')) - 1, '00') + 
+                                    ':' + 
+                                    format(a.intervaloffset, 'HH:mm:ss.fff') Duration, StartTime, StopTime 
+                                    from (
+                                     select convert(datetime, LogStopTime) - convert(datetime, LogStartTime) IntervalOffset, 
+                                     dateadd(mi, MinutesToUTC, convert(datetime, LogStartTime)) StartTime, 
+                                     dateadd(mi, MinutesToUTC, convert(datetime, LogStopTime)) StopTime 
+                                     from DisplayToID 
+                                     where GUID = 
+                                     (select top 1 GUID from CounterData 
+                                      where CounterID = ( 
+                                        select top 1 CounterID from CounterDetails 
+				                        where MachineName = '" + cmbServers.SelectedItem + @"' 
+				                        and CounterID = (select top 1 CounterID from CounterData)
+				                      )))a", connDB).ExecuteReader();
             dr.Read();
             txtDur.Text = dr["Duration"] as string;
 
             trTimeRange.SetRangeLimit((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
             trTimeRange.SelectRange((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
-            trTimeRange.Invalidate();
             dr.Close();
 
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
@@ -731,7 +751,6 @@ namespace SSASDiag
                                         dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.RangeMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
                                         order by CounterDateTime asc";
                         SqlDataReader dr = new SqlCommand(qry, connDB).ExecuteReader();
-                        string sLastDate = "";
                         while (dr.Read())
                             s.Points.AddXY(DateTime.Parse((dr["CounterDateTime"] as string).Trim('\0')).AddMinutes((dr["MinutesToUTC"] as int?).Value), (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
                         dr.Close();
