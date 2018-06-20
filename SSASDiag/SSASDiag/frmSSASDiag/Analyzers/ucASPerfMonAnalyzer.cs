@@ -42,7 +42,7 @@ namespace SSASDiag
             public string LogPath { get; set; }
             public string LogName
             {
-                get { return LogPath.Substring(LogPath.LastIndexOf("\\") + 1); }
+                get { return LogPath != null ? LogPath.Substring(LogPath.LastIndexOf("\\") + 1) : ""; }
             }
             public bool Analyzed { get; set; }
         }
@@ -86,6 +86,8 @@ namespace SSASDiag
             tvCounters.AfterCheck += TvCounters_AfterCheck;
             tvCounters.AfterSelect += TvCounters_AfterSelect;
             splitPerfMonCountersAndChart.Panel1.Controls.Add(tvCounters);
+
+            dgdGrouping.ColumnDisplayIndexChanged += DgdGrouping_ColumnDisplayIndexChanged;
 
             #endregion non-designer controls
 
@@ -215,6 +217,13 @@ namespace SSASDiag
             dgdLogList.DataBindingComplete += DgdLogList_DataBindingComplete;
 
             frmSSASDiag.LogFeatureUse("PerfMon Analysis", "PerfMon analysis initalized for " + LogFiles.Count + " logs, " + LogFiles.Where(d => !d.Analyzed).Count() + " of which still require import for analysis.");
+        }
+
+        private void TrTimeRange_RangeChanged(object sender, EventArgs e)
+        {
+            chartPerfMon.Series.Clear();
+            foreach (System.Windows.Forms.TreeNode n in tvCounters.GetCheckedLeafNodes())
+                TvCounters_AfterCheck(sender, new TreeViewEventArgs(n));
         }
 
         int DataBindingCompletions = 0;
@@ -695,6 +704,7 @@ namespace SSASDiag
 
             trTimeRange.SetRangeLimit((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
             trTimeRange.SelectRange((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
+            trTimeRange.Invalidate();
             dr.Close();
 
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
@@ -715,12 +725,13 @@ namespace SSASDiag
                         s.Name = e.Node.FullPath;
                         s.XValueType = ChartValueType.DateTime;
                         s.LegendText = e.Node.FullPath;
-
-                        string qry = @" select a.*, b.MinutesToUTC from CounterData a, DisplayToID b where a.GUID = b.GUID and CounterID = 26173 and
-                                        dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) >= convert(datetime, '" + trTimeRange.RangeMinimum.ToString("yyyy-MM-dd hh:mm:ss.fff tt") + @"', 121) and
-                                        dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.RangeMaximum.ToString("yyyy-MM-dd hh:mm:ss.fff tt") + @"', 121)
+                        // Not ideal but Tag contains "CounterID,DefaultScale"...  I will update to pull scale in the query instead in the future.
+                        string qry = @" select a.*, b.MinutesToUTC from CounterData a, DisplayToID b where a.GUID = b.GUID and CounterID = " + (e.Node.Tag as string).Split(',')[0] + @" and
+                                        dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) >= convert(datetime, '" + trTimeRange.RangeMinimum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121) and
+                                        dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.RangeMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
                                         order by CounterDateTime asc";
                         SqlDataReader dr = new SqlCommand(qry, connDB).ExecuteReader();
+                        string sLastDate = "";
                         while (dr.Read())
                             s.Points.AddXY(DateTime.Parse((dr["CounterDateTime"] as string).Trim('\0')).AddMinutes((dr["MinutesToUTC"] as int?).Value), (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
                         dr.Close();
@@ -734,13 +745,6 @@ namespace SSASDiag
                         chartPerfMon.Series.Remove(s);
                 }
             }
-        }
-
-        private void TrTimeRange_RangeChanged(object sender, EventArgs e)
-        {
-            chartPerfMon.Series.Clear();
-            foreach (System.Windows.Forms.TreeNode n in tvCounters.GetCheckedLeafNodes())
-                TvCounters_AfterCheck(sender, new TreeViewEventArgs(n));
         }
 
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)

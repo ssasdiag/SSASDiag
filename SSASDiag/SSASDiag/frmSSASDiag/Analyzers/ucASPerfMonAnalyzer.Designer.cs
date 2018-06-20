@@ -40,6 +40,8 @@
             this.splitAnalysis = new System.Windows.Forms.SplitContainer();
             this.splitPerfMonCountersAndChart = new System.Windows.Forms.SplitContainer();
             this.dgdGrouping = new System.Windows.Forms.DataGridView();
+            this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Instance = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pnlSeriesDetails = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -56,8 +58,6 @@
             this.cmbServers = new System.Windows.Forms.ComboBox();
             this.pnAnalyses = new System.Windows.Forms.Panel();
             this.lblAnalysesStatus = new System.Windows.Forms.Label();
-            this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Instance = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -241,6 +241,20 @@
             this.dgdGrouping.Size = new System.Drawing.Size(200, 21);
             this.dgdGrouping.TabIndex = 1;
             // 
+            // Counter
+            // 
+            this.Counter.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Counter.HeaderText = "Counter";
+            this.Counter.Name = "Counter";
+            this.Counter.ReadOnly = true;
+            // 
+            // Instance
+            // 
+            this.Instance.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Instance.HeaderText = "Instance";
+            this.Instance.Name = "Instance";
+            this.Instance.ReadOnly = true;
+            // 
             // pnlSeriesDetails
             // 
             this.pnlSeriesDetails.Controls.Add(this.label1);
@@ -363,24 +377,70 @@
             // 
             // chartPerfMon
             // 
-            chartArea1.AxisX.LabelStyle.Angle = 90;
-            chartArea1.AxisX.LabelStyle.Format = "yyyy-MM-dd hh:mm:ss tt";
-            chartArea1.AxisX.Title = "Date/Time UTC";
+            this.chartPerfMon.BorderlineWidth = 0;
+            this.chartPerfMon.BorderSkin.BorderWidth = 0;
+            chartArea1.Area3DStyle.LightStyle = System.Windows.Forms.DataVisualization.Charting.LightStyle.Realistic;
+            chartArea1.AxisX.IsMarginVisible = false;
+            chartArea1.AxisX.LabelAutoFitMaxFontSize = 8;
+            chartArea1.AxisX.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+            chartArea1.AxisX.LabelStyle.Format = "yyyy-MM-dd\nHH:mm:ss";
+            chartArea1.AxisX.LabelStyle.Interval = 0D;
+            chartArea1.AxisX.LabelStyle.IntervalOffset = 0D;
+            chartArea1.AxisX.LabelStyle.IntervalOffsetType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisX.LabelStyle.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisX.MajorGrid.Enabled = false;
+            chartArea1.AxisX.MajorGrid.LineWidth = 0;
+            chartArea1.AxisX.MajorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisX.MaximumAutoSize = 100F;
+            chartArea1.AxisX.MinorTickMark.Enabled = true;
+            chartArea1.AxisX.MinorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisX.Title = "Date/Time (UTC)";
             chartArea1.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            chartArea1.AxisX2.IsMarginVisible = false;
+            chartArea1.AxisX2.LabelStyle.Enabled = false;
+            chartArea1.AxisX2.MaximumAutoSize = 100F;
+            chartArea1.AxisY.LabelAutoFitMaxFontSize = 8;
+            chartArea1.AxisY.LabelAutoFitStyle = ((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles)(((((((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.IncreaseFont | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.DecreaseFont) 
+            | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.StaggeredLabels) 
+            | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep30) 
+            | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep45) 
+            | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep90) 
+            | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.WordWrap)));
+            chartArea1.AxisY.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+            chartArea1.AxisY.LabelStyle.Interval = 0D;
+            chartArea1.AxisY.LabelStyle.IntervalOffset = 0D;
+            chartArea1.AxisY.LabelStyle.IntervalOffsetType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisY.LabelStyle.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisY.MajorGrid.Enabled = false;
+            chartArea1.AxisY.MajorGrid.LineWidth = 0;
+            chartArea1.AxisY.MajorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisY.MaximumAutoSize = 100F;
+            chartArea1.AxisY.MinorGrid.LineWidth = 0;
+            chartArea1.AxisY.MinorTickMark.Enabled = true;
+            chartArea1.AxisY.MinorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 3.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea1.AxisY2.IsMarginVisible = false;
+            chartArea1.AxisY2.LabelStyle.Enabled = false;
+            chartArea1.AxisY2.MaximumAutoSize = 100F;
+            chartArea1.BorderWidth = 0;
+            chartArea1.IsSameFontSizeForAllAxes = true;
             chartArea1.Name = "ChartArea1";
+            chartArea1.Position.Auto = false;
+            chartArea1.Position.Height = 100F;
+            chartArea1.Position.Width = 100F;
             this.chartPerfMon.ChartAreas.Add(chartArea1);
             this.chartPerfMon.Dock = System.Windows.Forms.DockStyle.Top;
             legend1.AutoFitMinFontSize = 6;
-            legend1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
-            legend1.IsTextAutoFit = false;
+            legend1.Enabled = false;
             legend1.Name = "Legend";
+            legend1.TableStyle = System.Windows.Forms.DataVisualization.Charting.LegendTableStyle.Wide;
             legend1.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
             this.chartPerfMon.Legends.Add(legend1);
             this.chartPerfMon.Location = new System.Drawing.Point(0, 0);
             this.chartPerfMon.Margin = new System.Windows.Forms.Padding(0);
             this.chartPerfMon.Name = "chartPerfMon";
             this.chartPerfMon.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Bright;
-            this.chartPerfMon.Size = new System.Drawing.Size(603, 323);
+            this.chartPerfMon.Size = new System.Drawing.Size(603, 305);
             this.chartPerfMon.SuppressExceptions = true;
             this.chartPerfMon.TabIndex = 0;
             this.chartPerfMon.Text = "Counter Data";
@@ -439,20 +499,6 @@
             this.lblAnalysesStatus.Size = new System.Drawing.Size(0, 12);
             this.lblAnalysesStatus.TabIndex = 4;
             this.lblAnalysesStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // Counter
-            // 
-            this.Counter.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Counter.HeaderText = "Counter";
-            this.Counter.Name = "Counter";
-            this.Counter.ReadOnly = true;
-            // 
-            // Instance
-            // 
-            this.Instance.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Instance.HeaderText = "Instance";
-            this.Instance.Name = "Instance";
-            this.Instance.ReadOnly = true;
             // 
             // ucASPerfMonAnalyzer
             // 

@@ -721,8 +721,8 @@ namespace SSASDiag
                 w = this.Height;
             posw = w - 2 * MarkWidth - 2;
 
-            rangeMin = Minimum + (int)Math.Round((double)(Maximum - Minimum) * (double)(PosL - XPosMin) / (double)posw);
-            rangeMax = Minimum + (int)Math.Round((double)(Maximum - Minimum) * (double)(PosR - XPosMin) / (double)posw);
+            rangeMin = Minimum + (double)(Maximum - Minimum) * (double)(PosL - XPosMin) / (double)posw;
+            rangeMax = Minimum + (double)(Maximum - Minimum) * (double)(PosR - XPosMin) / (double)posw;
         }
 
 
