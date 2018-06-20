@@ -83,7 +83,6 @@ namespace SSASDiag
             tvCounters.Size = new System.Drawing.Size(200, 238);
             tvCounters.TabIndex = 0;
             tvCounters.AfterCheck += TvCounters_AfterCheck;
-            tvCounters.AfterCheck += TvCounters_AfterCheck;
             tvCounters.AfterSelect += TvCounters_AfterSelect;
             splitPerfMonCountersAndChart.Panel1.Controls.Add(tvCounters);
 
@@ -399,7 +398,7 @@ namespace SSASDiag
                                                 c.Style.ForeColor = SystemColors.ControlText;
                                                 c.ToolTipText = "";
                                             }));
-
+                                            connLocal.Close();
                                             LogCountAnalyzedInCurrentRun++;
                                         }
                                         p.Close();
@@ -740,6 +739,7 @@ namespace SSASDiag
                     Series s = chartPerfMon.Series.FindByName(e.Node.FullPath);
                     if (s == null)
                     {
+                        new SqlCommand("use [" + DBName() + "]", connDB).ExecuteNonQuery();
                         s = new Series(e.Node.FullPath);
                         s.ChartType = SeriesChartType.Line;
                         s.Name = e.Node.FullPath;
@@ -747,14 +747,14 @@ namespace SSASDiag
                         s.LegendText = e.Node.FullPath;
                         // Not ideal but Tag contains "CounterID,DefaultScale"...  I will update to pull scale in the query instead in the future.
                         string qry = @" select a.*, b.MinutesToUTC from CounterData a, DisplayToID b where a.GUID = b.GUID and CounterID = " + (e.Node.Tag as string).Split(',')[0] + @" and
-                                        dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) >= convert(datetime, '" + trTimeRange.RangeMinimum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121) and
-                                        dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.RangeMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
-                                        order by CounterDateTime asc";
+                                    dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) >= convert(datetime, '" + trTimeRange.RangeMinimum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121) and
+                                    dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.RangeMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
+                                    order by CounterDateTime asc";
                         SqlDataReader dr = new SqlCommand(qry, connDB).ExecuteReader();
                         while (dr.Read())
                             s.Points.AddXY(DateTime.Parse((dr["CounterDateTime"] as string).Trim('\0')).AddMinutes((dr["MinutesToUTC"] as int?).Value), (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
                         dr.Close();
-                        chartPerfMon.Series.Add(s);
+                        chartPerfMon.Invoke(new System.Action(() => chartPerfMon.Series.Add(s)));
                     }
                 }
                 else
