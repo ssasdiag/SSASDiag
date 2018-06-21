@@ -478,6 +478,16 @@ namespace SSASDiag
             try
             {
                 base.OnAfterSelect(e);
+                foreach (TreeNode n in e.Node.Nodes)
+                {
+                    if (SelectedNodes.Where(nn => nn.FullPath == e.Node.FullPath) != null)
+                    {
+                        ToggleNode(n, true);
+                        OnAfterSelect(new TreeViewEventArgs(n));
+                    }
+                    else
+                        ToggleNode(n, false);
+                }
                 base.SelectedNode = null;
             }
             catch (Exception ex)
@@ -771,6 +781,24 @@ namespace SSASDiag
                 m_SelectedNodes.Clear();
                 m_SelectedNode = null;
             }
+        }
+
+        public TreeNode FindNodeByPath(string path)
+        {
+            string[] levels = path.Split('\\');
+            if (levels.Length > 0)
+            {
+                TreeNode n = Nodes[levels[0]];
+                for (int i = levels.Length - 2; i > 1; i++)
+                {
+                    if (n.Nodes[levels[i]] != null)
+                        n = n.Nodes[levels[i]];
+                    else
+                        return null;
+                }
+                return n;
+            }
+            else return null;
         }
 
         private void SelectSingleNode(TreeNode node)

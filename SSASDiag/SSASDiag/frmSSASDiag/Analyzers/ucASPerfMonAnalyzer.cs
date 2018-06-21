@@ -867,8 +867,8 @@ namespace SSASDiag
                         while (dr.Read())
                             s.Points.AddXY(DateTime.Parse((dr["CounterDateTime"] as string).Trim('\0')).AddMinutes((dr["MinutesToUTC"] as int?).Value), (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
                         dr.Close();
-                        TreeNode node = tvCounters.SelectedNodes.ToList().Find(n => n.FullPath == s.Name);
-                        if (node != null)
+                        TreeNode node = tvCounters.FindNodeByPath(s.Name);
+                        if (node != null && node.IsSelected)
                             s.BorderWidth = 4;
                         chartPerfMon.Invoke(new System.Action(() => chartPerfMon.Series.Add(s)));
                     }
