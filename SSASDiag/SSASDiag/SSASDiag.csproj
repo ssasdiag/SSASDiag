@@ -179,6 +179,9 @@
     <Compile Include="frmSSASDiag\ProfilerLoader.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="frmSSASDiag\TriStateTreeView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="frmStatusFloater.cs">
       <SubType>Form</SubType>
     </Compile>
