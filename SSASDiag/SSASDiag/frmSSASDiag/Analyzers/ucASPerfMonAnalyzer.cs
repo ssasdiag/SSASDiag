@@ -96,6 +96,7 @@ namespace SSASDiag
             tvCounters.AfterCheck += TvCounters_AfterCheck;
             tvCounters.AfterSelect += TvCounters_AfterSelect;
             splitPerfMonCountersAndChart.Panel1.Controls.Add(tvCounters);
+            tvCounters.TriStateStyleProperty = TriStateTreeView.TriStateStyles.Installer;
 
             splitHideFilesButton.SplitterDistance = 15;
             dgdGrouping.ColumnDisplayIndexChanged += DgdGrouping_ColumnDisplayIndexChanged;
@@ -519,125 +520,154 @@ namespace SSASDiag
 
         private void DgdGrouping_ColumnDisplayIndexChanged(object sender, System.Windows.Forms.DataGridViewColumnEventArgs e)
         {
-            tvCounters.SuspendLayout();
-            foreach (System.Windows.Forms.TreeNode n in tvCounters.Nodes)
+            if (e.Column.DisplayIndex == 0)
             {
-                n.Nodes.Clear();
-                n.Checked = false;
-                n.Collapse();
-            }
-                
-            string CounterName = "";
-            string InstancePath = "";
-            int? InstanceIndex = null;
-
-            try
-            {
-
-                if (Counters.Rows.Count > 0)
-                {
-                    if (dgdGrouping.Columns["Counter"].DisplayIndex == 0)
+                tvCounters.SuspendLayout();
+                List<System.Windows.Forms.TreeNode> nodes = tvCounters.GetCheckedLeafNodes();
+                List<System.Windows.Forms.TreeNode> clonedOldNodes = nodes.Select(
+                    x =>
                     {
-                        DataRow[] rows = Counters.Select("", "objectname, countername, instancepath, instanceindex");
+                        System.Windows.Forms.TreeNode n = x.Clone() as System.Windows.Forms.TreeNode;
+                        n.Tag = x.FullPath;
+                        return n;
+                    }
+                    ).ToList();
 
-                        int i = 0;
-                        while (i < rows.Count())
+                foreach (System.Windows.Forms.TreeNode n in tvCounters.Nodes)
+                {
+                    n.Nodes.Clear();
+                    n.Checked = false;
+                    n.Collapse();
+                }
+
+                string CounterName = "";
+                string InstancePath = "";
+                int? InstanceIndex = null;
+
+                try
+                {
+
+                    if (Counters.Rows.Count > 0)
+                    {
+                        if (dgdGrouping.Columns["Counter"].DisplayIndex == 0)
                         {
-                            if (CounterName != rows[i]["CounterName"] as string)
+                            DataRow[] rows = Counters.Select("", "objectname, countername, instancepath, instanceindex");
+
+                            int i = 0;
+                            while (i < rows.Count())
                             {
-                                CounterName = rows[i]["CounterName"] as string;
-                                System.Windows.Forms.TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName);
-                                n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
-                                InstancePath = "";
-                                while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
+                                if (CounterName != rows[i]["CounterName"] as string)
                                 {
-                                    if (rows[i]["InstancePath"] as string != null && InstancePath != rows[i]["InstancePath"] as string)
+                                    CounterName = rows[i]["CounterName"] as string;
+                                    System.Windows.Forms.TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName);
+                                    n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                    InstancePath = "";
+                                    while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
                                     {
-                                        InstancePath = rows[i]["InstancePath"] as string;
-                                        System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstancePath, InstancePath);
-                                        nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                        if (rows[i]["InstancePath"] as string != null && InstancePath != rows[i]["InstancePath"] as string)
+                                        {
+                                            InstancePath = rows[i]["InstancePath"] as string;
+                                            System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstancePath, InstancePath);
+                                            nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                            InstanceIndex = null;
+                                            while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
+                                            {
+                                                if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
+                                                {
+                                                    InstanceIndex = rows[i]["InstanceIndex"] as int?;
+                                                    nn.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                                }
+                                                i++;
+                                            }
+                                            if (i == rows.Count()) break;
+                                            i--;
+                                        }
+                                        i++;
+                                    }
+                                    if (i == rows.Count()) break;
+                                    i--;
+                                }
+                                i++;
+                            }
+                        }
+                        else
+                        {
+                            DataRow[] rows = Counters.Select("", "objectname, instancepath, instanceindex, countername");
+
+                            int i = 0;
+                            InstancePath = "";
+                            while (i < rows.Count())
+                            {
+                                if (InstancePath != rows[i]["InstancePath"] as string || rows[i]["InstancePath"] as string == "")
+                                {
+                                    InstancePath = rows[i]["InstancePath"] as string;
+                                    System.Windows.Forms.TreeNode n = null;
+                                    if (InstancePath != "")
+                                    {
+                                        n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath, InstancePath);
+                                        n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                         InstanceIndex = null;
                                         while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
                                         {
                                             if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
                                             {
                                                 InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                                nn.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                                System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString());
+                                                while (i < rows.Count() && rows[i]["InstanceIndex"] as int? == InstanceIndex)
+                                                {
+                                                    CounterName = rows[i]["CounterName"] as string;
+                                                    nn.Nodes.Add(CounterName, CounterName);
+                                                    nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                                    i++;
+                                                }
+                                                if (i == rows.Count()) break;
+                                                i--;
+                                            }
+                                            else
+                                            {
+                                                CounterName = rows[i]["CounterName"] as string;
+                                                n.Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                             }
                                             i++;
                                         }
-                                        if (i == rows.Count()) break;
-                                        i--;
                                     }
-                                    i++;
-                                }
-                                if (i == rows.Count()) break;
-                                i--;
-                            }
-                            i++;
-                        }
-                    }
-                    else
-                    {
-                        DataRow[] rows = Counters.Select("", "objectname, instancepath, instanceindex, countername");
-
-                        int i = 0;
-                        InstancePath = "";
-                        while (i < rows.Count())
-                        {
-                            if (InstancePath != rows[i]["InstancePath"] as string || rows[i]["InstancePath"] as string == "")
-                            {
-                                InstancePath = rows[i]["InstancePath"] as string;
-                                System.Windows.Forms.TreeNode n = null;
-                                if (InstancePath != "")
-                                {
-                                    n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath, InstancePath);
-                                    n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
-                                    InstanceIndex = null;
-                                    while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
+                                    else
                                     {
-                                        if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
-                                        {
-                                            InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                            System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString());
-                                            while (i < rows.Count() && rows[i]["InstanceIndex"] as int? == InstanceIndex)
-                                            {
-                                                CounterName = rows[i]["CounterName"] as string;
-                                                nn.Nodes.Add(CounterName, CounterName);
-                                                nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
-                                                i++;
-                                            }
-                                            if (i == rows.Count()) break;
-                                            i--;
-                                        }
-                                        else
-                                        {
-                                            CounterName = rows[i]["CounterName"] as string;
-                                            n.Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
-                                        }
+                                        CounterName = rows[i]["CounterName"] as string;
+                                        tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                         i++;
                                     }
+                                    if (i == rows.Count()) break;
+                                    i--;
                                 }
-                                else
-                                {
-                                    CounterName = rows[i]["CounterName"] as string;
-                                    tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
-                                    i++;
-                                }
-                                if (i == rows.Count()) break;
-                                i--;
+                                i++;
                             }
-                            i++;
                         }
                     }
+                    tvCounters.AfterCheck -= TvCounters_AfterCheck;
+                    tvCounters.AfterSelect -= TvCounters_AfterSelect;
+                    foreach (System.Windows.Forms.TreeNode n in clonedOldNodes)
+                    {
+                        string[] levels = (n.Tag as string).Split('\\');
+                        System.Windows.Forms.TreeNode tmpnode = tvCounters.Nodes[levels[0]].Nodes[levels[levels.Length - 1]];
+                        for (int i = levels.Length - 2; i > 0; i--)
+                            tmpnode = tmpnode.Nodes[levels[i]];
+                        tmpnode.Checked = true;
+                        if (n.IsSelected)
+                            tvCounters.SelectedNode = n;
+                        tmpnode.Collapse();
+                        tmpnode.Expand();
+                    }
+                    tvCounters.AfterCheck += TvCounters_AfterCheck;
+                    tvCounters.AfterSelect += TvCounters_AfterSelect;
                 }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Exception: " + ex.Message);
+                }
+                tvCounters.ResumeLayout();
+                tvCounters.Update();
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Exception: " + ex.Message);
-            }
-            tvCounters.CollapseAll();
-            tvCounters.ResumeLayout();
         }
 
 

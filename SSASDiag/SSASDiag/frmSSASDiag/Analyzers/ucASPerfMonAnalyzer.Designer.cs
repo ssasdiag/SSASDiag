@@ -208,7 +208,7 @@
             // 
             this.splitHideFilesButton.Panel2.Controls.Add(this.splitAnalysis);
             this.splitHideFilesButton.Size = new System.Drawing.Size(807, 545);
-            this.splitHideFilesButton.SplitterDistance = 25;
+            this.splitHideFilesButton.SplitterDistance = 15;
             this.splitHideFilesButton.SplitterWidth = 1;
             this.splitHideFilesButton.TabIndex = 1;
             this.splitHideFilesButton.TabStop = false;
@@ -225,7 +225,7 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(25, 545);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(15, 545);
             this.tableLayoutPanel1.TabIndex = 1;
             this.tableLayoutPanel1.Click += new System.EventHandler(this.tableLayoutPanel1_Click);
             this.tableLayoutPanel1.MouseLeave += new System.EventHandler(this.tableLayoutPanel1_MouseLeave);
@@ -239,7 +239,7 @@
             this.lblHideFilesButton.Location = new System.Drawing.Point(0, 262);
             this.lblHideFilesButton.Margin = new System.Windows.Forms.Padding(0);
             this.lblHideFilesButton.Name = "lblHideFilesButton";
-            this.lblHideFilesButton.Size = new System.Drawing.Size(18, 13);
+            this.lblHideFilesButton.Size = new System.Drawing.Size(15, 13);
             this.lblHideFilesButton.TabIndex = 0;
             this.lblHideFilesButton.Text = "≪";
             this.lblHideFilesButton.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -259,7 +259,7 @@
             // splitAnalysis.Panel2
             // 
             this.splitAnalysis.Panel2.Controls.Add(this.pnAnalyses);
-            this.splitAnalysis.Size = new System.Drawing.Size(781, 545);
+            this.splitAnalysis.Size = new System.Drawing.Size(791, 545);
             this.splitAnalysis.SplitterDistance = 389;
             this.splitAnalysis.TabIndex = 1;
             this.splitAnalysis.Visible = false;
@@ -279,7 +279,7 @@
             // 
             this.splitPerfMonCountersAndChart.Panel2.Controls.Add(this.pnlSeriesDetails);
             this.splitPerfMonCountersAndChart.Panel2.Controls.Add(this.chartPerfMon);
-            this.splitPerfMonCountersAndChart.Size = new System.Drawing.Size(781, 368);
+            this.splitPerfMonCountersAndChart.Size = new System.Drawing.Size(791, 368);
             this.splitPerfMonCountersAndChart.SplitterDistance = 182;
             this.splitPerfMonCountersAndChart.TabIndex = 47;
             // 
@@ -334,7 +334,7 @@
             this.pnlSeriesDetails.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.pnlSeriesDetails.Location = new System.Drawing.Point(0, 308);
             this.pnlSeriesDetails.Name = "pnlSeriesDetails";
-            this.pnlSeriesDetails.Size = new System.Drawing.Size(595, 60);
+            this.pnlSeriesDetails.Size = new System.Drawing.Size(605, 60);
             this.pnlSeriesDetails.TabIndex = 2;
             // 
             // label1
@@ -505,7 +505,7 @@
             this.chartPerfMon.Margin = new System.Windows.Forms.Padding(0);
             this.chartPerfMon.Name = "chartPerfMon";
             this.chartPerfMon.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Bright;
-            this.chartPerfMon.Size = new System.Drawing.Size(595, 305);
+            this.chartPerfMon.Size = new System.Drawing.Size(605, 305);
             this.chartPerfMon.SuppressExceptions = true;
             this.chartPerfMon.TabIndex = 0;
             this.chartPerfMon.Text = "Counter Data";
@@ -518,7 +518,7 @@
             this.pnServers.Location = new System.Drawing.Point(0, 0);
             this.pnServers.Margin = new System.Windows.Forms.Padding(0);
             this.pnServers.Name = "pnServers";
-            this.pnServers.Size = new System.Drawing.Size(781, 21);
+            this.pnServers.Size = new System.Drawing.Size(791, 21);
             this.pnServers.TabIndex = 46;
             // 
             // lblCounterGrouping
@@ -540,7 +540,7 @@
             this.cmbServers.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cmbServers.FormattingEnabled = true;
             this.cmbServers.ItemHeight = 12;
-            this.cmbServers.Location = new System.Drawing.Point(632, 0);
+            this.cmbServers.Location = new System.Drawing.Point(642, 0);
             this.cmbServers.Name = "cmbServers";
             this.cmbServers.Size = new System.Drawing.Size(149, 20);
             this.cmbServers.TabIndex = 1;
@@ -551,7 +551,7 @@
             this.pnAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnAnalyses.Location = new System.Drawing.Point(0, 0);
             this.pnAnalyses.Name = "pnAnalyses";
-            this.pnAnalyses.Size = new System.Drawing.Size(781, 18);
+            this.pnAnalyses.Size = new System.Drawing.Size(791, 18);
             this.pnAnalyses.TabIndex = 2;
             // 
             // lblAnalysesStatus
