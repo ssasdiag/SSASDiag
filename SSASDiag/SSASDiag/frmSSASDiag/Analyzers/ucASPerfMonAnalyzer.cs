@@ -49,6 +49,7 @@ namespace SSASDiag
 
         TimeRangeBar trTimeRange = new TimeRangeBar();
         private TriStateTreeView tvCounters;
+        private StripLine stripLine = new StripLine();
 
         public ucASPerfMonAnalyzer(string logPath, SqlConnection conndb, frmStatusFloater statusFloater)
         {
@@ -56,6 +57,14 @@ namespace SSASDiag
 
 
             #region non-designer controls
+
+            stripLine.Interval = 0;
+            stripLine.StripWidth = 0;
+            stripLine.IntervalOffset = 0;
+            // pick you color etc ... before adding the stripline to the axis
+            stripLine.BackColor = Color.FromArgb(128, Color.DarkGray);
+            chartPerfMon.ChartAreas[0].AxisX.StripLines.Add(stripLine);
+
             trTimeRange.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             trTimeRange.BackColor = System.Drawing.SystemColors.Control;
             trTimeRange.DivisionNum = 15;
@@ -69,6 +78,7 @@ namespace SSASDiag
             trTimeRange.ScaleOrientation = TimeRangeBar.TopBottomOrientation.bottom;
             trTimeRange.Dock = DockStyle.Top;
             trTimeRange.RangeChanged += TrTimeRange_RangeChanged;
+            trTimeRange.RangeSliderMoving += TrTimeRange_RangeSliderMoving;
             this.pnlSeriesDetails.Controls.Add(trTimeRange);
 
             // 
@@ -218,8 +228,23 @@ namespace SSASDiag
             frmSSASDiag.LogFeatureUse("PerfMon Analysis", "PerfMon analysis initalized for " + LogFiles.Count + " logs, " + LogFiles.Where(d => !d.Analyzed).Count() + " of which still require import for analysis.");
         }
 
+        private void TrTimeRange_RangeSliderMoving(bool bLeftButton, DateTime curPos)
+        {           
+            if (bLeftButton)
+            {
+                stripLine.StripWidth = chartPerfMon.ChartAreas[0].AxisX.Maximum - curPos.ToOADate();
+                stripLine.IntervalOffset = curPos.ToOADate();
+            }
+            else
+            {
+                stripLine.StripWidth = curPos.ToOADate();
+                stripLine.IntervalOffset = 0;
+            }
+        }
+
         private void TrTimeRange_RangeChanged(object sender, EventArgs e)
         {
+            stripLine.StripWidth = 0;
             chartPerfMon.Series.Clear();
             foreach (System.Windows.Forms.TreeNode n in tvCounters.GetCheckedLeafNodes())
                 TvCounters_AfterCheck(sender, new TreeViewEventArgs(n));

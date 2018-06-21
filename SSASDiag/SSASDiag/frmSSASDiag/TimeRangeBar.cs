@@ -14,6 +14,7 @@ namespace SSASDiag
     {
         public delegate void RangeChangedEventHandler(object sender, EventArgs e);
         public delegate void RangeChangingEventHandler(object sender, EventArgs e);
+        public delegate void RangeSliderMovingEventHandler(bool LeftSlider, DateTime currValue);
 
         private System.ComponentModel.Container components = null;
 
@@ -446,6 +447,7 @@ namespace SSASDiag
 
                 if (MoveLMark)
                 {
+                    RangeSliderMoving(true, new DateTime((long)rangeMin));
                     Font fontMark = new Font("Microsoft Sans Serif", 6.5F);
                     SolidBrush brushMark = new SolidBrush(colorShadowDark);
                     StringFormat strformat = new StringFormat();
@@ -456,6 +458,7 @@ namespace SSASDiag
 
                 if (MoveRMark)
                 {
+                    RangeSliderMoving(false, new DateTime((long)rangeMax));
                     Font fontMark = new Font("Microsoft Sans Serif", 6.5F);
                     SolidBrush brushMark = new SolidBrush(colorShadowDark);
                     StringFormat strformat = new StringFormat();
@@ -463,6 +466,7 @@ namespace SSASDiag
                     strformat.LineAlignment = StringAlignment.Far;
                     e.Graphics.DrawString(new DateTime((long)rangeMax).ToString("yyyy-MM-dd\nHH:mm:ss"), fontMark, brushMark, PosR, markyoff + 5, strformat);
                 }
+                
 
             }
             else // vertical bar
@@ -562,6 +566,7 @@ namespace SSASDiag
                     strformat.Alignment = StringAlignment.Near;
                     strformat.LineAlignment = StringAlignment.Center;
                     e.Graphics.DrawString(rangeMin.ToString(), fontMark, brushMark, tickyoff1 + TickHeight + 2, PosL, strformat);
+                    
                 }
 
                 if (MoveRMark)
@@ -831,6 +836,7 @@ namespace SSASDiag
 
         public event RangeChangedEventHandler RangeChanged; // event handler for range changed
         public event RangeChangedEventHandler RangeChanging; // event handler for range is changing
+        public event RangeSliderMovingEventHandler RangeSliderMoving;
 
         public virtual void OnRangeChanged(EventArgs e)
         {
