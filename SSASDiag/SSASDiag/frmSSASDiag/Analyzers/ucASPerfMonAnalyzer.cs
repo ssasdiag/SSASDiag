@@ -216,7 +216,8 @@ namespace SSASDiag
                 {
                     cmbServers.SelectedIndex = 0;
                     splitAnalysis.Visible = true;
-                    btnHideFileDetails_Click(null, null);
+                    if (!splitLogList.Panel2Collapsed)
+                        btnHideFileDetails_Click(null, null);
                 }
             }
             catch (Exception e)

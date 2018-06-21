@@ -28,6 +28,8 @@ namespace SSASDiag
         {
             if (tcCollectionAnalysisTabs.SelectedIndex == 1 && tbAnalysis.Enabled)
             {
+                if (this.Width < 770)
+                    this.Width = 770;
                 if (ProfilerTraceAnalysisQueries == null)
                 {
                     ProfilerTraceAnalysisQueries = InitializeProfilerTraceAnalysisQueries();
