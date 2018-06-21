@@ -575,6 +575,7 @@ namespace SSASDiag
                         DataRow[] rows = Counters.Select("", "objectname, instancepath, instanceindex, countername");
 
                         int i = 0;
+                        InstancePath = "";
                         while (i < rows.Count())
                         {
                             if (InstancePath != rows[i]["InstancePath"] as string || rows[i]["InstancePath"] as string == "")
@@ -585,6 +586,7 @@ namespace SSASDiag
                                 {
                                     n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath, InstancePath);
                                     n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                    InstanceIndex = null;
                                     while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
                                     {
                                         if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
@@ -695,7 +697,14 @@ namespace SSASDiag
                     s.BorderWidth = 1;
                 txtAvg.Text = txtMin.Text = txtMax.Text = "";
                 chartPerfMon.Series[e.Node.FullPath].BorderWidth = 4;
-                SqlDataReader dr = new SqlCommand("select avg(countervalue), max(countervalue), min(countervalue) from CounterData where CounterID = " + (e.Node.Tag as string).Split(',')[0], connDB).ExecuteReader();
+                SqlDataReader dr = new SqlCommand(@"select avg(countervalue), max(countervalue), min(countervalue) from CounterData where CounterID in
+                    (
+                                    select bb.CounterID from (select * from CounterDetails where CounterID = " + (e.Node.Tag as string).Split(',')[0] + @") aa, CounterDetails bb where 
+                                        bb.CounterName = aa.CounterName and 
+	                                    (bb.InstanceName = aa.InstanceName or (bb.InstanceName is null and aa.InstanceName is null)) and 
+	                                    (bb.InstanceIndex = aa.InstanceIndex or (bb.InstanceIndex is null and aa.InstanceIndex is null)) and 
+	                                    (bb.ParentName = aa.ParentName or (bb.ParentName is null and aa.ParentName is null)) 
+	                                    )", connDB).ExecuteReader();
                 dr.Read();
                 txtAvg.Text = (dr[0] as double?).Value.ToString();
                 txtMin.Text = (dr[2] as double?).Value.ToString();
@@ -713,9 +722,10 @@ namespace SSASDiag
                 tvCounters.Nodes.Add(dr["ObjectName"] as string, dr["ObjectName"] as string);
             dr.Close();
 
+
             Counters.Clear();
-            Counters.Load(new SqlCommand(@" select
-                                            CounterID, ObjectName, CounterName, DefaultScale,
+            string qry = @" select
+                                            max(CounterID) CounterID, ObjectName, CounterName, DefaultScale,
                                             case 
 
                                                 when ParentName is null then
@@ -726,7 +736,9 @@ namespace SSASDiag
                                                     concat(ParentName, case when InstanceIndex is not null then concat(' (', InstanceIndex, ')') end)
                                             end InstancePath,
                                             convert(int, case when ParentName is not null and ParentName <> InstanceName then InstanceName end) InstanceIndex
-                                            from counterdetails where MachineName = '" + cmbServers.SelectedItem + "'",
+                                            from counterdetails where MachineName = '" + cmbServers.SelectedItem + @"'
+                                            group by ObjectName, CounterName, DefaultScale, ParentName, InstanceName, InstanceIndex";
+            Counters.Load(new SqlCommand(qry,
                                             connDB).ExecuteReader());
             dr = new SqlCommand(@"  select 
                                     format(convert(int,format(a.intervaloffset, 'dd')) - 1, '00') + 
@@ -771,7 +783,14 @@ namespace SSASDiag
                         s.XValueType = ChartValueType.DateTime;
                         s.LegendText = e.Node.FullPath;
                         // Not ideal but Tag contains "CounterID,DefaultScale"...  I will update to pull scale in the query instead in the future.
-                        string qry = @" select a.*, b.MinutesToUTC from CounterData a, DisplayToID b where a.GUID = b.GUID and CounterID = " + (e.Node.Tag as string).Split(',')[0] + @" and
+                        string qry = @" select a.*, b.MinutesToUTC from CounterData a, DisplayToID b where a.GUID = b.GUID and CounterID in 
+                                    (
+                                    select bb.CounterID from (select * from CounterDetails where CounterID = " + (e.Node.Tag as string).Split(',')[0] + @") aa, CounterDetails bb where 
+                                        bb.CounterName = aa.CounterName and 
+	                                    (bb.InstanceName = aa.InstanceName or (bb.InstanceName is null and aa.InstanceName is null)) and 
+	                                    (bb.InstanceIndex = aa.InstanceIndex or (bb.InstanceIndex is null and aa.InstanceIndex is null)) and 
+	                                    (bb.ParentName = aa.ParentName or (bb.ParentName is null and aa.ParentName is null)) 
+	                                    ) and
                                     dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) >= convert(datetime, '" + trTimeRange.RangeMinimum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121) and
                                     dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.RangeMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
                                     order by CounterDateTime asc";
