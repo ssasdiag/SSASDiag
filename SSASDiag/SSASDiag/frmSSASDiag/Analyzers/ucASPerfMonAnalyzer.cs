@@ -97,6 +97,7 @@ namespace SSASDiag
             tvCounters.AfterSelect += TvCounters_AfterSelect;
             splitPerfMonCountersAndChart.Panel1.Controls.Add(tvCounters);
 
+            splitHideFilesButton.SplitterDistance = 15;
             dgdGrouping.ColumnDisplayIndexChanged += DgdGrouping_ColumnDisplayIndexChanged;
             cmbServers.SelectedIndexChanged += cmbServers_SelectedIndexChanged;
 
@@ -217,7 +218,7 @@ namespace SSASDiag
                     cmbServers.SelectedIndex = 0;
                     splitAnalysis.Visible = true;
                     if (!splitLogList.Panel2Collapsed)
-                        btnHideFileDetails_Click(null, null);
+                        tableLayoutPanel1_Click(null, null);
                 }
             }
             catch (Exception e)
@@ -474,7 +475,7 @@ namespace SSASDiag
                                 splitAnalysis.Visible = true;
                                 cmbServers.SelectedIndex = 0;
                                 if (!splitLogList.Panel1Collapsed)
-                                    btnHideFileDetails_Click(null, null);
+                                    tableLayoutPanel1_Click(null, null);
                             }
                         }));
                     }
@@ -827,27 +828,39 @@ namespace SSASDiag
             ucASPerfMonAnalyzer_SizeChanged(sender, e);
         }
 
-        private void btnHideFileDetails_Click(object sender, EventArgs e)
+        private void tableLayoutPanel1_MouseMove(object sender, MouseEventArgs e)
+        {
+            tableLayoutPanel1.BackColor = SystemColors.ControlLight;
+        }
+
+        private void tableLayoutPanel1_MouseLeave(object sender, EventArgs e)
+        {
+            tableLayoutPanel1.BackColor = SystemColors.Control;
+        }
+
+        private void tableLayoutPanel1_MouseHover(object sender, EventArgs e)
+        {
+            if (lblHideFilesButton.Text == "≪")
+                tooltip.Show("Hide log file details", Program.MainForm, System.Windows.Forms.Cursor.Position.X - Program.MainForm.Left + 5, System.Windows.Forms.Cursor.Position.Y - 18 - Program.MainForm.Top, 1000);
+            else
+                tooltip.Show("Show log file details", Program.MainForm, System.Windows.Forms.Cursor.Position.X - Program.MainForm.Left + 5, System.Windows.Forms.Cursor.Position.Y - 18 - Program.MainForm.Top, 1000);
+
+        }
+
+        private void tableLayoutPanel1_Click(object sender, EventArgs e)
         {
             tooltip.Hide(Program.MainForm);
-            if (btnHideFileDetails.Text == "≪")
+            if (lblHideFilesButton.Text == "≪")
             {
-                btnHideFileDetails.Text = "≫";
+                lblHideFilesButton.Text = "≫";
                 splitLogList.Panel1Collapsed = true;
             }
             else
             {
-                btnHideFileDetails.Text = "≪";
+                lblHideFilesButton.Text = "≪";
                 splitLogList.Panel1Collapsed = false;
             }
-        }
 
-        private void btnHideFileDetails_MouseHover(object sender, EventArgs e)
-        {
-            if (btnHideFileDetails.Text == "≪")
-                tooltip.Show("Hide log file details", Program.MainForm, System.Windows.Forms.Cursor.Position.X - Program.MainForm.Left + 5, System.Windows.Forms.Cursor.Position.Y - 18 - Program.MainForm.Top, 1000);
-            else
-                tooltip.Show("Show log file details", Program.MainForm, System.Windows.Forms.Cursor.Position.X - Program.MainForm.Left + 5, System.Windows.Forms.Cursor.Position.Y - 18 - Program.MainForm.Top, 1000);
         }
 
         private void dgdLogList_SelectionChanged(object sender, EventArgs e)
