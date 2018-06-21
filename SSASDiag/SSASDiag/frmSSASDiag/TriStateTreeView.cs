@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -25,8 +26,8 @@ namespace SSASDiag
 
         #region Selected Node(s) Properties
 
-        private List<TreeNode> m_SelectedNodes = null;
-        public List<TreeNode> SelectedNodes
+        private ObservableCollection<TreeNode> m_SelectedNodes = null;
+        public ObservableCollection<TreeNode> SelectedNodes
         {
             get
             {
@@ -39,7 +40,7 @@ namespace SSASDiag
                 {
                     foreach (TreeNode node in value)
                     {
-                        ToggleNode(node, true);
+                        SelectNode(node);
                     }
                 }
             }
@@ -64,7 +65,8 @@ namespace SSASDiag
 
         public TriStateTreeView() : base()
         {
-            m_SelectedNodes = new List<TreeNode>();
+            m_SelectedNodes = new ObservableCollection<TreeNode>();
+            m_SelectedNodes.CollectionChanged += M_SelectedNodes_CollectionChanged;
             base.SelectedNode = null;
             StateImageList = new System.Windows.Forms.ImageList();
             for (int i = 0; i < 3; i++)
@@ -87,6 +89,24 @@ namespace SSASDiag
 
                 StateImageList.Images.Add(bmp);
             }
+            
+        }
+
+        private void M_SelectedNodes_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+                foreach (TreeNode n in e.NewItems)
+                    ToggleNode(n, true);
+            else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
+                foreach (TreeNode n in e.OldItems)
+                    ToggleNode(n, false);
+            else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+                foreach (TreeNode n in Nodes)
+                {
+                    ToggleNode(n, false);
+                    foreach (TreeNode nn in GetNodeBranch(n))
+                        ToggleNode(nn, false);
+                }   
         }
 
         #region Overridden Events
@@ -103,15 +123,16 @@ namespace SSASDiag
 
         protected override void OnGotFocus(EventArgs e)
         {
+            // NOT
             // Make sure at least one node has a selection
             // this way we can tab to the ctrl and use the 
             // keyboard to select nodes
             try
             {
-                if (m_SelectedNode == null && this.TopNode != null)
-                {
-                    ToggleNode(this.TopNode, true);
-                }
+                //if (m_SelectedNode == null && this.TopNode != null)
+                //{
+                //    ToggleNode(this.TopNode, true);
+                //}
 
                 base.OnGotFocus(e);
             }
@@ -485,6 +506,15 @@ namespace SSASDiag
             return bFound;
         }
 
+        private IEnumerable<TreeNode> GetNodeBranch(TreeNode node)
+        {
+            yield return node;
+
+            foreach (TreeNode child in node.Nodes)
+                foreach (var childChild in GetNodeBranch(child))
+                    yield return childChild;
+        }
+
         public List<TreeNode> GetCheckedLeafNodes()
         {
             return GetCheckedLeafNodes(this.Nodes);
@@ -726,7 +756,7 @@ namespace SSASDiag
             }
         }
 
-        private void ClearSelectedNodes()
+        public void ClearSelectedNodes()
         {
             try
             {

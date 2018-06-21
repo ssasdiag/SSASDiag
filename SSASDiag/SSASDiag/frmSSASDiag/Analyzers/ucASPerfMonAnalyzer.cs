@@ -698,6 +698,18 @@ namespace SSASDiag
             }
         }
 
+        private void HighlightSeriesFromSelection()
+        {
+            foreach (Series s in chartPerfMon.Series)
+            {
+                TreeNode nSeriesNode = tvCounters.SelectedNodes.ToList().Find(node => node.FullPath == s.Name);
+                if (nSeriesNode != null)
+                    s.BorderWidth = 4;
+                else
+                    s.BorderWidth = 1;
+            }
+        }
+
         string CurrentSeriesUnderMouse = "";
         private void ChartPerfMon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
         {
@@ -707,21 +719,38 @@ namespace SSASDiag
                 foreach (var result in results)
                 {
                     var LegendItem = result.Object as LegendItem;
-                    CurrentSeriesUnderMouse = LegendItem.SeriesName;
+                    if (LegendItem != null)
+                        CurrentSeriesUnderMouse = LegendItem.SeriesName;
+                    else
+                    {
+                        if (ModifierKeys != Keys.Control && ModifierKeys != Keys.Shift)
+                        {
+                            tvCounters.SelectedNodes.Clear();
+                            CurrentSeriesUnderMouse = "";
+                            HighlightSeriesFromSelection();
+                        }
+                    }
                     break;
                 }
             }
             if (CurrentSeriesUnderMouse != "")
             {
-                foreach (Series s in chartPerfMon.Series)
-                    s.BorderWidth = 1;
                 Series sr = chartPerfMon.Series[CurrentSeriesUnderMouse];
-                sr.BorderWidth = 4;
                 string[] NodeList = sr.LegendText.Split('\\');
                 TreeNode n = tvCounters.Nodes[NodeList[0]];
                 for (int i = 1; i < NodeList.Length; i++)
                     n = n.Nodes[NodeList[i]];
-                tvCounters.SelectedNode = n;
+                if (ModifierKeys == Keys.Control || ModifierKeys == Keys.Shift)
+                {
+                    if (!tvCounters.SelectedNodes.Contains(n))
+                        tvCounters.SelectedNodes.Add(n);
+                    else
+                        tvCounters.SelectedNodes.Remove(n);
+                }
+                else
+                    tvCounters.SelectedNode = n;
+                
+                TvCounters_AfterSelect(sender, new TreeViewEventArgs(n));
             }
             CurrentSeriesUnderMouse = "";
         }
@@ -731,14 +760,7 @@ namespace SSASDiag
             {
                 chartPerfMon.SuspendLayout();
 
-                foreach (Series s in chartPerfMon.Series)
-                {
-                    TreeNode nSeriesNode = tvCounters.SelectedNodes.Find(n => n.FullPath == s.Name);
-                    if (nSeriesNode != null)
-                        chartPerfMon.Series[e.Node.FullPath].BorderWidth = 4;
-                    else
-                        s.BorderWidth = 1;
-                }
+                HighlightSeriesFromSelection();
 
                 if (tvCounters.SelectedNodes.Count == 1)
                 {
@@ -770,8 +792,6 @@ namespace SSASDiag
             while (dr.Read())
                 tvCounters.Nodes.Add(dr["ObjectName"] as string, dr["ObjectName"] as string);
             dr.Close();
-
-
             Counters.Clear();
             string qry = @" select
                                             max(CounterID) CounterID, ObjectName, CounterName, DefaultScale,
@@ -847,7 +867,7 @@ namespace SSASDiag
                         while (dr.Read())
                             s.Points.AddXY(DateTime.Parse((dr["CounterDateTime"] as string).Trim('\0')).AddMinutes((dr["MinutesToUTC"] as int?).Value), (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
                         dr.Close();
-                        TreeNode node = tvCounters.SelectedNodes.Find(n => n.FullPath == s.Name);
+                        TreeNode node = tvCounters.SelectedNodes.ToList().Find(n => n.FullPath == s.Name);
                         if (node != null)
                             s.BorderWidth = 4;
                         chartPerfMon.Invoke(new System.Action(() => chartPerfMon.Series.Add(s)));
