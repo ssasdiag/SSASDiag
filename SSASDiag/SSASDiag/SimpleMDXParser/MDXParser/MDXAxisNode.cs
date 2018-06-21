@@ -88,15 +88,15 @@
             }
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add(string.Format("Axis({0})", this.m_Name));
+            MDXTreeNode node = Nodes.Add(string.Format("Axis({0})", this.m_Name));
             node.Tag = this.m_Exp;
             node.ImageKey = node.SelectedImageKey = "NamedSet.ico";
             this.m_Exp.FillParseTree(node.Nodes);
             if (this.m_Having != null)
             {
-                TreeNode node2 = node.Nodes.Add("HAVING");
+                MDXTreeNode node2 = node.Nodes.Add("HAVING");
                 node2.Tag = this.m_Having;
                 node2.ImageKey = node2.SelectedImageKey = "MeasureCalculated.ico";
                 this.m_Having.FillParseTree(node2.Nodes);

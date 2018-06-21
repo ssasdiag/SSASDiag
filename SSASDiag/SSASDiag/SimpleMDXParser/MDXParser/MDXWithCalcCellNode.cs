@@ -23,9 +23,9 @@
             base.Exp.AppendMDX(mdx, f, f.Indent(f.Indent(indent)));
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add(base.GetJustName());
+            MDXTreeNode node = Nodes.Add(base.GetJustName());
             node.Tag = this;
             node.ImageKey = node.SelectedImageKey = "Script.ico";
         }

@@ -41,7 +41,7 @@
             }
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
             foreach (T local in this.m_List)
             {

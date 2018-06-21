@@ -37,12 +37,12 @@
             mdx.AppendFormat("{0} {1}", f.Keyword("THEN"), this.m_Then.GetMDX(f, f.Indent(indent)));
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add("WHEN");
+            MDXTreeNode node = Nodes.Add("WHEN");
             node.Tag = this;
             this.m_When.FillParseTree(node.Nodes);
-            TreeNode node2 = node.Nodes.Add("THEN");
+            MDXTreeNode node2 = node.Nodes.Add("THEN");
             node2.Tag = this.m_Then;
             this.m_Then.FillParseTree(node2.Nodes);
         }

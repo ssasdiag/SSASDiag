@@ -49,9 +49,9 @@
             mdx.Append(f.CloseBrace());
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = this.AddParseNode(Nodes);
+            MDXTreeNode node = this.AddParseNode(Nodes);
             if (this.m_List != null)
             {
                 foreach (object obj2 in this.m_List)

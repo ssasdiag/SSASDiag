@@ -64,13 +64,13 @@
             }
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = this.AddParseNode(Nodes);
+            MDXTreeNode node = this.AddParseNode(Nodes);
             this.m_WhenList.FillParseTree(node.Nodes);
             if (this.m_Else != null)
             {
-                TreeNode node2 = node.Nodes.Add("ELSE");
+                MDXTreeNode node2 = node.Nodes.Add("ELSE");
                 node2.Tag = this.m_Else;
                 this.m_Else.FillParseTree(node2.Nodes);
             }

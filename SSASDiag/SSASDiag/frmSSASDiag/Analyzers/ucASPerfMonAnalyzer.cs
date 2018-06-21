@@ -252,7 +252,7 @@ namespace SSASDiag
         {
             stripLine.StripWidth = 0;
             chartPerfMon.Series.Clear();
-            foreach (System.Windows.Forms.TreeNode n in tvCounters.GetCheckedLeafNodes())
+            foreach (TreeNode n in tvCounters.GetCheckedLeafNodes())
                 TvCounters_AfterCheck(sender, new TreeViewEventArgs(n));
         }
 
@@ -523,17 +523,17 @@ namespace SSASDiag
             if (e.Column.DisplayIndex == 0)
             {
                 tvCounters.SuspendLayout();
-                List<System.Windows.Forms.TreeNode> nodes = tvCounters.GetCheckedLeafNodes();
-                List<System.Windows.Forms.TreeNode> clonedOldNodes = nodes.Select(
+                List<TreeNode> nodes = tvCounters.GetCheckedLeafNodes();
+                List<TreeNode> clonedOldNodes = nodes.Select(
                     x =>
                     {
-                        System.Windows.Forms.TreeNode n = x.Clone() as System.Windows.Forms.TreeNode;
+                        TreeNode n = x.Clone() as TreeNode;
                         n.Tag = x.FullPath;
                         return n;
                     }
                     ).ToList();
 
-                foreach (System.Windows.Forms.TreeNode n in tvCounters.Nodes)
+                foreach (TreeNode n in tvCounters.Nodes)
                 {
                     n.Nodes.Clear();
                     n.Checked = false;
@@ -559,7 +559,7 @@ namespace SSASDiag
                                 if (CounterName != rows[i]["CounterName"] as string)
                                 {
                                     CounterName = rows[i]["CounterName"] as string;
-                                    System.Windows.Forms.TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName);
+                                    TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName);
                                     n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                     InstancePath = "";
                                     while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
@@ -567,7 +567,7 @@ namespace SSASDiag
                                         if (rows[i]["InstancePath"] as string != null && InstancePath != rows[i]["InstancePath"] as string)
                                         {
                                             InstancePath = rows[i]["InstancePath"] as string;
-                                            System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstancePath, InstancePath);
+                                            TreeNode nn = n.Nodes.Add(InstancePath, InstancePath);
                                             nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
                                             InstanceIndex = null;
                                             while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
@@ -601,7 +601,7 @@ namespace SSASDiag
                                 if (InstancePath != rows[i]["InstancePath"] as string || rows[i]["InstancePath"] as string == "")
                                 {
                                     InstancePath = rows[i]["InstancePath"] as string;
-                                    System.Windows.Forms.TreeNode n = null;
+                                    TreeNode n = null;
                                     if (InstancePath != "")
                                     {
                                         n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath, InstancePath);
@@ -612,7 +612,7 @@ namespace SSASDiag
                                             if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
                                             {
                                                 InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                                System.Windows.Forms.TreeNode nn = n.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString());
+                                                TreeNode nn = n.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString());
                                                 while (i < rows.Count() && rows[i]["InstanceIndex"] as int? == InstanceIndex)
                                                 {
                                                     CounterName = rows[i]["CounterName"] as string;
@@ -646,10 +646,10 @@ namespace SSASDiag
                     }
                     tvCounters.AfterCheck -= TvCounters_AfterCheck;
                     tvCounters.AfterSelect -= TvCounters_AfterSelect;
-                    foreach (System.Windows.Forms.TreeNode n in clonedOldNodes)
+                    foreach (TreeNode n in clonedOldNodes)
                     {
                         string[] levels = (n.Tag as string).Split('\\');
-                        System.Windows.Forms.TreeNode tmpnode = tvCounters.Nodes[levels[0]].Nodes[levels[levels.Length - 1]];
+                        TreeNode tmpnode = tvCounters.Nodes[levels[0]].Nodes[levels[levels.Length - 1]];
                         for (int i = levels.Length - 2; i > 0; i--)
                             tmpnode = tmpnode.Nodes[levels[i]];
                         tmpnode.Checked = true;
@@ -718,7 +718,7 @@ namespace SSASDiag
                 Series sr = chartPerfMon.Series[CurrentSeriesUnderMouse];
                 sr.BorderWidth = 4;
                 string[] NodeList = sr.LegendText.Split('\\');
-                System.Windows.Forms.TreeNode n = tvCounters.Nodes[NodeList[0]];
+                TreeNode n = tvCounters.Nodes[NodeList[0]];
                 for (int i = 1; i < NodeList.Length; i++)
                     n = n.Nodes[NodeList[i]];
                 tvCounters.SelectedNode = n;
@@ -727,28 +727,41 @@ namespace SSASDiag
         }
         private void TvCounters_AfterSelect(object sender, System.Windows.Forms.TreeViewEventArgs e)
         {
-            if (e.Node.Nodes.Count == 0 && e.Node.Checked)
+            if (e.Node.Nodes.Count == 0)
             {
+                chartPerfMon.SuspendLayout();
+
                 foreach (Series s in chartPerfMon.Series)
-                    s.BorderWidth = 1;
-                txtAvg.Text = txtMin.Text = txtMax.Text = "";
-                chartPerfMon.Series[e.Node.FullPath].BorderWidth = 4;
-                SqlDataReader dr = new SqlCommand(@"select avg(countervalue), max(countervalue), min(countervalue) from CounterData where CounterID in
-                    (
-                                    select bb.CounterID from (select * from CounterDetails where CounterID = " + (e.Node.Tag as string).Split(',')[0] + @") aa, CounterDetails bb where 
-                                        bb.CounterName = aa.CounterName and 
-	                                    (bb.InstanceName = aa.InstanceName or (bb.InstanceName is null and aa.InstanceName is null)) and 
-	                                    (bb.InstanceIndex = aa.InstanceIndex or (bb.InstanceIndex is null and aa.InstanceIndex is null)) and 
-	                                    (bb.ParentName = aa.ParentName or (bb.ParentName is null and aa.ParentName is null)) 
-	                                    )", connDB).ExecuteReader();
-                dr.Read();
-                txtAvg.Text = (dr[0] as double?).Value.ToString();
-                txtMin.Text = (dr[2] as double?).Value.ToString();
-                txtMax.Text = (dr[1] as double?).Value.ToString();
-                dr.Close();
+                {
+                    TreeNode nSeriesNode = tvCounters.SelectedNodes.Find(n => n.FullPath == s.Name);
+                    if (nSeriesNode != null)
+                        chartPerfMon.Series[e.Node.FullPath].BorderWidth = 4;
+                    else
+                        s.BorderWidth = 1;
+                }
+
+                if (tvCounters.SelectedNodes.Count == 1)
+                {
+                    SqlDataReader dr = new SqlCommand(@"select avg(countervalue), max(countervalue), min(countervalue) from CounterData where CounterID in
+                (
+                                select bb.CounterID from (select * from CounterDetails where CounterID = " + (e.Node.Tag as string).Split(',')[0] + @") aa, CounterDetails bb where 
+                                    bb.CounterName = aa.CounterName and 
+	                                (bb.InstanceName = aa.InstanceName or (bb.InstanceName is null and aa.InstanceName is null)) and 
+	                                (bb.InstanceIndex = aa.InstanceIndex or (bb.InstanceIndex is null and aa.InstanceIndex is null)) and 
+	                                (bb.ParentName = aa.ParentName or (bb.ParentName is null and aa.ParentName is null)) 
+	                                )", connDB).ExecuteReader();
+                    dr.Read();
+                    txtAvg.Text = (dr[0] as double?).Value.ToString();
+                    txtMin.Text = (dr[2] as double?).Value.ToString();
+                    txtMax.Text = (dr[1] as double?).Value.ToString();
+                    dr.Close();
+                }
+                else
+                    txtAvg.Text = txtMin.Text = txtMax.Text = "--";
+
+                chartPerfMon.ResumeLayout();
             }
         }
-
 
         private void cmbServers_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -834,6 +847,9 @@ namespace SSASDiag
                         while (dr.Read())
                             s.Points.AddXY(DateTime.Parse((dr["CounterDateTime"] as string).Trim('\0')).AddMinutes((dr["MinutesToUTC"] as int?).Value), (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
                         dr.Close();
+                        TreeNode node = tvCounters.SelectedNodes.Find(n => n.FullPath == s.Name);
+                        if (node != null)
+                            s.BorderWidth = 4;
                         chartPerfMon.Invoke(new System.Action(() => chartPerfMon.Series.Add(s)));
                     }
                 }

@@ -18,9 +18,9 @@
             this.m_Exp.AppendMDX(mdx, f, indent, comma);
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add("WHERE");
+            MDXTreeNode node = Nodes.Add("WHERE");
             node.ImageKey = node.SelectedImageKey = "Level2.ico";
             this.m_Exp.FillParseTree(node.Nodes);
         }

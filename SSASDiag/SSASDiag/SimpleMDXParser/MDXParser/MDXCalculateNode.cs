@@ -11,9 +11,9 @@
             mdx.Append(f.Keyword("CALCULATE"));
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add("CALCULATE");
+            MDXTreeNode node = Nodes.Add("CALCULATE");
             node.ImageKey = node.SelectedImageKey = "Script.ico";
         }
     }

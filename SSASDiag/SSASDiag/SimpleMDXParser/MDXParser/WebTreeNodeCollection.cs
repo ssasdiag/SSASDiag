@@ -3,7 +3,7 @@
     using System;
     using System.Web.UI.WebControls;
 
-    public class WebTreeNodeCollection : TreeNodeCollection
+    public class WebTreeNodeCollection : MDXTreeNodeCollection
     {
         private System.Web.UI.WebControls.TreeNodeCollection m_Nodes;
 
@@ -12,7 +12,7 @@
             this.m_Nodes = nodes;
         }
 
-        public override TreeNode Add(string label)
+        public override MDXTreeNode Add(string label)
         {
             System.Web.UI.WebControls.TreeNode child = new System.Web.UI.WebControls.TreeNode(label);
             this.m_Nodes.Add(child);

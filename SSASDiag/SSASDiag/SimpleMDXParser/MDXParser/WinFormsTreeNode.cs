@@ -3,7 +3,7 @@
     using System;
     using System.Windows.Forms;
 
-    public class WinFormsTreeNode : TreeNode
+    public class WinFormsTreeNode : MDXTreeNode
     {
         private System.Windows.Forms.TreeNode m_Node;
 
@@ -24,7 +24,7 @@
             }
         }
 
-        public override TreeNodeCollection Nodes
+        public override MDXTreeNodeCollection Nodes
         {
             get
             {
@@ -32,7 +32,7 @@
             }
         }
 
-        public override TreeNode Parent
+        public override MDXTreeNode Parent
         {
             get
             {

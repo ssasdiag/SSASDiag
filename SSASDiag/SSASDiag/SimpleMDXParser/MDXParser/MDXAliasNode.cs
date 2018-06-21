@@ -37,7 +37,7 @@
             mdx.AppendFormat(" {0} {1}", f.Keyword("AS"), this.m_Alias);
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
             this.m_Exp.FillParseTree(Nodes);
         }

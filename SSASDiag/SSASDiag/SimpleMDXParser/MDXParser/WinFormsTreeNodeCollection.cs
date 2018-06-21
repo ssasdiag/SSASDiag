@@ -3,7 +3,7 @@
     using System;
     using System.Windows.Forms;
 
-    public class WinFormsTreeNodeCollection : TreeNodeCollection
+    public class WinFormsTreeNodeCollection : MDXTreeNodeCollection
     {
         private System.Windows.Forms.TreeNodeCollection m_Nodes;
 
@@ -12,7 +12,7 @@
             this.m_Nodes = nodes;
         }
 
-        public override TreeNode Add(string label)
+        public override MDXTreeNode Add(string label)
         {
             return new WinFormsTreeNode(this.m_Nodes.Add(label));
         }

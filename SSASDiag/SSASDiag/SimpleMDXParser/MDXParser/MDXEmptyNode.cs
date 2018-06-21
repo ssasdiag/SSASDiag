@@ -9,9 +9,9 @@
         {
         }
 
-        internal override TreeNode AddParseNode(TreeNodeCollection Nodes)
+        internal override MDXTreeNode AddParseNode(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add(this.GetLabel());
+            MDXTreeNode node = Nodes.Add(this.GetLabel());
             node.ImageKey = node.SelectedImageKey = "Clear.ico";
             return node;
         }

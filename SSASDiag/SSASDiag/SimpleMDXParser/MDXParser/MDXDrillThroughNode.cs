@@ -27,9 +27,9 @@
             }
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add("DRILLTHROUGH");
+            MDXTreeNode node = Nodes.Add("DRILLTHROUGH");
             node.Tag = this;
             node.ImageKey = node.SelectedImageKey = "MDXQuery.ico";
             this.m_Select.FillParseTree(node.Nodes);

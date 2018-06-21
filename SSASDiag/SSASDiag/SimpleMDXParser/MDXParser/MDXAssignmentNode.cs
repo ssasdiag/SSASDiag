@@ -98,9 +98,9 @@
             this.m_RValue.AppendMDX(mdx, f, f.Indent(num));
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add("=");
+            MDXTreeNode node = Nodes.Add("=");
             node.Tag = this;
             node.ImageKey = node.SelectedImageKey = "Script.ico";
             string label = "Value";
@@ -108,7 +108,7 @@
             {
                 label = this.m_Prop;
             }
-            TreeNode node2 = node.Nodes.Add(label);
+            MDXTreeNode node2 = node.Nodes.Add(label);
             node2.Tag = this.m_LValue;
             node2.ImageKey = node2.SelectedImageKey = "CellCalculation.ico";
             this.m_LValue.FillParseTree(node2.Nodes);

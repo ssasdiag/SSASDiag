@@ -11,7 +11,7 @@
             mdx.Append(f.Keyword("END SCOPE"));
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
             throw new Exception("The method or operation is not implemented.");
         }

@@ -41,12 +41,12 @@
             this.m_EndScope.AppendMDX(mdx, f, indent);
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add("SCOPE");
+            MDXTreeNode node = Nodes.Add("SCOPE");
             node.Tag = this;
             node.ImageKey = node.SelectedImageKey = "Scope.ico";
-            TreeNode node2 = node.Nodes.Add("Subcube");
+            MDXTreeNode node2 = node.Nodes.Add("Subcube");
             node2.Tag = this.m_Scope;
             node2.ImageKey = node2.SelectedImageKey = "CellCalculation.ico";
             this.m_Scope.FillParseTree(node2.Nodes);

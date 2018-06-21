@@ -17,9 +17,9 @@
             mdx.Append(f.Highlight(this.m_Param));
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add(this.GetLabel());
+            MDXTreeNode node = Nodes.Add(this.GetLabel());
             node.Tag = this;
             node.ImageKey = node.SelectedImageKey = "FolderClosed.ico";
         }

@@ -20,7 +20,7 @@
             mdx.AppendFormat("{0} = {1} ", this.m_PropName, this.m_PropExp.GetMDX(f, indent));
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
         }
 

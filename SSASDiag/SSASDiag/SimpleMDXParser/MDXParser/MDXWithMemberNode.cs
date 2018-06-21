@@ -54,9 +54,9 @@
             }
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add(base.GetCMName());
+            MDXTreeNode node = Nodes.Add(base.GetCMName());
             node.Tag = this;
             node.ImageKey = node.SelectedImageKey = "MeasureCalculated.ico";
             base.Exp.FillParseTree(node.Nodes);
@@ -64,7 +64,7 @@
             {
                 foreach (MDXCalcPropNode node2 in base.CalcProps)
                 {
-                    TreeNode node3 = node.Nodes.Add(node2.PropertyName);
+                    MDXTreeNode node3 = node.Nodes.Add(node2.PropertyName);
                     node3.ImageKey = node3.SelectedImageKey = "FolderClosed.ico";
                     node3.Tag = node2;
                     node2.PropertyExp.FillParseTree(node3.Nodes);

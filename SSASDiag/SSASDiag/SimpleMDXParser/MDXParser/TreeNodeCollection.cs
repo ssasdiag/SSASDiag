@@ -2,13 +2,13 @@
 {
     using System;
 
-    public abstract class TreeNodeCollection
+    public abstract class MDXTreeNodeCollection
     {
-        protected TreeNodeCollection()
+        protected MDXTreeNodeCollection()
         {
         }
 
-        public abstract TreeNode Add(string label);
+        public abstract MDXTreeNode Add(string label);
     }
 }
 

@@ -97,29 +97,29 @@
             }
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add("SELECT");
+            MDXTreeNode node = Nodes.Add("SELECT");
             node.Tag = this;
             node.ImageKey = node.SelectedImageKey = "MDXQuery.ico";
             if (this.m_Withs.Count > 0)
             {
-                TreeNode node2 = node.Nodes.Add("WITH");
+                MDXTreeNode node2 = node.Nodes.Add("WITH");
                 node2.ImageKey = node2.SelectedImageKey = "FolderClosed.ico";
                 this.m_Withs.FillParseTree(node2.Nodes);
             }
-            TreeNode node3 = node.Nodes.Add("Axes");
+            MDXTreeNode node3 = node.Nodes.Add("Axes");
             node3.ImageKey = node3.SelectedImageKey = "FolderClosed.ico";
             this.m_Axes.FillParseTree(node3.Nodes);
             if (this.m_Subselect != null)
             {
-                TreeNode node4 = node.Nodes.Add("FROM");
+                MDXTreeNode node4 = node.Nodes.Add("FROM");
                 node4.ImageKey = node4.SelectedImageKey = "CellCalculation.ico";
                 this.m_Subselect.FillParseTree(node4.Nodes);
             }
             if (this.m_Cube != null)
             {
-                TreeNode node5 = node.Nodes.Add(string.Format("FROM {0}", this.m_Cube));
+                MDXTreeNode node5 = node.Nodes.Add(string.Format("FROM {0}", this.m_Cube));
                 node5.ImageKey = node5.SelectedImageKey = "Cube.ico";
             }
             if (this.m_Where != null)
@@ -128,7 +128,7 @@
             }
             if (this.m_CellProps != null)
             {
-                TreeNode node6 = node.Nodes.Add("CELL PROPERTIES");
+                MDXTreeNode node6 = node.Nodes.Add("CELL PROPERTIES");
                 node6.ImageKey = node6.SelectedImageKey = "FolderClosed.ico";
                 this.m_CellProps.FillParseTree(node6.Nodes);
             }

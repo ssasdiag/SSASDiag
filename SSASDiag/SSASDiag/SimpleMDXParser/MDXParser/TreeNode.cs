@@ -2,17 +2,17 @@
 {
     using System;
 
-    public abstract class TreeNode
+    public abstract class MDXTreeNode
     {
-        protected TreeNode()
+        protected MDXTreeNode()
         {
         }
 
         public abstract string ImageKey { get; set; }
 
-        public abstract TreeNodeCollection Nodes { get; }
+        public abstract MDXTreeNodeCollection Nodes { get; }
 
-        public abstract TreeNode Parent { get; }
+        public abstract MDXTreeNode Parent { get; }
 
         public abstract string SelectedImageKey { get; set; }
 

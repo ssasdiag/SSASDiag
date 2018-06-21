@@ -180,9 +180,9 @@
             this.m_Exp2.BuildDependencyGraph(g, root);
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = this.AddParseNode(Nodes);
+            MDXTreeNode node = this.AddParseNode(Nodes);
             this.m_Exp1.FillParseTree(node.Nodes);
             this.m_Exp2.FillParseTree(node.Nodes);
         }

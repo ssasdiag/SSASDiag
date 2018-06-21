@@ -27,9 +27,9 @@
             this.m_Select.AppendMDX(mdx, f, f.Indent(indent));
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add("CREATE SUBCUBE");
+            MDXTreeNode node = Nodes.Add("CREATE SUBCUBE");
             this.m_Select.FillParseTree(node.Nodes);
         }
     }

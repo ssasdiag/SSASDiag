@@ -10,7 +10,7 @@
             throw new Exception("internal error: unrecognized node");
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
             throw new Exception("internal error: unrecognized node");
         }

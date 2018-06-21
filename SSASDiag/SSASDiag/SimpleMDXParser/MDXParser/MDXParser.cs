@@ -67,13 +67,13 @@
             this.m_SSParser.GetNode().FillParseTree(nodes);
             if (this.m_ParamParser.m_Params.Count > 0)
             {
-                TreeNode node = nodes.Add("Parameters");
+                MDXTreeNode node = nodes.Add("Parameters");
                 node.ImageKey = node.SelectedImageKey = "FolderClosed.ico";
                 foreach (MDXParameter parameter in this.m_ParamParser.m_Params)
                 {
-                    TreeNode node2 = node.Nodes.Add(parameter.m_Name);
+                    MDXTreeNode node2 = node.Nodes.Add(parameter.m_Name);
                     node2.ImageKey = node2.SelectedImageKey = "FolderClosed.ico";
-                    TreeNode node3 = node2.Nodes.Add(parameter.m_Value);
+                    MDXTreeNode node3 = node2.Nodes.Add(parameter.m_Value);
                     node3.ImageKey = node3.SelectedImageKey = "MeasureCalculated.ico";
                 }
             }

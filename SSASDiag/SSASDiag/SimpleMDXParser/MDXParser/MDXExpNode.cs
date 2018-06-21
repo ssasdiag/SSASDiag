@@ -12,9 +12,9 @@
         {
         }
 
-        internal virtual TreeNode AddParseNode(TreeNodeCollection Nodes)
+        internal virtual MDXTreeNode AddParseNode(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add(this.GetLabel());
+            MDXTreeNode node = Nodes.Add(this.GetLabel());
             node.Tag = this;
             switch (this.GetMDXType())
             {
@@ -54,7 +54,7 @@
             }
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
             this.AddParseNode(Nodes);
         }

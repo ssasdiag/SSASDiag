@@ -44,7 +44,7 @@
             }
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
             this.m_Withs.FillParseTree(Nodes);
         }

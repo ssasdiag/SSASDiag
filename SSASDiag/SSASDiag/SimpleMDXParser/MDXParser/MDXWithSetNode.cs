@@ -29,9 +29,9 @@
             mdx.AppendFormat("{0} {1} {2} {3} ", new object[] { f.Keyword("SET"), base.Name.GetMDX(f, -1), f.Keyword("AS"), base.Exp.GetMDX(f, f.Indent(indent)) });
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add(base.GetJustName());
+            MDXTreeNode node = Nodes.Add(base.GetJustName());
             node.Tag = this;
             node.ImageKey = node.SelectedImageKey = "NamedSet.ico";
             base.Exp.FillParseTree(node.Nodes);

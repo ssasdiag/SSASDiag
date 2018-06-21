@@ -43,9 +43,9 @@
             this.m_Set.AppendMDX(mdx, f, f.Indent(indent));
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = this.AddParseNode(Nodes);
+            MDXTreeNode node = this.AddParseNode(Nodes);
             this.m_Set.FillParseTree(node.Nodes);
         }
 

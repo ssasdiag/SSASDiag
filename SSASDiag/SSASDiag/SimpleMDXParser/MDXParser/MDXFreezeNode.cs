@@ -11,9 +11,9 @@
             mdx.Append(f.Keyword("FREEZE"));
         }
 
-        internal override void FillParseTree(TreeNodeCollection Nodes)
+        internal override void FillParseTree(MDXTreeNodeCollection Nodes)
         {
-            TreeNode node = Nodes.Add("FREEZE");
+            MDXTreeNode node = Nodes.Add("FREEZE");
             node.ImageKey = node.SelectedImageKey = "Script.ico";
         }
     }

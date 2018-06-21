@@ -72,7 +72,7 @@
             }
         }
 
-        internal abstract void FillParseTree(TreeNodeCollection Nodes);
+        internal abstract void FillParseTree(MDXTreeNodeCollection Nodes);
         internal virtual MDXConstruct GetConstruct()
         {
             return MDXConstruct.Unknown;
