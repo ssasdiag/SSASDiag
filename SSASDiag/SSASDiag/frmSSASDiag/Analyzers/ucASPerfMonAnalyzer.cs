@@ -653,6 +653,8 @@ namespace SSASDiag
                         for (int i = levels.Length - 2; i > 0; i--)
                             tmpnode = tmpnode.Nodes[levels[i]];
                         tmpnode.Checked = true;
+                        Series s = chartPerfMon.Series[n.Tag as string];
+                        s.Name = s.LegendText = tmpnode.FullPath;
                         if (n.IsSelected)
                             tvCounters.SelectedNode = n;
                         tmpnode.Collapse();
