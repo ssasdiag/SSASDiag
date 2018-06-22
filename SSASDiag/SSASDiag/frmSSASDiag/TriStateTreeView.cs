@@ -789,7 +789,7 @@ namespace SSASDiag
             if (levels.Length > 0)
             {
                 TreeNode n = Nodes[levels[0]];
-                for (int i = levels.Length - 2; i > 1; i++)
+                for (int i = 1; i < levels.Length; i++)
                 {
                     if (n.Nodes[levels[i]] != null)
                         n = n.Nodes[levels[i]];
@@ -842,5 +842,6 @@ namespace SSASDiag
 
         #endregion
 
+        
     }
 }
