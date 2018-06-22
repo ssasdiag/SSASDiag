@@ -288,6 +288,8 @@
     <None Include="Resources\Settings.png" />
     <None Include="Resources\help.png" />
     <None Include="Resources\helpimg.png" />
+    <None Include="Resources\minussign.png" />
+    <None Include="Resources\plussign.png" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

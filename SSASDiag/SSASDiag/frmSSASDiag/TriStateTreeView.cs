@@ -65,6 +65,7 @@ namespace SSASDiag
 
         public TriStateTreeView() : base()
         {
+            DrawMode = TreeViewDrawMode.OwnerDrawText;
             m_SelectedNodes = new ObservableCollection<TreeNode>();
             m_SelectedNodes.CollectionChanged += M_SelectedNodes_CollectionChanged;
             base.SelectedNode = null;
@@ -110,6 +111,38 @@ namespace SSASDiag
         }
 
         #region Overridden Events
+
+        protected override void OnDrawNode(DrawTreeNodeEventArgs e)
+        {
+            Rectangle bounds = e.Node.Bounds;
+            if (bounds.Top == 0 && bounds.Left == 0 && bounds.Height == 0 && bounds.Width == 0)
+                return;
+            e.DrawDefault = false;
+            try
+            {
+                SizeF textsize = e.Graphics.MeasureString(e.Node.Name, Font);
+                Brush brush = SystemBrushes.Window;
+                int rightBound = e.Node.Bounds.Width;
+                if (SelectedNodes.Contains(e.Node))
+                {
+                    brush = SystemBrushes.Highlight;
+                    rightBound = (int)Math.Round(textsize.Width, 0) + 4;
+                }
+                e.Graphics.FillRectangle(brush, 
+                    new Rectangle(
+                        e.Node.Bounds.Left - 2 - (e.Node.ImageIndex > 0 ? 0 : 16), 
+                        e.Node.Bounds.Top, 
+                        rightBound, 
+                        e.Node.Bounds.Bottom
+                        ));
+                e.Graphics.DrawString(e.Node.Name, Font, SystemBrushes.WindowText, e.Node.Bounds.Left - (e.Node.ImageIndex > 0 ? 0 : 16), e.Node.Bounds.Top + 1);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            //base.OnDrawNode(e);
+        }
 
         protected override void OnCreateControl()
         {
