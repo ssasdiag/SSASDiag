@@ -114,34 +114,33 @@ namespace SSASDiag
 
         protected override void OnDrawNode(DrawTreeNodeEventArgs e)
         {
-            Rectangle bounds = e.Node.Bounds;
-            if (bounds.Top == 0 && bounds.Left == 0 && bounds.Height == 0 && bounds.Width == 0)
-                return;
-            e.DrawDefault = false;
-            try
+            if (!bNoRedraw)
             {
-                SizeF textsize = e.Graphics.MeasureString(e.Node.Name, Font);
-                Brush brush = Brushes.White;
-                int rightWidth = e.Node.Bounds.Width + 18;
-                if (SelectedNodes.Contains(e.Node))
+                Rectangle bounds = e.Node.Bounds;
+                if (bounds.Top == 0 && bounds.Left == 0 && bounds.Height == 0 && bounds.Width == 0)
+                    return;
+                e.DrawDefault = false;
+                try
                 {
-                    brush = SystemBrushes.MenuHighlight;
-                    rightWidth = (int)Math.Round(textsize.Width, 0) + 4;
+                    SizeF textsize = e.Graphics.MeasureString(e.Node.Name, Font);
+                    Brush brush = SystemBrushes.Window;
+                    int rightWidth = e.Node.Bounds.Width + 18;
+                    if (SelectedNodes.Contains(e.Node))
+                    {
+                        brush = SystemBrushes.MenuHighlight;
+                        rightWidth = (int)Math.Round(textsize.Width, 0) + 4;
+                    }
+                    Rectangle selectRect = new Rectangle(e.Node.Bounds.Left - 2 - (e.Node.ImageIndex > 0 ? 0 : 16), e.Node.Bounds.Top - 2, rightWidth, e.Node.Bounds.Height);
+                    e.Graphics.FillRectangle(brush, selectRect);
+                    e.Graphics.DrawString(e.Node.Name, Font, SystemBrushes.WindowText,
+                        e.Node.Bounds.Left - (e.Node.ImageIndex > 0 ? 0 : 16),
+                        e.Node.Bounds.Top + 1);
                 }
-                Rectangle selectRect = new Rectangle(
-                        e.Node.Bounds.Left - 2 - (e.Node.ImageIndex > 0 ? 0 : 16),
-                        e.Node.Bounds.Top - 1,
-                        rightWidth,
-                        e.Node.Bounds.Height
-                        );
-                e.Graphics.FillRectangle(brush, selectRect);
-                e.Graphics.DrawString(e.Node.Name, Font, SystemBrushes.WindowText, e.Node.Bounds.Left - (e.Node.ImageIndex > 0 ? 0 : 16), e.Node.Bounds.Top + 1);
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            //base.OnDrawNode(e);
         }
 
         protected override void OnCreateControl()
@@ -175,10 +174,10 @@ namespace SSASDiag
             }
         }
 
+        bool bNoRedraw = false;
         protected override void OnAfterCheck(TreeViewEventArgs e)
         {
             base.OnAfterCheck(e);
-
             if (IgnoreClickAction > 0)
             {
                 return;
@@ -187,7 +186,9 @@ namespace SSASDiag
             IgnoreClickAction++;
             TreeNode tn = e.Node;
             tn.StateImageIndex = tn.Checked ? (int)CheckedState.Checked : (int)CheckedState.UnChecked;
+            bNoRedraw = true;
             UpdateChildState(e.Node.Nodes, e.Node.StateImageIndex, e.Node.Checked, false);
+            bNoRedraw = false;
             UpdateParentState(e.Node.Parent);
             IgnoreClickAction--;
         }

@@ -865,6 +865,7 @@ namespace SSASDiag
         ImageList legend = new ImageList();
         private void TvCounters_AfterCheck(object sender, System.Windows.Forms.TreeViewEventArgs e)
         {
+            tvCounters.SuspendLayout();
             if (e.Node.Nodes.Count == 0)
             {
                 if (e.Node.Checked && e.Node.Nodes.Count == 0)
@@ -895,10 +896,15 @@ namespace SSASDiag
                             s.Points.AddXY(DateTime.Parse((dr["CounterDateTime"] as string).Trim('\0')).AddMinutes((dr["MinutesToUTC"] as int?).Value), (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
                         dr.Close();
                         TreeNode node = tvCounters.FindNodeByPath(s.Name);
-                        if (node != null && node.IsSelected)
+                        if (node != null && tvCounters.SelectedNodes.Contains(node))
                             s.BorderWidth = 4;
-                        int colorIndex = chartPerfMon.Series.Count + randomColorOffset;
-                        if (colorIndex > 1024) colorIndex -= 1024;
+                        // we choose colors from a 1024 color palette of colors designed to go well together, 
+                        // randomly offsetting each time we reinitialize the chart, so we don't always get the first 10 colors.
+                        // Using colors immediately beside each other got great palettes, but a little too close to one another, 
+                        // so I multiply the current position in the series by 3 to give them more space and difference between colors.
+                        // If we go over our palette size defined with 1024 colors, we just take the mod of the overlown index with 1024 to get another color within range...
+                        int colorIndex = chartPerfMon.Series.Count * 3 + randomColorOffset;
+                        if (colorIndex > 1024) colorIndex %= 1024;
                         ColorConverter c = new ColorConverter();
                         s.Color = s.BorderColor = (Color)c.ConvertFromString(indexcolors[colorIndex]);
                         Pen pen = new Pen(s.BorderColor);
@@ -913,9 +919,9 @@ namespace SSASDiag
 
                         chartPerfMon.Invoke(new System.Action(() =>
                             {
-                                chartPerfMon.Series.Add(s);
                                 node = tvCounters.FindNodeByPath(s.Name);
                                 node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
+                                chartPerfMon.Series.Add(s);
                             }));
                     }
                 }
@@ -929,6 +935,7 @@ namespace SSASDiag
                     }
                 }
             }
+            tvCounters.ResumeLayout();
         }
 
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)
