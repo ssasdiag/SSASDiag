@@ -121,20 +121,20 @@ namespace SSASDiag
             try
             {
                 SizeF textsize = e.Graphics.MeasureString(e.Node.Name, Font);
-                Brush brush = SystemBrushes.Window;
-                int rightBound = e.Node.Bounds.Width;
+                Brush brush = Brushes.White;
+                int rightWidth = e.Node.Bounds.Width + 18;
                 if (SelectedNodes.Contains(e.Node))
                 {
-                    brush = SystemBrushes.Highlight;
-                    rightBound = (int)Math.Round(textsize.Width, 0) + 4;
+                    brush = SystemBrushes.MenuHighlight;
+                    rightWidth = (int)Math.Round(textsize.Width, 0) + 4;
                 }
-                e.Graphics.FillRectangle(brush, 
-                    new Rectangle(
-                        e.Node.Bounds.Left - 2 - (e.Node.ImageIndex > 0 ? 0 : 16), 
-                        e.Node.Bounds.Top, 
-                        rightBound, 
-                        e.Node.Bounds.Bottom
-                        ));
+                Rectangle selectRect = new Rectangle(
+                        e.Node.Bounds.Left - 2 - (e.Node.ImageIndex > 0 ? 0 : 16),
+                        e.Node.Bounds.Top - 1,
+                        rightWidth,
+                        e.Node.Bounds.Height
+                        );
+                e.Graphics.FillRectangle(brush, selectRect);
                 e.Graphics.DrawString(e.Node.Name, Font, SystemBrushes.WindowText, e.Node.Bounds.Left - (e.Node.ImageIndex > 0 ? 0 : 16), e.Node.Bounds.Top + 1);
             }
             catch (Exception ex)
