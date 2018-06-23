@@ -121,7 +121,7 @@ namespace SSASDiag
                     e.Graphics.FillRectangle(SystemBrushes.Window, e.Node.Bounds);
                     if (ModifierKeys != Keys.Shift && ModifierKeys != Keys.Control)
                         ClearSelectedNodes();
-                    ToggleNode(e.Node, true);
+                    SelectNode(e.Node);
                     OnAfterSelect(new TreeViewEventArgs(e.Node));    
                 }
                 Rectangle bounds = e.Node.Bounds;
