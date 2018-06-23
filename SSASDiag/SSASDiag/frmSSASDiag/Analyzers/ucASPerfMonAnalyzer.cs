@@ -796,7 +796,7 @@ namespace SSASDiag
 	                                (bb.ParentName = aa.ParentName or (bb.ParentName is null and aa.ParentName is null)) 
 	                                )", connDB).ExecuteReader();
                     dr.Read();
-                    txtAvg.Text = (dr[0] as double?).Value.ToString()
+                    txtAvg.Text = (dr[0] as double?).Value.ToString();
                     txtMin.Text = (dr[2] as double?).Value.ToString();
                     txtMax.Text = (dr[1] as double?).Value.ToString();
                     dr.Close();
