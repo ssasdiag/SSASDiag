@@ -28,10 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             this.splitLogList = new System.Windows.Forms.SplitContainer();
             this.splitLogDetails = new System.Windows.Forms.SplitContainer();
             this.dgdLogList = new System.Windows.Forms.DataGridView();
@@ -57,12 +57,12 @@
             this.label4 = new System.Windows.Forms.Label();
             this.chartPerfMon = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.pnServers = new System.Windows.Forms.Panel();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.chkAutoScale = new System.Windows.Forms.CheckBox();
+            this.cmbServers = new System.Windows.Forms.ComboBox();
             this.lblCounterGrouping = new System.Windows.Forms.Label();
             this.pnAnalyses = new System.Windows.Forms.Panel();
             this.lblAnalysesStatus = new System.Windows.Forms.Label();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.cmbServers = new System.Windows.Forms.ComboBox();
-            this.chkAutoScale = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -89,8 +89,8 @@
             this.pnlSeriesDetails.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chartPerfMon)).BeginInit();
             this.pnServers.SuspendLayout();
-            this.pnAnalyses.SuspendLayout();
             this.panel1.SuspendLayout();
+            this.pnAnalyses.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitLogList
@@ -144,14 +144,14 @@
             this.dgdLogList.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdLogList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdLogList.ColumnHeadersVisible = false;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle1;
             this.dgdLogList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdLogList.Location = new System.Drawing.Point(0, 0);
             this.dgdLogList.Margin = new System.Windows.Forms.Padding(0);
@@ -293,14 +293,14 @@
             // 
             this.dgdGrouping.AllowUserToOrderColumns = true;
             this.dgdGrouping.AllowUserToResizeColumns = false;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdGrouping.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdGrouping.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dgdGrouping.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdGrouping.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Counter,
@@ -450,63 +450,63 @@
             // 
             this.chartPerfMon.BorderlineWidth = 0;
             this.chartPerfMon.BorderSkin.BorderWidth = 0;
-            chartArea2.Area3DStyle.LightStyle = System.Windows.Forms.DataVisualization.Charting.LightStyle.Realistic;
-            chartArea2.AxisX.IsMarginVisible = false;
-            chartArea2.AxisX.LabelAutoFitMaxFontSize = 8;
-            chartArea2.AxisX.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
-            chartArea2.AxisX.LabelStyle.Format = "yyyy-MM-dd\nHH:mm:ss";
-            chartArea2.AxisX.LabelStyle.Interval = 0D;
-            chartArea2.AxisX.LabelStyle.IntervalOffset = 0D;
-            chartArea2.AxisX.LabelStyle.IntervalOffsetType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
-            chartArea2.AxisX.LabelStyle.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
-            chartArea2.AxisX.MajorGrid.Enabled = false;
-            chartArea2.AxisX.MajorGrid.LineWidth = 0;
-            chartArea2.AxisX.MajorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
-            chartArea2.AxisX.MaximumAutoSize = 100F;
-            chartArea2.AxisX.MinorTickMark.Enabled = true;
-            chartArea2.AxisX.MinorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
-            chartArea2.AxisX.Title = "Date/Time (UTC)";
-            chartArea2.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            chartArea2.AxisX2.IsMarginVisible = false;
-            chartArea2.AxisX2.LabelStyle.Enabled = false;
-            chartArea2.AxisX2.MaximumAutoSize = 100F;
-            chartArea2.AxisY.LabelAutoFitMaxFontSize = 8;
-            chartArea2.AxisY.LabelAutoFitStyle = ((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles)(((((((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.IncreaseFont | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.DecreaseFont) 
+            chartArea1.Area3DStyle.LightStyle = System.Windows.Forms.DataVisualization.Charting.LightStyle.Realistic;
+            chartArea1.AxisX.IsMarginVisible = false;
+            chartArea1.AxisX.LabelAutoFitMaxFontSize = 8;
+            chartArea1.AxisX.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+            chartArea1.AxisX.LabelStyle.Format = "yyyy-MM-dd\nHH:mm:ss";
+            chartArea1.AxisX.LabelStyle.Interval = 0D;
+            chartArea1.AxisX.LabelStyle.IntervalOffset = 0D;
+            chartArea1.AxisX.LabelStyle.IntervalOffsetType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisX.LabelStyle.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisX.MajorGrid.Enabled = false;
+            chartArea1.AxisX.MajorGrid.LineWidth = 0;
+            chartArea1.AxisX.MajorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisX.MaximumAutoSize = 100F;
+            chartArea1.AxisX.MinorTickMark.Enabled = true;
+            chartArea1.AxisX.MinorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisX.Title = "Date/Time (UTC)";
+            chartArea1.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            chartArea1.AxisX2.IsMarginVisible = false;
+            chartArea1.AxisX2.LabelStyle.Enabled = false;
+            chartArea1.AxisX2.MaximumAutoSize = 100F;
+            chartArea1.AxisY.LabelAutoFitMaxFontSize = 8;
+            chartArea1.AxisY.LabelAutoFitStyle = ((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles)(((((((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.IncreaseFont | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.DecreaseFont) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.StaggeredLabels) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep30) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep45) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep90) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.WordWrap)));
-            chartArea2.AxisY.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
-            chartArea2.AxisY.LabelStyle.Interval = 0D;
-            chartArea2.AxisY.LabelStyle.IntervalOffset = 0D;
-            chartArea2.AxisY.LabelStyle.IntervalOffsetType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
-            chartArea2.AxisY.LabelStyle.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
-            chartArea2.AxisY.MajorGrid.Enabled = false;
-            chartArea2.AxisY.MajorGrid.LineWidth = 0;
-            chartArea2.AxisY.MajorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
-            chartArea2.AxisY.MaximumAutoSize = 100F;
-            chartArea2.AxisY.MinorGrid.LineWidth = 0;
-            chartArea2.AxisY.MinorTickMark.Enabled = true;
-            chartArea2.AxisY.MinorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
-            chartArea2.AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 3.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            chartArea2.AxisY2.IsMarginVisible = false;
-            chartArea2.AxisY2.LabelStyle.Enabled = false;
-            chartArea2.AxisY2.MaximumAutoSize = 100F;
-            chartArea2.BorderWidth = 0;
-            chartArea2.IsSameFontSizeForAllAxes = true;
-            chartArea2.Name = "ChartArea1";
-            chartArea2.Position.Auto = false;
-            chartArea2.Position.Height = 100F;
-            chartArea2.Position.Width = 100F;
-            this.chartPerfMon.ChartAreas.Add(chartArea2);
+            chartArea1.AxisY.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+            chartArea1.AxisY.LabelStyle.Interval = 0D;
+            chartArea1.AxisY.LabelStyle.IntervalOffset = 0D;
+            chartArea1.AxisY.LabelStyle.IntervalOffsetType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisY.LabelStyle.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisY.MajorGrid.Enabled = false;
+            chartArea1.AxisY.MajorGrid.LineWidth = 0;
+            chartArea1.AxisY.MajorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisY.MaximumAutoSize = 100F;
+            chartArea1.AxisY.MinorGrid.LineWidth = 0;
+            chartArea1.AxisY.MinorTickMark.Enabled = true;
+            chartArea1.AxisY.MinorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 3.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea1.AxisY2.IsMarginVisible = false;
+            chartArea1.AxisY2.LabelStyle.Enabled = false;
+            chartArea1.AxisY2.MaximumAutoSize = 100F;
+            chartArea1.BorderWidth = 0;
+            chartArea1.IsSameFontSizeForAllAxes = true;
+            chartArea1.Name = "ChartArea1";
+            chartArea1.Position.Auto = false;
+            chartArea1.Position.Height = 100F;
+            chartArea1.Position.Width = 100F;
+            this.chartPerfMon.ChartAreas.Add(chartArea1);
             this.chartPerfMon.Dock = System.Windows.Forms.DockStyle.Top;
-            legend2.AutoFitMinFontSize = 6;
-            legend2.Enabled = false;
-            legend2.Name = "Legend";
-            legend2.TableStyle = System.Windows.Forms.DataVisualization.Charting.LegendTableStyle.Wide;
-            legend2.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
-            this.chartPerfMon.Legends.Add(legend2);
+            legend1.AutoFitMinFontSize = 6;
+            legend1.Enabled = false;
+            legend1.Name = "Legend";
+            legend1.TableStyle = System.Windows.Forms.DataVisualization.Charting.LegendTableStyle.Wide;
+            legend1.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
+            this.chartPerfMon.Legends.Add(legend1);
             this.chartPerfMon.Location = new System.Drawing.Point(0, 0);
             this.chartPerfMon.Margin = new System.Windows.Forms.Padding(0);
             this.chartPerfMon.Name = "chartPerfMon";
@@ -526,6 +526,45 @@
             this.pnServers.Name = "pnServers";
             this.pnServers.Size = new System.Drawing.Size(781, 21);
             this.pnServers.TabIndex = 46;
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.chkAutoScale);
+            this.panel1.Controls.Add(this.cmbServers);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
+            this.panel1.Location = new System.Drawing.Point(470, 0);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(311, 21);
+            this.panel1.TabIndex = 3;
+            // 
+            // chkAutoScale
+            // 
+            this.chkAutoScale.AutoSize = true;
+            this.chkAutoScale.Checked = true;
+            this.chkAutoScale.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkAutoScale.Dock = System.Windows.Forms.DockStyle.Left;
+            this.chkAutoScale.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkAutoScale.Location = new System.Drawing.Point(0, 0);
+            this.chkAutoScale.Name = "chkAutoScale";
+            this.chkAutoScale.Padding = new System.Windows.Forms.Padding(0, 3, 0, 0);
+            this.chkAutoScale.Size = new System.Drawing.Size(148, 21);
+            this.chkAutoScale.TabIndex = 3;
+            this.chkAutoScale.Text = "Auto-scale displayed counters";
+            this.chkAutoScale.UseVisualStyleBackColor = true;
+            this.chkAutoScale.CheckedChanged += new System.EventHandler(this.chkAutoScale_CheckedChanged);
+            // 
+            // cmbServers
+            // 
+            this.cmbServers.Dock = System.Windows.Forms.DockStyle.Right;
+            this.cmbServers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbServers.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cmbServers.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cmbServers.FormattingEnabled = true;
+            this.cmbServers.ItemHeight = 12;
+            this.cmbServers.Location = new System.Drawing.Point(162, 0);
+            this.cmbServers.Name = "cmbServers";
+            this.cmbServers.Size = new System.Drawing.Size(149, 20);
+            this.cmbServers.TabIndex = 2;
             // 
             // lblCounterGrouping
             // 
@@ -556,45 +595,6 @@
             this.lblAnalysesStatus.Size = new System.Drawing.Size(0, 12);
             this.lblAnalysesStatus.TabIndex = 4;
             this.lblAnalysesStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.chkAutoScale);
-            this.panel1.Controls.Add(this.cmbServers);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel1.Location = new System.Drawing.Point(470, 0);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(311, 21);
-            this.panel1.TabIndex = 3;
-            // 
-            // cmbServers
-            // 
-            this.cmbServers.Dock = System.Windows.Forms.DockStyle.Right;
-            this.cmbServers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbServers.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.cmbServers.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cmbServers.FormattingEnabled = true;
-            this.cmbServers.ItemHeight = 12;
-            this.cmbServers.Location = new System.Drawing.Point(162, 0);
-            this.cmbServers.Name = "cmbServers";
-            this.cmbServers.Size = new System.Drawing.Size(149, 20);
-            this.cmbServers.TabIndex = 2;
-            // 
-            // chkAutoScale
-            // 
-            this.chkAutoScale.AutoSize = true;
-            this.chkAutoScale.Checked = true;
-            this.chkAutoScale.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAutoScale.Dock = System.Windows.Forms.DockStyle.Left;
-            this.chkAutoScale.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkAutoScale.Location = new System.Drawing.Point(0, 0);
-            this.chkAutoScale.Name = "chkAutoScale";
-            this.chkAutoScale.Padding = new System.Windows.Forms.Padding(0, 3, 0, 0);
-            this.chkAutoScale.Size = new System.Drawing.Size(148, 21);
-            this.chkAutoScale.TabIndex = 3;
-            this.chkAutoScale.Text = "Auto-scale displayed counters";
-            this.chkAutoScale.UseVisualStyleBackColor = true;
-            this.chkAutoScale.CheckedChanged += new System.EventHandler(this.chkAutoScale_CheckedChanged);
             // 
             // ucASPerfMonAnalyzer
             // 
@@ -635,10 +635,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.chartPerfMon)).EndInit();
             this.pnServers.ResumeLayout(false);
             this.pnServers.PerformLayout();
-            this.pnAnalyses.ResumeLayout(false);
-            this.pnAnalyses.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.pnAnalyses.ResumeLayout(false);
+            this.pnAnalyses.PerformLayout();
             this.ResumeLayout(false);
 
         }

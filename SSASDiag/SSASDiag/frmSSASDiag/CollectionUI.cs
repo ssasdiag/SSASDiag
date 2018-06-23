@@ -631,8 +631,9 @@ namespace SSASDiag
                         System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": InstanceID: " + InstanceID);
                         string SQLProgramDir = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Setup", false).GetValue("SQLProgramDir") as string;
                         string ClusterName = "";
-                        try { ClusterName = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Cluster", false).GetValue("ClusterName") as string; }
-                        catch { }
+                        RegistryKey clusterKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Cluster", false);
+                        if (clusterKey != null)
+                            ClusterName = clusterKey.GetValue("ClusterName") as string;
                         if (s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "").ToUpper() == "MSSQLSERVER")
                             LocalInstances.Insert(0, new ComboBoxServiceDetailsItem() { Text = "Default instance (MSSQLServer)", ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName, Cluster = false });
                         else

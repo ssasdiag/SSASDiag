@@ -73,7 +73,8 @@ namespace SSASDiag
             trTimeRange.HeightOfTick = 4;
             trTimeRange.Height = 60;
             trTimeRange.Margin = new Padding(6, 0, 3, 0);
-            trTimeRange.InnerColor = System.Drawing.Color.LightCyan;
+            trTimeRange.InnerColor = Color.Azure;
+            trTimeRange.ForeColor = Color.Azure;
             trTimeRange.Orientation = TimeRangeBar.RangeBarOrientation.horizontal;
             trTimeRange.ScaleOrientation = TimeRangeBar.TopBottomOrientation.bottom;
             trTimeRange.Dock = DockStyle.Top;
@@ -860,6 +861,7 @@ namespace SSASDiag
 
             trTimeRange.SetRangeLimit((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
             trTimeRange.SelectRange((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
+            chartPerfMon.ChartAreas[0].AxisX.Maximum = (dr["StopTime"] as DateTime?).Value.ToOADate();
             dr.Close();
 
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
