@@ -31,22 +31,8 @@ namespace SSASDiag
         string LogPath, AnalysisPath, PerfMonAnalysisId;
         SqlConnection connDB;
         List<PerfMonLog> LogFiles = new List<PerfMonLog>();
-
-        private class PerfMonLog
-        {
-            public PerfMonLog Clone()
-            {
-                return (PerfMonLog)MemberwiseClone();
-            }
-
-            public string LogPath { get; set; }
-            public string LogName
-            {
-                get { return LogPath != null ? LogPath.Substring(LogPath.LastIndexOf("\\") + 1) : ""; }
-            }
-            public bool Analyzed { get; set; }
-        }
-
+        int randomColorOffset = 1, iNodesToProcessInBatch = 0;
+        ImageList legend = new ImageList();
         TimeRangeBar trTimeRange = new TimeRangeBar();
         private TriStateTreeView tvCounters;
         private StripLine stripLine = new StripLine();
@@ -262,7 +248,7 @@ namespace SSASDiag
         {
             stripLine.StripWidth = 0;
             chartPerfMon.Series.Clear();
-            foreach (TreeNode n in tvCounters.GetCheckedLeafNodes())
+            foreach (TreeNode n in tvCounters.GetLeafNodes())
                 TvCounters_AfterCheck(sender, new TreeViewEventArgs(n));
         }
 
@@ -533,7 +519,7 @@ namespace SSASDiag
             if (e.Column.DisplayIndex == 0)
             {
                 tvCounters.SuspendLayout();
-                List<TreeNode> nodes = tvCounters.GetCheckedLeafNodes();
+                List<TreeNode> nodes = tvCounters.GetLeafNodes();
                 List<TreeNode> clonedOldNodes = nodes.Select(
                     x =>
                     {
@@ -886,8 +872,8 @@ namespace SSASDiag
             chartPerfMon.ResumeLayout();
         }
 
-        int randomColorOffset = 1;
-        ImageList legend = new ImageList();
+        
+
         private void TvCounters_AfterCheck(object sender, TreeViewEventArgs e)
         {
             tvCounters.SuspendLayout();
@@ -895,18 +881,66 @@ namespace SSASDiag
             {
                 if (e.Node.Checked && e.Node.Nodes.Count == 0)
                 {
+                    if (iNodesToProcessInBatch == 0)
+                        iNodesToProcessInBatch = 1;
+                    iNodesToProcessInBatch--;
+                    if (iNodesToProcessInBatch == 0)
+                        new Thread(new ThreadStart(()=>AddCounters())).Start();
+                }
+                else
+                {
                     Series s = chartPerfMon.Series.FindByName(e.Node.FullPath);
+                    if (s != null)
+                    {
+                        chartPerfMon.Series.Remove(s);
+                        e.Node.SelectedImageIndex = e.Node.ImageIndex = 0;
+                    }
+                }
+            }
+            else
+            {
+                if (e.Node.Checked && iNodesToProcessInBatch == 0)
+                    iNodesToProcessInBatch = tvCounters.GetLeafNodes(e.Node, false).Count();
+            }
+            if (tvCounters.GetLeafNodes().Count == 0)
+                chartPerfMon.ChartAreas[0].AxisY.Maximum = 0;
+            tvCounters.ResumeLayout();
+        }
+
+        private void AddCounters()
+        {
+            List<TreeNode> nodes = tvCounters.GetLeafNodes();
+            Form f = Program.MainForm;
+            if (nodes.Count > 3)
+            {
+                StatusFloater.Invoke(new Action(() =>
+                    {
+                        StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
+                        StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
+                        StatusFloater.lblStatus.Text = "Loading counters... (Esc to cancel)";
+                        StatusFloater.lblTime.Text = "00:00";
+                        StatusFloater.EscapePressed = false;
+                        StatusFloater.AutoUpdateDuration = true;
+                        StatusFloater.Show(f);
+                        f.Enabled = false;
+                    }));
+            }
+            foreach (TreeNode counterNode in nodes)
+            {
+                if (!StatusFloater.EscapePressed)
+                {
+                    Series s = chartPerfMon.Series.FindByName(counterNode.FullPath);
                     if (s == null)
                     {
                         new SqlCommand("use [" + DBName() + "]", connDB).ExecuteNonQuery();
-                        s = new Series(e.Node.FullPath);
+                        s = new Series(counterNode.FullPath);
                         s.ChartType = SeriesChartType.Line;
-                        s.Name = e.Node.FullPath;
+                        s.Name = counterNode.FullPath;
                         s.XValueType = ChartValueType.DateTime;
-                        s.LegendText = e.Node.FullPath;
+                        s.LegendText = counterNode.FullPath;
                         string qry = @" select a.*, b.MinutesToUTC from CounterData a, DisplayToID b where a.GUID = b.GUID and CounterID in 
                                     (
-                                    select bb.CounterID from (select * from CounterDetails where CounterID = " + (e.Node.Tag as string) + @") aa, CounterDetails bb where 
+                                    select bb.CounterID from (select * from CounterDetails where CounterID = " + (counterNode.Tag as string) + @") aa, CounterDetails bb where 
                                         bb.CounterName = aa.CounterName and 
 	                                    (bb.InstanceName = aa.InstanceName or (bb.InstanceName is null and aa.InstanceName is null)) and 
 	                                    (bb.InstanceIndex = aa.InstanceIndex or (bb.InstanceIndex is null and aa.InstanceIndex is null)) and 
@@ -920,11 +954,9 @@ namespace SSASDiag
                         dt.Load(dr);
                         double max = (double)dt.Compute("max([CounterValue])", "");
                         s.Tag = max;
-                        if (chartPerfMon.ChartAreas[0].AxisY.Maximum < max)
-                            chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
                         foreach (DataRow r in dt.Rows)
                         {
-                            double scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Log10(max))))  * 100 : (double)r["CounterValue"];
+                            double scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Log10(max)))) * 100 : (double)r["CounterValue"];
                             s.Points.AddXY(DateTime.Parse((r["CounterDateTime"] as string).Trim('\0')).AddMinutes((r["MinutesToUTC"] as int?).Value), scaledValue);
                             s.Points.Last().Tag = (double)r["CounterValue"];
                         }
@@ -938,7 +970,7 @@ namespace SSASDiag
                         // so I multiply the current position in the series by 3 to give them more space and difference between colors.
                         // If we go over our palette size defined with 1024 colors, we just take the mod of the overlown index with 1024 to get another color within range...
                         int colorIndex = chartPerfMon.Series.Count * 3 + randomColorOffset;
-                        if (colorIndex > 1024) colorIndex %= 1024;
+                        if (colorIndex > indexcolors.Length - 1) colorIndex %= indexcolors.Length - 1;
                         ColorConverter c = new ColorConverter();
                         s.Color = s.BorderColor = (Color)c.ConvertFromString(indexcolors[colorIndex]);
                         Pen pen = new Pen(s.BorderColor);
@@ -949,30 +981,31 @@ namespace SSASDiag
                             g.FillRectangle(Brushes.Transparent, 0, 0, 16, 16);
                             g.DrawLine(pen, 0, 7, 16, 7);
                         }
-                        legend.Images.Add(bmp);
 
                         chartPerfMon.Invoke(new System.Action(() =>
-                            {
-                                node = tvCounters.FindNodeByPath(s.Name);
-                                node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
-                                chartPerfMon.Series.Add(s);
-
-                            }));
+                        {
+                            StatusFloater.lblSubStatus.Text = s.Name;
+                            legend.Images.Add(bmp);
+                            if (chartPerfMon.ChartAreas[0].AxisY.Maximum < max)
+                                chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
+                            node = tvCounters.FindNodeByPath(s.Name);
+                            node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
+                            chartPerfMon.Series.Add(s);
+                        }));
                     }
                 }
                 else
-                {
-                    Series s = chartPerfMon.Series.FindByName(e.Node.FullPath);
-                    if (s != null)
-                    {
-                        chartPerfMon.Series.Remove(s);
-                        e.Node.SelectedImageIndex = e.Node.ImageIndex = 0;
-                    }
-                }
+                    Invoke(new Action(() => counterNode.Checked = false));
             }
-            if (tvCounters.GetCheckedLeafNodes().Count == 0)
-                chartPerfMon.ChartAreas[0].AxisY.Maximum = 0;
-            tvCounters.ResumeLayout();
+            TreeNode root = nodes[0];
+            while (root.Parent != null)
+                root = root.Parent;
+            StatusFloater.Invoke(new Action(() =>
+                {
+                    StatusFloater.EscapePressed = false;
+                    StatusFloater.Hide();
+                    f.Enabled = true;
+                }));
         }
 
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)
@@ -1089,6 +1122,21 @@ namespace SSASDiag
                     cm.Show(ParentForm, new Point(MousePosition.X - ParentForm.Left - 10, MousePosition.Y - ParentForm.Top - 26));
                 }
             }
+        }
+
+        private class PerfMonLog
+        {
+            public PerfMonLog Clone()
+            {
+                return (PerfMonLog)MemberwiseClone();
+            }
+
+            public string LogPath { get; set; }
+            public string LogName
+            {
+                get { return LogPath != null ? LogPath.Substring(LogPath.LastIndexOf("\\") + 1) : ""; }
+            }
+            public bool Analyzed { get; set; }
         }
 
         public string[] indexcolors = new string[]{

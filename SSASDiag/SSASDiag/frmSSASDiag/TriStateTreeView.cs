@@ -163,17 +163,8 @@ namespace SSASDiag
 
         protected override void OnGotFocus(EventArgs e)
         {
-            // NOT
-            // Make sure at least one node has a selection
-            // this way we can tab to the ctrl and use the 
-            // keyboard to select nodes
             try
             {
-                //if (m_SelectedNode == null && this.TopNode != null)
-                //{
-                //    ToggleNode(this.TopNode, true);
-                //}
-
                 base.OnGotFocus(e);
             }
             catch (Exception ex)
@@ -193,6 +184,8 @@ namespace SSASDiag
 
             IgnoreClickAction++;
             TreeNode tn = e.Node;
+            if (tn.StateImageIndex == 2)
+                tn.Checked = true;
             tn.StateImageIndex = tn.Checked ? (int)CheckedState.Checked : (int)CheckedState.UnChecked;
             bNoRedraw = true;
             UpdateChildState(e.Node.Nodes, e.Node.StateImageIndex, e.Node.Checked, false);
@@ -567,24 +560,34 @@ namespace SSASDiag
                     yield return childChild;
         }
 
-        public List<TreeNode> GetCheckedLeafNodes()
+        public List<TreeNode> GetLeafNodes(bool CheckedOnly = true)
         {
-            return GetCheckedLeafNodes(this.Nodes);
+            return GetLeafNodes(this.Nodes);
         }
 
-        private List<TreeNode> GetCheckedLeafNodes(TreeNodeCollection nodes)
+        public List<TreeNode> GetLeafNodes(TreeNode node, bool CheckedOnly = true)
+        {
+            List<TreeNode> cn = new List<TreeNode>();
+            if (node.Nodes.Count != 0)
+                cn.AddRange(GetLeafNodes(node.Nodes, CheckedOnly));
+            else
+            {
+                if (CheckedOnly)
+                {
+                    if (node.Checked)
+                        cn.Add(node);
+                }
+                else
+                    cn.Add(node);
+            }
+            return cn;
+        }
+
+        private List<TreeNode> GetLeafNodes(TreeNodeCollection nodes, bool CheckedOnly = true)
         {
             List<TreeNode> cn = new List<TreeNode>();
             foreach (TreeNode aNode in nodes)
-            {
-                if (aNode.Nodes.Count != 0)
-                    cn.AddRange(GetCheckedLeafNodes(aNode.Nodes));
-                else
-                {
-                    if (aNode.Checked)
-                        cn.Add(aNode);
-                }
-            }
+                cn.AddRange(GetLeafNodes(aNode, CheckedOnly));
             return cn;
         }
 

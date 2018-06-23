@@ -82,8 +82,7 @@ namespace SSASDiag
                 {
                     StatusFloater.lblTime.Text = "00:00";
                     StatusFloater.lblTime.Visible = true;
-                    AnalysisQueryExecutionPumpTimer.Interval = 1000;
-                    AnalysisQueryExecutionPumpTimer.Start();
+                    StatusFloater.AutoUpdateDuration = true;
                     StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
                     StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
                     StatusFloater.lblStatus.Text = "Initializing and attaching analysis database(s)...";
@@ -272,7 +271,6 @@ namespace SSASDiag
 
 
             }
-                
             StatusFloater.Invoke(new System.Action(()=> StatusFloater.Visible = false));
             tcAnalysis.Visible = true;
         }

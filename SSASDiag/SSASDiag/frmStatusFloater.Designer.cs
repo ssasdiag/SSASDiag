@@ -97,6 +97,7 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmStatusFloater";
+            this.VisibleChanged += FrmStatusFloater_VisibleChanged;
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.frmStatusFloater_KeyPress);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
