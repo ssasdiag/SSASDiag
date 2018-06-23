@@ -710,11 +710,19 @@ namespace SSASDiag
 
         private void HighlightSeriesFromSelection()
         {
-            foreach (Series s in chartPerfMon.Series)
+            int j = 0;
+            for (int i = 0; i < chartPerfMon.Series.Count - j; i++)
             {
+                Series s = chartPerfMon.Series[i];
                 TreeNode nSeriesNode = tvCounters.SelectedNodes.ToList().Find(node => node.FullPath == s.Name);
                 if (nSeriesNode != null)
+                {
+                    j++;
+                    i--;
+                    chartPerfMon.Series.Remove(s);
+                    chartPerfMon.Series.Add(s);
                     s.BorderWidth = 4;
+                }
                 else
                     s.BorderWidth = 1;
             }
