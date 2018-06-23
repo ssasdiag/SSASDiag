@@ -68,11 +68,11 @@ namespace SSASDiag
             trTimeRange.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             trTimeRange.BackColor = System.Drawing.SystemColors.Control;
             trTimeRange.DivisionNum = 15;
-            trTimeRange.HeightOfBar = 6;
+            trTimeRange.HeightOfBar = 8;
             trTimeRange.HeightOfMark = 16;
             trTimeRange.HeightOfTick = 4;
             trTimeRange.Height = 60;
-            trTimeRange.Margin = new Padding(3, 0, 3, 0);
+            trTimeRange.Margin = new Padding(6, 0, 3, 0);
             trTimeRange.InnerColor = System.Drawing.Color.LightCyan;
             trTimeRange.Orientation = TimeRangeBar.RangeBarOrientation.horizontal;
             trTimeRange.ScaleOrientation = TimeRangeBar.TopBottomOrientation.bottom;
@@ -569,7 +569,7 @@ namespace SSASDiag
                                 {
                                     CounterName = rows[i]["CounterName"] as string;
                                     TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName);
-                                    n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                    n.Tag = Convert.ToString(rows[i]["CounterID"]);
                                     InstancePath = "";
                                     while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
                                     {
@@ -577,14 +577,14 @@ namespace SSASDiag
                                         {
                                             InstancePath = rows[i]["InstancePath"] as string;
                                             TreeNode nn = n.Nodes.Add(InstancePath, InstancePath);
-                                            nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                            nn.Tag = Convert.ToString(rows[i]["CounterID"]);
                                             InstanceIndex = null;
                                             while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
                                             {
                                                 if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
                                                 {
                                                     InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                                    nn.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                                    nn.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"]);
                                                 }
                                                 i++;
                                             }
@@ -614,7 +614,7 @@ namespace SSASDiag
                                     if (InstancePath != "")
                                     {
                                         n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath, InstancePath);
-                                        n.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                        n.Tag = Convert.ToString(rows[i]["CounterID"]);
                                         InstanceIndex = null;
                                         while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
                                         {
@@ -626,7 +626,7 @@ namespace SSASDiag
                                                 {
                                                     CounterName = rows[i]["CounterName"] as string;
                                                     nn.Nodes.Add(CounterName, CounterName);
-                                                    nn.Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                                    nn.Tag = Convert.ToString(rows[i]["CounterID"]);
                                                     i++;
                                                 }
                                                 if (i == rows.Count()) break;
@@ -635,7 +635,7 @@ namespace SSASDiag
                                             else
                                             {
                                                 CounterName = rows[i]["CounterName"] as string;
-                                                n.Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                                n.Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]);
                                             }
                                             i++;
                                         }
@@ -643,7 +643,7 @@ namespace SSASDiag
                                     else
                                     {
                                         CounterName = rows[i]["CounterName"] as string;
-                                        tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]) + "," + rows[i]["DefaultScale"] as string;
+                                        tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]);
                                         i++;
                                     }
                                     if (i == rows.Count()) break;
@@ -746,6 +746,7 @@ namespace SSASDiag
                     {
                         if (ModifierKeys != Keys.Control && ModifierKeys != Keys.Shift)
                         {
+                            txtMax.Text = txtAvg.Text = txtMin.Text = "--";
                             tvCounters.SelectedNodes.Clear();
                             Random r = new Random((int)DateTime.Now.Ticks);
                             randomColorOffset = r.Next(1024);
@@ -789,16 +790,21 @@ namespace SSASDiag
                 {
                     SqlDataReader dr = new SqlCommand(@"select avg(countervalue), max(countervalue), min(countervalue) from CounterData where CounterID in
                 (
-                                select bb.CounterID from (select * from CounterDetails where CounterID = " + (e.Node.Tag as string).Split(',')[0] + @") aa, CounterDetails bb where 
+                                select bb.CounterID from (select * from CounterDetails where CounterID = " + e.Node.Tag as string + @") aa, CounterDetails bb where 
                                     bb.CounterName = aa.CounterName and 
 	                                (bb.InstanceName = aa.InstanceName or (bb.InstanceName is null and aa.InstanceName is null)) and 
 	                                (bb.InstanceIndex = aa.InstanceIndex or (bb.InstanceIndex is null and aa.InstanceIndex is null)) and 
 	                                (bb.ParentName = aa.ParentName or (bb.ParentName is null and aa.ParentName is null)) 
 	                                )", connDB).ExecuteReader();
                     dr.Read();
-                    txtAvg.Text = (dr[0] as double?).Value.ToString();
-                    txtMin.Text = (dr[2] as double?).Value.ToString();
-                    txtMax.Text = (dr[1] as double?).Value.ToString();
+                    if (dr[0] as double? != null)
+                    {
+                        txtAvg.Text = (dr[0] as double?).Value.ToString();
+                        txtMin.Text = (dr[2] as double?).Value.ToString();
+                        txtMax.Text = (dr[1] as double?).Value.ToString();
+                    }
+                    else
+                        txtAvg.Text = txtMin.Text = txtMax.Text = "-";
                     dr.Close();
                 }
                 else
@@ -820,19 +826,17 @@ namespace SSASDiag
             dr.Close();
             Counters.Clear();
             string qry = @" select
-                                            max(CounterID) CounterID, ObjectName, CounterName, DefaultScale,
-                                            case 
+                            max(CounterID) CounterID, ObjectName, CounterName,
+                            case 
+                                when ParentName is null then
 
-                                                when ParentName is null then
-
-                                                    concat(InstanceName, case when InstanceIndex is not null then concat(' (', InstanceIndex, ')') end)
-	                                            else
-
-                                                    concat(ParentName, case when InstanceIndex is not null then concat(' (', InstanceIndex, ')') end)
-                                            end InstancePath,
-                                            convert(int, case when ParentName is not null and ParentName <> InstanceName then InstanceName end) InstanceIndex
-                                            from counterdetails where MachineName = '" + cmbServers.SelectedItem + @"'
-                                            group by ObjectName, CounterName, DefaultScale, ParentName, InstanceName, InstanceIndex";
+                                    concat(InstanceName, case when InstanceIndex is not null then concat(' (', InstanceIndex, ')') end)
+	                            else
+                                    concat(ParentName, case when InstanceIndex is not null then concat(' (', InstanceIndex, ')') end)
+                            end InstancePath,
+                            convert(int, case when ParentName is not null and ParentName <> InstanceName then InstanceName end) InstanceIndex
+                            from counterdetails where MachineName = '" + cmbServers.SelectedItem + @"'
+                            group by ObjectName, CounterName, ParentName, InstanceName, InstanceIndex";
             Counters.Load(new SqlCommand(qry,
                                             connDB).ExecuteReader());
             dr = new SqlCommand(@"  select 
@@ -840,17 +844,17 @@ namespace SSASDiag
                                     ':' + 
                                     format(a.intervaloffset, 'HH:mm:ss.fff') Duration, StartTime, StopTime 
                                     from (
-                                     select convert(datetime, LogStopTime) - convert(datetime, LogStartTime) IntervalOffset, 
-                                     dateadd(mi, MinutesToUTC, convert(datetime, LogStartTime)) StartTime, 
-                                     dateadd(mi, MinutesToUTC, convert(datetime, LogStopTime)) StopTime 
-                                     from DisplayToID 
-                                     where GUID = 
-                                     (select top 1 GUID from CounterData 
-                                      where CounterID = ( 
-                                        select top 1 CounterID from CounterDetails 
-				                        where MachineName = '" + cmbServers.SelectedItem + @"' 
-				                        and CounterID = (select top 1 CounterID from CounterData)
-				                      )))a", connDB).ExecuteReader();
+                                    select convert(datetime, LogStopTime) - convert(datetime, LogStartTime) IntervalOffset, 
+                                    dateadd(mi, MinutesToUTC, convert(datetime, LogStartTime)) StartTime, 
+                                    dateadd(mi, MinutesToUTC, convert(datetime, LogStopTime)) StopTime 
+                                    from DisplayToID 
+                                    where GUID = 
+                                    (select top 1 GUID from CounterData 
+                                    where CounterID = ( 
+                                    select top 1 CounterID from CounterDetails 
+                                    where MachineName = '" + cmbServers.SelectedItem + @"' 
+                                    and CounterID = (select top 1 CounterID from CounterData)
+                                    )))a", connDB).ExecuteReader();
             dr.Read();
             txtDur.Text = dr["Duration"] as string;
 
@@ -879,10 +883,9 @@ namespace SSASDiag
                         s.Name = e.Node.FullPath;
                         s.XValueType = ChartValueType.DateTime;
                         s.LegendText = e.Node.FullPath;
-                        // Not ideal but Tag contains "CounterID,DefaultScale"...  I will update to pull scale in the query instead in the future.
                         string qry = @" select a.*, b.MinutesToUTC from CounterData a, DisplayToID b where a.GUID = b.GUID and CounterID in 
                                     (
-                                    select bb.CounterID from (select * from CounterDetails where CounterID = " + (e.Node.Tag as string).Split(',')[0] + @") aa, CounterDetails bb where 
+                                    select bb.CounterID from (select * from CounterDetails where CounterID = " + (e.Node.Tag as string) + @") aa, CounterDetails bb where 
                                         bb.CounterName = aa.CounterName and 
 	                                    (bb.InstanceName = aa.InstanceName or (bb.InstanceName is null and aa.InstanceName is null)) and 
 	                                    (bb.InstanceIndex = aa.InstanceIndex or (bb.InstanceIndex is null and aa.InstanceIndex is null)) and 
@@ -892,8 +895,17 @@ namespace SSASDiag
                                     dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.RangeMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
                                     order by CounterDateTime asc";
                         SqlDataReader dr = new SqlCommand(qry, connDB).ExecuteReader();
-                        while (dr.Read())
-                            s.Points.AddXY(DateTime.Parse((dr["CounterDateTime"] as string).Trim('\0')).AddMinutes((dr["MinutesToUTC"] as int?).Value), (double)dr["CounterValue"] * Math.Pow(10, Convert.ToInt32((e.Node.Tag as string).Split(',')[1])));
+                        DataTable dt = new DataTable();
+                        dt.Load(dr);
+                        double max = (double)dt.Compute("max([CounterValue])", "");
+                        s.Tag = max;
+                        if (chartPerfMon.ChartAreas[0].AxisY.Maximum < max)
+                            chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
+                        foreach (DataRow r in dt.Rows)
+                        {
+                            double scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Log10(max))))  * 100 : (double)r["CounterValue"];
+                            s.Points.AddXY(DateTime.Parse((r["CounterDateTime"] as string).Trim('\0')).AddMinutes((r["MinutesToUTC"] as int?).Value), scaledValue);
+                        }
                         dr.Close();
                         TreeNode node = tvCounters.FindNodeByPath(s.Name);
                         if (node != null && tvCounters.SelectedNodes.Contains(node))
@@ -922,6 +934,7 @@ namespace SSASDiag
                                 node = tvCounters.FindNodeByPath(s.Name);
                                 node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
                                 chartPerfMon.Series.Add(s);
+
                             }));
                     }
                 }
@@ -935,6 +948,8 @@ namespace SSASDiag
                     }
                 }
             }
+            if (tvCounters.GetCheckedLeafNodes().Count == 0)
+                chartPerfMon.ChartAreas[0].AxisY.Maximum = 0;
             tvCounters.ResumeLayout();
         }
 
@@ -1028,6 +1043,11 @@ namespace SSASDiag
                 btnAnalyzeLogs.Text = (AnalyzedCount < selCount) ? "Import Selection" : "";
             }
             dgdLogList.ResumeLayout();
+        }
+
+        private void chkAutoScale_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
 
         private void dgdLogList_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
