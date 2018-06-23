@@ -338,9 +338,9 @@
             this.pnlSeriesDetails.Controls.Add(this.txtMax);
             this.pnlSeriesDetails.Controls.Add(this.label4);
             this.pnlSeriesDetails.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlSeriesDetails.Location = new System.Drawing.Point(0, 308);
+            this.pnlSeriesDetails.Location = new System.Drawing.Point(0, 312);
             this.pnlSeriesDetails.Name = "pnlSeriesDetails";
-            this.pnlSeriesDetails.Size = new System.Drawing.Size(559, 60);
+            this.pnlSeriesDetails.Size = new System.Drawing.Size(559, 56);
             this.pnlSeriesDetails.TabIndex = 2;
             // 
             // label1
@@ -357,7 +357,7 @@
             // label6
             // 
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(1, 42);
+            this.label6.Location = new System.Drawing.Point(1, 38);
             this.label6.Margin = new System.Windows.Forms.Padding(0);
             this.label6.Name = "label6";
             this.label6.Padding = new System.Windows.Forms.Padding(0, 2, 0, 0);
@@ -370,7 +370,7 @@
             this.txtDur.BackColor = System.Drawing.SystemColors.ControlLight;
             this.txtDur.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtDur.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtDur.Location = new System.Drawing.Point(51, 42);
+            this.txtDur.Location = new System.Drawing.Point(51, 38);
             this.txtDur.Margin = new System.Windows.Forms.Padding(0);
             this.txtDur.Name = "txtDur";
             this.txtDur.ReadOnly = true;
@@ -382,7 +382,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(133, 44);
+            this.label3.Location = new System.Drawing.Point(133, 40);
             this.label3.Margin = new System.Windows.Forms.Padding(0, 2, 0, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(26, 13);
@@ -394,7 +394,7 @@
             this.txtAvg.BackColor = System.Drawing.SystemColors.ControlLight;
             this.txtAvg.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtAvg.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtAvg.Location = new System.Drawing.Point(159, 42);
+            this.txtAvg.Location = new System.Drawing.Point(159, 38);
             this.txtAvg.Margin = new System.Windows.Forms.Padding(0);
             this.txtAvg.Name = "txtAvg";
             this.txtAvg.ReadOnly = true;
@@ -406,7 +406,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(261, 44);
+            this.label2.Location = new System.Drawing.Point(261, 40);
             this.label2.Margin = new System.Windows.Forms.Padding(0, 2, 0, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(24, 13);
@@ -418,7 +418,7 @@
             this.txtMin.BackColor = System.Drawing.SystemColors.ControlLight;
             this.txtMin.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtMin.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtMin.Location = new System.Drawing.Point(285, 42);
+            this.txtMin.Location = new System.Drawing.Point(285, 38);
             this.txtMin.Margin = new System.Windows.Forms.Padding(0);
             this.txtMin.Name = "txtMin";
             this.txtMin.ReadOnly = true;
@@ -431,7 +431,7 @@
             this.txtMax.BackColor = System.Drawing.SystemColors.ControlLight;
             this.txtMax.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtMax.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtMax.Location = new System.Drawing.Point(414, 42);
+            this.txtMax.Location = new System.Drawing.Point(414, 38);
             this.txtMax.Margin = new System.Windows.Forms.Padding(0);
             this.txtMax.Name = "txtMax";
             this.txtMax.ReadOnly = true;
@@ -451,8 +451,15 @@
             this.chartPerfMon.BorderlineWidth = 0;
             this.chartPerfMon.BorderSkin.BorderWidth = 0;
             chartArea1.Area3DStyle.LightStyle = System.Windows.Forms.DataVisualization.Charting.LightStyle.Realistic;
+            chartArea1.AxisX.IsLabelAutoFit = false;
             chartArea1.AxisX.IsMarginVisible = false;
-            chartArea1.AxisX.LabelAutoFitMaxFontSize = 8;
+            chartArea1.AxisX.LabelAutoFitMaxFontSize = 7;
+            chartArea1.AxisX.LabelAutoFitStyle = ((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles)(((((((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.IncreaseFont | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.DecreaseFont) 
+            | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.StaggeredLabels) 
+            | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep30) 
+            | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep45) 
+            | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep90) 
+            | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.WordWrap)));
             chartArea1.AxisX.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
             chartArea1.AxisX.LabelStyle.Format = "yyyy-MM-dd\nHH:mm:ss";
             chartArea1.AxisX.LabelStyle.Interval = 0D;
@@ -512,7 +519,7 @@
             this.chartPerfMon.Margin = new System.Windows.Forms.Padding(0);
             this.chartPerfMon.Name = "chartPerfMon";
             this.chartPerfMon.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Bright;
-            this.chartPerfMon.Size = new System.Drawing.Size(559, 305);
+            this.chartPerfMon.Size = new System.Drawing.Size(559, 309);
             this.chartPerfMon.SuppressExceptions = true;
             this.chartPerfMon.TabIndex = 0;
             this.chartPerfMon.Text = "Counter Data";

@@ -57,7 +57,7 @@ namespace SSASDiag
             trTimeRange.HeightOfBar = 8;
             trTimeRange.HeightOfMark = 16;
             trTimeRange.HeightOfTick = 4;
-            trTimeRange.Height = 60;
+            trTimeRange.Height = 56;
             trTimeRange.Margin = new Padding(6, 0, 3, 0);
             trTimeRange.InnerColor = Color.Azure;
             trTimeRange.ForeColor = Color.Azure;
@@ -248,8 +248,10 @@ namespace SSASDiag
         {
             stripLine.StripWidth = 0;
             chartPerfMon.Series.Clear();
-            foreach (TreeNode n in tvCounters.GetLeafNodes())
-                TvCounters_AfterCheck(sender, new TreeViewEventArgs(n));
+            tvCounters.AfterCheck -= TvCounters_AfterCheck;
+            chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate();
+            chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate();
+            new Thread(new ThreadStart(() => AddCounters(true))).Start();
         }
 
         int DataBindingCompletions = 0;
@@ -920,10 +922,14 @@ namespace SSASDiag
             tvCounters.ResumeLayout();
         }
 
-        private void AddCounters()
+        private void AddCounters(bool AlreadyAdded = false)
         {
             tvCounters.SuspendLayout();
-            List<TreeNode> nodes = tvCounters.GetLeafNodes().Where(n=>n.ImageIndex < 1).ToList();
+            List<TreeNode> nodes = null;
+            if (!AlreadyAdded)
+                nodes = tvCounters.GetLeafNodes().Where(n=>n.ImageIndex < 1).ToList();
+            else
+                nodes = tvCounters.GetLeafNodes();
             Form f = Program.MainForm;
             if (nodes.Count > 3)
             {
@@ -1012,9 +1018,7 @@ namespace SSASDiag
                 else
                     Invoke(new Action(() => counterNode.Checked = false));
             }
-            TreeNode root = nodes[0];
-            while (root.Parent != null)
-                root = root.Parent;
+
             StatusFloater.Invoke(new Action(() =>
                 {
                     StatusFloater.EscapePressed = false;
