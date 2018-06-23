@@ -704,14 +704,14 @@ namespace SSASDiag
             var results = chartPerfMon.HitTest(pos.X, pos.Y, false, ChartElementType.DataPoint);
             foreach (var result in results)
             {
-                if (result.ChartElementType == ChartElementType.DataPoint)
+                if (result.ChartElementType != ChartElementType.Nothing)
                 {
                     var prop = result.Object as DataPoint;
                     if (prop != null)
                     {
                         var pointXPixel = result.ChartArea.AxisX.ValueToPixelPosition(prop.XValue);
                         var pointYPixel = result.ChartArea.AxisY.ValueToPixelPosition(prop.YValues[0]);
-                        tooltip.Show(prop.LegendText + "\n" + DateTime.FromOADate(prop.XValue) + "\nValue: " + prop.YValues[0], this.chartPerfMon, pos.X + 10, pos.Y);
+                        tooltip.Show(prop.LegendText + "\n" + DateTime.FromOADate(prop.XValue) + "\nValue: " + (double)prop.Tag, this.chartPerfMon, pos.X + 10, pos.Y);
                         CurrentSeriesUnderMouse = prop.LegendText;
                     }
                 }
@@ -881,6 +881,7 @@ namespace SSASDiag
                     if (p.YValues[0] > Maximum)
                         Maximum = p.YValues[0];
                 }
+            chartPerfMon.ChartAreas[0].AxisY.LabelStyle.Enabled = !chkAutoScale.Checked;
             chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : Maximum;
             chartPerfMon.ResumeLayout();
         }
@@ -925,6 +926,7 @@ namespace SSASDiag
                         {
                             double scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Log10(max))))  * 100 : (double)r["CounterValue"];
                             s.Points.AddXY(DateTime.Parse((r["CounterDateTime"] as string).Trim('\0')).AddMinutes((r["MinutesToUTC"] as int?).Value), scaledValue);
+                            s.Points.Last().Tag = (double)r["CounterValue"];
                         }
                         dr.Close();
                         TreeNode node = tvCounters.FindNodeByPath(s.Name);

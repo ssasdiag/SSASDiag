@@ -477,6 +477,7 @@
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep45) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep90) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.WordWrap)));
+            chartArea1.AxisY.LabelStyle.Enabled = false;
             chartArea1.AxisY.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
             chartArea1.AxisY.LabelStyle.Interval = 0D;
             chartArea1.AxisY.LabelStyle.IntervalOffset = 0D;
