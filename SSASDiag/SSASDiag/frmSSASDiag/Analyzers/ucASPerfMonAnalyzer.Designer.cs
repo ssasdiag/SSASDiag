@@ -283,7 +283,7 @@
             this.splitPerfMonCountersAndChart.Panel2.Controls.Add(this.pnlSeriesDetails);
             this.splitPerfMonCountersAndChart.Panel2.Controls.Add(this.chartPerfMon);
             this.splitPerfMonCountersAndChart.Size = new System.Drawing.Size(781, 368);
-            this.splitPerfMonCountersAndChart.SplitterDistance = 182;
+            this.splitPerfMonCountersAndChart.SplitterDistance = 218;
             this.splitPerfMonCountersAndChart.TabIndex = 47;
             // 
             // dgdGrouping
@@ -306,7 +306,7 @@
             this.dgdGrouping.Location = new System.Drawing.Point(0, 0);
             this.dgdGrouping.Name = "dgdGrouping";
             this.dgdGrouping.RowHeadersVisible = false;
-            this.dgdGrouping.Size = new System.Drawing.Size(182, 21);
+            this.dgdGrouping.Size = new System.Drawing.Size(218, 21);
             this.dgdGrouping.TabIndex = 1;
             // 
             // Counter
@@ -337,7 +337,7 @@
             this.pnlSeriesDetails.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.pnlSeriesDetails.Location = new System.Drawing.Point(0, 308);
             this.pnlSeriesDetails.Name = "pnlSeriesDetails";
-            this.pnlSeriesDetails.Size = new System.Drawing.Size(595, 60);
+            this.pnlSeriesDetails.Size = new System.Drawing.Size(559, 60);
             this.pnlSeriesDetails.TabIndex = 2;
             // 
             // label1
@@ -508,7 +508,7 @@
             this.chartPerfMon.Margin = new System.Windows.Forms.Padding(0);
             this.chartPerfMon.Name = "chartPerfMon";
             this.chartPerfMon.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Bright;
-            this.chartPerfMon.Size = new System.Drawing.Size(595, 305);
+            this.chartPerfMon.Size = new System.Drawing.Size(559, 305);
             this.chartPerfMon.SuppressExceptions = true;
             this.chartPerfMon.TabIndex = 0;
             this.chartPerfMon.Text = "Counter Data";
