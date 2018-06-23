@@ -912,8 +912,8 @@ namespace SSASDiag
                         Bitmap bmp = new Bitmap(16, 16);
                         using (Graphics g = Graphics.FromImage(bmp))
                         {
-                            g.FillRectangle(Brushes.Transparent, 0, 0, 32, 32);
-                            g.DrawLine(pen, 0, 6, 16, 6);
+                            g.FillRectangle(Brushes.Transparent, 0, 0, 16, 16);
+                            g.DrawLine(pen, 0, 7, 16, 7);
                         }
                         legend.Images.Add(bmp);
 

@@ -116,6 +116,14 @@ namespace SSASDiag
         {
             if (!bNoRedraw)
             {
+                if (e.State == TreeNodeStates.Focused)
+                {
+                    e.Graphics.FillRectangle(SystemBrushes.Window, e.Node.Bounds);
+                    if (ModifierKeys != Keys.Shift && ModifierKeys != Keys.Control)
+                        ClearSelectedNodes();
+                    ToggleNode(e.Node, true);
+                    OnAfterSelect(new TreeViewEventArgs(e.Node));    
+                }
                 Rectangle bounds = e.Node.Bounds;
                 if (bounds.Top == 0 && bounds.Left == 0 && bounds.Height == 0 && bounds.Width == 0)
                     return;
@@ -130,11 +138,11 @@ namespace SSASDiag
                         brush = SystemBrushes.MenuHighlight;
                         rightWidth = (int)Math.Round(textsize.Width, 0) + 4;
                     }
-                    Rectangle selectRect = new Rectangle(e.Node.Bounds.Left - 2 - (e.Node.ImageIndex > 0 ? 0 : 16), e.Node.Bounds.Top - 2, rightWidth, e.Node.Bounds.Height);
+                    Rectangle selectRect = new Rectangle(e.Node.Bounds.Left - 2 - (e.Node.ImageIndex > 0 ? 0 : 16), e.Node.Bounds.Top, rightWidth, e.Node.Bounds.Height - 1);
                     e.Graphics.FillRectangle(brush, selectRect);
                     e.Graphics.DrawString(e.Node.Name, Font, SystemBrushes.WindowText,
                         e.Node.Bounds.Left - (e.Node.ImageIndex > 0 ? 0 : 16),
-                        e.Node.Bounds.Top + 1);
+                        e.Node.Bounds.Top + 2);
                 }
                 catch (Exception ex)
                 {
