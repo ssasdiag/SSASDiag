@@ -779,7 +779,7 @@ namespace SSASDiag
             }
             CurrentSeriesUnderMouse = "";
         }
-        private void TvCounters_AfterSelect(object sender, System.Windows.Forms.TreeViewEventArgs e)
+        private void TvCounters_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (e.Node.Nodes.Count == 0)
             {
@@ -867,9 +867,27 @@ namespace SSASDiag
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
 
         }
+
+        private void chkAutoScale_CheckedChanged(object sender, EventArgs e)
+        {
+            chartPerfMon.SuspendLayout();
+            double Maximum = 0;
+            foreach (Series s in chartPerfMon.Series)
+                foreach (DataPoint p in s.Points)
+                {
+                    p.YValues[0] = chkAutoScale.Checked ?
+                                    p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Log10((double)s.Tag)))) :
+                                    p.YValues[0] / 100 * ((Math.Pow(10, (int)Math.Log10((double)s.Tag))));
+                    if (p.YValues[0] > Maximum)
+                        Maximum = p.YValues[0];
+                }
+            chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : Maximum;
+            chartPerfMon.ResumeLayout();
+        }
+
         int randomColorOffset = 1;
         ImageList legend = new ImageList();
-        private void TvCounters_AfterCheck(object sender, System.Windows.Forms.TreeViewEventArgs e)
+        private void TvCounters_AfterCheck(object sender, TreeViewEventArgs e)
         {
             tvCounters.SuspendLayout();
             if (e.Node.Nodes.Count == 0)
@@ -1045,11 +1063,6 @@ namespace SSASDiag
                 btnAnalyzeLogs.Text = (AnalyzedCount < selCount) ? "Import Selection" : "";
             }
             dgdLogList.ResumeLayout();
-        }
-
-        private void chkAutoScale_CheckedChanged(object sender, EventArgs e)
-        {
-
         }
 
         private void dgdLogList_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
