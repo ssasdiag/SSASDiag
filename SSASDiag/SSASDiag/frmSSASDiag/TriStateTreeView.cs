@@ -14,7 +14,7 @@ namespace SSASDiag
     public class TriStateTreeView : TreeView
     {
         public enum CheckedState : int { UnInitialised = -1, UnChecked, Checked, Mixed };
-        int IgnoreClickAction = 0;
+        public int IgnoreClickAction = 0;
         public enum TriStateStyles : int { Standard = 0, Installer };
         private TriStateStyles TriStateStyle = TriStateStyles.Standard;
 
@@ -184,8 +184,6 @@ namespace SSASDiag
 
             IgnoreClickAction++;
             TreeNode tn = e.Node;
-            if (tn.StateImageIndex == 2)
-                tn.Checked = true;
             tn.StateImageIndex = tn.Checked ? (int)CheckedState.Checked : (int)CheckedState.UnChecked;
             bNoRedraw = true;
             UpdateChildState(e.Node.Nodes, e.Node.StateImageIndex, e.Node.Checked, false);
@@ -608,7 +606,7 @@ namespace SSASDiag
             }
         }
 
-        protected void UpdateParentState(TreeNode tn)
+        public void UpdateParentState(TreeNode tn)
         {
             if (tn == null)
                 return;

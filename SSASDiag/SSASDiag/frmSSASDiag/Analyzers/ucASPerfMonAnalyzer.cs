@@ -519,6 +519,9 @@ namespace SSASDiag
             if (e.Column.DisplayIndex == 0)
             {
                 tvCounters.SuspendLayout();
+                tvCounters.AfterCheck -= TvCounters_AfterCheck;
+                tvCounters.AfterSelect -= TvCounters_AfterSelect;
+
                 List<TreeNode> nodes = tvCounters.GetLeafNodes();
                 List<TreeNode> clonedOldNodes = nodes.Select(
                     x =>
@@ -542,7 +545,6 @@ namespace SSASDiag
 
                 try
                 {
-
                     if (Counters.Rows.Count > 0)
                     {
                         if (dgdGrouping.Columns["Counter"].DisplayIndex == 0)
@@ -640,8 +642,6 @@ namespace SSASDiag
                             }
                         }
                     }
-                    tvCounters.AfterCheck -= TvCounters_AfterCheck;
-                    tvCounters.AfterSelect -= TvCounters_AfterSelect;
                     foreach (TreeNode n in clonedOldNodes)
                     {
                         string[] levels = (n.Tag as string).Split('\\');
@@ -661,21 +661,23 @@ namespace SSASDiag
                         }
                         legend.Images.Add(bmp);
                         tmpnode.SelectedImageIndex = tmpnode.ImageIndex = legend.Images.Count - 1;
-                        if (n.IsSelected)
-                            tvCounters.SelectedNode = n;
-                        tmpnode.Collapse();
-                        tmpnode.Expand();
+                        if (n.IsSelected && n.Nodes.Count == 0)
+                            tvCounters.SelectedNodes.Add(n);
                     }
-                    tvCounters.AfterCheck += TvCounters_AfterCheck;
-                    tvCounters.AfterSelect += TvCounters_AfterSelect;
+                    tvCounters.Update();
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("Exception: " + ex.Message);
+                    throw ex;
                 }
+
                 tvCounters.ResumeLayout();
-                tvCounters.Update();
+                tvCounters.Refresh();
+                tvCounters.AfterCheck += TvCounters_AfterCheck;
+                tvCounters.AfterSelect += TvCounters_AfterSelect;
             }
+
+           
         }
 
         Point? prevPosition = null;
@@ -876,8 +878,8 @@ namespace SSASDiag
 
         private void TvCounters_AfterCheck(object sender, TreeViewEventArgs e)
         {
-            tvCounters.SuspendLayout();
-            if (e.Node.Nodes.Count == 0)
+            
+            if (e.Node.Nodes.Count == 0 && e.Node.Parent != null)
             {
                 if (e.Node.Checked && e.Node.Nodes.Count == 0)
                 {
@@ -885,7 +887,10 @@ namespace SSASDiag
                         iNodesToProcessInBatch = 1;
                     iNodesToProcessInBatch--;
                     if (iNodesToProcessInBatch == 0)
-                        new Thread(new ThreadStart(()=>AddCounters())).Start();
+                    {
+                        tvCounters.AfterCheck -= TvCounters_AfterCheck;
+                        new Thread(new ThreadStart(() => AddCounters())).Start();
+                    }
                 }
                 else
                 {
@@ -909,7 +914,8 @@ namespace SSASDiag
 
         private void AddCounters()
         {
-            List<TreeNode> nodes = tvCounters.GetLeafNodes();
+            tvCounters.SuspendLayout();
+            List<TreeNode> nodes = tvCounters.GetLeafNodes().Where(n=>n.ImageIndex < 1).ToList();
             Form f = Program.MainForm;
             if (nodes.Count > 3)
             {
@@ -921,7 +927,7 @@ namespace SSASDiag
                         StatusFloater.lblTime.Text = "00:00";
                         StatusFloater.EscapePressed = false;
                         StatusFloater.AutoUpdateDuration = true;
-                        StatusFloater.Show(f);
+                        StatusFloater.Visible = true;
                         f.Enabled = false;
                     }));
             }
@@ -952,6 +958,7 @@ namespace SSASDiag
                         SqlDataReader dr = new SqlCommand(qry, connDB).ExecuteReader();
                         DataTable dt = new DataTable();
                         dt.Load(dr);
+                        dr.Close();
                         double max = (double)dt.Compute("max([CounterValue])", "");
                         s.Tag = max;
                         foreach (DataRow r in dt.Rows)
@@ -960,7 +967,7 @@ namespace SSASDiag
                             s.Points.AddXY(DateTime.Parse((r["CounterDateTime"] as string).Trim('\0')).AddMinutes((r["MinutesToUTC"] as int?).Value), scaledValue);
                             s.Points.Last().Tag = (double)r["CounterValue"];
                         }
-                        dr.Close();
+                        
                         TreeNode node = tvCounters.FindNodeByPath(s.Name);
                         if (node != null && tvCounters.SelectedNodes.Contains(node))
                             s.BorderWidth = 4;
@@ -1006,6 +1013,9 @@ namespace SSASDiag
                     StatusFloater.Hide();
                     f.Enabled = true;
                 }));
+            // Removed in the AfterCheck function, the only place that ever invokes this...
+            tvCounters.AfterCheck += TvCounters_AfterCheck;
+            tvCounters.ResumeLayout();
         }
 
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)
