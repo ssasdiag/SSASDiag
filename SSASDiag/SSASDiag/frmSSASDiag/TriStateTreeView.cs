@@ -124,6 +124,7 @@ namespace SSASDiag
                     SelectNode(e.Node);
                     OnAfterSelect(new TreeViewEventArgs(e.Node));    
                 }
+
                 Rectangle bounds = e.Node.Bounds;
                 if (bounds.Top == 0 && bounds.Left == 0 && bounds.Height == 0 && bounds.Width == 0)
                     return;
@@ -132,13 +133,13 @@ namespace SSASDiag
                 {
                     SizeF textsize = e.Graphics.MeasureString(e.Node.Name, Font);
                     Brush brush = SystemBrushes.Window;
-                    int rightWidth = e.Node.Bounds.Width + 18;
+                    int rightWidth = e.Node.Bounds.Width + 17;
                     if (SelectedNodes.Contains(e.Node))
                     {
                         brush = SystemBrushes.MenuHighlight;
                         rightWidth = (int)Math.Round(textsize.Width, 0) + 4;
                     }
-                    Rectangle selectRect = new Rectangle(e.Node.Bounds.Left - 2 - (e.Node.ImageIndex > 0 ? 0 : 16), e.Node.Bounds.Top, rightWidth, e.Node.Bounds.Height - 1);
+                    Rectangle selectRect = new Rectangle(e.Node.Bounds.Left - 1 - (e.Node.ImageIndex > 0 ? 0 : 16), e.Node.Bounds.Top, rightWidth, e.Node.Bounds.Height );
                     e.Graphics.FillRectangle(brush, selectRect);
                     e.Graphics.DrawString(e.Node.Name, Font, SystemBrushes.WindowText,
                         e.Node.Bounds.Left - (e.Node.ImageIndex > 0 ? 0 : 16),
@@ -148,6 +149,7 @@ namespace SSASDiag
                 {
                     throw ex;
                 }
+                
             }
         }
 

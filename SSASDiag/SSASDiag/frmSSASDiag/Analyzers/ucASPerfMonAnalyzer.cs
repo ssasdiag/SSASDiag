@@ -54,13 +54,11 @@ namespace SSASDiag
             trTimeRange.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             trTimeRange.BackColor = System.Drawing.SystemColors.Control;
             trTimeRange.DivisionNum = 15;
-            trTimeRange.HeightOfBar = 8;
+            trTimeRange.HeightOfBar = 12;
             trTimeRange.HeightOfMark = 16;
             trTimeRange.HeightOfTick = 4;
             trTimeRange.Height = 56;
-            trTimeRange.Margin = new Padding(6, 0, 3, 0);
-            trTimeRange.InnerColor = Color.Azure;
-            trTimeRange.ForeColor = Color.Azure;
+            trTimeRange.InnerColor = Color.LightBlue;
             trTimeRange.Orientation = TimeRangeBar.RangeBarOrientation.horizontal;
             trTimeRange.ScaleOrientation = TimeRangeBar.TopBottomOrientation.bottom;
             trTimeRange.Dock = DockStyle.Top;
@@ -246,6 +244,8 @@ namespace SSASDiag
 
         private void TrTimeRange_RangeChanged(object sender, EventArgs e)
         {
+            if (chartPerfMon.ChartAreas[0].AxisX.Maximum == trTimeRange.RangeMaximum.ToOADate() && chartPerfMon.ChartAreas[0].AxisX.Minimum == trTimeRange.RangeMinimum.ToOADate())
+                return;
             stripLine.StripWidth = 0;
             chartPerfMon.Series.Clear();
             tvCounters.AfterCheck -= TvCounters_AfterCheck;
@@ -545,133 +545,126 @@ namespace SSASDiag
                 string InstancePath = "";
                 int? InstanceIndex = null;
 
-                try
+                if (Counters.Rows.Count > 0)
                 {
-                    if (Counters.Rows.Count > 0)
+                    if (dgdGrouping.Columns["Counter"].DisplayIndex == 0)
                     {
-                        if (dgdGrouping.Columns["Counter"].DisplayIndex == 0)
-                        {
-                            DataRow[] rows = Counters.Select("", "objectname, countername, instancepath, instanceindex");
+                        DataRow[] rows = Counters.Select("", "objectname, countername, instancepath, instanceindex");
 
-                            int i = 0;
-                            while (i < rows.Count())
-                            {
-                                if (CounterName != rows[i]["CounterName"] as string)
-                                {
-                                    CounterName = rows[i]["CounterName"] as string;
-                                    TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName);
-                                    n.Tag = Convert.ToString(rows[i]["CounterID"]);
-                                    InstancePath = "";
-                                    while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
-                                    {
-                                        if (rows[i]["InstancePath"] as string != null && InstancePath != rows[i]["InstancePath"] as string)
-                                        {
-                                            InstancePath = rows[i]["InstancePath"] as string;
-                                            TreeNode nn = n.Nodes.Add(InstancePath, InstancePath);
-                                            nn.Tag = Convert.ToString(rows[i]["CounterID"]);
-                                            InstanceIndex = null;
-                                            while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
-                                            {
-                                                if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
-                                                {
-                                                    InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                                    nn.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"]);
-                                                }
-                                                i++;
-                                            }
-                                            if (i == rows.Count()) break;
-                                            i--;
-                                        }
-                                        i++;
-                                    }
-                                    if (i == rows.Count()) break;
-                                    i--;
-                                }
-                                i++;
-                            }
-                        }
-                        else
+                        int i = 0;
+                        while (i < rows.Count())
                         {
-                            DataRow[] rows = Counters.Select("", "objectname, instancepath, instanceindex, countername");
-
-                            int i = 0;
-                            InstancePath = "";
-                            while (i < rows.Count())
+                            if (CounterName != rows[i]["CounterName"] as string)
                             {
-                                if (InstancePath != rows[i]["InstancePath"] as string || rows[i]["InstancePath"] as string == "")
+                                CounterName = rows[i]["CounterName"] as string;
+                                TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName);
+                                n.Tag = Convert.ToString(rows[i]["CounterID"]);
+                                InstancePath = "";
+                                while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
                                 {
-                                    InstancePath = rows[i]["InstancePath"] as string;
-                                    TreeNode n = null;
-                                    if (InstancePath != "")
+                                    if (rows[i]["InstancePath"] as string != null && InstancePath != rows[i]["InstancePath"] as string)
                                     {
-                                        n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath, InstancePath);
-                                        n.Tag = Convert.ToString(rows[i]["CounterID"]);
+                                        InstancePath = rows[i]["InstancePath"] as string;
+                                        TreeNode nn = n.Nodes.Add(InstancePath, InstancePath);
+                                        nn.Tag = Convert.ToString(rows[i]["CounterID"]);
                                         InstanceIndex = null;
                                         while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
                                         {
                                             if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
                                             {
                                                 InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                                TreeNode nn = n.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString());
-                                                while (i < rows.Count() && rows[i]["InstanceIndex"] as int? == InstanceIndex)
-                                                {
-                                                    CounterName = rows[i]["CounterName"] as string;
-                                                    nn.Nodes.Add(CounterName, CounterName);
-                                                    nn.Tag = Convert.ToString(rows[i]["CounterID"]);
-                                                    i++;
-                                                }
-                                                if (i == rows.Count()) break;
-                                                i--;
-                                            }
-                                            else
-                                            {
-                                                CounterName = rows[i]["CounterName"] as string;
-                                                n.Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]);
+                                                nn.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"]);
                                             }
                                             i++;
                                         }
+                                        if (i == rows.Count()) break;
+                                        i--;
                                     }
-                                    else
+                                    i++;
+                                }
+                                if (i == rows.Count()) break;
+                                i--;
+                            }
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        DataRow[] rows = Counters.Select("", "objectname, instancepath, instanceindex, countername");
+
+                        int i = 0;
+                        InstancePath = "";
+                        while (i < rows.Count())
+                        {
+                            if (InstancePath != rows[i]["InstancePath"] as string || rows[i]["InstancePath"] as string == "")
+                            {
+                                InstancePath = rows[i]["InstancePath"] as string;
+                                TreeNode n = null;
+                                if (InstancePath != "")
+                                {
+                                    n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath, InstancePath);
+                                    n.Tag = Convert.ToString(rows[i]["CounterID"]);
+                                    InstanceIndex = null;
+                                    while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
                                     {
-                                        CounterName = rows[i]["CounterName"] as string;
-                                        tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]);
+                                        if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
+                                        {
+                                            InstanceIndex = rows[i]["InstanceIndex"] as int?;
+                                            TreeNode nn = n.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString());
+                                            while (i < rows.Count() && rows[i]["InstanceIndex"] as int? == InstanceIndex)
+                                            {
+                                                CounterName = rows[i]["CounterName"] as string;
+                                                nn.Nodes.Add(CounterName, CounterName);
+                                                nn.Tag = Convert.ToString(rows[i]["CounterID"]);
+                                                i++;
+                                            }
+                                            if (i == rows.Count()) break;
+                                            i--;
+                                        }
+                                        else
+                                        {
+                                            CounterName = rows[i]["CounterName"] as string;
+                                            n.Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]);
+                                        }
                                         i++;
                                     }
-                                    if (i == rows.Count()) break;
-                                    i--;
                                 }
-                                i++;
+                                else
+                                {
+                                    CounterName = rows[i]["CounterName"] as string;
+                                    tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]);
+                                    i++;
+                                }
+                                if (i == rows.Count()) break;
+                                i--;
                             }
+                            i++;
                         }
                     }
-                    foreach (TreeNode n in clonedOldNodes)
-                    {
-                        string[] levels = (n.Tag as string).Split('\\');
-                        TreeNode tmpnode = tvCounters.Nodes[levels[0]].Nodes[levels[levels.Length - 1]];
-                        for (int i = levels.Length - 2; i > 0; i--)
-                            tmpnode = tmpnode.Nodes[levels[i]];
-                        tmpnode.Checked = true;
-                        Series s = chartPerfMon.Series[n.Tag as string];
-                        s.Name = s.LegendText = tmpnode.FullPath;
-                        Pen pen = new Pen(s.Color);
-                        pen.Width = 6;
-                        Bitmap bmp = new Bitmap(16, 16);
-                        using (Graphics g = Graphics.FromImage(bmp))
-                        {
-                            g.FillRectangle(Brushes.Transparent, 0, 0, 32, 32);
-                            g.DrawLine(pen, 0, 6, 16, 6);
-                        }
-                        legend.Images.Add(bmp);
-                        tmpnode.SelectedImageIndex = tmpnode.ImageIndex = legend.Images.Count - 1;
-                        if (n.IsSelected && n.Nodes.Count == 0)
-                            tvCounters.SelectedNodes.Add(n);
-                    }
-                    tvCounters.Update();
                 }
-                catch (Exception ex)
+                foreach (TreeNode n in clonedOldNodes)
                 {
-                    throw ex;
+                    string[] levels = (n.Tag as string).Split('\\');
+                    TreeNode tmpnode = tvCounters.Nodes[levels[0]].Nodes[levels[levels.Length - 1]];
+                    for (int i = levels.Length - 2; i > 0; i--)
+                        tmpnode = tmpnode.Nodes[levels[i]];
+                    tmpnode.Checked = true;
+                    Series s = chartPerfMon.Series[n.Tag as string];
+                    s.Name = s.LegendText = tmpnode.FullPath;
+                    Pen pen = new Pen(s.Color);
+                    pen.Width = 6;
+                    Bitmap bmp = new Bitmap(16, 16);
+                    using (Graphics g = Graphics.FromImage(bmp))
+                    {
+                        g.FillRectangle(Brushes.Transparent, 0, 0, 32, 32);
+                        g.DrawLine(pen, 0, 6, 16, 6);
+                    }
+                    legend.Images.Add(bmp);
+                    tmpnode.SelectedImageIndex = tmpnode.ImageIndex = legend.Images.Count - 1;
+                    if (n.IsSelected && n.Nodes.Count == 0)
+                        tvCounters.SelectedNodes.Add(n);
                 }
+                tvCounters.Update();
 
                 tvCounters.ResumeLayout();
                 tvCounters.Refresh();
@@ -856,7 +849,6 @@ namespace SSASDiag
                                     )))a", connDB).ExecuteReader();
             dr.Read();
             txtDur.Text = dr["Duration"] as string;
-
             trTimeRange.SetRangeLimit((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
             trTimeRange.SelectRange((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
             chartPerfMon.ChartAreas[0].AxisX.Maximum = (dr["StopTime"] as DateTime?).Value.ToOADate();
@@ -1019,6 +1011,11 @@ namespace SSASDiag
                     Invoke(new Action(() => counterNode.Checked = false));
             }
 
+            chartPerfMon.Invoke(new Action(() =>
+                {
+                    chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate();
+                    chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate();
+                }));
             StatusFloater.Invoke(new Action(() =>
                 {
                     StatusFloater.EscapePressed = false;
