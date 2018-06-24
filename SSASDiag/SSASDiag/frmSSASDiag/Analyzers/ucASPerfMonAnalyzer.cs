@@ -830,27 +830,32 @@ namespace SSASDiag
                             group by ObjectName, CounterName, ParentName, InstanceName, InstanceIndex";
             Counters.Load(new SqlCommand(qry,
                                             connDB).ExecuteReader());
-            dr = new SqlCommand(@"  select 
-                                    format(convert(int,format(a.intervaloffset, 'dd')) - 1, '00') + 
-                                    ':' + 
-                                    format(a.intervaloffset, 'HH:mm:ss.fff') Duration, StartTime, StopTime 
-                                    from (
-                                    select convert(datetime, LogStopTime) - convert(datetime, LogStartTime) IntervalOffset, 
-                                    dateadd(mi, MinutesToUTC, convert(datetime, LogStartTime)) StartTime, 
-                                    dateadd(mi, MinutesToUTC, convert(datetime, LogStopTime)) StopTime 
-                                    from DisplayToID 
-                                    where GUID = 
-                                    (select top 1 GUID from CounterData 
-                                    where CounterID = ( 
-                                    select top 1 CounterID from CounterDetails 
-                                    where MachineName = '" + cmbServers.SelectedItem + @"' 
-                                    and CounterID = (select top 1 CounterID from CounterData)
-                                    )))a", connDB).ExecuteReader();
+            qry = @"select 
+                        format(convert(int,format(a.intervaloffset, 'dd')) - 1, '00') + 
+                        ':' + 
+                        format(a.intervaloffset, 'HH:mm:ss.fff') Duration, StartTime, StopTime 
+                    from 
+                    (select convert(datetime, LogStopTime) - convert(datetime, LogStartTime) IntervalOffset, 
+                            dateadd(mi, MinutesToUTC, convert(datetime, LogStartTime)) StartTime, 
+                            dateadd(mi, MinutesToUTC, convert(datetime, LogStopTime)) StopTime 
+                     from DisplayToID 
+                     where GUID = 
+                     (
+                        select top 1 GUID from CounterData where CounterID = 
+                        (                     
+                            select top 1 CounterID from CounterDetails 
+                            where MachineName = '" + cmbServers.SelectedItem + @"' 
+                                  and CounterID = (select top 1 CounterID from CounterData)
+                        )
+                     )
+                    )a";
+            dr = new SqlCommand(qry, connDB).ExecuteReader();
             dr.Read();
             txtDur.Text = dr["Duration"] as string;
             trTimeRange.SetRangeLimit((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
             trTimeRange.SelectRange((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
             chartPerfMon.ChartAreas[0].AxisX.Maximum = (dr["StopTime"] as DateTime?).Value.ToOADate();
+            chartPerfMon.ChartAreas[0].AxisX.Maximum = ((dr["StopTime"] as DateTime?).Value).ToOADate();
             dr.Close();
 
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));

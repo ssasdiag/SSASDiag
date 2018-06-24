@@ -55,7 +55,7 @@ namespace SSASDiag
                     }
                     else
                         StartTime = DateTime.Now;
-                    tt.Change(0, 1000);
+                    tt.Change(0, 250);
                     lblTime.Visible = true;
                 }
                 else
@@ -67,12 +67,9 @@ namespace SSASDiag
         private static void Tt_Elapsed(object sender)
         {
             frmStatusFloater f = sender as frmStatusFloater;
-            if (sender != null && f.lblTime.Text != "")
+            if (sender != null && f.lblTime.Text != "" && (DateTime.Now - f.StartTime).ToString("mm\\:ss") != f.lblTime.Text)
             {
-                string curTime = f.lblTime.Text;
-                string[] timeparts = f.lblTime.Text.Split(':');
-                TimeSpan newTime = (TimeSpan.FromMinutes(Convert.ToInt32(timeparts[0])) + TimeSpan.FromSeconds(Convert.ToInt32(timeparts[1])).Add(TimeSpan.FromSeconds(1)));
-                f.lblTime.Invoke(new Action(() => f.lblTime.Text = newTime.ToString("mm\\:ss")));
+                f.lblTime.Invoke(new Action(() => f.lblTime.Text = (DateTime.Now - f.StartTime).ToString("mm\\:ss")));
             }
         }
 
