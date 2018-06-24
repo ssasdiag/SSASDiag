@@ -523,56 +523,82 @@ namespace SSASDiag
                 tvCounters.AfterCheck -= TvCounters_AfterCheck;
                 tvCounters.AfterSelect -= TvCounters_AfterSelect;
 
-                List<TreeNode> nodes = tvCounters.GetLeafNodes();
-                List<TreeNode> clonedOldNodes = nodes.Select(
-                    x =>
-                    {
-                        TreeNode n = x.Clone() as TreeNode;
-                        n.Tag = x.FullPath;
-                        return n;
-                    }
-                    ).ToList();
+                
+                Form f = Program.MainForm;
+                StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
+                StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
+                StatusFloater.lblStatus.Text = "Loading counter hierarchy...";
+                StatusFloater.lblSubStatus.Text = "";
+                StatusFloater.lblTime.Text = "";
+                StatusFloater.AutoUpdateDuration = false;
+                StatusFloater.Show(f);
+                DrawingControl.SuspendDrawing(f);
+                f.Enabled = false;
 
-                foreach (TreeNode n in tvCounters.Nodes)
+                new Thread(new ThreadStart(() =>
                 {
-                    n.Nodes.Clear();
-                    n.Checked = false;
-                    n.Collapse();
-                }
-
-                string CounterName = "";
-                string InstancePath = "";
-                int? InstanceIndex = null;
-
-                if (Counters.Rows.Count > 0)
-                {
-                    if (dgdGrouping.Columns["Counter"].DisplayIndex == 0)
+                    try
                     {
-                        DataRow[] rows = Counters.Select("", "objectname, countername, instancepath, instanceindex");
-
-                        int i = 0;
-                        while (i < rows.Count())
-                        {
-                            if (CounterName != rows[i]["CounterName"] as string)
+                        List<TreeNode> nodes = tvCounters.GetLeafNodes();
+                        List<TreeNode> clonedOldNodes = nodes.Select(
+                            x =>
                             {
-                                CounterName = rows[i]["CounterName"] as string;
-                                TreeNode n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName);
-                                n.Tag = Convert.ToString(rows[i]["CounterID"]);
-                                InstancePath = "";
-                                while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
+                                TreeNode n = x.Clone() as TreeNode;
+                                n.Tag = x.FullPath;
+                                return n;
+                            }
+                            ).ToList();
+
+                        tvCounters.Invoke(new Action(() =>
+                        {
+                            foreach (TreeNode n in tvCounters.Nodes)
+                            {
+                                n.Nodes.Clear();
+                                n.Checked = false;
+                                n.Collapse();
+                            }
+                        }));
+
+                        string CounterName = "";
+                        string InstancePath = "";
+                        int? InstanceIndex = null;
+
+                        if (Counters.Rows.Count > 0)
+                        {
+                            if (dgdGrouping.Columns["Counter"].DisplayIndex == 0)
+                            {
+                                DataRow[] rows = Counters.Select("", "objectname, countername, instancepath, instanceindex");
+
+                                int i = 0;
+                                while (i < rows.Count())
                                 {
-                                    if (rows[i]["InstancePath"] as string != null && InstancePath != rows[i]["InstancePath"] as string)
+                                    if (CounterName != rows[i]["CounterName"] as string)
                                     {
-                                        InstancePath = rows[i]["InstancePath"] as string;
-                                        TreeNode nn = n.Nodes.Add(InstancePath, InstancePath);
-                                        nn.Tag = Convert.ToString(rows[i]["CounterID"]);
-                                        InstanceIndex = null;
-                                        while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
+                                        CounterName = rows[i]["CounterName"] as string;
+                                        TreeNode n = null;
+                                        tvCounters.Invoke(new Action(() => n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName)));
+                                        n.Tag = Convert.ToString(rows[i]["CounterID"]);
+                                        InstancePath = "";
+                                        while (i < rows.Count() && rows[i]["CounterName"] as string == CounterName)
                                         {
-                                            if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
+                                            if (rows[i]["InstancePath"] as string != null && InstancePath != rows[i]["InstancePath"] as string)
                                             {
-                                                InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                                nn.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"]);
+                                                InstancePath = rows[i]["InstancePath"] as string;
+                                                TreeNode nn = null;
+                                                tvCounters.Invoke(new Action(() => nn = n.Nodes.Add(InstancePath, InstancePath)));
+                                                nn.Tag = Convert.ToString(rows[i]["CounterID"]);
+                                                InstanceIndex = null;
+                                                while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
+                                                {
+                                                    if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
+                                                    {
+                                                        InstanceIndex = rows[i]["InstanceIndex"] as int?;
+                                                        tvCounters.Invoke(new Action(() => nn.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString()).Tag = Convert.ToString(rows[i]["CounterID"])));
+                                                    }
+                                                    i++;
+                                                }
+                                                if (i == rows.Count()) break;
+                                                i--;
                                             }
                                             i++;
                                         }
@@ -581,97 +607,103 @@ namespace SSASDiag
                                     }
                                     i++;
                                 }
-                                if (i == rows.Count()) break;
-                                i--;
                             }
-                            i++;
-                        }
-                    }
-                    else
-                    {
-                        DataRow[] rows = Counters.Select("", "objectname, instancepath, instanceindex, countername");
-
-                        int i = 0;
-                        InstancePath = "";
-                        while (i < rows.Count())
-                        {
-                            if (InstancePath != rows[i]["InstancePath"] as string || rows[i]["InstancePath"] as string == "")
+                            else
                             {
-                                InstancePath = rows[i]["InstancePath"] as string;
-                                TreeNode n = null;
-                                if (InstancePath != "")
+                                DataRow[] rows = Counters.Select("", "objectname, instancepath, instanceindex, countername");
+
+                                int i = 0;
+                                InstancePath = "";
+                                while (i < rows.Count())
                                 {
-                                    n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath, InstancePath);
-                                    n.Tag = Convert.ToString(rows[i]["CounterID"]);
-                                    InstanceIndex = null;
-                                    while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
+                                    if (InstancePath != rows[i]["InstancePath"] as string || rows[i]["InstancePath"] as string == "")
                                     {
-                                        if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
+                                        InstancePath = rows[i]["InstancePath"] as string;
+                                        TreeNode n = null;
+                                        if (InstancePath != "")
                                         {
-                                            InstanceIndex = rows[i]["InstanceIndex"] as int?;
-                                            TreeNode nn = n.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString());
-                                            while (i < rows.Count() && rows[i]["InstanceIndex"] as int? == InstanceIndex)
+                                            tvCounters.Invoke(new Action(() => n = tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(InstancePath, InstancePath)));
+                                            n.Tag = Convert.ToString(rows[i]["CounterID"]);
+                                            InstanceIndex = null;
+                                            while (i < rows.Count() && rows[i]["InstancePath"] as string == InstancePath)
                                             {
-                                                CounterName = rows[i]["CounterName"] as string;
-                                                nn.Nodes.Add(CounterName, CounterName);
-                                                nn.Tag = Convert.ToString(rows[i]["CounterID"]);
+                                                if (rows[i]["InstanceIndex"] as int? != null && rows[i]["InstanceIndex"] as int? != InstanceIndex)
+                                                {
+                                                    InstanceIndex = rows[i]["InstanceIndex"] as int?;
+                                                    TreeNode nn = null;
+                                                    tvCounters.Invoke(new Action(() => nn = n.Nodes.Add(InstanceIndex.ToString(), InstanceIndex.ToString())));
+                                                    while (i < rows.Count() && rows[i]["InstanceIndex"] as int? == InstanceIndex)
+                                                    {
+                                                        CounterName = rows[i]["CounterName"] as string;
+                                                        tvCounters.Invoke(new Action(() => nn.Nodes.Add(CounterName, CounterName)));
+                                                        nn.Tag = Convert.ToString(rows[i]["CounterID"]);
+                                                        i++;
+                                                    }
+                                                    if (i == rows.Count()) break;
+                                                    i--;
+                                                }
+                                                else
+                                                {
+                                                    CounterName = rows[i]["CounterName"] as string;
+                                                    tvCounters.Invoke(new Action(() => n.Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"])));
+                                                }
                                                 i++;
                                             }
-                                            if (i == rows.Count()) break;
-                                            i--;
                                         }
                                         else
                                         {
                                             CounterName = rows[i]["CounterName"] as string;
-                                            n.Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]);
+                                            tvCounters.Invoke(new Action(() => tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"])));
+                                            i++;
                                         }
-                                        i++;
+                                        if (i == rows.Count()) break;
+                                        i--;
                                     }
-                                }
-                                else
-                                {
-                                    CounterName = rows[i]["CounterName"] as string;
-                                    tvCounters.Nodes[rows[i]["ObjectName"] as string].Nodes.Add(CounterName, CounterName).Tag = Convert.ToString(rows[i]["CounterID"]);
                                     i++;
                                 }
-                                if (i == rows.Count()) break;
-                                i--;
                             }
-                            i++;
                         }
+                        foreach (TreeNode n in clonedOldNodes)
+                        {
+                            string[] levels = (n.Tag as string).Split('\\');
+                            TreeNode tmpnode = tvCounters.Nodes[levels[0]].Nodes[levels[levels.Length - 1]];
+                            for (int i = levels.Length - 2; i > 0; i--)
+                                tmpnode = tmpnode.Nodes[levels[i]];
+                            tvCounters.Invoke(new Action(() =>
+                            {
+                                tmpnode.Checked = true;
+                                Series s = chartPerfMon.Series[n.Tag as string];
+                                s.Name = s.LegendText = tmpnode.FullPath;
+                                Pen pen = new Pen(s.Color);
+                                pen.Width = 6;
+                                Bitmap bmp = new Bitmap(16, 16);
+                                using (Graphics g = Graphics.FromImage(bmp))
+                                {
+                                    g.FillRectangle(Brushes.Transparent, 0, 0, 32, 32);
+                                    g.DrawLine(pen, 0, 6, 16, 6);
+                                }
+                                legend.Images.Add(bmp);
+                                tmpnode.SelectedImageIndex = tmpnode.ImageIndex = legend.Images.Count - 1;
+                                if (n.IsSelected && n.Nodes.Count == 0)
+                                    tvCounters.SelectedNodes.Add(n);
+                            }));
+                        }
+                        tvCounters.Invoke(new Action(() =>
+                        {
+                            tvCounters.ResumeLayout();
+                            DrawingControl.ResumeDrawing(f);
+                            tvCounters.AfterCheck += TvCounters_AfterCheck;
+                            tvCounters.AfterSelect += TvCounters_AfterSelect;
+                            StatusFloater.Hide();
+                            f.Enabled = true;
+                        }));
                     }
-                }
-                foreach (TreeNode n in clonedOldNodes)
-                {
-                    string[] levels = (n.Tag as string).Split('\\');
-                    TreeNode tmpnode = tvCounters.Nodes[levels[0]].Nodes[levels[levels.Length - 1]];
-                    for (int i = levels.Length - 2; i > 0; i--)
-                        tmpnode = tmpnode.Nodes[levels[i]];
-                    tmpnode.Checked = true;
-                    Series s = chartPerfMon.Series[n.Tag as string];
-                    s.Name = s.LegendText = tmpnode.FullPath;
-                    Pen pen = new Pen(s.Color);
-                    pen.Width = 6;
-                    Bitmap bmp = new Bitmap(16, 16);
-                    using (Graphics g = Graphics.FromImage(bmp))
+                    catch (Exception ex)
                     {
-                        g.FillRectangle(Brushes.Transparent, 0, 0, 32, 32);
-                        g.DrawLine(pen, 0, 6, 16, 6);
+                        throw ex;
                     }
-                    legend.Images.Add(bmp);
-                    tmpnode.SelectedImageIndex = tmpnode.ImageIndex = legend.Images.Count - 1;
-                    if (n.IsSelected && n.Nodes.Count == 0)
-                        tvCounters.SelectedNodes.Add(n);
-                }
-                tvCounters.Update();
-
-                tvCounters.ResumeLayout();
-                tvCounters.Refresh();
-                tvCounters.AfterCheck += TvCounters_AfterCheck;
-                tvCounters.AfterSelect += TvCounters_AfterSelect;
-            }
-
-           
+                })).Start();
+            }           
         }
 
         Point? prevPosition = null;
@@ -1143,6 +1175,25 @@ namespace SSASDiag
                         ));
                     cm.Show(ParentForm, new Point(MousePosition.X - ParentForm.Left - 10, MousePosition.Y - ParentForm.Top - 26));
                 }
+            }
+        }
+
+        class DrawingControl
+        {
+            [DllImport("user32.dll")]
+            public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
+
+            private const int WM_SETREDRAW = 11;
+
+            public static void SuspendDrawing(Control parent)
+            {
+                SendMessage(parent.Handle, WM_SETREDRAW, false, 0);
+            }
+
+            public static void ResumeDrawing(Control parent)
+            {
+                SendMessage(parent.Handle, WM_SETREDRAW, true, 0);
+                parent.Refresh();
             }
         }
 
