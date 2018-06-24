@@ -934,6 +934,7 @@ namespace SSASDiag
                         f.Enabled = false;
                     }));
             }
+            int iCurNode = 1;
             foreach (TreeNode counterNode in nodes)
             {
                 if (!StatusFloater.EscapePressed)
@@ -994,7 +995,7 @@ namespace SSASDiag
                         chartPerfMon.Invoke(new System.Action(() =>
                         {
                             StatusFloater.lblSubStatus.Text = s.Name;
-                            StatusFloater.lblStatus.Text = "Loading " + nodes.IndexOf(node) + 2 + " of " + nodes.Count + " counters... (Esc to cancel)";
+                            StatusFloater.lblStatus.Text = "Loading " + ++iCurNode + " of " + nodes.Count + " counters... (Esc to cancel)";
                             legend.Images.Add(bmp);
                             if (chartPerfMon.ChartAreas[0].AxisY.Maximum < max)
                                 chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
