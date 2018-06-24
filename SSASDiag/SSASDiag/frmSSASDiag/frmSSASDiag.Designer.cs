@@ -1235,7 +1235,7 @@
             this.ctxSettings.Name = "contextMenuStrip1";
             this.ctxSettings.ShowCheckMargin = true;
             this.ctxSettings.ShowImageMargin = false;
-            this.ctxSettings.Size = new System.Drawing.Size(313, 114);
+            this.ctxSettings.Size = new System.Drawing.Size(313, 92);
             // 
             // automaticallyCheckForUpdatesToolStripMenuItem
             // 
@@ -1297,6 +1297,7 @@
             this.MinimumSize = new System.Drawing.Size(617, 427);
             this.Name = "frmSSASDiag";
             this.Text = "SSAS Diagnostics Tool";
+            this.Activated += new System.EventHandler(this.frmSSASDiag_Activated);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmSSASDiag_FormClosing);
             this.Load += new System.EventHandler(this.frmSSASDiag_Load);
             this.Shown += new System.EventHandler(this.frmSSASDiag_Shown);

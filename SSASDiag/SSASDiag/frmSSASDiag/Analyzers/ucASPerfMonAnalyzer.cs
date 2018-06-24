@@ -926,7 +926,7 @@ namespace SSASDiag
                     {
                         StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
                         StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
-                        StatusFloater.lblStatus.Text = "Loading counters... (Esc to cancel)";
+                        StatusFloater.lblStatus.Text = "Loading 1 of " + nodes.Count + " counters... (Esc to cancel)";
                         StatusFloater.lblTime.Text = "00:00";
                         StatusFloater.EscapePressed = false;
                         StatusFloater.AutoUpdateDuration = true;
@@ -962,8 +962,12 @@ namespace SSASDiag
                         DataTable dt = new DataTable();
                         dt.Load(dr);
                         dr.Close();
-                        double max = (double)dt.Compute("max([CounterValue])", "");
+                        var val = dt.Compute("max([CounterValue])", "");
+                        double max = 0;
+                        if (!Convert.IsDBNull(val))
+                            max = (double)val;
                         s.Tag = max;
+                        
                         foreach (DataRow r in dt.Rows)
                         {
                             double scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Log10(max)))) * 100 : (double)r["CounterValue"];
@@ -990,6 +994,7 @@ namespace SSASDiag
                         chartPerfMon.Invoke(new System.Action(() =>
                         {
                             StatusFloater.lblSubStatus.Text = s.Name;
+                            StatusFloater.lblStatus.Text = "Loading " + nodes.IndexOf(node) + 2 + " of " + nodes.Count + " counters... (Esc to cancel)";
                             legend.Images.Add(bmp);
                             if (chartPerfMon.ChartAreas[0].AxisY.Maximum < max)
                                 chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;

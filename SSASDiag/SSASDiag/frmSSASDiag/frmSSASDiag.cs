@@ -551,6 +551,12 @@ namespace SSASDiag
             SetWeakFileAssociation(".mdmp", "SSASDiag Memory Dump Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
         }
 
+        private void frmSSASDiag_Activated(object sender, EventArgs e)
+        {
+            if (StatusFloater.Visible)
+                StatusFloater.BringToFront();
+        }
+
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.AllowUsageStats = Convert.ToString(enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked);
