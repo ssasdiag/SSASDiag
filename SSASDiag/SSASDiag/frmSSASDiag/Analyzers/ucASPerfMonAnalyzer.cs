@@ -247,11 +247,9 @@ namespace SSASDiag
             if (chartPerfMon.ChartAreas[0].AxisX.Maximum == trTimeRange.RangeMaximum.ToOADate() && chartPerfMon.ChartAreas[0].AxisX.Minimum == trTimeRange.RangeMinimum.ToOADate())
                 return;
             stripLine.StripWidth = 0;
-            chartPerfMon.Series.Clear();
-            tvCounters.AfterCheck -= TvCounters_AfterCheck;
             chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate();
             chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate();
-            new Thread(new ThreadStart(() => AddCounters(true))).Start();
+            txtDur.Text = (trTimeRange.RangeMaximum - trTimeRange.RangeMinimum).ToString();
         }
 
         int DataBindingCompletions = 0;
@@ -520,6 +518,7 @@ namespace SSASDiag
         {
             if (e.Column.DisplayIndex == 0)
             {
+                tvCounters.CollapseAll();
                 tvCounters.SuspendLayout();
                 tvCounters.AfterCheck -= TvCounters_AfterCheck;
                 tvCounters.AfterSelect -= TvCounters_AfterSelect;
@@ -874,9 +873,7 @@ namespace SSASDiag
             chartPerfMon.ChartAreas[0].AxisY.LabelStyle.Enabled = !chkAutoScale.Checked;
             chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : Maximum;
             chartPerfMon.ResumeLayout();
-        }
-
-        
+        }       
 
         private void TvCounters_AfterCheck(object sender, TreeViewEventArgs e)
         {
@@ -958,8 +955,8 @@ namespace SSASDiag
 	                                    (bb.InstanceIndex = aa.InstanceIndex or (bb.InstanceIndex is null and aa.InstanceIndex is null)) and 
 	                                    (bb.ParentName = aa.ParentName or (bb.ParentName is null and aa.ParentName is null)) 
 	                                    ) and
-                                    dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) >= convert(datetime, '" + trTimeRange.RangeMinimum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121) and
-                                    dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.RangeMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
+                                    dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) >= convert(datetime, '" + trTimeRange.TotalMinimum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121) and
+                                    dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.TotalMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
                                     order by CounterDateTime asc";
                         SqlDataReader dr = new SqlCommand(qry, connDB).ExecuteReader();
                         DataTable dt = new DataTable();
@@ -977,12 +974,7 @@ namespace SSASDiag
                         TreeNode node = tvCounters.FindNodeByPath(s.Name);
                         if (node != null && tvCounters.SelectedNodes.Contains(node))
                             s.BorderWidth = 4;
-                        // we choose colors from a 1024 color palette of colors designed to go well together, 
-                        // randomly offsetting each time we reinitialize the chart, so we don't always get the first 10 colors.
-                        // Using colors immediately beside each other got great palettes, but a little too close to one another, 
-                        // so I multiply the current position in the series by 3 to give them more space and difference between colors.
-                        // If we go over our palette size defined with 1024 colors, we just take the mod of the overlown index with 1024 to get another color within range...
-                        int colorIndex = chartPerfMon.Series.Count * 3 + randomColorOffset;
+                        int colorIndex = chartPerfMon.Series.Count + randomColorOffset;
                         if (colorIndex > indexcolors.Length - 1) colorIndex %= indexcolors.Length - 1;
                         ColorConverter c = new ColorConverter();
                         s.Color = s.BorderColor = (Color)c.ConvertFromString(indexcolors[colorIndex]);
