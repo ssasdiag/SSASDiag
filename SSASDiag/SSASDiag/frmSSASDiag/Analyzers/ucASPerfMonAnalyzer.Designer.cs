@@ -32,6 +32,8 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitLogList = new System.Windows.Forms.SplitContainer();
             this.splitLogDetails = new System.Windows.Forms.SplitContainer();
             this.dgdLogList = new System.Windows.Forms.DataGridView();
@@ -61,8 +63,13 @@
             this.chkAutoScale = new System.Windows.Forms.CheckBox();
             this.cmbServers = new System.Windows.Forms.ComboBox();
             this.lblCounterGrouping = new System.Windows.Forms.Label();
+            this.dgdRules = new System.Windows.Forms.DataGridView();
             this.pnAnalyses = new System.Windows.Forms.Panel();
-            this.lblAnalysesStatus = new System.Windows.Forms.Label();
+            this.lblRules = new System.Windows.Forms.Label();
+            this.RuleName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Description = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Result = new System.Windows.Forms.DataGridViewImageColumn();
+            this.ResultDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -90,6 +97,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.chartPerfMon)).BeginInit();
             this.pnServers.SuspendLayout();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgdRules)).BeginInit();
             this.pnAnalyses.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -264,6 +272,7 @@
             // 
             // splitAnalysis.Panel2
             // 
+            this.splitAnalysis.Panel2.Controls.Add(this.dgdRules);
             this.splitAnalysis.Panel2.Controls.Add(this.pnAnalyses);
             this.splitAnalysis.Size = new System.Drawing.Size(781, 545);
             this.splitAnalysis.SplitterDistance = 389;
@@ -585,24 +594,95 @@
             this.lblCounterGrouping.Text = "Drag headers to reorder groupings:";
             this.lblCounterGrouping.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // dgdRules
+            // 
+            this.dgdRules.AllowUserToAddRows = false;
+            this.dgdRules.AllowUserToDeleteRows = false;
+            this.dgdRules.AllowUserToOrderColumns = true;
+            this.dgdRules.AllowUserToResizeRows = false;
+            this.dgdRules.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
+            this.dgdRules.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdRules.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            this.dgdRules.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgdRules.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.RuleName,
+            this.Description,
+            this.Result,
+            this.ResultDescription});
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdRules.DefaultCellStyle = dataGridViewCellStyle4;
+            this.dgdRules.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgdRules.Location = new System.Drawing.Point(0, 18);
+            this.dgdRules.Name = "dgdRules";
+            this.dgdRules.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
+            this.dgdRules.RowHeadersVisible = false;
+            this.dgdRules.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.dgdRules.Size = new System.Drawing.Size(781, 134);
+            this.dgdRules.TabIndex = 3;
+            this.dgdRules.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdRules_RowEnter);
+            // 
             // pnAnalyses
             // 
-            this.pnAnalyses.Controls.Add(this.lblAnalysesStatus);
+            this.pnAnalyses.Controls.Add(this.lblRules);
             this.pnAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnAnalyses.Location = new System.Drawing.Point(0, 0);
             this.pnAnalyses.Name = "pnAnalyses";
             this.pnAnalyses.Size = new System.Drawing.Size(781, 18);
             this.pnAnalyses.TabIndex = 2;
             // 
-            // lblAnalysesStatus
+            // lblRules
             // 
-            this.lblAnalysesStatus.AutoSize = true;
-            this.lblAnalysesStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAnalysesStatus.Location = new System.Drawing.Point(4, 3);
-            this.lblAnalysesStatus.Name = "lblAnalysesStatus";
-            this.lblAnalysesStatus.Size = new System.Drawing.Size(0, 12);
-            this.lblAnalysesStatus.TabIndex = 4;
-            this.lblAnalysesStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lblRules.AutoSize = true;
+            this.lblRules.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblRules.Location = new System.Drawing.Point(4, 3);
+            this.lblRules.Name = "lblRules";
+            this.lblRules.Size = new System.Drawing.Size(214, 12);
+            this.lblRules.TabIndex = 4;
+            this.lblRules.Text = "Select a rule to highlight its relevant counter details:";
+            this.lblRules.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // RuleName
+            // 
+            this.RuleName.Frozen = true;
+            this.RuleName.HeaderText = "Rule Name";
+            this.RuleName.Name = "RuleName";
+            this.RuleName.ReadOnly = true;
+            // 
+            // Description
+            // 
+            this.Description.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Description.HeaderText = "Description";
+            this.Description.Name = "Description";
+            this.Description.ReadOnly = true;
+            // 
+            // Result
+            // 
+            this.Result.HeaderText = "Result";
+            this.Result.Name = "Result";
+            this.Result.ReadOnly = true;
+            this.Result.Width = 50;
+            // 
+            // ResultDescription
+            // 
+            this.ResultDescription.HeaderText = "Result Description";
+            this.ResultDescription.Name = "ResultDescription";
+            this.ResultDescription.ReadOnly = true;
+            this.ResultDescription.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.ResultDescription.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.ResultDescription.Width = 200;
             // 
             // ucASPerfMonAnalyzer
             // 
@@ -645,6 +725,7 @@
             this.pnServers.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgdRules)).EndInit();
             this.pnAnalyses.ResumeLayout(false);
             this.pnAnalyses.PerformLayout();
             this.ResumeLayout(false);
@@ -678,11 +759,16 @@
         private System.Windows.Forms.Panel pnServers;
         private System.Windows.Forms.Label lblCounterGrouping;
         private System.Windows.Forms.Panel pnAnalyses;
-        private System.Windows.Forms.Label lblAnalysesStatus;
+        private System.Windows.Forms.Label lblRules;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Label lblHideFilesButton;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.CheckBox chkAutoScale;
         private System.Windows.Forms.ComboBox cmbServers;
+        private System.Windows.Forms.DataGridView dgdRules;
+        private System.Windows.Forms.DataGridViewTextBoxColumn RuleName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Description;
+        private System.Windows.Forms.DataGridViewImageColumn Result;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ResultDescription;
     }
 }

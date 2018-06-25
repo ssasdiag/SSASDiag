@@ -1011,19 +1011,8 @@ namespace SSASDiag
                 threadList.Add(new Thread(new ThreadStart(() =>
                     {
                         sem.WaitOne();
-                        StatusFloater.Invoke(new Action(() =>
-                        {
-                            StatusFloater.lblStatus.Text = "Loaded " + iCurNode + " of " + nodes.Count + " counters...";
-                            StatusFloater.lblSubStatus.Text = "(Esc to cancel)";
-                            StatusFloater.Invalidate(true);
-                            StatusFloater.Update();
-                            Application.DoEvents();
-                        }));
-                        iCurNode++;
-
                         if (!StatusFloater.EscapePressed)
                         {
-                            
                             Series s = new Series();
                             s.ChartType = SeriesChartType.Line;
                             s.Name = counter.Value;
@@ -1073,7 +1062,18 @@ namespace SSASDiag
                                     node = tvCounters.FindNodeByPath(s.Name);
                                     node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
                                     chartPerfMon.Series.Add(s);
+                                    Application.DoEvents();
                                 }));
+
+                                StatusFloater.Invoke(new Action(() =>
+                                {
+                                    StatusFloater.lblStatus.Text = "Loaded " + iCurNode + " of " + nodes.Count + " counters...";
+                                    StatusFloater.lblSubStatus.Text = "(Esc to cancel)";
+                                    StatusFloater.Invalidate(true);
+                                    StatusFloater.Update();
+                                    Application.DoEvents();
+                                }));
+                                iCurNode++;
                             }
                         }
                         else
@@ -1217,6 +1217,17 @@ namespace SSASDiag
                         ));
                     cm.Show(ParentForm, new Point(MousePosition.X - ParentForm.Left - 10, MousePosition.Y - ParentForm.Top - 26));
                 }
+            }
+        }
+
+        private void dgdRules_RowEnter(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex == 0)
+            {
+                // just do some stuff....
+                foreach (TreeNode n in tvCounters.Nodes)
+                    n.Checked = false;
+                //tvCounters.Nodes.Find("")
             }
         }
 
