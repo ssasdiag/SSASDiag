@@ -55,7 +55,7 @@ namespace SSASDiag
                     }
                     else
                         StartTime = DateTime.Now;
-                    tt.Change(0, 250);
+                    tt.Change(0, 200);
                     lblTime.Visible = true;
                 }
                 else
@@ -67,10 +67,14 @@ namespace SSASDiag
         private static void Tt_Elapsed(object sender)
         {
             frmStatusFloater f = sender as frmStatusFloater;
-            if (sender != null && f.lblTime.Text != "" && (DateTime.Now - f.StartTime).ToString("mm\\:ss") != f.lblTime.Text)
+            f.Invoke(new Action(()=>
             {
-                f.lblTime.Invoke(new Action(() => f.lblTime.Text = (DateTime.Now - f.StartTime).ToString("mm\\:ss")));
-            }
+                if (sender != null && f.lblTime.Text != "" && (DateTime.Now - f.StartTime).ToString("mm\\:ss") != f.lblTime.Text)
+                    f.Invoke(new Action(() => f.lblTime.Text = (DateTime.Now - f.StartTime).ToString("mm\\:ss")));
+                f.Invalidate(true);
+                f.Update();
+                Application.DoEvents();
+            }));
         }
 
         private void FrmStatusFloater_VisibleChanged(object sender, System.EventArgs e)
