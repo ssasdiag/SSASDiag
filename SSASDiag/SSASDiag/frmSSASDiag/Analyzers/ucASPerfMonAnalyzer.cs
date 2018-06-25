@@ -48,7 +48,7 @@ namespace SSASDiag
             stripLine.StripWidth = 0;
             stripLine.IntervalOffset = 0;
             // pick you color etc ... before adding the stripline to the axis
-            stripLine.BackColor = Color.FromArgb(128, Color.DarkGray);
+            stripLine.BackColor = Color.FromArgb(200, Color.LightBlue);
             chartPerfMon.ChartAreas[0].AxisX.StripLines.Add(stripLine);
 
             trTimeRange.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
@@ -81,6 +81,7 @@ namespace SSASDiag
             tvCounters.TriStateStyleProperty = TriStateTreeView.TriStateStyles.Installer;
             tvCounters.AfterCheck += TvCounters_AfterCheck;
             tvCounters.AfterSelect += TvCounters_AfterSelect;
+            tvCounters.BeforeCheck += TvCounters_BeforeCheck;
             tvCounters.ImageList = legend;
             tvCounters.ShowNodeToolTips = true;
             splitPerfMonCountersAndChart.Panel1.Controls.Add(tvCounters);
@@ -229,6 +230,19 @@ namespace SSASDiag
             frmSSASDiag.LogFeatureUse("PerfMon Analysis", "PerfMon analysis initalized for " + LogFiles.Count + " logs, " + LogFiles.Where(d => !d.Analyzed).Count() + " of which still require import for analysis.");
         }
 
+        private void TvCounters_BeforeCheck(object sender, TreeViewCancelEventArgs e)
+        {
+            if (tvCounters.GetLeafNodes(e.Node, false).Where(n => n.SelectedImageIndex > 0 || !n.Checked).Count() > 400 &&
+                e.Node.Checked == false)
+            {
+                Point p = System.Windows.Forms.Cursor.Position;
+                Point tvCounterLoc = tvCounters.Parent.PointToScreen(tvCounters.Location);
+                p.Offset(-tvCounterLoc.X, -tvCounterLoc.Y + 16);
+                tooltip.Show("This node covers too many counters for group selection.", this, p, 1200);
+                e.Cancel = true;
+            }
+        }
+
         private void TrTimeRange_RangeSliderMoving(bool bLeftButton, DateTime curPos)
         {
             if (bLeftButton)
@@ -248,8 +262,8 @@ namespace SSASDiag
             if (chartPerfMon.ChartAreas[0].AxisX.Maximum == trTimeRange.RangeMaximum.ToOADate() && chartPerfMon.ChartAreas[0].AxisX.Minimum == trTimeRange.RangeMinimum.ToOADate())
                 return;
             stripLine.StripWidth = 0;
-            chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate() - 1;
-            chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate() + 1;
+            chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate();
+            chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate();
             txtDur.Text = (trTimeRange.RangeMaximum - trTimeRange.RangeMinimum).ToString();
         }
 
@@ -907,6 +921,7 @@ namespace SSASDiag
             chartPerfMon.ResumeLayout();
         }
 
+        TreeNode ParentNodeOfUpdateBatch = null;
         private void TvCounters_AfterCheck(object sender, TreeViewEventArgs e)
         {
             if (e.Node.Nodes.Count == 0 && e.Node.Parent != null)
@@ -914,6 +929,8 @@ namespace SSASDiag
                 if (e.Node.Checked && e.Node.Nodes.Count == 0)
                 {
                     iNodesRemaingingToProcessInBatch--;
+                    if (iNodesRemaingingToProcessInBatch == -1)
+                        ParentNodeOfUpdateBatch = e.Node;
                     if (iNodesRemaingingToProcessInBatch < 1)
                     {
                         tvCounters.AfterCheck -= TvCounters_AfterCheck;
@@ -934,17 +951,20 @@ namespace SSASDiag
             else
             {
                 if (e.Node.Checked && iNodesRemaingingToProcessInBatch == 0)
+                {
                     iNodesRemaingingToProcessInBatch = tvCounters.GetLeafNodes(e.Node, false).Count();
+                    ParentNodeOfUpdateBatch = e.Node;
+                }
             }
-            if (tvCounters.GetLeafNodes().Count == 0)
+            if (chartPerfMon.Series.Count == 0)
                 chartPerfMon.ChartAreas[0].AxisY.Maximum = 0;
-            tvCounters.ResumeLayout();
         }
 
         async private void AddCounters(bool AlreadyAdded = false)
         {
             Random rand = new Random((int)DateTime.Now.Ticks);
             int randomColorOffset = rand.Next(1023);
+            int iCurColor = 0;
 
             Program.MainForm.Invoke(new Action(()=>DrawingControl.SuspendDrawing(Program.MainForm)));
             tvCounters.SuspendLayout();
@@ -954,18 +974,13 @@ namespace SSASDiag
             else
                 nodes = tvCounters.GetLeafNodes();
 
-            int iCurNode = 1;
-            int iCurColor = 0;
+            int iCurNode = 1;           
 
-            List<KeyValuePair<string, string>> CountersToUpdate = new List<KeyValuePair<string, string>>();
+            List<KeyValuePair<string, string>> CountersToUpdate = tvCounters.GetLeafNodes(ParentNodeOfUpdateBatch, false)
+                                                                    .Where(n => n.SelectedImageIndex < 1 || !n.Checked)
+                                                                    .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
 
-            foreach (TreeNode counterNode in nodes)
-            {
-                if (chartPerfMon.Series.FindByName(counterNode.FullPath) == null)
-                    CountersToUpdate.Add(new KeyValuePair<string, string>(counterNode.Tag as string, counterNode.FullPath));
-            }
-
-            if (iNodesRemaingingToProcessInBatch > 3)
+            if (CountersToUpdate.Count > 3)
                 StatusFloater.Invoke(new Action(() =>
                 {
                     Form f = Program.MainForm;
@@ -993,14 +1008,17 @@ namespace SSASDiag
                             dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.TotalMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
                             order by CounterID, CounterDateTime asc";
             SqlDataReader dr = null;
-            dr = await (new SqlCommand(qry, connDB)).ExecuteReaderAsync();
+            System.Runtime.CompilerServices.TaskAwaiter<SqlDataReader> tdr = (new SqlCommand(qry, connDB)).ExecuteReaderAsync().GetAwaiter();
+            while(!tdr.IsCompleted)
+                Application.DoEvents();
             DataTable dt = new DataTable();
+            dr = tdr.GetResult();
             dt.Load(dr);
             dr.Close();
 
             // parallelize loading as much as possible
             List<Thread> threadList = new List<Thread>();
-            Semaphore sem = new Semaphore(Environment.ProcessorCount, Environment.ProcessorCount);
+            Semaphore sem = new Semaphore(Environment.ProcessorCount - 2, Environment.ProcessorCount - 2);
             foreach (KeyValuePair<string, string> counter in CountersToUpdate)
             {
                 threadList.Add(new Thread(new ThreadStart(() =>
