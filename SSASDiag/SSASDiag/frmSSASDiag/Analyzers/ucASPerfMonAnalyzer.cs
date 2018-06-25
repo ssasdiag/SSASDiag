@@ -31,7 +31,7 @@ namespace SSASDiag
         string LogPath, AnalysisPath, PerfMonAnalysisId;
         SqlConnection connDB;
         List<PerfMonLog> LogFiles = new List<PerfMonLog>();
-        int randomColorOffset = 1, iNodesToProcessInBatch = 0;
+        int iNodesRemaingingToProcessInBatch = 0;
         ImageList legend = new ImageList();
         TimeRangeBar trTimeRange = new TimeRangeBar();
         private TriStateTreeView tvCounters;
@@ -72,7 +72,7 @@ namespace SSASDiag
             tvCounters = new TriStateTreeView();
             tvCounters.CheckBoxes = true;
             tvCounters.Dock = System.Windows.Forms.DockStyle.Bottom;
-            tvCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            tvCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             tvCounters.Location = new System.Drawing.Point(0, 130);
             tvCounters.Name = "tvCounters";
             tvCounters.Size = new System.Drawing.Size(200, 238);
@@ -82,6 +82,7 @@ namespace SSASDiag
             tvCounters.AfterCheck += TvCounters_AfterCheck;
             tvCounters.AfterSelect += TvCounters_AfterSelect;
             tvCounters.ImageList = legend;
+            tvCounters.ShowNodeToolTips = true;
             splitPerfMonCountersAndChart.Panel1.Controls.Add(tvCounters);
 
             legend.ImageSize = new Size(16, 16);
@@ -247,8 +248,8 @@ namespace SSASDiag
             if (chartPerfMon.ChartAreas[0].AxisX.Maximum == trTimeRange.RangeMaximum.ToOADate() && chartPerfMon.ChartAreas[0].AxisX.Minimum == trTimeRange.RangeMinimum.ToOADate())
                 return;
             stripLine.StripWidth = 0;
-            chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate();
-            chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate();
+            chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate() - 1;
+            chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate() + 1;
             txtDur.Text = (trTimeRange.RangeMaximum - trTimeRange.RangeMinimum).ToString();
         }
 
@@ -836,9 +837,6 @@ namespace SSASDiag
 
         private void cmbServers_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Random r = new Random((int)DateTime.Now.Ticks);
-            randomColorOffset = r.Next(1024);
-
             tvCounters.Nodes.Clear();
             SqlDataReader dr = new SqlCommand("select distinct ObjectName from CounterDetails where MachineName = '" + cmbServers.SelectedItem + "' order by ObjectName", connDB).ExecuteReader();
             while (dr.Read())
@@ -899,8 +897,8 @@ namespace SSASDiag
                 foreach (DataPoint p in s.Points)
                 {
                     p.YValues[0] = chkAutoScale.Checked ?
-                                    p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Log10((double)s.Tag)))) :
-                                    p.YValues[0] / 100 * ((Math.Pow(10, (int)Math.Log10((double)s.Tag))));
+                                    p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Round(Math.Log10((double)s.Tag))))) :
+                                    p.YValues[0] / 100 * ((Math.Pow(10, (int)Math.Round(Math.Log10((double)s.Tag)))));
                     if (p.YValues[0] > Maximum)
                         Maximum = p.YValues[0];
                 }
@@ -911,16 +909,12 @@ namespace SSASDiag
 
         private void TvCounters_AfterCheck(object sender, TreeViewEventArgs e)
         {
-            Random r = new Random((int)DateTime.Now.Ticks);
-            randomColorOffset = r.Next(1023);
             if (e.Node.Nodes.Count == 0 && e.Node.Parent != null)
             {
                 if (e.Node.Checked && e.Node.Nodes.Count == 0)
                 {
-                    if (iNodesToProcessInBatch == 0)
-                        iNodesToProcessInBatch = 1;
-                    iNodesToProcessInBatch--;
-                    if (iNodesToProcessInBatch == 0)
+                    iNodesRemaingingToProcessInBatch--;
+                    if (iNodesRemaingingToProcessInBatch < 1)
                     {
                         tvCounters.AfterCheck -= TvCounters_AfterCheck;
                         new Thread(new ThreadStart(() => AddCounters())).Start();
@@ -939,24 +933,8 @@ namespace SSASDiag
             }
             else
             {
-                if (e.Node.Checked && iNodesToProcessInBatch == 0)
-                {
-                    iNodesToProcessInBatch = tvCounters.GetLeafNodes(e.Node, false).Count();
-                    if (iNodesToProcessInBatch > 3)
-                        StatusFloater.Invoke(new Action(() =>
-                        {
-                            Form f = Program.MainForm;
-                            StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
-                            StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
-                            StatusFloater.lblStatus.Text = "Loading data for " + iNodesToProcessInBatch + " counters...";
-                            StatusFloater.lblSubStatus.Text = "";
-                            StatusFloater.lblTime.Text = "00:00";
-                            StatusFloater.EscapePressed = false;
-                            StatusFloater.AutoUpdateDuration = true;
-                            StatusFloater.Visible = true;
-                            f.Enabled = false;
-                        }));
-                }
+                if (e.Node.Checked && iNodesRemaingingToProcessInBatch == 0)
+                    iNodesRemaingingToProcessInBatch = tvCounters.GetLeafNodes(e.Node, false).Count();
             }
             if (tvCounters.GetLeafNodes().Count == 0)
                 chartPerfMon.ChartAreas[0].AxisY.Maximum = 0;
@@ -965,6 +943,9 @@ namespace SSASDiag
 
         async private void AddCounters(bool AlreadyAdded = false)
         {
+            Random rand = new Random((int)DateTime.Now.Ticks);
+            int randomColorOffset = rand.Next(1023);
+
             Program.MainForm.Invoke(new Action(()=>DrawingControl.SuspendDrawing(Program.MainForm)));
             tvCounters.SuspendLayout();
             List<TreeNode> nodes = null;
@@ -974,7 +955,7 @@ namespace SSASDiag
                 nodes = tvCounters.GetLeafNodes();
 
             int iCurNode = 1;
-            int iCurColor = -1;
+            int iCurColor = 0;
 
             List<KeyValuePair<string, string>> CountersToUpdate = new List<KeyValuePair<string, string>>();
 
@@ -983,6 +964,21 @@ namespace SSASDiag
                 if (chartPerfMon.Series.FindByName(counterNode.FullPath) == null)
                     CountersToUpdate.Add(new KeyValuePair<string, string>(counterNode.Tag as string, counterNode.FullPath));
             }
+
+            if (iNodesRemaingingToProcessInBatch > 3)
+                StatusFloater.Invoke(new Action(() =>
+                {
+                    Form f = Program.MainForm;
+                    StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.lblStatus.Text = "Loading data for " + CountersToUpdate.Count + " counters...";
+                    StatusFloater.lblSubStatus.Text = "";
+                    StatusFloater.lblTime.Text = "00:00";
+                    StatusFloater.EscapePressed = false;
+                    StatusFloater.AutoUpdateDuration = true;
+                    StatusFloater.Visible = true;
+                    f.Enabled = false;
+                }));
 
             string qry = @" select a.*, b.MinutesToUTC, OriginalCounterID from CounterData a, DisplayToID b,
                             (select aa.CounterID as OriginalCounterID, bb.CounterID from (select * from CounterDetails where CounterID in (" + string.Join(", ", CountersToUpdate.Select(c => c.Key)) + @")) aa, CounterDetails bb where 
@@ -1028,7 +1024,7 @@ namespace SSASDiag
 
                             foreach (DataRow r in rows)
                             {
-                                double scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Log10(max)))) * 100 : (double)r["CounterValue"];
+                                double scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Round(Math.Log10(max))))) * 100 : (double)r["CounterValue"];
                                 s.Points.AddXY(DateTime.Parse((r["CounterDateTime"] as string).Trim('\0')).AddMinutes((r["MinutesToUTC"] as int?).Value), scaledValue);
                                 s.Points.Last().Tag = (double)r["CounterValue"];
                             }

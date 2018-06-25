@@ -145,7 +145,12 @@ namespace SSASDiag
         {
             if (!bNoRedraw)
             {
-                if (e.Node.Level == 0) e.Node.HideCheckBox();
+                if (e.Node.Level == 0 && e.Node.GetNodeCount(true) > 400)
+                {
+                    e.Node.ToolTipText = "This node has too many descendants to allow group selection.";
+                    e.Node.HideCheckBox();
+                }
+                
 
                 if (e.State == TreeNodeStates.Focused)
                 {
