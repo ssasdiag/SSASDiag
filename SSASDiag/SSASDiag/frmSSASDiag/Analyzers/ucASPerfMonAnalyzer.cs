@@ -770,8 +770,6 @@ namespace SSASDiag
                         {
                             txtMax.Text = txtAvg.Text = txtMin.Text = "--";
                             tvCounters.SelectedNodes.Clear();
-                            Random r = new Random((int)DateTime.Now.Ticks);
-                            randomColorOffset = r.Next(1024);
                             CurrentSeriesUnderMouse = "";
                             HighlightSeriesFromSelection();
                         }
@@ -913,7 +911,8 @@ namespace SSASDiag
 
         private void TvCounters_AfterCheck(object sender, TreeViewEventArgs e)
         {
-
+            Random r = new Random((int)DateTime.Now.Ticks);
+            randomColorOffset = r.Next(1023);
             if (e.Node.Nodes.Count == 0 && e.Node.Parent != null)
             {
                 if (e.Node.Checked && e.Node.Nodes.Count == 0)
