@@ -232,7 +232,7 @@ namespace SSASDiag
 
         private void TvCounters_BeforeCheck(object sender, TreeViewCancelEventArgs e)
         {
-            if (tvCounters.GetLeafNodes(e.Node, false).Where(n => n.SelectedImageIndex > 0 || !n.Checked).Count() > 400 &&
+            if (tvCounters.GetLeafNodes(e.Node, false).Where(n => n.SelectedImageIndex > 0 || !n.Checked).Count() > 256 &&
                 e.Node.Checked == false)
             {
                 Point p = System.Windows.Forms.Cursor.Position;
@@ -406,7 +406,7 @@ namespace SSASDiag
                                         p.StartInfo.UseShellExecute = false;
                                         p.StartInfo.CreateNoWindow = true;
                                         p.StartInfo.FileName = "relog.exe";
-                                        p.StartInfo.Arguments = "\"" + l.LogPath + "\" -f SQL -o SQL:SSASDiagPerfMonDSN!logfile -y";
+                                        p.StartInfo.Arguments = "\"" + l.LogPath + "\" -f SQL -o SQL:SSASDiagPerfMonDSN!" + l.LogName.Replace(" ", "") + " -y";
                                         p.Start();
 
                                         while (!bCancel && !p.HasExited)
@@ -559,7 +559,8 @@ namespace SSASDiag
                         }
                         ).ToList();
 
-                    tvCounters.Invoke(new Action(() =>
+                    if (tvCounters.InvokeRequired)
+                        tvCounters.Invoke(new Action(() =>
                     {
                         foreach (TreeNode n in tvCounters.Nodes)
                         {
@@ -876,21 +877,20 @@ namespace SSASDiag
                         ':' + 
                         format(a.intervaloffset, 'HH:mm:ss.fff') Duration, StartTime, StopTime 
                     from 
-                    (select convert(datetime, LogStopTime) - convert(datetime, LogStartTime) IntervalOffset, 
-                            dateadd(mi, MinutesToUTC, convert(datetime, LogStartTime)) StartTime, 
-                            dateadd(mi, MinutesToUTC, convert(datetime, LogStopTime)) StopTime 
+                    (select convert(datetime, max(LogStopTime)) - convert(datetime, min(LogStartTime)) IntervalOffset, 
+                            dateadd(mi, min(MinutesToUTC), convert(datetime, min(LogStartTime))) StartTime, 
+                            dateadd(mi, min(MinutesToUTC), convert(datetime, max(LogStopTime))) StopTime 
                      from DisplayToID 
-                     where GUID = 
+                     where GUID in
                      (
-                        select top 1 GUID from CounterData where CounterID = 
+                        select distinct GUID from CounterData where CounterID in 
                         (                     
-                            select top 1 CounterID from CounterDetails 
-                            where MachineName = '" + cmbServers.SelectedItem + @"' 
-                                  and CounterID = (select top 1 CounterID from CounterData)
+                            select distinct CounterID from CounterDetails 
+                            where MachineName = '" + cmbServers.SelectedItem + @"'
                         )
                      )
                     )a";
-            dr = new SqlCommand(qry, connDB).ExecuteReader();
+           dr = new SqlCommand(qry, connDB).ExecuteReader();
             dr.Read();
             txtDur.Text = dr["Duration"] as string;
             trTimeRange.SetRangeLimit((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
@@ -962,12 +962,17 @@ namespace SSASDiag
 
         async private void AddCounters(bool AlreadyAdded = false)
         {
+            List<KeyValuePair<string, string>> CountersToUpdate = tvCounters.GetLeafNodes(ParentNodeOfUpdateBatch, false)
+                                                        .Where(n => n.SelectedImageIndex < 1 || !n.Checked)
+                                                        .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
+            if (CountersToUpdate.Count == 0)
+                return;
+
             Random rand = new Random((int)DateTime.Now.Ticks);
             int randomColorOffset = rand.Next(1023);
             int iCurColor = 0;
 
             Program.MainForm.Invoke(new Action(()=>DrawingControl.SuspendDrawing(Program.MainForm)));
-            tvCounters.SuspendLayout();
             List<TreeNode> nodes = null;
             if (!AlreadyAdded)
                 nodes = tvCounters.GetLeafNodes().Where(n => n.ImageIndex < 1).ToList();
@@ -975,10 +980,6 @@ namespace SSASDiag
                 nodes = tvCounters.GetLeafNodes();
 
             int iCurNode = 1;           
-
-            List<KeyValuePair<string, string>> CountersToUpdate = tvCounters.GetLeafNodes(ParentNodeOfUpdateBatch, false)
-                                                                    .Where(n => n.SelectedImageIndex < 1 || !n.Checked)
-                                                                    .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
 
             if (CountersToUpdate.Count > 3)
                 StatusFloater.Invoke(new Action(() =>
@@ -1006,7 +1007,7 @@ namespace SSASDiag
                              and
                             dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) >= convert(datetime, '" + trTimeRange.TotalMinimum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121) and
                             dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.TotalMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
-                            order by CounterID, CounterDateTime asc";
+                            order by OriginalCounterID, CounterDateTime asc";
             SqlDataReader dr = null;
             System.Runtime.CompilerServices.TaskAwaiter<SqlDataReader> tdr = (new SqlCommand(qry, connDB)).ExecuteReaderAsync().GetAwaiter();
             while(!tdr.IsCompleted)
@@ -1042,6 +1043,8 @@ namespace SSASDiag
 
                             foreach (DataRow r in rows)
                             {
+                                if ((r["CounterDateTime"] as string).StartsWith("2018-05-16 20:18:02.359"))
+                                    ;
                                 double scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Round(Math.Log10(max))))) * 100 : (double)r["CounterValue"];
                                 s.Points.AddXY(DateTime.Parse((r["CounterDateTime"] as string).Trim('\0')).AddMinutes((r["MinutesToUTC"] as int?).Value), scaledValue);
                                 s.Points.Last().Tag = (double)r["CounterValue"];
