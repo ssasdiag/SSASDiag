@@ -960,7 +960,7 @@ namespace SSASDiag
                 chartPerfMon.ChartAreas[0].AxisY.Maximum = 0;
         }
 
-        async private void AddCounters(bool AlreadyAdded = false)
+        async private void AddCounters()
         {
             List<KeyValuePair<string, string>> CountersToUpdate = tvCounters.GetLeafNodes(ParentNodeOfUpdateBatch, false)
                                                         .Where(n => n.SelectedImageIndex < 1 || !n.Checked)
@@ -973,12 +973,7 @@ namespace SSASDiag
             int iCurColor = 0;
 
             Program.MainForm.Invoke(new Action(()=>DrawingControl.SuspendDrawing(Program.MainForm)));
-            List<TreeNode> nodes = null;
-            if (!AlreadyAdded)
-                nodes = tvCounters.GetLeafNodes().Where(n => n.ImageIndex < 1).ToList();
-            else
-                nodes = tvCounters.GetLeafNodes();
-
+            List<TreeNode> nodes = tvCounters.GetLeafNodes().Where(n => n.ImageIndex < 1).ToList();
             int iCurNode = 1;           
 
             if (CountersToUpdate.Count > 3)
