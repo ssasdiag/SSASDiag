@@ -264,7 +264,7 @@ namespace SSASDiag
             stripLine.StripWidth = 0;
             chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate();
             chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate();
-            txtDur.Text = (trTimeRange.RangeMaximum - trTimeRange.RangeMinimum).ToString();
+            txtDur.Text = (trTimeRange.RangeMaximum - trTimeRange.RangeMinimum).ToString("dd\\:hh\\:mm\\:ss");
         }
 
         int DataBindingCompletions = 0;
@@ -875,7 +875,7 @@ namespace SSASDiag
             qry = @"select 
                         format(convert(int,format(a.intervaloffset, 'dd')) - 1, '00') + 
                         ':' + 
-                        format(a.intervaloffset, 'HH:mm:ss.fff') Duration, StartTime, StopTime 
+                        format(a.intervaloffset, 'hh:mm:ss') Duration, StartTime, StopTime 
                     from 
                     (select convert(datetime, max(LogStopTime)) - convert(datetime, min(LogStartTime)) IntervalOffset, 
                             dateadd(mi, min(MinutesToUTC), convert(datetime, min(LogStartTime))) StartTime, 
