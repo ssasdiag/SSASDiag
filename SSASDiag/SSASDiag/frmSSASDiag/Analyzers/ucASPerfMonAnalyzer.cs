@@ -958,6 +958,7 @@ namespace SSASDiag
                 {
                     iNodesRemaingingToProcessInBatch = tvCounters.GetLeafNodes(e.Node, false).Count();
                     ParentNodeOfUpdateBatch = e.Node;
+                    Program.MainForm.Invoke(new Action(() => DrawingControl.SuspendDrawing(Program.MainForm)));
                 }
             }
             if (chartPerfMon.Series.Count == 0)
@@ -969,33 +970,32 @@ namespace SSASDiag
             List<KeyValuePair<string, string>> CountersToUpdate = tvCounters.GetLeafNodes(ParentNodeOfUpdateBatch, false)
                                                         .Where(n => n.SelectedImageIndex < 1 || !n.Checked)
                                                         .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
-            if (CountersToUpdate.Count == 0)
-                return;
+            if (CountersToUpdate.Count != 0)
+            {
 
-            Random rand = new Random((int)DateTime.Now.Ticks);
-            int randomColorOffset = rand.Next(1023);
-            int iCurColor = 0;
+                Random rand = new Random((int)DateTime.Now.Ticks);
+                int randomColorOffset = rand.Next(1023);
+                int iCurColor = 0;
 
-            Program.MainForm.Invoke(new Action(()=>DrawingControl.SuspendDrawing(Program.MainForm)));
-            List<TreeNode> nodes = tvCounters.GetLeafNodes().Where(n => n.ImageIndex < 1).ToList();
-            int iCurNode = 1;           
+                List<TreeNode> nodes = tvCounters.GetLeafNodes().Where(n => n.ImageIndex < 1).ToList();
+                int iCurNode = 1;
 
-            if (CountersToUpdate.Count > 3)
-                StatusFloater.Invoke(new Action(() =>
-                {
-                    Form f = Program.MainForm;
-                    StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
-                    StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
-                    StatusFloater.lblStatus.Text = "Loading data for " + CountersToUpdate.Count + " counters...";
-                    StatusFloater.lblSubStatus.Text = "";
-                    StatusFloater.lblTime.Text = "00:00";
-                    StatusFloater.EscapePressed = false;
-                    StatusFloater.AutoUpdateDuration = true;
-                    StatusFloater.Visible = true;
-                    f.Enabled = false;
-                }));
+                if (CountersToUpdate.Count > 3)
+                    StatusFloater.Invoke(new Action(() =>
+                    {
+                        Form f = Program.MainForm;
+                        StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
+                        StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
+                        StatusFloater.lblStatus.Text = "Loading data for " + CountersToUpdate.Count + " counters...";
+                        StatusFloater.lblSubStatus.Text = "";
+                        StatusFloater.lblTime.Text = "00:00";
+                        StatusFloater.EscapePressed = false;
+                        StatusFloater.AutoUpdateDuration = true;
+                        StatusFloater.Visible = true;
+                        f.Enabled = false;
+                    }));
 
-            string qry = @" select a.*, b.MinutesToUTC, OriginalCounterID from CounterData a, DisplayToID b,
+                string qry = @" select a.*, b.MinutesToUTC, OriginalCounterID from CounterData a, DisplayToID b,
                             (select aa.CounterID as OriginalCounterID, bb.CounterID from (select * from CounterDetails where CounterID in (" + string.Join(", ", CountersToUpdate.Select(c => c.Key)) + @")) aa, CounterDetails bb where 
                                 bb.CounterName = aa.CounterName and 
 	                            (bb.InstanceName = aa.InstanceName or (bb.InstanceName is null and aa.InstanceName is null)) and 
@@ -1007,118 +1007,119 @@ namespace SSASDiag
                             dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) >= convert(datetime, '" + trTimeRange.TotalMinimum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121) and
                             dateadd(mi, MinutesToUTC, convert(datetime, convert(nvarchar(23), CounterDateTime, 121))) <= convert(datetime, '" + trTimeRange.TotalMaximum.ToString("yyyy-MM-dd HH:mm:ss.fff") + @"', 121)
                             order by OriginalCounterID, CounterDateTime asc";
-            SqlDataReader dr = null;
-            System.Runtime.CompilerServices.TaskAwaiter<SqlDataReader> tdr = (new SqlCommand(qry, connDB)).ExecuteReaderAsync().GetAwaiter();
-            while(!tdr.IsCompleted)
-                Application.DoEvents();
-            DataTable dt = new DataTable();
-            dr = tdr.GetResult();
-            dt.Load(dr);
-            dr.Close();
+                SqlDataReader dr = null;
+                System.Runtime.CompilerServices.TaskAwaiter<SqlDataReader> tdr = (new SqlCommand(qry, connDB)).ExecuteReaderAsync().GetAwaiter();
+                while (!tdr.IsCompleted)
+                    Application.DoEvents();
+                DataTable dt = new DataTable();
+                dr = tdr.GetResult();
+                dt.Load(dr);
+                dr.Close();
 
-            // parallelize loading as much as possible
-            List<Thread> threadList = new List<Thread>();
-            Semaphore sem = new Semaphore(Environment.ProcessorCount - 2, Environment.ProcessorCount - 2);
-            foreach (KeyValuePair<string, string> counter in CountersToUpdate)
-            {
-                threadList.Add(new Thread(new ThreadStart(() =>
-                    {
-                        sem.WaitOne();
-                        if (!StatusFloater.EscapePressed)
+                // parallelize loading as much as possible
+                List<Thread> threadList = new List<Thread>();
+                Semaphore sem = new Semaphore(Environment.ProcessorCount - 2, Environment.ProcessorCount - 2);
+                foreach (KeyValuePair<string, string> counter in CountersToUpdate)
+                {
+                    threadList.Add(new Thread(new ThreadStart(() =>
                         {
-                            Series s = new Series();
-                            s.ChartType = SeriesChartType.Line;
-                            s.Name = counter.Value;
-                            s.XValueType = ChartValueType.DateTime;
-                            s.LegendText = counter.Value;
-                            s.EmptyPointStyle.BorderWidth = 0;
-
-                            var val = dt.Compute("max([CounterValue])", "OriginalCounterID = " + counter.Key);
-                            double max = 0;
-                            if (!Convert.IsDBNull(val))
-                                max = (double)val;
-                            s.Tag = max;
-
-                            DataRow[] rows = dt.Select("OriginalCounterID = " + counter.Key);
-
-                            foreach (DataRow r in rows)
+                            sem.WaitOne();
+                            if (!StatusFloater.EscapePressed)
                             {
-                                double scaledValue = 0;
-                                if (r["CounterValue"] != null)
-                                    scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Round(Math.Log10(max))))) * 100 : (double)r["CounterValue"];
-                                s.Points.AddXY(DateTime.Parse((r["CounterDateTime"] as string).Trim('\0')).AddMinutes((r["MinutesToUTC"] as int?).Value), scaledValue);
-                                if (r["CounterValue"] == null)
-                                    s.Points.Last().IsEmpty = true;
-                                s.Points.Last().Tag = (double?)r["CounterValue"];
-                            }
+                                Series s = new Series();
+                                s.ChartType = SeriesChartType.Line;
+                                s.Name = counter.Value;
+                                s.XValueType = ChartValueType.DateTime;
+                                s.LegendText = counter.Value;
+                                s.EmptyPointStyle.BorderWidth = 0;
 
-                            TreeNode node = tvCounters.FindNodeByPath(s.Name);
-                            if (node != null && tvCounters.SelectedNodes.Contains(node))
-                                s.BorderWidth = 4;
-                            int colorIndex = iCurColor++ + randomColorOffset;
-                            if (colorIndex > indexcolors.Length - 1) colorIndex %= indexcolors.Length - 1;
-                            ColorConverter c = new ColorConverter();
-                            s.Color = s.BorderColor = (Color)c.ConvertFromString(indexcolors[colorIndex]);
-                            Pen pen = new Pen(s.BorderColor);
-                            pen.Width = 6;
-                            Bitmap bmp = new Bitmap(16, 16);
-                            using (Graphics g = Graphics.FromImage(bmp))
-                            {
-                                g.FillRectangle(Brushes.Transparent, 0, 0, 16, 16);
-                                g.DrawLine(pen, 0, 7, 16, 7);
-                            }
+                                var val = dt.Compute("max([CounterValue])", "OriginalCounterID = " + counter.Key);
+                                double max = 0;
+                                if (!Convert.IsDBNull(val))
+                                    max = (double)val;
+                                s.Tag = max;
 
-                            if (StatusFloater.EscapePressed)
-                                Invoke(new Action(() => tvCounters.FindNodeByPath(counter.Value).Checked = false));
+                                DataRow[] rows = dt.Select("OriginalCounterID = " + counter.Key);
+
+                                foreach (DataRow r in rows)
+                                {
+                                    double scaledValue = 0;
+                                    if (r["CounterValue"] != null)
+                                        scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Round(Math.Log10(max))))) * 100 : (double)r["CounterValue"];
+                                    s.Points.AddXY(DateTime.Parse((r["CounterDateTime"] as string).Trim('\0')).AddMinutes((r["MinutesToUTC"] as int?).Value), scaledValue);
+                                    if (r["CounterValue"] == null)
+                                        s.Points.Last().IsEmpty = true;
+                                    s.Points.Last().Tag = (double?)r["CounterValue"];
+                                }
+
+                                TreeNode node = tvCounters.FindNodeByPath(s.Name);
+                                if (node != null && tvCounters.SelectedNodes.Contains(node))
+                                    s.BorderWidth = 4;
+                                int colorIndex = iCurColor++ + randomColorOffset;
+                                if (colorIndex > indexcolors.Length - 1) colorIndex %= indexcolors.Length - 1;
+                                ColorConverter c = new ColorConverter();
+                                s.Color = s.BorderColor = (Color)c.ConvertFromString(indexcolors[colorIndex]);
+                                Pen pen = new Pen(s.BorderColor);
+                                pen.Width = 6;
+                                Bitmap bmp = new Bitmap(16, 16);
+                                using (Graphics g = Graphics.FromImage(bmp))
+                                {
+                                    g.FillRectangle(Brushes.Transparent, 0, 0, 16, 16);
+                                    g.DrawLine(pen, 0, 7, 16, 7);
+                                }
+
+                                if (StatusFloater.EscapePressed)
+                                    Invoke(new Action(() => tvCounters.FindNodeByPath(counter.Value).Checked = false));
+                                else
+                                {
+                                    chartPerfMon.Invoke(new System.Action(() =>
+                                    {
+                                        legend.Images.Add(bmp);
+                                        if (chartPerfMon.ChartAreas[0].AxisY.Maximum < max)
+                                            chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
+                                        node = tvCounters.FindNodeByPath(s.Name);
+                                        node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
+                                        chartPerfMon.Series.Add(s);
+                                        Application.DoEvents();
+                                    }));
+
+                                    StatusFloater.Invoke(new Action(() =>
+                                    {
+                                        StatusFloater.lblStatus.Text = "Loaded " + iCurNode + " of " + nodes.Count + " counters...";
+                                        StatusFloater.lblSubStatus.Text = "(Esc to cancel)";
+                                        StatusFloater.Invalidate(true);
+                                        StatusFloater.Update();
+                                        Application.DoEvents();
+                                    }));
+                                    iCurNode++;
+                                }
+                            }
                             else
-                            {
-                                chartPerfMon.Invoke(new System.Action(() =>
-                                {
-                                    legend.Images.Add(bmp);
-                                    if (chartPerfMon.ChartAreas[0].AxisY.Maximum < max)
-                                        chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
-                                    node = tvCounters.FindNodeByPath(s.Name);
-                                    node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
-                                    chartPerfMon.Series.Add(s);
-                                    Application.DoEvents();
-                                }));
+                                Invoke(new Action(() => tvCounters.FindNodeByPath(counter.Value).Checked = false));
 
-                                StatusFloater.Invoke(new Action(() =>
-                                {
-                                    StatusFloater.lblStatus.Text = "Loaded " + iCurNode + " of " + nodes.Count + " counters...";
-                                    StatusFloater.lblSubStatus.Text = "(Esc to cancel)";
-                                    StatusFloater.Invalidate(true);
-                                    StatusFloater.Update();
-                                    Application.DoEvents();
-                                }));
-                                iCurNode++;
-                            }
-                        }
-                        else
-                            Invoke(new Action(() => tvCounters.FindNodeByPath(counter.Value).Checked = false));
+                            sem.Release();
+                        })));
+                    threadList.Last().Start();
+                }
 
-                        sem.Release();
-                    })));
-                threadList.Last().Start();
+                foreach (Thread t in threadList)
+                    t.Join();
+
+                chartPerfMon.Invoke(new Action(() =>
+                    {
+                        chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate();
+                        chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate();
+                    }));
+                StatusFloater.Invoke(new Action(() =>
+                    {
+                        StatusFloater.EscapePressed = false;
+                        StatusFloater.Hide();
+                        Program.MainForm.Enabled = true;
+                    }));
+                // Removed in the AfterCheck function, the only place that ever invokes this...
+                tvCounters.AfterCheck += TvCounters_AfterCheck;
+                tvCounters.ResumeLayout();
             }
-
-            foreach (Thread t in threadList)
-                t.Join();
-
-            chartPerfMon.Invoke(new Action(() =>
-                {
-                    chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate();
-                    chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate();
-                }));
-            StatusFloater.Invoke(new Action(() =>
-                {
-                    StatusFloater.EscapePressed = false;
-                    StatusFloater.Hide();
-                    Program.MainForm.Enabled = true;
-                }));
-            // Removed in the AfterCheck function, the only place that ever invokes this...
-            tvCounters.AfterCheck += TvCounters_AfterCheck;
-            tvCounters.ResumeLayout();
             Program.MainForm.Invoke(new Action(() => DrawingControl.ResumeDrawing(Program.MainForm)));
         }
 
