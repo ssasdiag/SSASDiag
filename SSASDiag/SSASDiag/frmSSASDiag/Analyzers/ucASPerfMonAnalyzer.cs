@@ -494,7 +494,23 @@ namespace SSASDiag
                             }));
                         }
 
-                        SqlDataReader dr = new SqlCommand("select distinct MachineName from CounterDetails order by MachineName", connDB).ExecuteReader();
+                        SqlDataReader dr = null;
+                        try
+                        {
+                            dr = new SqlCommand("select distinct MachineName from CounterDetails order by MachineName", connDB).ExecuteReader();
+                        }
+                        catch (SqlException ex)
+                        {
+                            if (ex.Message == "Invalid object name 'CounterDetails'.")
+                            {
+                                MessageBox.Show("This performance monitor log was empty or corrupt.", "Invalid log file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                connDB.ChangeDatabase("master");
+                                new SqlCommand("alter database [" + DBName() + "] set single_user with rollback immediate", connDB).ExecuteNonQuery();
+                                new SqlCommand("drop database [" + DBName() + "]", connDB).ExecuteNonQuery();
+                                Invoke(new Action(()=>Visible = false));
+                                return;
+                            }
+                        }
                         cmbServers.Invoke(new System.Action(() =>
                         {
                             cmbServers.Items.Clear();
