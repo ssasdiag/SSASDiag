@@ -42,6 +42,7 @@ namespace SSASDiag
             InitializeComponent();
 
 
+            this.Shown += UcASPerfMonAnalyzer_Shown;
             #region non-designer controls
 
             stripLine.Interval = 0;
@@ -114,12 +115,15 @@ namespace SSASDiag
             this.dgdGrouping.Columns[0].SortMode = this.dgdGrouping.Columns[1].SortMode = DataGridViewColumnSortMode.NotSortable;
 
             splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
+        }
 
-            if (Directory.Exists(logPath))
+        private void UcASPerfMonAnalyzer_Shown(object sender, EventArgs e)
+        {
+            if (Directory.Exists(LogPath))
             {
                 List<string> logfiles = new List<string>();
-                logfiles.AddRange(Directory.GetFiles(logPath, "*.blg", SearchOption.TopDirectoryOnly));
-                foreach (string dir in Directory.EnumerateDirectories(logPath))
+                logfiles.AddRange(Directory.GetFiles(LogPath, "*.blg", SearchOption.TopDirectoryOnly));
+                foreach (string dir in Directory.EnumerateDirectories(LogPath))
                     if (!dir.Contains("\\$RECYCLE.BIN") && !dir.Contains("\\System Volume Information"))
                     {
                         try { logfiles.AddRange(Directory.GetFiles(dir, "*.blg", SearchOption.AllDirectories)); }
@@ -132,7 +136,7 @@ namespace SSASDiag
             else
             {
                 AnalysisPath = LogPath.Substring(0, LogPath.LastIndexOf("\\") + 1) + "Analysis";
-                LogFiles.Add(new PerfMonLog() { LogPath = logPath, Analyzed = false });
+                LogFiles.Add(new PerfMonLog() { LogPath = LogPath, Analyzed = false });
             }
 
             if (!Directory.Exists(AnalysisPath))
@@ -218,16 +222,17 @@ namespace SSASDiag
                         tableLayoutPanel1_Click(null, null);
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                if (e.Message.Contains("CounterDetails"))
+                if (ex.Message.Contains("CounterDetails"))
                     splitAnalysis.Visible = false;
             }
 
-            dgdLogList.DataSource = LogFiles;
             dgdLogList.DataBindingComplete += DgdLogList_DataBindingComplete;
+            dgdLogList.DataSource = LogFiles;
 
             frmSSASDiag.LogFeatureUse("PerfMon Analysis", "PerfMon analysis initalized for " + LogFiles.Count + " logs, " + LogFiles.Where(d => !d.Analyzed).Count() + " of which still require import for analysis.");
+
         }
 
         private void TvCounters_BeforeCheck(object sender, TreeViewCancelEventArgs e)
@@ -271,33 +276,31 @@ namespace SSASDiag
         private void DgdLogList_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
             DataBindingCompletions++;
-            if (DataBindingCompletions > 3)  // Skip the first three binding messages when we are initializing...
-            {
-                dgdLogList.Columns[0].Visible = false;
-                dgdLogList.Columns[2].Visible = false;
+            dgdLogList.Columns[0].Visible = false;
+            dgdLogList.Columns[2].Visible = false;
 
-                foreach (DataGridViewRow r in dgdLogList.Rows)
+            foreach (DataGridViewRow r in dgdLogList.Rows)
+            {
+                try
                 {
-                    try
+                    PerfMonLog l = r.DataBoundItem as PerfMonLog;
+                    if (l.Analyzed == false)
                     {
-                        PerfMonLog l = r.DataBoundItem as PerfMonLog;
-                        if (l.Analyzed == false)
-                        {
-                            r.DefaultCellStyle.ForeColor = SystemColors.GrayText;
-                            r.Cells[1].ToolTipText = "This log has not been imported yet.  Select, then click Import Selection.";
-                        }
-                        else
-                            r.DefaultCellStyle.BackColor = SystemColors.ControlDark;
+                        r.DefaultCellStyle.ForeColor = SystemColors.GrayText;
+                        r.Cells[1].ToolTipText = "This log has not been imported yet.  Select, then click Import Selection.";
                     }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                    }
+                    else
+                        r.DefaultCellStyle.BackColor = SystemColors.ControlDark;
                 }
-                dgdLogList.ClearSelection();
-                dgdLogList.SelectionChanged += dgdLogList_SelectionChanged;
-                rtLogDetails.Text = "Performance logs found: " + LogFiles.Count + "\r\nLog(s) already imported: " + LogFiles.Where(l => l.Analyzed).Count();
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
             }
+            dgdLogList.ClearSelection();
+            dgdLogList.SelectionChanged += dgdLogList_SelectionChanged;
+            rtLogDetails.Text = "Performance logs found: " + LogFiles.Count + "\r\nLog(s) already imported: " + LogFiles.Where(l => l.Analyzed).Count();
+            
         }
 
         async private void UcASPerfMonAnalyzer_HandleDestroyed(object sender, EventArgs e)

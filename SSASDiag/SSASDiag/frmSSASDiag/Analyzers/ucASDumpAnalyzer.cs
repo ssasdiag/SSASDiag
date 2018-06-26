@@ -136,11 +136,13 @@ namespace SSASDiag
 
         public ucASDumpAnalyzer(string dumpPath, SqlConnection conndb, frmStatusFloater statusFloater)
         {
-            InitializeComponent();
             StatusFloater = statusFloater;
             DumpPath = dumpPath;
             connDB = new SqlConnection(conndb.ConnectionString);
             connDB.Open();
+
+            InitializeComponent();
+
             Shown += UcASDumpAnalyzer_Shown;
             HandleDestroyed += UcASDumpAnalyzer_HandleDestroyed;
 
@@ -165,157 +167,6 @@ namespace SSASDiag
 
             splitDumpOutput.Panel2Collapsed = true;
             splitDebugger.Panel2Collapsed = true;
-
-            if (Directory.Exists(dumpPath))
-            {
-                List<string> dumpfiles = new List<string>();
-                dumpfiles.AddRange(Directory.GetFiles(dumpPath, "*.mdmp", SearchOption.TopDirectoryOnly));
-                foreach (string dir in Directory.EnumerateDirectories(dumpPath))
-                    if (!dir.Contains("\\$RECYCLE.BIN") && !dir.Contains("\\System Volume Information"))
-                    {
-                        try { dumpfiles.AddRange(Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories)); }
-                        catch (Exception ex) { Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception enumerating dumps from subdirectories: " + ex.Message); }
-                    }
-                foreach (string f in dumpfiles)
-                    DumpFiles.Add(new Dump() { DumpPath = f, Analyzed = false, Crash = false });
-                AnalysisPath = DumpPath + "\\Analysis";
-            }
-            else 
-            {
-                AnalysisPath = DumpPath.Substring(0, DumpPath.LastIndexOf("\\") + 1) + "Analysis";
-                DumpFiles.Add(new Dump() { DumpPath = dumpPath, Analyzed = false, Crash = false });
-            }
-
-            if (!Directory.Exists(AnalysisPath))
-                Directory.CreateDirectory(AnalysisPath);
-
-            string[] DumpAnalyses = Directory.GetFiles(AnalysisPath, "SSASDiag_MemoryDump_Analysis_*.mdf");
-            if (DumpAnalyses.Count() > 0)
-                DumpAnalysisId = DumpAnalyses[0].Replace(AnalysisPath, "").Replace("SSASDiag_MemoryDump_Analysis_", "").Replace(".mdf", "").Replace("\\", "");
-            else
-                DumpAnalysisId = Guid.NewGuid().ToString();
-
-            string sSvcUser = "";
-            ServiceController[] services = ServiceController.GetServices();
-            foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
-                if (s.DisplayName.Contains("SQL Server (" + (connDB.DataSource.Contains("\\") ? connDB.DataSource.Substring(connDB.DataSource.IndexOf("\\") + 1) : "MSSQLSERVER")))
-                {
-                    SelectQuery sQuery = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\"");
-                    ManagementObjectSearcher mgmtSearcher = new ManagementObjectSearcher(sQuery);
-
-                    foreach (ManagementObject svc in mgmtSearcher.Get())
-                        sSvcUser = svc["startname"] as string;
-                    if (sSvcUser.Contains(".")) sSvcUser = sSvcUser.Replace(".", Environment.UserDomainName);
-                    if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
-                }
-
-            DirectoryInfo dirInfo = new DirectoryInfo(AnalysisPath);
-            DirectorySecurity dirSec = dirInfo.GetAccessControl();
-            dirSec.AddAccessRule(new FileSystemAccessRule(sSvcUser, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
-            dirInfo.SetAccessControl(dirSec);
-
-            SqlCommand cmd;
-            if (File.Exists(MDFPath()))
-            {
-                cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') CREATE DATABASE [" + DBName() + "] ON (FILENAME = N'" + MDFPath().Replace("'", "''") + "'),"
-                                            + "(FILENAME = N'" + LDFPath().Replace("'", "''") + "') "
-                                            + "FOR ATTACH", connDB);
-            }
-            else
-            {
-                cmd = new SqlCommand(Properties.Resources.CreateDBSQLScript.
-                                    Replace("<mdfpath/>", MDFPath().Replace("'", "''")).
-                                    Replace("<ldfpath/>", LDFPath().Replace("'", "''")).
-                                    Replace("<dbname/>", DBName())
-                                    , connDB);
-            }
-            int ret = cmd.ExecuteNonQuery();
-            cmd.CommandText = "USE [" + DBName() + "]";
-            cmd.ExecuteNonQuery();
-            cmd.CommandText = "if not exists (select * from sysobjects where name='StacksAndQueries' and xtype='U') CREATE TABLE[dbo].[StacksAndQueries]"
-                                + " ([DumpPath][nvarchar](max) NOT NULL, [DumpProcessID] [nvarchar](10) NOT NULL, [ThreadID] [int] NOT NULL, [Stack] [nvarchar] (max) NOT NULL, [Query] [nvarchar] (max) NULL, [ExceptionThread] [bit] NOT NULL, [OwningThread] [int] NULL, [OwnedThreads] [nvarchar] (max) NULL) ON[PRIMARY] TEXTIMAGE_ON[PRIMARY]";
-            cmd.ExecuteNonQuery();
-            cmd.CommandText = "if not exists(select* from sysobjects where name= 'Dumps' and xtype = 'U') CREATE TABLE[dbo].[Dumps]"
-                                + " ([DumpPath] [nvarchar] (max) NOT NULL, [DumpProcessID] [nvarchar](10) NOT NULL, [ASVersion] [nvarchar] (15) NOT NULL, [DumpTime] [datetime] NULL, [CrashDump] [bit] NOT NULL, [DumpException] [nvarchar](max) NULL) ON[PRIMARY] TEXTIMAGE_ON[PRIMARY]";
-            cmd.ExecuteNonQuery();
-
-            
-            cmd.CommandText = "select * from Dumps";
-            SqlDataReader dr = cmd.ExecuteReader();
-            while (dr.Read())
-            {
-                Dump d = DumpFiles.Find(df => df.DumpPath == dr["DumpPath"] as string);
-                if (d != null)
-                {
-                    d.Stacks = new List<Stack>();
-                    d.Analyzed = true;
-                    d.ASVersion = dr["ASVersion"] as string;
-                    d.DumpTime = (DateTime)dr["DumpTime"];
-                    d.Crash = (bool)dr["CrashDump"];
-                    d.DumpException = dr["DumpException"] as string;
-                    d.ProcessID = dr["DumpProcessID"] as string;
-                    d.Stacks = new List<Stack>();
-                }
-                else
-                {
-                    d = new Dump();
-                    d.DumpPath = dr["DumpPath"] as string;
-                    d.Stacks = new List<Stack>();
-                    d.ProcessID = dr["DumpProcessID"] as string;
-                    d.DumpTime = Convert.ToDateTime(dr["DumpTime"] as string);
-                    d.DumpException = dr["DumpException"] as string;
-                    d.ASVersion = dr["ASVersion"] as string;
-                    d.Analyzed = true;
-                    d.Crash = Convert.ToBoolean(dr["CrashDump"]);
-                    DumpFiles.Add(d);
-                }
-            }
-            dr.Close();
-            cmd.CommandText = "select * from StacksAndQueries";
-            dr = cmd.ExecuteReader();
-            while (dr.Read())
-            {
-                Dump d = DumpFiles.Find(df => df.DumpPath == dr["DumpPath"] as string);
-                if (d != null)
-                {
-                    try
-                    {
-                        List<int> ownedThreads = new List<int>();
-                        if (dr["OwnedThreads"] as string != null && dr["OwnedThreads"] as string != "")
-                            foreach (string s in (dr["OwnedThreads"] as string).Split(','))
-                                ownedThreads.Add(Convert.ToInt32(s));
-                        int? OwningThread = dr["OwningThread"] as int?;
-                        if (d.Stacks == null) d.Stacks = new List<Stack>();
-                        d.Stacks.Add(new Stack()
-                        {
-                            CallStack = dr["Stack"] as string,
-                            ThreadID = (int)dr["ThreadID"],
-                            Query = dr["Query"] as string,
-                            ExceptionThread = (bool)dr["ExceptionThread"],
-                            OwnedThreads = ownedThreads,
-                            RemoteOwningThreadID = OwningThread
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Trace.WriteLine(ex.Message);
-                        // This would fail only if there was some corruption in the database and needn't be handled, but better not to fail in that case, so adding empty try/catch...
-                    }
-                }
-            }
-            dr.Close();
-            dgdDumpList.DataSource = DumpFiles;
-            dgdDumpList.DataBindingComplete += DgdDumpList_DataBindingComplete;
-
-            xmlQuery.Zoom = 75;
-            xmlQuery.Language = Language.XML;
-            xmlQuery.Dock = DockStyle.Fill;
-            xmlQuery.ShowLineNumbers = false;
-            xmlQuery.Visible = false;
-            splitDumpOutput.Panel2.Controls.Add(xmlQuery);
-            xmlQuery.BringToFront();
-
-            frmSSASDiag.LogFeatureUse("Dump Analysis", "Dump analysis initalized for " + DumpFiles.Count + " dumps, " + DumpFiles.Where(d => !d.Analyzed).Count() + " of which still require analysis.");
         }
 
         private void RtbStack_LinkClicked(object sender, LinkClickedEventArgs e)
@@ -328,41 +179,39 @@ namespace SSASDiag
         private void DgdDumpList_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
             DataBindingCompletions++;
-            if (DataBindingCompletions > 3)  // Skip the first three binding messages when we are initializing...
-            {
-                dgdDumpList.Columns[0].Visible = false;
-                dgdDumpList.Columns[2].Visible = false;
-                dgdDumpList.Columns[3].Visible = false;
-                dgdDumpList.Columns[4].Visible = false;
-                dgdDumpList.Columns[5].Visible = false;
-                dgdDumpList.Columns[6].Visible = false;
-                dgdDumpList.Columns[7].Visible = false;
 
-                foreach (DataGridViewRow r in dgdDumpList.Rows)
+            dgdDumpList.Columns[0].Visible = false;
+            dgdDumpList.Columns[2].Visible = false;
+            dgdDumpList.Columns[3].Visible = false;
+            dgdDumpList.Columns[4].Visible = false;
+            dgdDumpList.Columns[5].Visible = false;
+            dgdDumpList.Columns[6].Visible = false;
+            dgdDumpList.Columns[7].Visible = false;
+
+            foreach (DataGridViewRow r in dgdDumpList.Rows)
+            {
+                try
                 {
-                    try
+                    Dump d = r.DataBoundItem as Dump;
+                    if (d.Analyzed == false)
                     {
-                        Dump d = r.DataBoundItem as Dump;
-                        if (d.Analyzed == false)
-                        {
-                            r.DefaultCellStyle.ForeColor = SystemColors.GrayText;
-                            r.Cells[1].ToolTipText = "This dump has not been analyzed yet.  Select, then click Analyze Selection.";
-                        }
-                        else
-                        if (d.Crash == false)
-                        {
-                            r.DefaultCellStyle.BackColor = SystemColors.ControlDark;
-                        }
+                        r.DefaultCellStyle.ForeColor = SystemColors.GrayText;
+                        r.Cells[1].ToolTipText = "This dump has not been analyzed yet.  Select, then click Analyze Selection.";
                     }
-                    catch (Exception ex)
+                    else
+                    if (d.Crash == false)
                     {
-                        Debug.WriteLine(ex.Message);
+                        r.DefaultCellStyle.BackColor = SystemColors.ControlDark;
                     }
                 }
-                dgdDumpList.ClearSelection();
-                dgdDumpList.SelectionChanged += dgdDumpList_SelectionChanged;
-                rtDumpDetails.Text = "Memory dumps found: " + DumpFiles.Count + "\r\nDump(s) with existing analysis: " + DumpFiles.Where(d => d.Analyzed).Count();
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
             }
+            dgdDumpList.ClearSelection();
+            dgdDumpList.SelectionChanged += dgdDumpList_SelectionChanged;
+            rtDumpDetails.Text = "Memory dumps found: " + DumpFiles.Count + "\r\nDump(s) with existing analysis: " + DumpFiles.Where(d => d.Analyzed).Count();
         }
 
         private async Task<bool> PrivateSymbolServerAccessible()
@@ -504,6 +353,158 @@ namespace SSASDiag
 
         private void UcASDumpAnalyzer_Shown(object sender, EventArgs e)
         {
+            if (Directory.Exists(DumpPath))
+            {
+                List<string> dumpfiles = new List<string>();
+                dumpfiles.AddRange(Directory.GetFiles(DumpPath, "*.mdmp", SearchOption.TopDirectoryOnly));
+                foreach (string dir in Directory.EnumerateDirectories(DumpPath))
+                    if (!dir.Contains("\\$RECYCLE.BIN") && !dir.Contains("\\System Volume Information"))
+                    {
+                        try { dumpfiles.AddRange(Directory.GetFiles(dir, "*.mdmp", SearchOption.AllDirectories)); }
+                        catch (Exception ex) { Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception enumerating dumps from subdirectories: " + ex.Message); }
+                    }
+                foreach (string f in dumpfiles)
+                    DumpFiles.Add(new Dump() { DumpPath = f, Analyzed = false, Crash = false });
+                AnalysisPath = DumpPath + "\\Analysis";
+            }
+            else
+            {
+                AnalysisPath = DumpPath.Substring(0, DumpPath.LastIndexOf("\\") + 1) + "Analysis";
+                DumpFiles.Add(new Dump() { DumpPath = DumpPath, Analyzed = false, Crash = false });
+            }
+
+            if (!Directory.Exists(AnalysisPath))
+                Directory.CreateDirectory(AnalysisPath);
+
+            string[] DumpAnalyses = Directory.GetFiles(AnalysisPath, "SSASDiag_MemoryDump_Analysis_*.mdf");
+            if (DumpAnalyses.Count() > 0)
+                DumpAnalysisId = DumpAnalyses[0].Replace(AnalysisPath, "").Replace("SSASDiag_MemoryDump_Analysis_", "").Replace(".mdf", "").Replace("\\", "");
+            else
+                DumpAnalysisId = Guid.NewGuid().ToString();
+
+            string sSvcUser = "";
+            ServiceController[] services = ServiceController.GetServices();
+            foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
+                if (s.DisplayName.Contains("SQL Server (" + (connDB.DataSource.Contains("\\") ? connDB.DataSource.Substring(connDB.DataSource.IndexOf("\\") + 1) : "MSSQLSERVER")))
+                {
+                    SelectQuery sQuery = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\"");
+                    ManagementObjectSearcher mgmtSearcher = new ManagementObjectSearcher(sQuery);
+
+                    foreach (ManagementObject svc in mgmtSearcher.Get())
+                        sSvcUser = svc["startname"] as string;
+                    if (sSvcUser.Contains(".")) sSvcUser = sSvcUser.Replace(".", Environment.UserDomainName);
+                    if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
+                }
+
+            DirectoryInfo dirInfo = new DirectoryInfo(AnalysisPath);
+            DirectorySecurity dirSec = dirInfo.GetAccessControl();
+            dirSec.AddAccessRule(new FileSystemAccessRule(sSvcUser, FileSystemRights.FullControl, InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow));
+            dirInfo.SetAccessControl(dirSec);
+
+            SqlCommand cmd;
+            if (File.Exists(MDFPath()))
+            {
+                cmd = new SqlCommand("IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') CREATE DATABASE [" + DBName() + "] ON (FILENAME = N'" + MDFPath().Replace("'", "''") + "'),"
+                                            + "(FILENAME = N'" + LDFPath().Replace("'", "''") + "') "
+                                            + "FOR ATTACH", connDB);
+            }
+            else
+            {
+                cmd = new SqlCommand(Properties.Resources.CreateDBSQLScript.
+                                    Replace("<mdfpath/>", MDFPath().Replace("'", "''")).
+                                    Replace("<ldfpath/>", LDFPath().Replace("'", "''")).
+                                    Replace("<dbname/>", DBName())
+                                    , connDB);
+            }
+            int ret = cmd.ExecuteNonQuery();
+            cmd.CommandText = "USE [" + DBName() + "]";
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = "if not exists (select * from sysobjects where name='StacksAndQueries' and xtype='U') CREATE TABLE[dbo].[StacksAndQueries]"
+                                + " ([DumpPath][nvarchar](max) NOT NULL, [DumpProcessID] [nvarchar](10) NOT NULL, [ThreadID] [int] NOT NULL, [Stack] [nvarchar] (max) NOT NULL, [Query] [nvarchar] (max) NULL, [ExceptionThread] [bit] NOT NULL, [OwningThread] [int] NULL, [OwnedThreads] [nvarchar] (max) NULL) ON[PRIMARY] TEXTIMAGE_ON[PRIMARY]";
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = "if not exists(select* from sysobjects where name= 'Dumps' and xtype = 'U') CREATE TABLE[dbo].[Dumps]"
+                                + " ([DumpPath] [nvarchar] (max) NOT NULL, [DumpProcessID] [nvarchar](10) NOT NULL, [ASVersion] [nvarchar] (15) NOT NULL, [DumpTime] [datetime] NULL, [CrashDump] [bit] NOT NULL, [DumpException] [nvarchar](max) NULL) ON[PRIMARY] TEXTIMAGE_ON[PRIMARY]";
+            cmd.ExecuteNonQuery();
+
+
+            cmd.CommandText = "select * from Dumps";
+            SqlDataReader dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                Dump d = DumpFiles.Find(df => df.DumpPath == dr["DumpPath"] as string);
+                if (d != null)
+                {
+                    d.Stacks = new List<Stack>();
+                    d.Analyzed = true;
+                    d.ASVersion = dr["ASVersion"] as string;
+                    d.DumpTime = (DateTime)dr["DumpTime"];
+                    d.Crash = (bool)dr["CrashDump"];
+                    d.DumpException = dr["DumpException"] as string;
+                    d.ProcessID = dr["DumpProcessID"] as string;
+                    d.Stacks = new List<Stack>();
+                }
+                else
+                {
+                    d = new Dump();
+                    d.DumpPath = dr["DumpPath"] as string;
+                    d.Stacks = new List<Stack>();
+                    d.ProcessID = dr["DumpProcessID"] as string;
+                    d.DumpTime = Convert.ToDateTime(dr["DumpTime"] as string);
+                    d.DumpException = dr["DumpException"] as string;
+                    d.ASVersion = dr["ASVersion"] as string;
+                    d.Analyzed = true;
+                    d.Crash = Convert.ToBoolean(dr["CrashDump"]);
+                    DumpFiles.Add(d);
+                }
+            }
+            dr.Close();
+            cmd.CommandText = "select * from StacksAndQueries";
+            dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                Dump d = DumpFiles.Find(df => df.DumpPath == dr["DumpPath"] as string);
+                if (d != null)
+                {
+                    try
+                    {
+                        List<int> ownedThreads = new List<int>();
+                        if (dr["OwnedThreads"] as string != null && dr["OwnedThreads"] as string != "")
+                            foreach (string s in (dr["OwnedThreads"] as string).Split(','))
+                                ownedThreads.Add(Convert.ToInt32(s));
+                        int? OwningThread = dr["OwningThread"] as int?;
+                        if (d.Stacks == null) d.Stacks = new List<Stack>();
+                        d.Stacks.Add(new Stack()
+                        {
+                            CallStack = dr["Stack"] as string,
+                            ThreadID = (int)dr["ThreadID"],
+                            Query = dr["Query"] as string,
+                            ExceptionThread = (bool)dr["ExceptionThread"],
+                            OwnedThreads = ownedThreads,
+                            RemoteOwningThreadID = OwningThread
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine(ex.Message);
+                        // This would fail only if there was some corruption in the database and needn't be handled, but better not to fail in that case, so adding empty try/catch...
+                    }
+                }
+            }
+            dr.Close();
+            dgdDumpList.DataBindingComplete += DgdDumpList_DataBindingComplete;
+            dgdDumpList.DataSource = DumpFiles;
+            
+            xmlQuery.Zoom = 75;
+            xmlQuery.Language = Language.XML;
+            xmlQuery.Dock = DockStyle.Fill;
+            xmlQuery.ShowLineNumbers = false;
+            xmlQuery.Visible = false;
+            splitDumpOutput.Panel2.Controls.Add(xmlQuery);
+            xmlQuery.BringToFront();
+
+            frmSSASDiag.LogFeatureUse("Dump Analysis", "Dump analysis initalized for " + DumpFiles.Count + " dumps, " + DumpFiles.Where(d => !d.Analyzed).Count() + " of which still require analysis.");
+
+
             ValidateSymbolResolution();
         }
 
