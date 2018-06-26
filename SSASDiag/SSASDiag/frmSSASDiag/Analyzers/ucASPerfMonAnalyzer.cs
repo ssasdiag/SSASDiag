@@ -843,24 +843,29 @@ namespace SSASDiag
 
                 if (tvCounters.SelectedNodes.Count == 1)
                 {
-                    SqlDataReader dr = new SqlCommand(@"select avg(countervalue), max(countervalue), min(countervalue) from CounterData where CounterID in
-                (
+                    if (tvCounters.SelectedNodes.Where(n => n.Checked).Count() == 1)
+                    {
+                        SqlDataReader dr = new SqlCommand(@"select avg(countervalue), max(countervalue), min(countervalue) from CounterData where CounterID in
+                                (
                                 select bb.CounterID from (select * from CounterDetails where CounterID = " + e.Node.Tag as string + @") aa, CounterDetails bb where 
                                     bb.CounterName = aa.CounterName and 
 	                                (bb.InstanceName = aa.InstanceName or (bb.InstanceName is null and aa.InstanceName is null)) and 
 	                                (bb.InstanceIndex = aa.InstanceIndex or (bb.InstanceIndex is null and aa.InstanceIndex is null)) and 
 	                                (bb.ParentName = aa.ParentName or (bb.ParentName is null and aa.ParentName is null)) 
 	                                )", connDB).ExecuteReader();
-                    dr.Read();
-                    if (dr[0] as double? != null)
-                    {
-                        txtAvg.Text = (dr[0] as double?).Value.ToString();
-                        txtMin.Text = (dr[2] as double?).Value.ToString();
-                        txtMax.Text = (dr[1] as double?).Value.ToString();
+                        dr.Read();
+                        if (dr[0] as double? != null)
+                        {
+                            txtAvg.Text = (dr[0] as double?).Value.ToString();
+                            txtMin.Text = (dr[2] as double?).Value.ToString();
+                            txtMax.Text = (dr[1] as double?).Value.ToString();
+                        }
+                        else
+                            txtAvg.Text = txtMin.Text = txtMax.Text = "-";
+                        dr.Close();
                     }
                     else
-                        txtAvg.Text = txtMin.Text = txtMax.Text = "-";
-                    dr.Close();
+                        txtAvg.Text = txtMin.Text = txtMax.Text = "--";
                 }
                 else
                     txtAvg.Text = txtMin.Text = txtMax.Text = "--";

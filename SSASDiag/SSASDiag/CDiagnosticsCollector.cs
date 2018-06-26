@@ -466,6 +466,7 @@ namespace SSASDiag
             s.Add("\\Memory\\*");
             s.Add("\\PhysicalDisk(*)\\*");
             s.Add("\\LogicalDisk(*)\\*");
+            s.Add("\\Network Interface(*)\\*");
 
             // The SSAS counter path varies depending on instance and version so set it accordingly.
             string PerfMonInstanceID = "";
