@@ -910,9 +910,12 @@ namespace SSASDiag
             foreach (Series s in chartPerfMon.Series)
                 foreach (DataPoint p in s.Points)
                 {
-                    p.YValues[0] = chkAutoScale.Checked ?
-                                    p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Round(Math.Log10((double)s.Tag))))) :
-                                    p.YValues[0] / 100 * ((Math.Pow(10, (int)Math.Round(Math.Log10((double)s.Tag)))));
+                    if (p.Tag != null)
+                    {
+                        p.YValues[0] = chkAutoScale.Checked ?
+                                        p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Round(Math.Log10((double)s.Tag))))) :
+                                        p.YValues[0] / 100 * ((Math.Pow(10, (int)Math.Round(Math.Log10((double)s.Tag)))));
+                    }
                     if (p.YValues[0] > Maximum)
                         Maximum = p.YValues[0];
                 }
@@ -933,6 +936,7 @@ namespace SSASDiag
                         ParentNodeOfUpdateBatch = e.Node;
                     if (iNodesRemaingingToProcessInBatch < 1)
                     {
+                        iNodesRemaingingToProcessInBatch = 0;
                         tvCounters.AfterCheck -= TvCounters_AfterCheck;
                         new Thread(new ThreadStart(() => AddCounters())).Start();
                     }
@@ -1027,6 +1031,7 @@ namespace SSASDiag
                             s.Name = counter.Value;
                             s.XValueType = ChartValueType.DateTime;
                             s.LegendText = counter.Value;
+                            s.EmptyPointStyle.BorderWidth = 0;
 
                             var val = dt.Compute("max([CounterValue])", "OriginalCounterID = " + counter.Key);
                             double max = 0;
@@ -1038,11 +1043,13 @@ namespace SSASDiag
 
                             foreach (DataRow r in rows)
                             {
-                                if ((r["CounterDateTime"] as string).StartsWith("2018-05-16 20:18:02.359"))
-                                    ;
-                                double scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Round(Math.Log10(max))))) * 100 : (double)r["CounterValue"];
+                                double scaledValue = 0;
+                                if (r["CounterValue"] != null)
+                                    scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Round(Math.Log10(max))))) * 100 : (double)r["CounterValue"];
                                 s.Points.AddXY(DateTime.Parse((r["CounterDateTime"] as string).Trim('\0')).AddMinutes((r["MinutesToUTC"] as int?).Value), scaledValue);
-                                s.Points.Last().Tag = (double)r["CounterValue"];
+                                if (r["CounterValue"] == null)
+                                    s.Points.Last().IsEmpty = true;
+                                s.Points.Last().Tag = (double?)r["CounterValue"];
                             }
 
                             TreeNode node = tvCounters.FindNodeByPath(s.Name);

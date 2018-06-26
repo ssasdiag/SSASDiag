@@ -64,12 +64,12 @@
             this.cmbServers = new System.Windows.Forms.ComboBox();
             this.lblCounterGrouping = new System.Windows.Forms.Label();
             this.dgdRules = new System.Windows.Forms.DataGridView();
-            this.pnAnalyses = new System.Windows.Forms.Panel();
-            this.lblRules = new System.Windows.Forms.Label();
             this.RuleName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Description = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Result = new System.Windows.Forms.DataGridViewImageColumn();
             this.ResultDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.pnAnalyses = new System.Windows.Forms.Panel();
+            this.lblRules = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -634,26 +634,6 @@
             this.dgdRules.TabIndex = 3;
             this.dgdRules.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdRules_RowEnter);
             // 
-            // pnAnalyses
-            // 
-            this.pnAnalyses.Controls.Add(this.lblRules);
-            this.pnAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnAnalyses.Location = new System.Drawing.Point(0, 0);
-            this.pnAnalyses.Name = "pnAnalyses";
-            this.pnAnalyses.Size = new System.Drawing.Size(781, 18);
-            this.pnAnalyses.TabIndex = 2;
-            // 
-            // lblRules
-            // 
-            this.lblRules.AutoSize = true;
-            this.lblRules.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblRules.Location = new System.Drawing.Point(4, 3);
-            this.lblRules.Name = "lblRules";
-            this.lblRules.Size = new System.Drawing.Size(214, 12);
-            this.lblRules.TabIndex = 4;
-            this.lblRules.Text = "Select a rule to highlight its relevant counter details:";
-            this.lblRules.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // RuleName
             // 
             this.RuleName.Frozen = true;
@@ -683,6 +663,26 @@
             this.ResultDescription.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.ResultDescription.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.ResultDescription.Width = 200;
+            // 
+            // pnAnalyses
+            // 
+            this.pnAnalyses.Controls.Add(this.lblRules);
+            this.pnAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnAnalyses.Location = new System.Drawing.Point(0, 0);
+            this.pnAnalyses.Name = "pnAnalyses";
+            this.pnAnalyses.Size = new System.Drawing.Size(781, 18);
+            this.pnAnalyses.TabIndex = 2;
+            // 
+            // lblRules
+            // 
+            this.lblRules.AutoSize = true;
+            this.lblRules.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblRules.Location = new System.Drawing.Point(4, 3);
+            this.lblRules.Name = "lblRules";
+            this.lblRules.Size = new System.Drawing.Size(214, 12);
+            this.lblRules.TabIndex = 4;
+            this.lblRules.Text = "Select a rule to highlight its relevant counter details:";
+            this.lblRules.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // ucASPerfMonAnalyzer
             // 
