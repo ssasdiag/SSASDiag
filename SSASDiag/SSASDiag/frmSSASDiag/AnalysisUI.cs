@@ -328,22 +328,22 @@ namespace SSASDiag
         {
             if (txtFolderZipForAnalysis.Text.EndsWith(".zip"))
             {
-                Ionic.Zip.ZipFile z = new Ionic.Zip.ZipFile(txtFolderZipForAnalysis.Text);
-                z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
-                z.ParallelDeflateThreshold = -1;
-                if (z.Entries.Where(f => f.FileName.Substring(f.FileName.LastIndexOf("/") + 1) == file.Substring(file.LastIndexOf("\\") + 1)).Count() == 0)
-                {
-                    try
-                    {
-                        z.AddFile(file, AnalysisTraceID + "/Analysis");
-                        z.Save();
-                    }
-                    catch (Exception ex)
-                    {
-                        LogException(ex);
-                        // This may fail if a file is locked, but in that case we will skip it.
-                    }
-                }
+                //Ionic.Zip.ZipFile z = new Ionic.Zip.ZipFile(txtFolderZipForAnalysis.Text);
+                //z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
+                //z.ParallelDeflateThreshold = -1;
+                //if (z.Entries.Where(f => f.FileName.Substring(f.FileName.LastIndexOf("/") + 1) == file.Substring(file.LastIndexOf("\\") + 1)).Count() == 0)
+                //{
+                //    try
+                //    {
+                //        z.AddFile(file, AnalysisTraceID + "/Analysis");
+                //        z.Save();
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        LogException(ex);
+                //        // This may fail if a file is locked, but in that case we will skip it.
+                //    }
+                //}
             }
         }
         public RichTextBox GetStatusTextBox(string Text = "")

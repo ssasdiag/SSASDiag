@@ -470,22 +470,22 @@ namespace SSASDiag
                 Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception detaching dump analysis database on exit: " + ex.Message);
                 // Closing connection could fail if the database is otherwise in use or something.  Just ignore - we're closing, don't notify user...
             }
-            try
-            {
-                string AnalysisZipFile = Directory.GetParent(Directory.GetParent(AnalysisPath).FullName).FullName + "\\" + Directory.GetParent(AnalysisPath).Name + ".zip";
-                if (File.Exists(AnalysisZipFile))
-                {
-                    ZipFile z = new ZipFile(AnalysisZipFile);
-                    z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
-                    z.ParallelDeflateThreshold = -1;
-                    z.AddFiles(new string[] { MDFPath(), LDFPath() }, Directory.GetParent(AnalysisPath).Name + "/Analysis");
-                    z.Save();
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception adding dump analysis to zip folder: " + ex.Message);
-            }
+            //try
+            //{
+            //    string AnalysisZipFile = Directory.GetParent(Directory.GetParent(AnalysisPath).FullName).FullName + "\\" + Directory.GetParent(AnalysisPath).Name + ".zip";
+            //    if (File.Exists(AnalysisZipFile))
+            //    {
+            //        ZipFile z = new ZipFile(AnalysisZipFile);
+            //        z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
+            //        z.ParallelDeflateThreshold = -1;
+            //        z.AddFiles(new string[] { MDFPath(), LDFPath() }, Directory.GetParent(AnalysisPath).Name + "/Analysis");
+            //        z.Save();
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception adding dump analysis to zip folder: " + ex.Message);
+            //}
         }
 
         private string DBName()

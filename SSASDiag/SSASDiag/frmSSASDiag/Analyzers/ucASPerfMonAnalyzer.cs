@@ -300,7 +300,7 @@ namespace SSASDiag
             }
         }
 
-        private void UcASPerfMonAnalyzer_HandleDestroyed(object sender, EventArgs e)
+        async private void UcASPerfMonAnalyzer_HandleDestroyed(object sender, EventArgs e)
         {
             try
             {
@@ -317,22 +317,41 @@ namespace SSASDiag
                 Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception detaching PerfMon analysis database on exit: " + ex.Message);
                 // Closing connection could fail if the database is otherwise in use or something.  Just ignore - we're closing, don't notify user...
             }
-            try
-            {
-                string AnalysisZipFile = Directory.GetParent(Directory.GetParent(AnalysisPath).FullName).FullName + "\\" + Directory.GetParent(AnalysisPath).Name + ".zip";
-                if (File.Exists(AnalysisZipFile))
-                {
-                    ZipFile z = new ZipFile(AnalysisZipFile);
-                    z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
-                    z.ParallelDeflateThreshold = -1;
-                    z.AddFiles(new string[] { MDFPath(), LDFPath() }, Directory.GetParent(AnalysisPath).Name + "/Analysis");
-                    z.Save();
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception adding PerfMon analysis to zip folder: " + ex.Message);
-            }
+            //try
+            //{
+            //    string AnalysisZipFile = Directory.GetParent(Directory.GetParent(AnalysisPath).FullName).FullName + "\\" + Directory.GetParent(AnalysisPath).Name + ".zip";
+            //    if (File.Exists(AnalysisZipFile))
+            //    {
+            //        frmStatusFloater f = new frmStatusFloater();
+            //        f.Top = Screen.PrimaryScreen.WorkingArea.Height / 2 - f.Height / 2;
+            //        f.Left = Screen.PrimaryScreen.WorkingArea.Width / 2 - f.Width / 2;
+            //        f.lblStatus.Text = "Adding PerfMon analysis database to zip...";
+            //        f.lblSubStatus.Text = "(Esc to cancel)";
+            //        f.EscapePressed = false;
+            //        f.Show();
+
+            //        ZipFile z = new ZipFile(AnalysisZipFile);
+            //        z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
+            //        z.ParallelDeflateThreshold = -1;
+            //        z.AddFiles(new string[] { MDFPath(), LDFPath() }, Directory.GetParent(AnalysisPath).Name + "/Analysis");
+            //        CancellationTokenSource cts = new CancellationTokenSource();
+            //        Task t = Task.Run(()=>z.Save(), cts.Token);
+            //        System.Runtime.CompilerServices.TaskAwaiter ta = t.GetAwaiter();
+            //        while (!ta.IsCompleted)
+            //        {
+            //            Thread.Sleep(100);
+            //            if (f.EscapePressed)
+            //            {
+            //                cts.Cancel();
+            //                f.Close();
+            //            }
+            //        }
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception adding PerfMon analysis to zip folder: " + ex.Message);
+            //}
         }
         private string DBName()
         {

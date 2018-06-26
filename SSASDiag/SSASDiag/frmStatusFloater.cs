@@ -67,6 +67,7 @@ namespace SSASDiag
         private static void Tt_Elapsed(object sender)
         {
             frmStatusFloater f = sender as frmStatusFloater;
+            if (f.IsHandleCreated)
             f.Invoke(new Action(()=>
             {
                 if (sender != null && f.lblTime.Text != "" && (DateTime.Now - f.StartTime).ToString("mm\\:ss") != f.lblTime.Text)
