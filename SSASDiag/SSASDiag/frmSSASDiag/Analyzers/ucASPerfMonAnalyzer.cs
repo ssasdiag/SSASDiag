@@ -742,6 +742,7 @@ namespace SSASDiag
                         tvCounters.CollapseAll();
                         tvCounters.ResumeLayout();
                         DrawingControl.ResumeDrawing(f);
+                        splitAnalysis.SplitterDistance++;
                         tvCounters.AfterCheck += TvCounters_AfterCheck;
                         tvCounters.AfterSelect += TvCounters_AfterSelect;
                         StatusFloater.Hide();
