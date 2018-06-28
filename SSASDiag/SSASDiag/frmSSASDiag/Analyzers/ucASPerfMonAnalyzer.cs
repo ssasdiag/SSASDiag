@@ -1383,56 +1383,6 @@ namespace SSASDiag
             r.AnnotationFunction(r);
         }
 
-        private class Rule : INotifyPropertyChanged
-        {
-            public event PropertyChangedEventHandler PropertyChanged;
-            public string Name { get; set; } = "";
-            public string Description { get; set; } = "";
-            public string Category { get; set; } = "";
-            public string ResultDescription { get; set; } = "";
-            private RuleResultEnum ruleResult = RuleResultEnum.NotRun;
-            [Browsable(false)]
-            public RuleResultEnum RuleResult { get { return ruleResult; } set { OnPropertyChanged("RuleResultImg"); ruleResult = value; } }
-            public List<string> Counters { get; set; } = new List<string>();
-            public List<object> Annotations { get; set; } = new List<object>(); // List of rule annotation variables, which RuleFunction should set and AnnotationFunction should use to draw its annotations however it needs to.
-            public Action<Rule> AnnotationFunction = null;
-            private Func<Rule, RuleResultEnum> ruleFunction = null;
-            [Browsable(false)]
-            public Func<Rule, RuleResultEnum> RuleFunction { get { return ruleFunction; } set { ruleFunction = value; } }
-            Image ruleResultImg = null;
-            public Image RuleResultImg
-            {
-                get
-                {
-                    switch (RuleResult)
-                    {
-                        case RuleResultEnum.CountersUnavailable:
-                            return Properties.Resources.RuleCountersUnavailable;
-                        case RuleResultEnum.Fail:
-                            return Properties.Resources.RuleFail;
-                        case RuleResultEnum.NotRun:
-                            return Properties.Resources.RuleNotRun;
-                        case RuleResultEnum.Other:
-                            return Properties.Resources.RuleOther;
-                        case RuleResultEnum.Pass:
-                            return Properties.Resources.RulePass;
-                        case RuleResultEnum.Warn:
-                            return Properties.Resources.RuleWarn;
-                    }
-                    return null;
-                }
-            }
-
-            protected void OnPropertyChanged(string name)
-            {
-                PropertyChangedEventHandler handler = PropertyChanged;
-                if (handler != null)
-                {
-                    handler(this, new PropertyChangedEventArgs(name));
-                }
-            }
-        }
-
         public string[] indexcolors = new string[]{
         "#000000", "#FFFF00", "#1CE6FF", "#FF34FF", "#FF4A46", "#008941", "#006FA6", "#A30059",
         "#FFDBE5", "#7A4900", "#0000A6", "#63FFAC", "#B79762", "#004D43", "#8FB0FF", "#997D87",
