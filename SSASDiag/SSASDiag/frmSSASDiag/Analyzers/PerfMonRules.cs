@@ -57,15 +57,9 @@ namespace SSASDiag
                 DataPointCollection p1 = AvailableBytes.ChartSeries.Points, p2 = WorkingSet.ChartSeries.Points;
                 double totalMem = ((double)p1[0].Tag) + ((double)p2[0].Tag);
                 for (int i = 0; i < p1.Count; i++)
-                {
-                    DataPoint p = new DataPoint(p1[i].XValue, chkAutoScale.Checked ?
-                        totalMem * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10(totalMem))))) :
-                        totalMem);
-                    p.Tag = totalMem;
-                    TotalMemory.Points.Add(p);
-                }
-                
-                chartPerfMon.Series.Add(TotalMemory);
+                    TotalMemory.Points.Add(new DataPoint(p1[i].XValue, totalMem));
+
+                AddCustomSeries(TotalMemory);
             });
             Rules.Add(r);
         }
@@ -73,7 +67,7 @@ namespace SSASDiag
         private class RuleCounter
         {
             public string Path;
-            public bool ShowInChart = true;
+            public bool ShowInChart;
             public bool HighlightInChart = true;
             public Series ChartSeries = null;
 

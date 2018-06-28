@@ -1228,6 +1228,17 @@ namespace SSASDiag
             Program.MainForm.Invoke(new Action(() => DrawingControl.ResumeDrawing(Program.MainForm)));
         }
 
+        public void AddCustomSeries(Series s)
+        {
+            if (chkAutoScale.Checked)
+            {
+                double max = s.Points.FindMaxByValue().YValues[0];
+                foreach (DataPoint p in s.Points)
+                    p.YValues[0] = p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)max)))));
+            }
+            chartPerfMon.Series.Add(s);
+        }
+
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)
         {
             tvCounters.Height = splitPerfMonCountersAndChart.Height - dgdGrouping.Height;
