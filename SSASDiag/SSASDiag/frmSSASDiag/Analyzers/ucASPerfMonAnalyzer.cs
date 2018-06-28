@@ -1161,7 +1161,7 @@ namespace SSASDiag
                                     Invoke(new Action(() => tvCounters.FindNodeByPath(counter.Value).Checked = false));
                                 else
                                 {
-                                    chartPerfMon.Invoke(new System.Action(() =>
+                                    Invoke(new System.Action(() =>
                                     {
                                         legend.Images.Add(bmp);
                                         if (chartPerfMon.ChartAreas[0].AxisY.Maximum < max)

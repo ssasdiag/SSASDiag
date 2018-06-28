@@ -45,34 +45,40 @@ namespace SSASDiag
             });
             r.AnnotationFunction = new Action<Rule>((rr) =>
             {
-                tvCounters.SelectedNodes.Clear();
-
-                chartPerfMon.Series.Clear();
-                tvCounters.AfterCheck -= TvCounters_AfterCheck;
-                TreeNode n = null;
-                foreach (string c in r.Counters)
+                new Thread(new ThreadStart(() =>
                 {
-                    n = tvCounters.FindNodeByPath(c);
-                    if (n == null)
+                    tvCounters.SelectedNodes.Clear();
+
+                    chartPerfMon.Invoke(new Action(()=>chartPerfMon.Series.Clear()));
+                    tvCounters.AfterCheck -= TvCounters_AfterCheck;
+                    TreeNode n = null;
+                    foreach (string c in r.Counters)
                     {
-                        string[] pathParts = c.Split('\\');
-                        string sAlternatePath = pathParts[0] + "\\";
-                        for (int i = 1; i < pathParts.Length - 1; i++)
-                            sAlternatePath += (pathParts[i + 1] + "\\");
-                        sAlternatePath += (pathParts[1]);
-                        n = tvCounters.FindNodeByPath(sAlternatePath);
+                        n = tvCounters.FindNodeByPath(c);
+                        if (n == null)
+                        {
+                            string[] pathParts = c.Split('\\');
+                            string sAlternatePath = pathParts[0] + "\\";
+                            for (int i = 1; i < pathParts.Length - 1; i++)
+                                sAlternatePath += (pathParts[i + 1] + "\\");
+                            sAlternatePath += (pathParts[1]);
+                            n = tvCounters.FindNodeByPath(sAlternatePath);
+                        }
+                        if (n == null)
+                            return;
+                        tvCounters.Invoke(new Action(() =>
+                        {
+                            n.Checked = true;
+                            while (n.Parent != null)
+                            {
+                                n = n.Parent;
+                                n.Expand();
+                            }
+                        }));
                     }
-                    if (n == null)
-                        return;
-                    n.Checked = true;
-                    while (n.Parent != null)
-                    {
-                        n = n.Parent;
-                        n.Expand();
-                    }
-                }
-                tvCounters.AfterCheck += TvCounters_AfterCheck;
-                AddCounters();
+                    tvCounters.AfterCheck += TvCounters_AfterCheck;
+                    AddCounters();
+                })).Start();
             });
             Rules.Add(r);
         }
