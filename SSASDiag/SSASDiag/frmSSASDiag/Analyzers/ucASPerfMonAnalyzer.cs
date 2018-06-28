@@ -1209,8 +1209,10 @@ namespace SSASDiag
 
                 chartPerfMon.Invoke(new Action(() =>
                     {
+                        chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
                         chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate();
                         chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate();
+                        chartPerfMon.ChartAreas[0].RecalculateAxesScale();
                     }));
                 StatusFloater.Invoke(new Action(() =>
                     {
