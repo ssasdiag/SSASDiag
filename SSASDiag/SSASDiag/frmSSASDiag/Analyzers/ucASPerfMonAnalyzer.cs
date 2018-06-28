@@ -973,34 +973,7 @@ namespace SSASDiag
             chartPerfMon.ChartAreas[0].AxisX.Maximum = ((dr["StopTime"] as DateTime?).Value).ToOADate();
             dr.Close();
 
-            Rules.Clear();
-            Rule r = new Rule();
-            r.Category = "Memory";
-            r.Name = "Server Available Memory";
-            r.Description = "Checks to ensure there is sufficient free memory.";
-            r.Counters.Add("Memory\\Available MBytes");
-            r.RuleFunction = new Func<Rule, RuleResultEnum>((rr)=>
-                {
-                    r.RuleResult = RuleResultEnum.Other;
-                    return RuleResultEnum.Other;
-                });
-            r.AnnotationFunction = new Action<Rule>((rr)=>
-                {
-                    tvCounters.SelectedNodes.Clear();
-                    
-                    chartPerfMon.Series.Clear();
-                    foreach (string c in r.Counters)
-                    {
-                        TreeNode n = tvCounters.FindNodeByPath(c);
-                        n.Checked = true;
-                        while (n.Parent != null)
-                        {
-                            n = n.Parent;
-                            n.Expand();
-                        }
-                    }
-                });
-            Rules.Add(r);
+            DefineRules();
             BindingSource b = new BindingSource();
             b.DataSource = Rules;
             dgdRules.DataSource = b;
@@ -1043,7 +1016,7 @@ namespace SSASDiag
                     if (iNodesRemaingingToProcessInBatch < 1)
                     {
                         iNodesRemaingingToProcessInBatch = 0;
-                        tvCounters.AfterCheck -= TvCounters_AfterCheck;
+                        //tvCounters.AfterCheck -= TvCounters_AfterCheck;
                         new Thread(new ThreadStart(() => AddCounters())).Start();
                     }
                 }
@@ -1073,9 +1046,16 @@ namespace SSASDiag
 
         private void AddCounters()
         {
-            List<KeyValuePair<string, string>> CountersToUpdate = tvCounters.GetLeafNodes(ParentNodeOfUpdateBatch, false)
-                                                        .Where(n => n.SelectedImageIndex < 1 || !n.Checked)
-                                                        .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
+            List<KeyValuePair<string, string>> CountersToUpdate = null;
+            if (ParentNodeOfUpdateBatch != null)
+                CountersToUpdate = tvCounters.GetLeafNodes(ParentNodeOfUpdateBatch, false)
+                                             .Where(n => n.SelectedImageIndex < 1 || !n.Checked)
+                                             .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
+            else
+                CountersToUpdate = tvCounters.GetLeafNodes()
+                                             .Where(n => n.SelectedImageIndex < 1 || n.Checked)
+                                             .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
+
             if (CountersToUpdate.Count != 0)
             {
 
@@ -1086,20 +1066,19 @@ namespace SSASDiag
                 List<TreeNode> nodes = tvCounters.GetLeafNodes().Where(n => n.ImageIndex < 1).ToList();
                 int iCurNode = 1;
 
-                if (CountersToUpdate.Count > 3)
-                    StatusFloater.Invoke(new Action(() =>
-                    {
-                        Form f = Program.MainForm;
-                        StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
-                        StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
-                        StatusFloater.lblStatus.Text = "Loading data for " + CountersToUpdate.Count + " counters...";
-                        StatusFloater.lblSubStatus.Text = "";
-                        StatusFloater.lblTime.Text = "00:00";
-                        StatusFloater.EscapePressed = false;
-                        StatusFloater.AutoUpdateDuration = true;
-                        StatusFloater.Visible = true;
-                        f.Enabled = false;
-                    }));
+                StatusFloater.Invoke(new Action(() =>
+                {
+                    Form f = Program.MainForm;
+                    StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
+                    StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
+                    StatusFloater.lblStatus.Text = "Loading data for " + CountersToUpdate.Count + " counters...";
+                    StatusFloater.lblSubStatus.Text = "";
+                    StatusFloater.lblTime.Text = "00:00";
+                    StatusFloater.EscapePressed = false;
+                    StatusFloater.AutoUpdateDuration = true;
+                    StatusFloater.Visible = true;
+                    f.Enabled = false;
+                }));
 
                 string qry = @" select a.*, b.MinutesToUTC, OriginalCounterID from CounterData a, DisplayToID b,
                             (select aa.CounterID as OriginalCounterID, bb.CounterID from (select * from CounterDetails where CounterID in (" + string.Join(", ", CountersToUpdate.Select(c => c.Key)) + @")) aa, CounterDetails bb where 
@@ -1124,7 +1103,11 @@ namespace SSASDiag
 
                 // parallelize loading as much as possible
                 List<Thread> threadList = new List<Thread>();
-                Semaphore sem = new Semaphore(Environment.ProcessorCount - 2, Environment.ProcessorCount - 2);
+                int threadcount = Environment.ProcessorCount > 2 ? Environment.ProcessorCount - 2 : 1;
+                Semaphore sem = new Semaphore(threadcount, threadcount);
+
+                StatusFloater.EscapePressed = false;
+
                 foreach (KeyValuePair<string, string> counter in CountersToUpdate)
                 {
                     threadList.Add(new Thread(new ThreadStart(() =>
@@ -1221,13 +1204,14 @@ namespace SSASDiag
                 StatusFloater.Invoke(new Action(() =>
                     {
                         StatusFloater.EscapePressed = false;
-                        StatusFloater.Hide();
+                        StatusFloater.Visible = false;
                         Program.MainForm.Enabled = true;
                     }));
                 // Removed in the AfterCheck function, the only place that ever invokes this...
-                tvCounters.AfterCheck += TvCounters_AfterCheck;
+                
                 tvCounters.ResumeLayout();
             }
+
             Program.MainForm.Invoke(new Action(() => DrawingControl.ResumeDrawing(Program.MainForm)));
         }
 

@@ -136,6 +136,9 @@
     <Compile Include="frmAbout.Designer.cs">
       <DependentUpon>frmAbout.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmSSASDiag\Analyzers\PerfMonRules.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="frmSSASDiag\Analyzers\ucASPerfMonAnalyzer.cs">
       <SubType>UserControl</SubType>
     </Compile>
