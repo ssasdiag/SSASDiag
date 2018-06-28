@@ -1437,7 +1437,7 @@ namespace SSASDiag
                 }
                 tvCounters.AfterCheck += TvCounters_AfterCheck;
                 AddCounters(HiddenCountersToLookup);
-                foreach (Series s in HiddenSeries)
+                foreach (Series s in HiddenSeries.Concat(chartPerfMon.Series))
                     r.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).First().ChartSeries = s;
                 Invoke(new Action(()=>r.AnnotationFunction(r)));
             })).Start();

@@ -32,12 +32,15 @@ namespace SSASDiag
             Rules.Clear();
 
             // Rule 0
+
+            RuleCounter AvailableBytes = new RuleCounter("Memory\\Available Bytes");
+            RuleCounter WorkingSet = new RuleCounter("Process\\Working Set\\_Total", false);
             Rule r = new Rule();
             r.Category = "Memory";
             r.Name = "Server Available Memory";
             r.Description = "Checks to ensure there is sufficient free memory.";
-            r.Counters.Add(new RuleCounter("Memory\\Available Bytes"));
-            r.Counters.Add(new RuleCounter("Process\\Working Set\\_Total", false));
+            r.Counters.Add(AvailableBytes);
+            r.Counters.Add(WorkingSet);
             r.RuleFunction = new Func<Rule, RuleResultEnum>((rr) =>
             {
                 r.RuleResult = RuleResultEnum.Other;
@@ -45,10 +48,24 @@ namespace SSASDiag
             });
             r.AnnotationFunction = new Action<Rule>((rr) =>
             {
-                r.Counters[1].ChartSeries.Color = r.Counters[1].ChartSeries.BorderColor = Color.Pink;
-                chartPerfMon.Series.Add(r.Counters[1].ChartSeries);
+                Series TotalMemory = new Series("Total System Memory");
+                TotalMemory.ChartType = SeriesChartType.Line;
+                TotalMemory.XValueType = ChartValueType.DateTime;
+                TotalMemory.EmptyPointStyle.BorderWidth = 0;
+                TotalMemory.BorderColor = TotalMemory.Color = Color.DarkRed;
 
-               
+                DataPointCollection p1 = AvailableBytes.ChartSeries.Points, p2 = WorkingSet.ChartSeries.Points;
+                double totalMem = ((double)p1[0].Tag) + ((double)p2[0].Tag);
+                for (int i = 0; i < p1.Count; i++)
+                {
+                    DataPoint p = new DataPoint(p1[i].XValue, chkAutoScale.Checked ?
+                        totalMem * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10(totalMem))))) :
+                        totalMem);
+                    p.Tag = totalMem;
+                    TotalMemory.Points.Add(p);
+                }
+                
+                chartPerfMon.Series.Add(TotalMemory);
             });
             Rules.Add(r);
         }
