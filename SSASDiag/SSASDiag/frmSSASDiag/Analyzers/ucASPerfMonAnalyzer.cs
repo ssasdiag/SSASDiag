@@ -1001,8 +1001,8 @@ namespace SSASDiag
                     if (p.Tag != null)
                     {
                         p.YValues[0] = chkAutoScale.Checked ?
-                                        p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Round(Math.Log10((double)s.Tag))))) :
-                                        p.YValues[0] / 100 * ((Math.Pow(10, (int)Math.Round(Math.Log10((double)s.Tag)))));
+                                        p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)s.Tag))))) :
+                                        p.YValues[0] / 100 * ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)s.Tag)))));
                     }
                     if (p.YValues[0] > Maximum)
                         Maximum = p.YValues[0];
@@ -1132,7 +1132,7 @@ namespace SSASDiag
                                 {
                                     double scaledValue = 0;
                                     if (r["CounterValue"] != null)
-                                        scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Round(Math.Log10(max))))) * 100 : (double)r["CounterValue"];
+                                        scaledValue = chkAutoScale.Checked ? (double)r["CounterValue"] / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10(max))))) * 100 : (double)r["CounterValue"];
                                     s.Points.AddXY(DateTime.Parse((r["CounterDateTime"] as string).Trim('\0')).AddMinutes((r["MinutesToUTC"] as int?).Value), scaledValue);
                                     if (r["CounterValue"] == null)
                                         s.Points.Last().IsEmpty = true;
@@ -1171,14 +1171,15 @@ namespace SSASDiag
                                         Application.DoEvents();
                                     }));
 
-                                    StatusFloater.Invoke(new Action(() =>
-                                    {
-                                        StatusFloater.lblStatus.Text = "Loaded " + iCurNode + " of " + nodes.Count + " counters...";
-                                        StatusFloater.lblSubStatus.Text = "(Esc to cancel)";
-                                        StatusFloater.Invalidate(true);
-                                        StatusFloater.Update();
-                                        Application.DoEvents();
-                                    }));
+                                    if (StatusFloater.Visible)
+                                        StatusFloater.Invoke(new Action(() =>
+                                        {
+                                            StatusFloater.lblStatus.Text = "Loaded " + iCurNode + " of " + nodes.Count + " counters...";
+                                            StatusFloater.lblSubStatus.Text = "(Esc to cancel)";
+                                            StatusFloater.Invalidate(true);
+                                            StatusFloater.Update();
+                                            Application.DoEvents();
+                                        }));
                                     iCurNode++;
                                 }
                             }
