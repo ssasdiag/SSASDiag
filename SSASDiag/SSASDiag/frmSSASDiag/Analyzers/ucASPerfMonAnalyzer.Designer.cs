@@ -44,6 +44,7 @@
             this.lblHideFilesButton = new System.Windows.Forms.Label();
             this.splitAnalysis = new System.Windows.Forms.SplitContainer();
             this.splitPerfMonCountersAndChart = new System.Windows.Forms.SplitContainer();
+            this.pnlCounters = new System.Windows.Forms.Panel();
             this.dgdGrouping = new System.Windows.Forms.DataGridView();
             this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Instance = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -76,7 +77,6 @@
             this.button2 = new System.Windows.Forms.Button();
             this.btnRunRule = new System.Windows.Forms.Button();
             this.lblRules = new System.Windows.Forms.Label();
-            this.pnlCounters = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -309,6 +309,14 @@
             this.splitPerfMonCountersAndChart.Size = new System.Drawing.Size(781, 368);
             this.splitPerfMonCountersAndChart.SplitterDistance = 218;
             this.splitPerfMonCountersAndChart.TabIndex = 47;
+            // 
+            // pnlCounters
+            // 
+            this.pnlCounters.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlCounters.Location = new System.Drawing.Point(0, 21);
+            this.pnlCounters.Name = "pnlCounters";
+            this.pnlCounters.Size = new System.Drawing.Size(218, 347);
+            this.pnlCounters.TabIndex = 2;
             // 
             // dgdGrouping
             // 
@@ -544,6 +552,8 @@
             this.chartPerfMon.SuppressExceptions = true;
             this.chartPerfMon.TabIndex = 0;
             this.chartPerfMon.Text = "Counter Data";
+            this.chartPerfMon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ChartPerfMon_MouseClick);
+            this.chartPerfMon.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ChartPerfMon_MouseMove);
             // 
             // pnServers
             // 
@@ -656,7 +666,6 @@
             this.dgdRules.Size = new System.Drawing.Size(781, 133);
             this.dgdRules.TabIndex = 3;
             this.dgdRules.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdRules_CellClick);
-            this.dgdRules.Click += new System.EventHandler(this.dgdRules_Click);
             // 
             // Category
             // 
@@ -806,14 +815,6 @@
             this.lblRules.TabIndex = 4;
             this.lblRules.Text = "Select a rule to see relevant counter details and annotations:";
             this.lblRules.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // pnlCounters
-            // 
-            this.pnlCounters.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlCounters.Location = new System.Drawing.Point(0, 21);
-            this.pnlCounters.Name = "pnlCounters";
-            this.pnlCounters.Size = new System.Drawing.Size(218, 347);
-            this.pnlCounters.TabIndex = 2;
             // 
             // ucASPerfMonAnalyzer
             // 

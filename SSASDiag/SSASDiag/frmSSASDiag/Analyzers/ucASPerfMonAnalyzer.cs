@@ -136,8 +136,6 @@ namespace SSASDiag
             ChartArea c = chartPerfMon.ChartAreas[0];
             c.IsSameFontSizeForAllAxes = true;
             c.AxisX.LabelAutoFitMaxFontSize = c.AxisY.LabelAutoFitMaxFontSize = c.AxisX2.LabelAutoFitMaxFontSize = c.AxisY2.LabelAutoFitMaxFontSize = 7;
-            this.chartPerfMon.MouseClick += ChartPerfMon_MouseClick;
-            this.chartPerfMon.MouseMove += ChartPerfMon_MouseMove;
             this.dgdGrouping.Columns[0].SortMode = this.dgdGrouping.Columns[1].SortMode = DataGridViewColumnSortMode.NotSortable;
 
             splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
@@ -840,22 +838,47 @@ namespace SSASDiag
             }
             if (CurrentSeriesUnderMouse != "")
             {
-                Series sr = chartPerfMon.Series[CurrentSeriesUnderMouse];
-                string[] NodeList = sr.LegendText.Split('\\');
-                TreeNode n = tvCounters.Nodes[NodeList[0]];
-                for (int i = 1; i < NodeList.Length; i++)
-                    n = n.Nodes[NodeList[i]];
-                if (ModifierKeys == Keys.Control || ModifierKeys == Keys.Shift)
+                if (e.Button == MouseButtons.Left)
                 {
-                    if (!tvCounters.SelectedNodes.Contains(n))
-                        tvCounters.SelectedNodes.Add(n);
+                    Series sr = chartPerfMon.Series[CurrentSeriesUnderMouse];
+                    string[] NodeList = sr.LegendText.Split('\\');
+                    TreeNode n = tvCounters.Nodes[NodeList[0]];
+                    for (int i = 1; i < NodeList.Length; i++)
+                        n = n.Nodes[NodeList[i]];
+                    if (ModifierKeys == Keys.Control || ModifierKeys == Keys.Shift)
+                    {
+                        if (!tvCounters.SelectedNodes.Contains(n))
+                            tvCounters.SelectedNodes.Add(n);
+                        else
+                            tvCounters.SelectedNodes.Remove(n);
+                    }
                     else
-                        tvCounters.SelectedNodes.Remove(n);
+                        tvCounters.SelectedNode = n;
+                    TvCounters_AfterSelect(sender, new TreeViewEventArgs(n));
                 }
-                else
-                    tvCounters.SelectedNode = n;
-
-                TvCounters_AfterSelect(sender, new TreeViewEventArgs(n));
+                else if (e.Button == MouseButtons.Right)
+                {
+                    var pos = e.Location;
+                    tooltip.RemoveAll();
+                    prevPosition = pos;
+                    var results = chartPerfMon.HitTest(pos.X, pos.Y, false, ChartElementType.DataPoint);
+                    foreach (var result in results)
+                    {
+                        if (result.ChartElementType != ChartElementType.Nothing)
+                        {
+                            var prop = result.Object as DataPoint;
+                            if (prop != null)
+                            {
+                                string clipboardText = prop.LegendText + "\n" + DateTime.FromOADate(prop.XValue) + "\nValue: " + (double)prop.Tag;
+                                Clipboard.SetText(clipboardText);
+                                tooltip.Show(clipboardText + "\n(copied to clipboard)", this.chartPerfMon, pos.X + 10, pos.Y, 1500);
+                                CurrentSeriesUnderMouse = prop.LegendText;
+                            }
+                        }
+                        else
+                            CurrentSeriesUnderMouse = "";
+                    }
+                }
             }
             CurrentSeriesUnderMouse = "";
         }
@@ -970,15 +993,11 @@ namespace SSASDiag
                     {
                         TreeNode n = tvCounters.FindNodeByPath(c);
                         n.Checked = true;
-                        //while (n.Parent != null)
-                        //{
-                        //    n.Parent.Expand();
-                        //    tvCounters.PerformLayout();
-                        //    n = n.Parent;
-                        //}
-                        //tvCounters.Update();
-                        tvCounters.SelectSingleNode(n);
-                        //tvCounters.SelectedNodes.Add(n);
+                        while (n.Parent != null)
+                        {
+                            n = n.Parent;
+                            n.Expand();
+                        }
                     }
                 });
             Rules.Add(r);
@@ -1378,11 +1397,6 @@ namespace SSASDiag
         {
             Rule r = ((sender as DataGridView).Rows[e.RowIndex].DataBoundItem as Rule);
             r.AnnotationFunction(r);
-        }
-
-        private void dgdRules_Click(object sender, EventArgs e)
-        {
-
         }
 
         private class Rule : INotifyPropertyChanged
