@@ -48,59 +48,6 @@ namespace SSASDiag
         TreeNode ParentNodeOfUpdateBatch = null;
         List<Rule> Rules = new List<Rule>();
 
-        private void UcASPerfMonAnalyzer_HandleDestroyed(object sender, EventArgs e)
-        {
-            try
-            {
-                frmSSASDiag.LogFeatureUse("PerfMon Analysis", "Detatching from perfmon analysis database on exit.");
-                connDB.ChangeDatabase("master");
-                SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') ALTER DATABASE [" + DBName() + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connDB);
-                cmd.ExecuteNonQuery();
-                cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') EXEC master.dbo.sp_detach_db @dbname = N'" + DBName() + "'", connDB);
-                cmd.ExecuteNonQuery();
-                connDB.Close();
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception detaching PerfMon analysis database on exit: " + ex.Message);
-                // Closing connection could fail if the database is otherwise in use or something.  Just ignore - we're closing, don't notify user...
-            }
-            //try
-            //{
-            //    string AnalysisZipFile = Directory.GetParent(Directory.GetParent(AnalysisPath).FullName).FullName + "\\" + Directory.GetParent(AnalysisPath).Name + ".zip";
-            //    if (File.Exists(AnalysisZipFile))
-            //    {
-            //        frmStatusFloater f = new frmStatusFloater();
-            //        f.Top = Screen.PrimaryScreen.WorkingArea.Height / 2 - f.Height / 2;
-            //        f.Left = Screen.PrimaryScreen.WorkingArea.Width / 2 - f.Width / 2;
-            //        f.lblStatus.Text = "Adding PerfMon analysis database to zip...";
-            //        f.lblSubStatus.Text = "(Esc to cancel)";
-            //        f.EscapePressed = false;
-            //        f.Show();
-
-            //        ZipFile z = new ZipFile(AnalysisZipFile);
-            //        z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
-            //        z.ParallelDeflateThreshold = -1;
-            //        z.AddFiles(new string[] { MDFPath(), LDFPath() }, Directory.GetParent(AnalysisPath).Name + "/Analysis");
-            //        CancellationTokenSource cts = new CancellationTokenSource();
-            //        Task t = Task.Run(()=>z.Save(), cts.Token);
-            //        System.Runtime.CompilerServices.TaskAwaiter ta = t.GetAwaiter();
-            //        while (!ta.IsCompleted)
-            //        {
-            //            Thread.Sleep(100);
-            //            if (f.EscapePressed)
-            //            {
-            //                cts.Cancel();
-            //                f.Close();
-            //            }
-            //        }
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception adding PerfMon analysis to zip folder: " + ex.Message);
-            //}
-        }
         private string DBName()
         {
             return "SSASDiag_PerfMon_Analysis_" + PerfMonAnalysisId;
@@ -119,7 +66,7 @@ namespace SSASDiag
         {
             InitializeComponent();
 
-
+            splitLogList.Visible = false;
             this.Shown += UcASPerfMonAnalyzer_Shown;
             #region non-designer controls
 
@@ -150,7 +97,7 @@ namespace SSASDiag
             // 
             tvCounters = new TriStateTreeView();
             tvCounters.CheckBoxes = true;
-            tvCounters.Dock = System.Windows.Forms.DockStyle.Bottom;
+            tvCounters.Dock = System.Windows.Forms.DockStyle.Fill;
             tvCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             tvCounters.Location = new System.Drawing.Point(0, 130);
             tvCounters.Name = "tvCounters";
@@ -163,7 +110,7 @@ namespace SSASDiag
             tvCounters.BeforeCheck += TvCounters_BeforeCheck;
             tvCounters.ImageList = legend;
             tvCounters.ShowNodeToolTips = true;
-            splitPerfMonCountersAndChart.Panel1.Controls.Add(tvCounters);
+            pnlCounters.Controls.Add(tvCounters);
 
             legend.ImageSize = new Size(16, 16);
             legend.TransparentColor = System.Drawing.Color.Transparent;
@@ -180,6 +127,7 @@ namespace SSASDiag
             #endregion non-designer controls
 
             StatusFloater = statusFloater;
+            StatusFloater.lblStatus.Text = StatusFloater.lblSubStatus.Text = "";
             LogPath = logPath;
             connDB = new SqlConnection(conndb.ConnectionString);
             connDB.Open();
@@ -309,8 +257,65 @@ namespace SSASDiag
             dgdLogList.DataBindingComplete += DgdLogList_DataBindingComplete;
             dgdLogList.DataSource = LogFiles;
 
+            Program.MainForm.BringToFront();
+            splitLogList.Visible = true;
+
             frmSSASDiag.LogFeatureUse("PerfMon Analysis", "PerfMon analysis initalized for " + LogFiles.Count + " logs, " + LogFiles.Where(d => !d.Analyzed).Count() + " of which still require import for analysis.");
 
+        }
+
+        private void UcASPerfMonAnalyzer_HandleDestroyed(object sender, EventArgs e)
+        {
+            try
+            {
+                frmSSASDiag.LogFeatureUse("PerfMon Analysis", "Detatching from perfmon analysis database on exit.");
+                connDB.ChangeDatabase("master");
+                SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') ALTER DATABASE [" + DBName() + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connDB);
+                cmd.ExecuteNonQuery();
+                cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') EXEC master.dbo.sp_detach_db @dbname = N'" + DBName() + "'", connDB);
+                cmd.ExecuteNonQuery();
+                connDB.Close();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception detaching PerfMon analysis database on exit: " + ex.Message);
+                // Closing connection could fail if the database is otherwise in use or something.  Just ignore - we're closing, don't notify user...
+            }
+            //try
+            //{
+            //    string AnalysisZipFile = Directory.GetParent(Directory.GetParent(AnalysisPath).FullName).FullName + "\\" + Directory.GetParent(AnalysisPath).Name + ".zip";
+            //    if (File.Exists(AnalysisZipFile))
+            //    {
+            //        frmStatusFloater f = new frmStatusFloater();
+            //        f.Top = Screen.PrimaryScreen.WorkingArea.Height / 2 - f.Height / 2;
+            //        f.Left = Screen.PrimaryScreen.WorkingArea.Width / 2 - f.Width / 2;
+            //        f.lblStatus.Text = "Adding PerfMon analysis database to zip...";
+            //        f.lblSubStatus.Text = "(Esc to cancel)";
+            //        f.EscapePressed = false;
+            //        f.Show();
+
+            //        ZipFile z = new ZipFile(AnalysisZipFile);
+            //        z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
+            //        z.ParallelDeflateThreshold = -1;
+            //        z.AddFiles(new string[] { MDFPath(), LDFPath() }, Directory.GetParent(AnalysisPath).Name + "/Analysis");
+            //        CancellationTokenSource cts = new CancellationTokenSource();
+            //        Task t = Task.Run(()=>z.Save(), cts.Token);
+            //        System.Runtime.CompilerServices.TaskAwaiter ta = t.GetAwaiter();
+            //        while (!ta.IsCompleted)
+            //        {
+            //            Thread.Sleep(100);
+            //            if (f.EscapePressed)
+            //            {
+            //                cts.Cancel();
+            //                f.Close();
+            //            }
+            //        }
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception adding PerfMon analysis to zip folder: " + ex.Message);
+            //}
         }
 
         private void TvCounters_BeforeCheck(object sender, TreeViewCancelEventArgs e)
@@ -740,15 +745,16 @@ namespace SSASDiag
                                 tvCounters.SelectedNodes.Add(n);
                         }));
                     }
-                    tvCounters.Invoke(new Action(() =>
+                    tvCounters.AfterCheck += TvCounters_AfterCheck;
+                    tvCounters.AfterSelect += TvCounters_AfterSelect;
+                    f.Invoke(new Action(() =>
                     {
-                        tvCounters.CollapseAll();
-                        tvCounters.ResumeLayout();
                         DrawingControl.ResumeDrawing(f);
-                        splitAnalysis.SplitterDistance++; //(shouldn't be necessary but my tvCounters wasn't refreshing if I didn't nudge it and I couldn't figure out why, so this does the trick...)
-                        tvCounters.AfterCheck += TvCounters_AfterCheck;
-                        tvCounters.AfterSelect += TvCounters_AfterSelect;
-                        StatusFloater.Hide();
+                        tvCounters.CollapseAll();
+                        tvCounters.Update();
+                        tvCounters.ResumeLayout(true);
+                        StatusFloater.Visible = false;
+                        f.BringToFront();
                         f.Enabled = true;
                     }));
 
@@ -949,15 +955,37 @@ namespace SSASDiag
             r.Category = "Memory";
             r.Name = "Server Available Memory";
             r.Description = "Checks to ensure there is sufficient free memory.";
+            r.Counters.Add("Memory\\Available MBytes");
             r.RuleFunction = new Func<Rule, RuleResultEnum>((rr)=>
                 {
+                    r.RuleResult = RuleResultEnum.Other;
                     return RuleResultEnum.Other;
                 });
-            r.AnnotationFunction = new Action<Rule>((rr)=>{ ; });
+            r.AnnotationFunction = new Action<Rule>((rr)=>
+                {
+                    tvCounters.SelectedNodes.Clear();
+                    
+                    chartPerfMon.Series.Clear();
+                    foreach (string c in r.Counters)
+                    {
+                        TreeNode n = tvCounters.FindNodeByPath(c);
+                        n.Checked = true;
+                        //while (n.Parent != null)
+                        //{
+                        //    n.Parent.Expand();
+                        //    tvCounters.PerformLayout();
+                        //    n = n.Parent;
+                        //}
+                        //tvCounters.Update();
+                        tvCounters.SelectSingleNode(n);
+                        //tvCounters.SelectedNodes.Add(n);
+                    }
+                });
             Rules.Add(r);
             BindingSource b = new BindingSource();
             b.DataSource = Rules;
-            dgdRules.DataSource = b;            
+            dgdRules.DataSource = b;
+            dgdRules.ClearSelection();
 
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
 
@@ -1139,6 +1167,7 @@ namespace SSASDiag
                                         node = tvCounters.FindNodeByPath(s.Name);
                                         node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
                                         chartPerfMon.Series.Add(s);
+                                        chartPerfMon.Update();
                                         Application.DoEvents();
                                     }));
 
@@ -1298,17 +1327,6 @@ namespace SSASDiag
             }
         }
 
-        private void dgdRules_RowEnter(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex == 0)
-            {
-                // just do some stuff....
-                foreach (TreeNode n in tvCounters.Nodes)
-                    n.Checked = false;
-                //tvCounters.Nodes.Find("")
-            }
-        }
-
         class DrawingControl
         {
             [DllImport("user32.dll")]
@@ -1347,17 +1365,41 @@ namespace SSASDiag
         {
             NotRun, Fail, Warn, Pass, CountersUnavailable, Other
         }
-        private class Rule
+
+        private void btnRunRules_Click(object sender, EventArgs e)
         {
+            foreach (DataGridViewRow r in dgdRules.Rows)
+                if (r.Selected || (sender as Button).Text == "Run All Rules")
+                    (r.DataBoundItem as Rule).RuleFunction(r.DataBoundItem as Rule);
+        }
+
+        private void dgdRules_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            Rule r = ((sender as DataGridView).Rows[e.RowIndex].DataBoundItem as Rule);
+            r.AnnotationFunction(r);
+        }
+
+        private void dgdRules_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private class Rule : INotifyPropertyChanged
+        {
+            public event PropertyChangedEventHandler PropertyChanged;
             public string Name { get; set; } = "";
             public string Description { get; set; } = "";
             public string Category { get; set; } = "";
             public string ResultDescription { get; set; } = "";
-            public RuleResultEnum RuleResult = RuleResultEnum.NotRun; 
+            private RuleResultEnum ruleResult = RuleResultEnum.NotRun;
+            [Browsable(false)]
+            public RuleResultEnum RuleResult { get { return ruleResult; } set { OnPropertyChanged("RuleResultImg"); ruleResult = value; } }
             public List<string> Counters { get; set; } = new List<string>();
             public List<object> Annotations { get; set; } = new List<object>(); // List of rule annotation variables, which RuleFunction should set and AnnotationFunction should use to draw its annotations however it needs to.
             public Action<Rule> AnnotationFunction = null;
-            public Func<Rule, RuleResultEnum> RuleFunction = null;
+            private Func<Rule, RuleResultEnum> ruleFunction = null;
+            [Browsable(false)]
+            public Func<Rule, RuleResultEnum> RuleFunction { get { return ruleFunction; } set { ruleFunction = value; } }
             Image ruleResultImg = null;
             public Image RuleResultImg
             {
@@ -1379,6 +1421,15 @@ namespace SSASDiag
                             return Properties.Resources.RuleWarn;
                     }
                     return null;
+                }
+            }
+
+            protected void OnPropertyChanged(string name)
+            {
+                PropertyChangedEventHandler handler = PropertyChanged;
+                if (handler != null)
+                {
+                    handler(this, new PropertyChangedEventArgs(name));
                 }
             }
         }

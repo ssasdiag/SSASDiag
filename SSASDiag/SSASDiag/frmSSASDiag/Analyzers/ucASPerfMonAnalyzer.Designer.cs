@@ -64,13 +64,19 @@
             this.cmbServers = new System.Windows.Forms.ComboBox();
             this.lblCounterGrouping = new System.Windows.Forms.Label();
             this.dgdRules = new System.Windows.Forms.DataGridView();
-            this.pnAnalyses = new System.Windows.Forms.Panel();
-            this.lblRules = new System.Windows.Forms.Label();
             this.Category = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.RuleName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Description = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Result = new System.Windows.Forms.DataGridViewImageColumn();
             this.ResultDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.pnAnalyses = new System.Windows.Forms.Panel();
+            this.pnlRuleButtons = new System.Windows.Forms.Panel();
+            this.btnRunAllRules = new System.Windows.Forms.Button();
+            this.btnRequestRule = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            this.btnRunRule = new System.Windows.Forms.Button();
+            this.lblRules = new System.Windows.Forms.Label();
+            this.pnlCounters = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -100,6 +106,7 @@
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdRules)).BeginInit();
             this.pnAnalyses.SuspendLayout();
+            this.pnlRuleButtons.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitLogList
@@ -291,6 +298,7 @@
             // 
             // splitPerfMonCountersAndChart.Panel1
             // 
+            this.splitPerfMonCountersAndChart.Panel1.Controls.Add(this.pnlCounters);
             this.splitPerfMonCountersAndChart.Panel1.Controls.Add(this.dgdGrouping);
             this.splitPerfMonCountersAndChart.Panel1MinSize = 150;
             // 
@@ -602,16 +610,18 @@
             // 
             this.dgdRules.AllowUserToAddRows = false;
             this.dgdRules.AllowUserToDeleteRows = false;
+            this.dgdRules.AllowUserToResizeColumns = false;
             this.dgdRules.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dgdRules.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgdRules.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dgdRules.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.ButtonFace;
             dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
             dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dgdRules.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgdRules.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdRules.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -624,42 +634,29 @@
             dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
             dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.Desktop;
             dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dgdRules.DefaultCellStyle = dataGridViewCellStyle4;
             this.dgdRules.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgdRules.Location = new System.Drawing.Point(0, 18);
+            this.dgdRules.Location = new System.Drawing.Point(0, 19);
+            this.dgdRules.Margin = new System.Windows.Forms.Padding(0);
             this.dgdRules.MultiSelect = false;
             this.dgdRules.Name = "dgdRules";
             this.dgdRules.ReadOnly = true;
             this.dgdRules.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdRules.RowHeadersVisible = false;
+            this.dgdRules.RowTemplate.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.GradientInactiveCaption;
+            this.dgdRules.RowTemplate.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.Black;
             this.dgdRules.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.dgdRules.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgdRules.Size = new System.Drawing.Size(781, 134);
+            this.dgdRules.ShowCellErrors = false;
+            this.dgdRules.ShowEditingIcon = false;
+            this.dgdRules.ShowRowErrors = false;
+            this.dgdRules.Size = new System.Drawing.Size(781, 133);
             this.dgdRules.TabIndex = 3;
-            this.dgdRules.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdRules_RowEnter);
-            // 
-            // pnAnalyses
-            // 
-            this.pnAnalyses.Controls.Add(this.lblRules);
-            this.pnAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnAnalyses.Location = new System.Drawing.Point(0, 0);
-            this.pnAnalyses.Name = "pnAnalyses";
-            this.pnAnalyses.Size = new System.Drawing.Size(781, 18);
-            this.pnAnalyses.TabIndex = 2;
-            // 
-            // lblRules
-            // 
-            this.lblRules.AutoSize = true;
-            this.lblRules.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblRules.Location = new System.Drawing.Point(4, 3);
-            this.lblRules.Name = "lblRules";
-            this.lblRules.Size = new System.Drawing.Size(214, 12);
-            this.lblRules.TabIndex = 4;
-            this.lblRules.Text = "Select a rule to highlight its relevant counter details:";
-            this.lblRules.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.dgdRules.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdRules_CellClick);
+            this.dgdRules.Click += new System.EventHandler(this.dgdRules_Click);
             // 
             // Category
             // 
@@ -668,7 +665,6 @@
             this.Category.HeaderText = "Category";
             this.Category.Name = "Category";
             this.Category.ReadOnly = true;
-            this.Category.Width = 70;
             // 
             // RuleName
             // 
@@ -677,7 +673,8 @@
             this.RuleName.HeaderText = "Rule Name";
             this.RuleName.Name = "RuleName";
             this.RuleName.ReadOnly = true;
-            this.RuleName.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.RuleName.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.RuleName.Width = 150;
             // 
             // Description
             // 
@@ -693,17 +690,130 @@
             this.Result.HeaderText = "Result";
             this.Result.Name = "Result";
             this.Result.ReadOnly = true;
-            this.Result.Width = 50;
+            this.Result.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.Result.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.Result.Width = 45;
             // 
             // ResultDescription
             // 
             this.ResultDescription.DataPropertyName = "ResultDescription";
-            this.ResultDescription.HeaderText = "Result Description";
+            this.ResultDescription.HeaderText = "";
             this.ResultDescription.Name = "ResultDescription";
             this.ResultDescription.ReadOnly = true;
-            this.ResultDescription.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.ResultDescription.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.ResultDescription.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.ResultDescription.Width = 200;
+            this.ResultDescription.Width = 150;
+            // 
+            // pnAnalyses
+            // 
+            this.pnAnalyses.Controls.Add(this.pnlRuleButtons);
+            this.pnAnalyses.Controls.Add(this.lblRules);
+            this.pnAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnAnalyses.Location = new System.Drawing.Point(0, 0);
+            this.pnAnalyses.Name = "pnAnalyses";
+            this.pnAnalyses.Size = new System.Drawing.Size(781, 19);
+            this.pnAnalyses.TabIndex = 2;
+            // 
+            // pnlRuleButtons
+            // 
+            this.pnlRuleButtons.Controls.Add(this.btnRunAllRules);
+            this.pnlRuleButtons.Controls.Add(this.btnRequestRule);
+            this.pnlRuleButtons.Controls.Add(this.button2);
+            this.pnlRuleButtons.Controls.Add(this.btnRunRule);
+            this.pnlRuleButtons.Dock = System.Windows.Forms.DockStyle.Right;
+            this.pnlRuleButtons.Location = new System.Drawing.Point(294, 0);
+            this.pnlRuleButtons.Name = "pnlRuleButtons";
+            this.pnlRuleButtons.Size = new System.Drawing.Size(487, 19);
+            this.pnlRuleButtons.TabIndex = 5;
+            // 
+            // btnRunAllRules
+            // 
+            this.btnRunAllRules.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
+            this.btnRunAllRules.FlatAppearance.BorderSize = 0;
+            this.btnRunAllRules.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
+            this.btnRunAllRules.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            this.btnRunAllRules.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRunAllRules.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnRunAllRules.Location = new System.Drawing.Point(265, 0);
+            this.btnRunAllRules.Margin = new System.Windows.Forms.Padding(0);
+            this.btnRunAllRules.Name = "btnRunAllRules";
+            this.btnRunAllRules.Size = new System.Drawing.Size(110, 19);
+            this.btnRunAllRules.TabIndex = 3;
+            this.btnRunAllRules.Text = "Run All";
+            this.btnRunAllRules.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.btnRunAllRules.UseVisualStyleBackColor = true;
+            this.btnRunAllRules.Click += new System.EventHandler(this.btnRunRules_Click);
+            // 
+            // btnRequestRule
+            // 
+            this.btnRequestRule.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
+            this.btnRequestRule.FlatAppearance.BorderSize = 0;
+            this.btnRequestRule.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
+            this.btnRequestRule.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            this.btnRequestRule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRequestRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnRequestRule.Location = new System.Drawing.Point(154, 0);
+            this.btnRequestRule.Margin = new System.Windows.Forms.Padding(0);
+            this.btnRequestRule.Name = "btnRequestRule";
+            this.btnRequestRule.Size = new System.Drawing.Size(110, 19);
+            this.btnRequestRule.TabIndex = 2;
+            this.btnRequestRule.Text = "Request New Rule";
+            this.btnRequestRule.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.btnRequestRule.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            this.button2.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
+            this.button2.FlatAppearance.BorderSize = 0;
+            this.button2.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
+            this.button2.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button2.Location = new System.Drawing.Point(43, 0);
+            this.button2.Margin = new System.Windows.Forms.Padding(0);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(110, 19);
+            this.button2.TabIndex = 1;
+            this.button2.Text = "Create New Rule";
+            this.button2.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.button2.UseVisualStyleBackColor = true;
+            // 
+            // btnRunRule
+            // 
+            this.btnRunRule.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
+            this.btnRunRule.FlatAppearance.BorderSize = 0;
+            this.btnRunRule.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
+            this.btnRunRule.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            this.btnRunRule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRunRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnRunRule.Location = new System.Drawing.Point(376, 0);
+            this.btnRunRule.Margin = new System.Windows.Forms.Padding(0);
+            this.btnRunRule.Name = "btnRunRule";
+            this.btnRunRule.Size = new System.Drawing.Size(110, 19);
+            this.btnRunRule.TabIndex = 0;
+            this.btnRunRule.Text = "Run Selected";
+            this.btnRunRule.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.btnRunRule.UseVisualStyleBackColor = true;
+            this.btnRunRule.Click += new System.EventHandler(this.btnRunRules_Click);
+            // 
+            // lblRules
+            // 
+            this.lblRules.AutoSize = true;
+            this.lblRules.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblRules.Location = new System.Drawing.Point(4, 3);
+            this.lblRules.Name = "lblRules";
+            this.lblRules.Size = new System.Drawing.Size(250, 12);
+            this.lblRules.TabIndex = 4;
+            this.lblRules.Text = "Select a rule to see relevant counter details and annotations:";
+            this.lblRules.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // pnlCounters
+            // 
+            this.pnlCounters.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlCounters.Location = new System.Drawing.Point(0, 21);
+            this.pnlCounters.Name = "pnlCounters";
+            this.pnlCounters.Size = new System.Drawing.Size(218, 347);
+            this.pnlCounters.TabIndex = 2;
             // 
             // ucASPerfMonAnalyzer
             // 
@@ -749,6 +859,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgdRules)).EndInit();
             this.pnAnalyses.ResumeLayout(false);
             this.pnAnalyses.PerformLayout();
+            this.pnlRuleButtons.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -787,10 +898,16 @@
         private System.Windows.Forms.CheckBox chkAutoScale;
         private System.Windows.Forms.ComboBox cmbServers;
         private System.Windows.Forms.DataGridView dgdRules;
+        private System.Windows.Forms.Panel pnlRuleButtons;
+        private System.Windows.Forms.Button btnRunAllRules;
+        private System.Windows.Forms.Button btnRequestRule;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button btnRunRule;
         private System.Windows.Forms.DataGridViewTextBoxColumn Category;
         private System.Windows.Forms.DataGridViewTextBoxColumn RuleName;
         private System.Windows.Forms.DataGridViewTextBoxColumn Description;
         private System.Windows.Forms.DataGridViewImageColumn Result;
         private System.Windows.Forms.DataGridViewTextBoxColumn ResultDescription;
+        private System.Windows.Forms.Panel pnlCounters;
     }
 }

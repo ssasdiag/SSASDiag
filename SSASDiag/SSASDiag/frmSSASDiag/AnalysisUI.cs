@@ -28,8 +28,10 @@ namespace SSASDiag
         {
             if (tcCollectionAnalysisTabs.SelectedIndex == 1 && tbAnalysis.Enabled)
             {
-                if (this.Width < 770)
-                    this.Width = 770;
+                if (Width < 800)
+                    Width = 800;
+                if (Height < 600)
+                    Height = 600;
                 if (ProfilerTraceAnalysisQueries == null)
                 {
                     ProfilerTraceAnalysisQueries = InitializeProfilerTraceAnalysisQueries();
@@ -48,8 +50,10 @@ namespace SSASDiag
             }
             else if (tcCollectionAnalysisTabs.SelectedIndex == 0)
             {
+                Width = 620;
+                Height = 650;
                 cbInstances_SelectedIndexChanged(sender, e);
-                Text = "SSAS Diagnostics Tool v" + Application.ProductVersion;
+                Text = "SSASDiag v" + Application.ProductVersion;
             }
         }
         private void btnAnalysisFolder_Click(object sender, EventArgs e)
@@ -75,21 +79,7 @@ namespace SSASDiag
             AnalysisMessagePumpTimer.Interval = 1000;
         }
         private void PopulateAnalysisTabs()
-        {
-            new Thread(new ThreadStart(() =>
-            {
-                StatusFloater.Invoke(new System.Action(() =>
-                {
-                    StatusFloater.lblTime.Text = "00:00";
-                    StatusFloater.lblTime.Visible = true;
-                    StatusFloater.AutoUpdateDuration = true;
-                    StatusFloater.Left = Left + Width / 2 - StatusFloater.Width / 2;
-                    StatusFloater.Top = Top + Height / 2 - StatusFloater.Height / 2;
-                    StatusFloater.lblStatus.Text = "Initializing and attaching analysis database(s)...";
-                    StatusFloater.Visible = true;
-                }));
-            })).Start();
-            
+        {           
             Text = "SSAS Diagnostics Analysis: " + txtFolderZipForAnalysis.Text.Substring(txtFolderZipForAnalysis.Text.LastIndexOf("\\") + 1);
             tcAnalysis.Visible = false;
             lblInitialAnalysisPrompt.Visible = false;
@@ -271,7 +261,6 @@ namespace SSASDiag
 
 
             }
-            StatusFloater.Invoke(new System.Action(()=> StatusFloater.Visible = false));
             tcAnalysis.Visible = true;
         }
 

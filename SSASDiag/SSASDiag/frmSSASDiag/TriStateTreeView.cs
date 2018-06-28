@@ -703,7 +703,7 @@ namespace SSASDiag
             }
         }
 
-        private void SelectNode(TreeNode node)
+        public void SelectNode(TreeNode node)
         {
             try
             {
@@ -840,8 +840,6 @@ namespace SSASDiag
             }
         }
 
-
-
         public void ClearSelectedNodes()
         {
             try
@@ -877,7 +875,7 @@ namespace SSASDiag
             else return null;
         }
 
-        private void SelectSingleNode(TreeNode node)
+        public void SelectSingleNode(TreeNode node)
         {
             if (node == null)
             {
