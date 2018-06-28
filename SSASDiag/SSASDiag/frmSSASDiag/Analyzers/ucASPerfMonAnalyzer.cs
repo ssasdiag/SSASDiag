@@ -1046,6 +1046,10 @@ namespace SSASDiag
 
         private void AddCounters()
         {
+            AddCounters(new List<KeyValuePair<string, string>>());
+        }
+        private void AddCounters(List<KeyValuePair<string, string>> HiddenCountersToLookup)
+        {
             List<KeyValuePair<string, string>> CountersToUpdate = null;
             if (ParentNodeOfUpdateBatch != null)
                 CountersToUpdate = tvCounters.GetLeafNodes(ParentNodeOfUpdateBatch, false)
@@ -1055,7 +1059,8 @@ namespace SSASDiag
                 CountersToUpdate = tvCounters.GetLeafNodes()
                                              .Where(n => n.SelectedImageIndex < 1 || n.Checked)
                                              .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
-
+            CountersToUpdate.AddRange(HiddenCountersToLookup);
+            
             if (CountersToUpdate.Count != 0)
             {
 
@@ -1147,7 +1152,10 @@ namespace SSASDiag
                                 int colorIndex = iCurColor++ + randomColorOffset;
                                 if (colorIndex > indexcolors.Length - 1) colorIndex %= indexcolors.Length - 1;
                                 ColorConverter c = new ColorConverter();
-                                s.Color = s.BorderColor = (Color)c.ConvertFromString(indexcolors[colorIndex]);
+                                s.Color = s.BorderColor =
+                                    HiddenCountersToLookup.Contains(counter) ?
+                                    Color.Transparent :
+                                    (Color)c.ConvertFromString(indexcolors[colorIndex]);
                                 Pen pen = new Pen(s.BorderColor);
                                 pen.Width = 6;
                                 Bitmap bmp = new Bitmap(16, 16);
@@ -1168,7 +1176,10 @@ namespace SSASDiag
                                             chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
                                         node = tvCounters.FindNodeByPath(s.Name);
                                         node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
-                                        chartPerfMon.Series.Add(s);
+                                        if (s.Color == Color.Transparent)
+                                            HiddenSeries.Add(s);
+                                        else
+                                            chartPerfMon.Series.Add(s);
                                         chartPerfMon.Update();
                                         Application.DoEvents();
                                     }));
@@ -1377,10 +1388,59 @@ namespace SSASDiag
                     (r.DataBoundItem as Rule).RuleFunction(r.DataBoundItem as Rule);
         }
 
+        public string FullPathAlternateHierarchy(string Path)
+        {
+            string[] pathParts = Path.Split('\\');
+            string sAlternatePath = pathParts[0] + "\\";
+            for (int i = 1; i < pathParts.Length - 1; i++)
+                sAlternatePath += (pathParts[i + 1] + "\\");
+            sAlternatePath += (pathParts[1]);
+            return sAlternatePath;
+        }
+
+        List<Series> HiddenSeries = new List<Series>();
         private void dgdRules_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            Rule r = ((sender as DataGridView).Rows[e.RowIndex].DataBoundItem as Rule);
-            r.AnnotationFunction(r);
+            new Thread(new ThreadStart(() =>
+            {
+                List<KeyValuePair<string, string>> HiddenCountersToLookup = new List<KeyValuePair<string, string>>();
+                Rule r = ((sender as DataGridView).Rows[e.RowIndex].DataBoundItem as Rule);
+
+                tvCounters.SelectedNodes.Clear();
+
+                chartPerfMon.Invoke(new Action(() => chartPerfMon.Series.Clear()));
+                tvCounters.AfterCheck -= TvCounters_AfterCheck;
+                TreeNode n = null;
+                foreach (RuleCounter c in r.Counters)
+                {
+                    n = tvCounters.FindNodeByPath(c.Path);
+                    if (n == null)
+                        n = tvCounters.FindNodeByPath(FullPathAlternateHierarchy(c.Path));
+                    if (n == null)
+                        return;
+                    tvCounters.Invoke(new Action(() =>
+                    {
+                        if (c.ShowInChart)
+                        {
+                            n.Checked = true;
+                            while (n.Parent != null)
+                            {
+                                n = n.Parent;
+                                n.Expand();
+                            }
+                        }
+                        else
+                        {
+                            HiddenCountersToLookup.Add(new KeyValuePair<string, string>(n.Tag as string, n.FullPath));
+                        }
+                    }));
+                }
+                tvCounters.AfterCheck += TvCounters_AfterCheck;
+                AddCounters(HiddenCountersToLookup);
+                foreach (Series s in HiddenSeries)
+                    r.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).First().ChartSeries = s;
+                Invoke(new Action(()=>r.AnnotationFunction(r)));
+            })).Start();
         }
 
         public string[] indexcolors = new string[]{

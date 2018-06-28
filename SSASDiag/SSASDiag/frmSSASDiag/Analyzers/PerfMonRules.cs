@@ -37,7 +37,7 @@ namespace SSASDiag
             r.Name = "Server Available Memory";
             r.Description = "Checks to ensure there is sufficient free memory.";
             r.Counters.Add(new RuleCounter("Memory\\Available Bytes"));
-            r.Counters.Add(new RuleCounter("Process\\Working Set\\_Total"));
+            r.Counters.Add(new RuleCounter("Process\\Working Set\\_Total", false));
             r.RuleFunction = new Func<Rule, RuleResultEnum>((rr) =>
             {
                 r.RuleResult = RuleResultEnum.Other;
@@ -45,40 +45,10 @@ namespace SSASDiag
             });
             r.AnnotationFunction = new Action<Rule>((rr) =>
             {
-                new Thread(new ThreadStart(() =>
-                {
-                    tvCounters.SelectedNodes.Clear();
+                r.Counters[1].ChartSeries.Color = r.Counters[1].ChartSeries.BorderColor = Color.Pink;
+                chartPerfMon.Series.Add(r.Counters[1].ChartSeries);
 
-                    chartPerfMon.Invoke(new Action(()=>chartPerfMon.Series.Clear()));
-                    tvCounters.AfterCheck -= TvCounters_AfterCheck;
-                    TreeNode n = null;
-                    foreach (RuleCounter c in r.Counters)
-                    {
-                        n = tvCounters.FindNodeByPath(c.Path);
-                        if (n == null)
-                        {
-                            string[] pathParts = c.Path.Split('\\');
-                            string sAlternatePath = pathParts[0] + "\\";
-                            for (int i = 1; i < pathParts.Length - 1; i++)
-                                sAlternatePath += (pathParts[i + 1] + "\\");
-                            sAlternatePath += (pathParts[1]);
-                            n = tvCounters.FindNodeByPath(sAlternatePath);
-                        }
-                        if (n == null)
-                            return;
-                        tvCounters.Invoke(new Action(() =>
-                        {
-                            n.Checked = true;
-                            while (n.Parent != null)
-                            {
-                                n = n.Parent;
-                                n.Expand();
-                            }
-                        }));
-                    }
-                    tvCounters.AfterCheck += TvCounters_AfterCheck;
-                    AddCounters();
-                })).Start();
+               
             });
             Rules.Add(r);
         }
@@ -88,10 +58,7 @@ namespace SSASDiag
             public string Path;
             public bool ShowInChart = true;
             public bool HighlightInChart = true;
-            public DataPointCollection Points
-            {
-                get { return null; }
-            }
+            public Series ChartSeries = null;
 
             public RuleCounter(string Path, bool ShowInChart = true, bool HighlightInChart = false)
             {
