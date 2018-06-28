@@ -64,12 +64,13 @@
             this.cmbServers = new System.Windows.Forms.ComboBox();
             this.lblCounterGrouping = new System.Windows.Forms.Label();
             this.dgdRules = new System.Windows.Forms.DataGridView();
+            this.pnAnalyses = new System.Windows.Forms.Panel();
+            this.lblRules = new System.Windows.Forms.Label();
+            this.Category = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.RuleName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Description = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Result = new System.Windows.Forms.DataGridViewImageColumn();
             this.ResultDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.pnAnalyses = new System.Windows.Forms.Panel();
-            this.lblRules = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -601,9 +602,8 @@
             // 
             this.dgdRules.AllowUserToAddRows = false;
             this.dgdRules.AllowUserToDeleteRows = false;
-            this.dgdRules.AllowUserToOrderColumns = true;
-            this.dgdRules.AllowUserToResizeRows = false;
             this.dgdRules.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
+            this.dgdRules.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdRules.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
@@ -615,6 +615,7 @@
             this.dgdRules.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgdRules.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdRules.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Category,
             this.RuleName,
             this.Description,
             this.Result,
@@ -629,43 +630,16 @@
             this.dgdRules.DefaultCellStyle = dataGridViewCellStyle4;
             this.dgdRules.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdRules.Location = new System.Drawing.Point(0, 18);
+            this.dgdRules.MultiSelect = false;
             this.dgdRules.Name = "dgdRules";
+            this.dgdRules.ReadOnly = true;
             this.dgdRules.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdRules.RowHeadersVisible = false;
             this.dgdRules.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.dgdRules.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgdRules.Size = new System.Drawing.Size(781, 134);
             this.dgdRules.TabIndex = 3;
             this.dgdRules.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdRules_RowEnter);
-            // 
-            // RuleName
-            // 
-            this.RuleName.Frozen = true;
-            this.RuleName.HeaderText = "Rule Name";
-            this.RuleName.Name = "RuleName";
-            this.RuleName.ReadOnly = true;
-            // 
-            // Description
-            // 
-            this.Description.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Description.HeaderText = "Description";
-            this.Description.Name = "Description";
-            this.Description.ReadOnly = true;
-            // 
-            // Result
-            // 
-            this.Result.HeaderText = "Result";
-            this.Result.Name = "Result";
-            this.Result.ReadOnly = true;
-            this.Result.Width = 50;
-            // 
-            // ResultDescription
-            // 
-            this.ResultDescription.HeaderText = "Result Description";
-            this.ResultDescription.Name = "ResultDescription";
-            this.ResultDescription.ReadOnly = true;
-            this.ResultDescription.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.ResultDescription.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.ResultDescription.Width = 200;
             // 
             // pnAnalyses
             // 
@@ -686,6 +660,50 @@
             this.lblRules.TabIndex = 4;
             this.lblRules.Text = "Select a rule to highlight its relevant counter details:";
             this.lblRules.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // Category
+            // 
+            this.Category.DataPropertyName = "Category";
+            this.Category.Frozen = true;
+            this.Category.HeaderText = "Category";
+            this.Category.Name = "Category";
+            this.Category.ReadOnly = true;
+            this.Category.Width = 70;
+            // 
+            // RuleName
+            // 
+            this.RuleName.DataPropertyName = "Name";
+            this.RuleName.Frozen = true;
+            this.RuleName.HeaderText = "Rule Name";
+            this.RuleName.Name = "RuleName";
+            this.RuleName.ReadOnly = true;
+            this.RuleName.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            // 
+            // Description
+            // 
+            this.Description.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Description.DataPropertyName = "Description";
+            this.Description.HeaderText = "Description";
+            this.Description.Name = "Description";
+            this.Description.ReadOnly = true;
+            // 
+            // Result
+            // 
+            this.Result.DataPropertyName = "RuleResultImg";
+            this.Result.HeaderText = "Result";
+            this.Result.Name = "Result";
+            this.Result.ReadOnly = true;
+            this.Result.Width = 50;
+            // 
+            // ResultDescription
+            // 
+            this.ResultDescription.DataPropertyName = "ResultDescription";
+            this.ResultDescription.HeaderText = "Result Description";
+            this.ResultDescription.Name = "ResultDescription";
+            this.ResultDescription.ReadOnly = true;
+            this.ResultDescription.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.ResultDescription.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.ResultDescription.Width = 200;
             // 
             // ucASPerfMonAnalyzer
             // 
@@ -769,6 +787,7 @@
         private System.Windows.Forms.CheckBox chkAutoScale;
         private System.Windows.Forms.ComboBox cmbServers;
         private System.Windows.Forms.DataGridView dgdRules;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Category;
         private System.Windows.Forms.DataGridViewTextBoxColumn RuleName;
         private System.Windows.Forms.DataGridViewTextBoxColumn Description;
         private System.Windows.Forms.DataGridViewImageColumn Result;

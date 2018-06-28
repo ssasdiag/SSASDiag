@@ -853,4 +853,22 @@ order by duration desc</value>
   <data name="helpimg" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\helpimg.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="RuleFail" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\RuleFail.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="RuleNotRun" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\RuleNotRun.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="RuleOther" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\RuleOther.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="RulePass" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\RulePass.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="RuleWarn" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\RuleWarn.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="RuleCountersUnavailable" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\RuleCountersUnavailable.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

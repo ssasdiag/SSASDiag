@@ -27,6 +27,7 @@ namespace SSASDiag
 {
     public partial class ucASPerfMonAnalyzer : UserControl
     {
+        #region locals
         frmStatusFloater StatusFloater = null;
         string LogPath, AnalysisPath, PerfMonAnalysisId;
         SqlConnection connDB;
@@ -36,6 +37,83 @@ namespace SSASDiag
         TimeRangeBar trTimeRange = new TimeRangeBar();
         private TriStateTreeView tvCounters;
         private StripLine stripLine = new StripLine();
+        int LogCountAnalyzedInCurrentRun = 0;
+        public bool bCancel = false;
+        public event EventHandler Shown;
+        bool wasShown = false;
+        DataTable Counters = new DataTable();
+        Point? prevPosition = null;
+        ToolTip tooltip = new ToolTip();
+        string CurrentSeriesUnderMouse = "";
+        TreeNode ParentNodeOfUpdateBatch = null;
+        List<Rule> Rules = new List<Rule>();
+
+        private void UcASPerfMonAnalyzer_HandleDestroyed(object sender, EventArgs e)
+        {
+            try
+            {
+                frmSSASDiag.LogFeatureUse("PerfMon Analysis", "Detatching from perfmon analysis database on exit.");
+                connDB.ChangeDatabase("master");
+                SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') ALTER DATABASE [" + DBName() + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connDB);
+                cmd.ExecuteNonQuery();
+                cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') EXEC master.dbo.sp_detach_db @dbname = N'" + DBName() + "'", connDB);
+                cmd.ExecuteNonQuery();
+                connDB.Close();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception detaching PerfMon analysis database on exit: " + ex.Message);
+                // Closing connection could fail if the database is otherwise in use or something.  Just ignore - we're closing, don't notify user...
+            }
+            //try
+            //{
+            //    string AnalysisZipFile = Directory.GetParent(Directory.GetParent(AnalysisPath).FullName).FullName + "\\" + Directory.GetParent(AnalysisPath).Name + ".zip";
+            //    if (File.Exists(AnalysisZipFile))
+            //    {
+            //        frmStatusFloater f = new frmStatusFloater();
+            //        f.Top = Screen.PrimaryScreen.WorkingArea.Height / 2 - f.Height / 2;
+            //        f.Left = Screen.PrimaryScreen.WorkingArea.Width / 2 - f.Width / 2;
+            //        f.lblStatus.Text = "Adding PerfMon analysis database to zip...";
+            //        f.lblSubStatus.Text = "(Esc to cancel)";
+            //        f.EscapePressed = false;
+            //        f.Show();
+
+            //        ZipFile z = new ZipFile(AnalysisZipFile);
+            //        z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
+            //        z.ParallelDeflateThreshold = -1;
+            //        z.AddFiles(new string[] { MDFPath(), LDFPath() }, Directory.GetParent(AnalysisPath).Name + "/Analysis");
+            //        CancellationTokenSource cts = new CancellationTokenSource();
+            //        Task t = Task.Run(()=>z.Save(), cts.Token);
+            //        System.Runtime.CompilerServices.TaskAwaiter ta = t.GetAwaiter();
+            //        while (!ta.IsCompleted)
+            //        {
+            //            Thread.Sleep(100);
+            //            if (f.EscapePressed)
+            //            {
+            //                cts.Cancel();
+            //                f.Close();
+            //            }
+            //        }
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception adding PerfMon analysis to zip folder: " + ex.Message);
+            //}
+        }
+        private string DBName()
+        {
+            return "SSASDiag_PerfMon_Analysis_" + PerfMonAnalysisId;
+        }
+        private string MDFPath()
+        {
+            return AnalysisPath + "\\" + DBName() + ".mdf";
+        }
+        private string LDFPath()
+        {
+            return AnalysisPath + "\\" + DBName() + ".ldf";
+        }
+        #endregion locals
 
         public ucASPerfMonAnalyzer(string logPath, SqlConnection conndb, frmStatusFloater statusFloater)
         {
@@ -272,10 +350,8 @@ namespace SSASDiag
             txtDur.Text = (trTimeRange.RangeMaximum - trTimeRange.RangeMinimum).ToString("dd\\:hh\\:mm\\:ss");
         }
 
-        int DataBindingCompletions = 0;
         private void DgdLogList_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
-            DataBindingCompletions++;
             dgdLogList.Columns[0].Visible = false;
             dgdLogList.Columns[2].Visible = false;
 
@@ -301,75 +377,7 @@ namespace SSASDiag
             dgdLogList.SelectionChanged += dgdLogList_SelectionChanged;
             rtLogDetails.Text = "Performance logs found: " + LogFiles.Count + "\r\nLog(s) already imported: " + LogFiles.Where(l => l.Analyzed).Count();
             
-        }
-
-        async private void UcASPerfMonAnalyzer_HandleDestroyed(object sender, EventArgs e)
-        {
-            try
-            {
-                frmSSASDiag.LogFeatureUse("PerfMon Analysis", "Detatching from perfmon analysis database on exit.");
-                connDB.ChangeDatabase("master");
-                SqlCommand cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') ALTER DATABASE [" + DBName() + "] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connDB);
-                cmd.ExecuteNonQuery();
-                cmd = new SqlCommand("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = N'" + DBName() + "') EXEC master.dbo.sp_detach_db @dbname = N'" + DBName() + "'", connDB);
-                cmd.ExecuteNonQuery();
-                connDB.Close();
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception detaching PerfMon analysis database on exit: " + ex.Message);
-                // Closing connection could fail if the database is otherwise in use or something.  Just ignore - we're closing, don't notify user...
-            }
-            //try
-            //{
-            //    string AnalysisZipFile = Directory.GetParent(Directory.GetParent(AnalysisPath).FullName).FullName + "\\" + Directory.GetParent(AnalysisPath).Name + ".zip";
-            //    if (File.Exists(AnalysisZipFile))
-            //    {
-            //        frmStatusFloater f = new frmStatusFloater();
-            //        f.Top = Screen.PrimaryScreen.WorkingArea.Height / 2 - f.Height / 2;
-            //        f.Left = Screen.PrimaryScreen.WorkingArea.Width / 2 - f.Width / 2;
-            //        f.lblStatus.Text = "Adding PerfMon analysis database to zip...";
-            //        f.lblSubStatus.Text = "(Esc to cancel)";
-            //        f.EscapePressed = false;
-            //        f.Show();
-
-            //        ZipFile z = new ZipFile(AnalysisZipFile);
-            //        z.UseZip64WhenSaving = Ionic.Zip.Zip64Option.Always;
-            //        z.ParallelDeflateThreshold = -1;
-            //        z.AddFiles(new string[] { MDFPath(), LDFPath() }, Directory.GetParent(AnalysisPath).Name + "/Analysis");
-            //        CancellationTokenSource cts = new CancellationTokenSource();
-            //        Task t = Task.Run(()=>z.Save(), cts.Token);
-            //        System.Runtime.CompilerServices.TaskAwaiter ta = t.GetAwaiter();
-            //        while (!ta.IsCompleted)
-            //        {
-            //            Thread.Sleep(100);
-            //            if (f.EscapePressed)
-            //            {
-            //                cts.Cancel();
-            //                f.Close();
-            //            }
-            //        }
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception adding PerfMon analysis to zip folder: " + ex.Message);
-            //}
-        }
-        private string DBName()
-        {
-            return "SSASDiag_PerfMon_Analysis_" + PerfMonAnalysisId;
-        }
-        private string MDFPath()
-        {
-            return AnalysisPath + "\\" + DBName() + ".mdf";
-        }
-        private string LDFPath()
-        {
-            return AnalysisPath + "\\" + DBName() + ".ldf";
-        }
-        public bool bCancel = false;
-        int LogCountAnalyzedInCurrentRun = 0;
+        }        
 
         private void btnAnalyzeLogs_Click(object sender, EventArgs e)
         {
@@ -542,9 +550,7 @@ namespace SSASDiag
                 frmSSASDiag.LogFeatureUse("PerfMon Analysis", "Dump analysis cancelled after " + LogCountAnalyzedInCurrentRun + " log" + (LogCountAnalyzedInCurrentRun != 1 ? "s" : "") + " were imported successfully.");
             }
         }
-
-        public event EventHandler Shown;
-        bool wasShown = false;
+        
         private void ucASPerfMonAnalyzer_Paint(object sender, PaintEventArgs e)
         {
             if (!wasShown)
@@ -562,10 +568,7 @@ namespace SSASDiag
                 dgdLogList[0, i].Value = ((CheckBox)dgdLogList.Controls.Find("checkboxHeader", true)[0]).Checked;
             }
             dgdLogList.EndEdit();
-        }
-
-        DataTable Counters = new DataTable();
-
+        }     
 
         private void DgdGrouping_ColumnDisplayIndexChanged(object sender, System.Windows.Forms.DataGridViewColumnEventArgs e)
         {
@@ -742,7 +745,7 @@ namespace SSASDiag
                         tvCounters.CollapseAll();
                         tvCounters.ResumeLayout();
                         DrawingControl.ResumeDrawing(f);
-                        splitAnalysis.SplitterDistance++;
+                        splitAnalysis.SplitterDistance++; //(shouldn't be necessary but my tvCounters wasn't refreshing if I didn't nudge it and I couldn't figure out why, so this does the trick...)
                         tvCounters.AfterCheck += TvCounters_AfterCheck;
                         tvCounters.AfterSelect += TvCounters_AfterSelect;
                         StatusFloater.Hide();
@@ -753,8 +756,6 @@ namespace SSASDiag
             }
         }
 
-        Point? prevPosition = null;
-        ToolTip tooltip = new ToolTip();
         private void ChartPerfMon_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             var pos = e.Location;
@@ -808,7 +809,6 @@ namespace SSASDiag
             }
         }
 
-        string CurrentSeriesUnderMouse = "";
         private void ChartPerfMon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             if (CurrentSeriesUnderMouse == "")
@@ -853,6 +853,7 @@ namespace SSASDiag
             }
             CurrentSeriesUnderMouse = "";
         }
+
         private void TvCounters_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (e.Node.Nodes.Count == 0)
@@ -934,7 +935,7 @@ namespace SSASDiag
                         )
                      )
                     )a";
-           dr = new SqlCommand(qry, connDB).ExecuteReader();
+            dr = new SqlCommand(qry, connDB).ExecuteReader();
             dr.Read();
             txtDur.Text = dr["Duration"] as string;
             trTimeRange.SetRangeLimit((dr["StartTime"] as DateTime?).Value, (dr["StopTime"] as DateTime?).Value);
@@ -942,6 +943,21 @@ namespace SSASDiag
             chartPerfMon.ChartAreas[0].AxisX.Maximum = (dr["StopTime"] as DateTime?).Value.ToOADate();
             chartPerfMon.ChartAreas[0].AxisX.Maximum = ((dr["StopTime"] as DateTime?).Value).ToOADate();
             dr.Close();
+
+            Rules.Clear();
+            Rule r = new Rule();
+            r.Category = "Memory";
+            r.Name = "Server Available Memory";
+            r.Description = "Checks to ensure there is sufficient free memory.";
+            r.RuleFunction = new Func<Rule, RuleResultEnum>((rr)=>
+                {
+                    return RuleResultEnum.Other;
+                });
+            r.AnnotationFunction = new Action<Rule>((rr)=>{ ; });
+            Rules.Add(r);
+            BindingSource b = new BindingSource();
+            b.DataSource = Rules;
+            dgdRules.DataSource = b;            
 
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
 
@@ -968,7 +984,6 @@ namespace SSASDiag
             chartPerfMon.ResumeLayout();
         }
 
-        TreeNode ParentNodeOfUpdateBatch = null;
         private void TvCounters_AfterCheck(object sender, TreeViewEventArgs e)
         {
             if (e.Node.Nodes.Count == 0 && e.Node.Parent != null)
@@ -1009,7 +1024,7 @@ namespace SSASDiag
                 chartPerfMon.ChartAreas[0].AxisY.Maximum = 0;
         }
 
-        async private void AddCounters()
+        private void AddCounters()
         {
             List<KeyValuePair<string, string>> CountersToUpdate = tvCounters.GetLeafNodes(ParentNodeOfUpdateBatch, false)
                                                         .Where(n => n.SelectedImageIndex < 1 || !n.Checked)
@@ -1326,6 +1341,46 @@ namespace SSASDiag
                 get { return LogPath != null ? LogPath.Substring(LogPath.LastIndexOf("\\") + 1) : ""; }
             }
             public bool Analyzed { get; set; }
+        }
+
+        private enum RuleResultEnum
+        {
+            NotRun, Fail, Warn, Pass, CountersUnavailable, Other
+        }
+        private class Rule
+        {
+            public string Name { get; set; } = "";
+            public string Description { get; set; } = "";
+            public string Category { get; set; } = "";
+            public string ResultDescription { get; set; } = "";
+            public RuleResultEnum RuleResult = RuleResultEnum.NotRun; 
+            public List<string> Counters { get; set; } = new List<string>();
+            public List<object> Annotations { get; set; } = new List<object>(); // List of rule annotation variables, which RuleFunction should set and AnnotationFunction should use to draw its annotations however it needs to.
+            public Action<Rule> AnnotationFunction = null;
+            public Func<Rule, RuleResultEnum> RuleFunction = null;
+            Image ruleResultImg = null;
+            public Image RuleResultImg
+            {
+                get
+                {
+                    switch (RuleResult)
+                    {
+                        case RuleResultEnum.CountersUnavailable:
+                            return Properties.Resources.RuleCountersUnavailable;
+                        case RuleResultEnum.Fail:
+                            return Properties.Resources.RuleFail;
+                        case RuleResultEnum.NotRun:
+                            return Properties.Resources.RuleNotRun;
+                        case RuleResultEnum.Other:
+                            return Properties.Resources.RuleOther;
+                        case RuleResultEnum.Pass:
+                            return Properties.Resources.RulePass;
+                        case RuleResultEnum.Warn:
+                            return Properties.Resources.RuleWarn;
+                    }
+                    return null;
+                }
+            }
         }
 
         public string[] indexcolors = new string[]{
