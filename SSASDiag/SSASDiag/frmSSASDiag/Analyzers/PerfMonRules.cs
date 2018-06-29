@@ -38,23 +38,47 @@ namespace SSASDiag
             Rule r = new Rule();
             r.Category = "Memory";
             r.Name = "Server Available Memory";
-            r.Description = "Checks to ensure there is sufficient free memory.";
+            r.Description = "Checks to ensure sufficient free memory.";
             r.Counters.Add(AvailableMB);
             r.Counters.Add(WorkingSet);
+            
             r.RuleFunction = new Func<Rule, RuleResultEnum>((rr) =>
             {
+                rr.RuleResult = RuleResultEnum.Pass;
                 Series TotalMemory = new Series("Total Physical Memory MB");
                 TotalMemory.ChartType = SeriesChartType.Line;
                 TotalMemory.XValueType = ChartValueType.DateTime;
                 TotalMemory.EmptyPointStyle.BorderWidth = 0;
                 TotalMemory.BorderColor = TotalMemory.Color = Color.DarkRed;
+
+                double MaxUtilizationPct = .97;
+                Series MaximumUtilization = new Series("97% Memory Utilization");
+                MaximumUtilization.ChartType = SeriesChartType.Line;
+                MaximumUtilization.XValueType = ChartValueType.DateTime;
+                MaximumUtilization.EmptyPointStyle.BorderWidth = 0;
+                MaximumUtilization.BorderColor = MaximumUtilization.Color = Color.Red;
+
                 DataPointCollection p1 = AvailableMB.ChartSeries.Points, p2 = WorkingSet.ChartSeries.Points;
                 double totalMem = ((double)p1[0].Tag) + (((double)p2[0].Tag)/1024.0/1024.0);
                 for (int i = 0; i < p1.Count; i++)
+                {
                     TotalMemory.Points.Add(new DataPoint(p1[i].XValue, totalMem));
+                    MaximumUtilization.Points.Add(new DataPoint(p1[i].XValue, totalMem * MaxUtilizationPct));
+                }
+
+                foreach (DataPoint p in AvailableMB.ChartSeries.Points)
+                {
+                    if ((double)p.Tag >= totalMem * MaxUtilizationPct)
+                    {
+                        p.Color = Color.Red;
+                        p.BorderWidth = 4;
+                        rr.RuleResult = RuleResultEnum.Fail;
+                    }
+                }
+
                 AddCustomSeries(TotalMemory);
-                r.RuleResult = RuleResultEnum.Pass;
-                return r.RuleResult;
+                AddCustomSeries(MaximumUtilization);
+                return rr.RuleResult;
             });
 
             Rules.Add(r);

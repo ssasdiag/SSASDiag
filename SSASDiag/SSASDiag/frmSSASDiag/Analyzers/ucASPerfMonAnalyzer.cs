@@ -1004,8 +1004,7 @@ namespace SSASDiag
                                     ((double)p.Tag) * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10(max))))) :
                                     ((double)p.Tag);
             }
-            chartPerfMon.ChartAreas[0].AxisY.LabelStyle.Enabled = true;// !chkAutoScale.Checked;
-          
+            chartPerfMon.ChartAreas[0].AxisY.LabelStyle.Enabled = !chkAutoScale.Checked;
             chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
             chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
             chartPerfMon.Height = 200;
@@ -1256,8 +1255,11 @@ namespace SSASDiag
             s.LegendText = s.Name;
             CustomSeries.Add(s.Name);
             chartPerfMon.Series.Add(s);
-            chartPerfMon.ChartAreas[0].AxisY.Maximum = 100;
-            chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
+            if (chkAutoScale.Checked)
+                chartPerfMon.ChartAreas[0].AxisY.Maximum = 100;
+            else
+                chartPerfMon.ChartAreas[0].AxisY.Maximum = Double.NaN;
+
             chartPerfMon.ChartAreas[0].RecalculateAxesScale();
         }
 
