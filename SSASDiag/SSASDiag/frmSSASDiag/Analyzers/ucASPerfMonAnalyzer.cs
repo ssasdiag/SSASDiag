@@ -775,8 +775,6 @@ namespace SSASDiag
                     var prop = result.Object as DataPoint;
                     if (prop != null)
                     {
-                        var pointXPixel = result.ChartArea.AxisX.ValueToPixelPosition(prop.XValue);
-                        var pointYPixel = result.ChartArea.AxisY.ValueToPixelPosition(prop.YValues[0]);
                         tooltip.Show(prop.LegendText + "\n" + DateTime.FromOADate(prop.XValue) + "\nValue: " + (double)prop.Tag, this.chartPerfMon, pos.X + 10, pos.Y);
                         CurrentSeriesUnderMouse = prop.LegendText;
                     }
@@ -841,20 +839,30 @@ namespace SSASDiag
                 if (e.Button == MouseButtons.Left)
                 {
                     Series sr = chartPerfMon.Series[CurrentSeriesUnderMouse];
-                    string[] NodeList = sr.LegendText.Split('\\');
-                    TreeNode n = tvCounters.Nodes[NodeList[0]];
-                    for (int i = 1; i < NodeList.Length; i++)
-                        n = n.Nodes[NodeList[i]];
-                    if (ModifierKeys == Keys.Control || ModifierKeys == Keys.Shift)
+                    if (CustomSeries.Where(s=>s == CurrentSeriesUnderMouse).Count() > 0)
                     {
-                        if (!tvCounters.SelectedNodes.Contains(n))
-                            tvCounters.SelectedNodes.Add(n);
+                        if (sr.BorderWidth == 1)
+                            sr.BorderWidth = 4;
                         else
-                            tvCounters.SelectedNodes.Remove(n);
+                            sr.BorderWidth = 1;
                     }
                     else
-                        tvCounters.SelectedNode = n;
-                    TvCounters_AfterSelect(sender, new TreeViewEventArgs(n));
+                    {
+                        string[] NodeList = sr.LegendText.Split('\\');
+                        TreeNode n = tvCounters.Nodes[NodeList[0]];
+                        for (int i = 1; i < NodeList.Length; i++)
+                            n = n.Nodes[NodeList[i]];
+                        if (ModifierKeys == Keys.Control || ModifierKeys == Keys.Shift)
+                        {
+                            if (!tvCounters.SelectedNodes.Contains(n))
+                                tvCounters.SelectedNodes.Add(n);
+                            else
+                                tvCounters.SelectedNodes.Remove(n);
+                        }
+                        else
+                            tvCounters.SelectedNode = n;
+                        TvCounters_AfterSelect(sender, new TreeViewEventArgs(n));
+                    }
                 }
                 else if (e.Button == MouseButtons.Right)
                 {
@@ -1006,6 +1014,10 @@ namespace SSASDiag
 
         private void TvCounters_AfterCheck(object sender, TreeViewEventArgs e)
         {
+
+            for (int i = 0; i < CustomSeries.Count; i++)
+                chartPerfMon.Series.Remove(chartPerfMon.Series[CustomSeries[i]]);
+            CustomSeries.Clear();
             if (e.Node.Nodes.Count == 0 && e.Node.Parent != null)
             {
                 if (e.Node.Checked && e.Node.Nodes.Count == 0)
@@ -1234,12 +1246,15 @@ namespace SSASDiag
         public void AddCustomSeries(Series s)
         {
             double max = s.Points.FindMaxByValue().YValues[0];
+            s.Tag = max;
             foreach (DataPoint p in s.Points)
             {
                 if (p.Tag == null)
                     p.Tag = p.YValues[0];
                 p.YValues[0] = !chkAutoScale.Checked ? (double)p.Tag : p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)max)))));
             }
+            s.LegendText = s.Name;
+            CustomSeries.Add(s.Name);
             chartPerfMon.Series.Add(s);
             chartPerfMon.ChartAreas[0].AxisY.Maximum = 100;
             chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
@@ -1419,6 +1434,7 @@ namespace SSASDiag
         }
 
         List<Series> HiddenSeries = new List<Series>();
+        List<string> CustomSeries = new List<string>();
         private void dgdRules_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             new Thread(new ThreadStart(() =>
