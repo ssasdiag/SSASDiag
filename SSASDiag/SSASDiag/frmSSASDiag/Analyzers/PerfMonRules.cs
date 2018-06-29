@@ -33,32 +33,30 @@ namespace SSASDiag
 
             // Rule 0
 
-            RuleCounter AvailableBytes = new RuleCounter("Memory\\Available Bytes");
+            RuleCounter AvailableMB = new RuleCounter("Memory\\Available MBytes");
             RuleCounter WorkingSet = new RuleCounter("Process\\Working Set\\_Total", false);
             Rule r = new Rule();
             r.Category = "Memory";
             r.Name = "Server Available Memory";
             r.Description = "Checks to ensure there is sufficient free memory.";
-            r.Counters.Add(AvailableBytes);
+            r.Counters.Add(AvailableMB);
             r.Counters.Add(WorkingSet);
             r.RuleFunction = new Func<Rule, RuleResultEnum>((rr) =>
             {
-                r.RuleResult = RuleResultEnum.Other;
-                return RuleResultEnum.Other;
-            });
-            r.AnnotationFunction = new Action<Rule>((rr) =>
-            {
-                Series TotalMemory = new Series("Total System Memory");
+                Series TotalMemory = new Series("Total Physical Memory MB");
                 TotalMemory.ChartType = SeriesChartType.Line;
                 TotalMemory.XValueType = ChartValueType.DateTime;
                 TotalMemory.EmptyPointStyle.BorderWidth = 0;
                 TotalMemory.BorderColor = TotalMemory.Color = Color.DarkRed;
-                DataPointCollection p1 = AvailableBytes.ChartSeries.Points, p2 = WorkingSet.ChartSeries.Points;
-                double totalMem = ((double)p1[0].Tag) + ((double)p2[0].Tag);
+                DataPointCollection p1 = AvailableMB.ChartSeries.Points, p2 = WorkingSet.ChartSeries.Points;
+                double totalMem = ((double)p1[0].Tag) + (((double)p2[0].Tag)/1024.0/1024.0);
                 for (int i = 0; i < p1.Count; i++)
                     TotalMemory.Points.Add(new DataPoint(p1[i].XValue, totalMem));
                 AddCustomSeries(TotalMemory);
+                r.RuleResult = RuleResultEnum.Pass;
+                return r.RuleResult;
             });
+
             Rules.Add(r);
         }
 
@@ -89,7 +87,6 @@ namespace SSASDiag
             public RuleResultEnum RuleResult { get { return ruleResult; } set { OnPropertyChanged("RuleResultImg"); ruleResult = value; } }
             public List<RuleCounter> Counters { get; set; } = new List<RuleCounter>();
             public List<object> Annotations { get; set; } = new List<object>(); // List of rule annotation variables, which RuleFunction should set and AnnotationFunction should use to draw its annotations however it needs to.
-            public Action<Rule> AnnotationFunction = null;
             private Func<Rule, RuleResultEnum> ruleFunction = null;
             [Browsable(false)]
             public Func<Rule, RuleResultEnum> RuleFunction { get { return ruleFunction; } set { ruleFunction = value; } }

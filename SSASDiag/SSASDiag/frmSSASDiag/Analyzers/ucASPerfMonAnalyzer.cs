@@ -775,7 +775,7 @@ namespace SSASDiag
                     var prop = result.Object as DataPoint;
                     if (prop != null)
                     {
-                        tooltip.Show(prop.LegendText + "\n" + DateTime.FromOADate(prop.XValue) + "\nValue: " + (double)prop.Tag, this.chartPerfMon, pos.X + 10, pos.Y);
+                        tooltip.Show(prop.LegendText + "\n" + DateTime.FromOADate(prop.XValue) + "\nValue: " + ((double)prop.Tag).ToString("#,###.############"), this.chartPerfMon, pos.X + 10, pos.Y);
                         CurrentSeriesUnderMouse = prop.LegendText;
                     }
                 }
@@ -1454,8 +1454,6 @@ namespace SSASDiag
                     n = tvCounters.FindNodeByPath(c.Path);
                     if (n == null)
                         n = tvCounters.FindNodeByPath(FullPathAlternateHierarchy(c.Path));
-                    if (n == null)
-                        return;
                     tvCounters.Invoke(new Action(() =>
                     {
                         if (c.ShowInChart)
@@ -1477,7 +1475,7 @@ namespace SSASDiag
                 AddCounters(HiddenCountersToLookup);
                 foreach (Series s in HiddenSeries.Concat(chartPerfMon.Series))
                     r.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).First().ChartSeries = s;
-                Invoke(new Action(()=>r.AnnotationFunction(r)));
+                Invoke(new Action(()=>r.RuleFunction(r)));
             })).Start();
         }
 
