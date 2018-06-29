@@ -1233,17 +1233,16 @@ namespace SSASDiag
 
         public void AddCustomSeries(Series s)
         {
-            if (chkAutoScale.Checked)
+            double max = s.Points.FindMaxByValue().YValues[0];
+            foreach (DataPoint p in s.Points)
             {
-                double max = s.Points.FindMaxByValue().YValues[0];
-                foreach (DataPoint p in s.Points)
-                    p.YValues[0] = p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)max)))));
-                chartPerfMon.Series.Add(s);
-                chartPerfMon.ChartAreas[0].AxisY.Maximum = 100;
-                chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
+                if (p.Tag == null)
+                    p.Tag = p.YValues[0];
+                p.YValues[0] = !chkAutoScale.Checked ? (double)p.Tag : p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)max)))));
             }
-            else
-                chartPerfMon.Series.Add(s);
+            chartPerfMon.Series.Add(s);
+            chartPerfMon.ChartAreas[0].AxisY.Maximum = 100;
+            chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
             chartPerfMon.ChartAreas[0].RecalculateAxesScale();
         }
 
