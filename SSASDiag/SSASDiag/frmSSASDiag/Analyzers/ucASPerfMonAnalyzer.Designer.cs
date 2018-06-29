@@ -552,6 +552,7 @@
             this.chartPerfMon.SuppressExceptions = true;
             this.chartPerfMon.TabIndex = 0;
             this.chartPerfMon.Text = "Counter Data";
+            this.chartPerfMon.SizeChanged += new System.EventHandler(this.ucASPerfMonAnalyzer_SizeChanged);
             this.chartPerfMon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ChartPerfMon_MouseClick);
             this.chartPerfMon.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ChartPerfMon_MouseMove);
             // 

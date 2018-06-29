@@ -53,12 +53,10 @@ namespace SSASDiag
                 TotalMemory.XValueType = ChartValueType.DateTime;
                 TotalMemory.EmptyPointStyle.BorderWidth = 0;
                 TotalMemory.BorderColor = TotalMemory.Color = Color.DarkRed;
-
                 DataPointCollection p1 = AvailableBytes.ChartSeries.Points, p2 = WorkingSet.ChartSeries.Points;
                 double totalMem = ((double)p1[0].Tag) + ((double)p2[0].Tag);
                 for (int i = 0; i < p1.Count; i++)
                     TotalMemory.Points.Add(new DataPoint(p1[i].XValue, totalMem));
-
                 AddCustomSeries(TotalMemory);
             });
             Rules.Add(r);

@@ -986,21 +986,21 @@ namespace SSASDiag
         private void chkAutoScale_CheckedChanged(object sender, EventArgs e)
         {
             chartPerfMon.SuspendLayout();
-            double Maximum = 0;
+            double max = 0;
             foreach (Series s in chartPerfMon.Series)
+            {
+                if ((double)s.Tag > max)
+                    max = (double)s.Tag;
                 foreach (DataPoint p in s.Points)
-                {
-                    if (p.Tag != null)
-                    {
-                        p.YValues[0] = chkAutoScale.Checked ?
-                                        p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)s.Tag))))) :
-                                        p.YValues[0] / 100 * ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)s.Tag)))));
-                    }
-                    if (p.YValues[0] > Maximum)
-                        Maximum = p.YValues[0];
-                }
-            chartPerfMon.ChartAreas[0].AxisY.LabelStyle.Enabled = !chkAutoScale.Checked;
-            chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : Maximum;
+                    p.YValues[0] = chkAutoScale.Checked ?
+                                    ((double)p.Tag) * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10(max))))) :
+                                    ((double)p.Tag);
+            }
+            chartPerfMon.ChartAreas[0].AxisY.LabelStyle.Enabled = true;// !chkAutoScale.Checked;
+          
+            chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
+            chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
+            chartPerfMon.Height = 200;
             chartPerfMon.ResumeLayout();
         }
 
@@ -1016,7 +1016,6 @@ namespace SSASDiag
                     if (iNodesRemaingingToProcessInBatch < 1)
                     {
                         iNodesRemaingingToProcessInBatch = 0;
-                        //tvCounters.AfterCheck -= TvCounters_AfterCheck;
                         new Thread(new ThreadStart(() => AddCounters())).Start();
                     }
                 }
@@ -1060,6 +1059,7 @@ namespace SSASDiag
                                              .Where(n => n.SelectedImageIndex < 1 || n.Checked)
                                              .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
             CountersToUpdate.AddRange(HiddenCountersToLookup);
+            ParentNodeOfUpdateBatch = null;
             
             if (CountersToUpdate.Count != 0)
             {
@@ -1125,6 +1125,7 @@ namespace SSASDiag
                                 s.Name = counter.Value;
                                 s.XValueType = ChartValueType.DateTime;
                                 s.LegendText = counter.Value;
+
                                 s.EmptyPointStyle.BorderWidth = 0;
 
                                 var val = dt.Compute("max([CounterValue])", "OriginalCounterID = " + counter.Key);
@@ -1174,6 +1175,7 @@ namespace SSASDiag
                                         legend.Images.Add(bmp);
                                         if (chartPerfMon.ChartAreas[0].AxisY.Maximum < max)
                                             chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
+                                        chartPerfMon.ChartAreas[0].RecalculateAxesScale();
                                         node = tvCounters.FindNodeByPath(s.Name);
                                         node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
                                         if (s.Color == Color.Transparent)
@@ -1213,6 +1215,7 @@ namespace SSASDiag
                         chartPerfMon.ChartAreas[0].AxisX.Minimum = trTimeRange.RangeMinimum.ToOADate();
                         chartPerfMon.ChartAreas[0].AxisX.Maximum = trTimeRange.RangeMaximum.ToOADate();
                         chartPerfMon.ChartAreas[0].RecalculateAxesScale();
+                        chartPerfMon.Update();
                     }));
                 StatusFloater.Invoke(new Action(() =>
                     {
@@ -1235,8 +1238,13 @@ namespace SSASDiag
                 double max = s.Points.FindMaxByValue().YValues[0];
                 foreach (DataPoint p in s.Points)
                     p.YValues[0] = p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)max)))));
+                chartPerfMon.Series.Add(s);
+                chartPerfMon.ChartAreas[0].AxisY.Maximum = 100;
+                chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
             }
-            chartPerfMon.Series.Add(s);
+            else
+                chartPerfMon.Series.Add(s);
+            chartPerfMon.ChartAreas[0].RecalculateAxesScale();
         }
 
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)
@@ -1419,9 +1427,11 @@ namespace SSASDiag
                 List<KeyValuePair<string, string>> HiddenCountersToLookup = new List<KeyValuePair<string, string>>();
                 Rule r = ((sender as DataGridView).Rows[e.RowIndex].DataBoundItem as Rule);
 
-                tvCounters.SelectedNodes.Clear();
-
-                chartPerfMon.Invoke(new Action(() => chartPerfMon.Series.Clear()));
+                Invoke(new Action(() =>
+                    {
+                        foreach (TreeNode node in tvCounters.GetLeafNodes())
+                            node.Checked = false;
+                    }));
                 tvCounters.AfterCheck -= TvCounters_AfterCheck;
                 TreeNode n = null;
                 foreach (RuleCounter c in r.Counters)
