@@ -48,10 +48,10 @@ namespace SSASDiag
                 double totalMem = ((double)AvailableMB.ChartSeries.Points[0].Tag) + (((double)WorkingSet.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
                 // Add custom series
                 Series TotalMemory = r.AddCustomSeriesAtY("Total Physical Memory MB", totalMem, Color.Black);
-                Series MaximumUtilization = r.AddCustomSeriesAtY("97% Memory Utilization", totalMem * .97, Color.Red);
-                Series WarnUtilization = r.AddCustomSeriesAtY("95% Memory Utilization", totalMem * .95, Color.Yellow);
+                Series MaximumUtilization = r.AddCustomSeriesAtY("3% Available Memory", totalMem * .03, Color.Red);
+                Series WarnUtilization = r.AddCustomSeriesAtY("5% Available Memory", totalMem * .05, Color.Yellow);
                 // Perform validation with a standard rule function and update rule result descriptions
-                r.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .95, totalMem * .97);
+                r.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, null, null, false);
                 if (r.RuleResult == RuleResultEnum.Fail) r.ResultDescription = "Memory usage rose above 97%.";
                 if (r.RuleResult == RuleResultEnum.Warn) r.ResultDescription = "Memory usage rose above 95%.";
                 if (r.RuleResult == RuleResultEnum.Pass) r.ResultDescription = "Sufficient memory available at all times.";

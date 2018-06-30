@@ -1211,6 +1211,10 @@ namespace SSASDiag
                                 {
                                     Invoke(new System.Action(() =>
                                     {
+                                        if (rule != null)
+                                            chartPerfMon.Legends[0].Enabled = true;
+                                        else
+                                            chartPerfMon.Legends[0].Enabled = false;
                                         legend.Images.Add(s.Name, bmp);
                                         if (HiddenCountersToLookup.Where(kv => kv.Value == s.Name).Count() > 0)
                                             CurrentRuleHiddenSeries.Add(s);
@@ -1546,6 +1550,7 @@ namespace SSASDiag
                             }
                             chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
                             chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
+                            chartPerfMon.Legends[0].Enabled = true;
                             chartPerfMon.ChartAreas[0].RecalculateAxesScale();
                             tvCounters.AfterCheck += TvCounters_AfterCheck;
                             chartPerfMon.ResumeLayout();
