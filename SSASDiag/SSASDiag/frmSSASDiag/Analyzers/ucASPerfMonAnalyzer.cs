@@ -262,7 +262,6 @@ namespace SSASDiag
             splitLogList.Visible = true;
 
             frmSSASDiag.LogFeatureUse("PerfMon Analysis", "PerfMon analysis initalized for " + LogFiles.Count + " logs, " + LogFiles.Where(d => !d.Analyzed).Count() + " of which still require import for analysis.");
-
         }
 
         private void UcASPerfMonAnalyzer_HandleDestroyed(object sender, EventArgs e)
@@ -995,6 +994,7 @@ namespace SSASDiag
                 if (dr["ResultDescription"] != null)
                     r.ResultDescription = dr["ResultDescription"] as string;
             }
+            dr.Close();
 
             BindingSource b = new BindingSource();
             b.DataSource = Rules;
@@ -1002,7 +1002,6 @@ namespace SSASDiag
             dgdRules.ClearSelection();
 
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
-
         }
 
         private double ScaleSeries(Series s)
