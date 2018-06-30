@@ -33,30 +33,27 @@ namespace SSASDiag
 
             // Rule 0
 
-            RuleCounter AvailableMB = new RuleCounter("Memory\\Available MBytes", true, false, Color.Blue);
-            RuleCounter WorkingSet = new RuleCounter("Process\\Working Set\\_Total", false);
             Rule r = new Rule();
             r.Category = "Memory";
             r.Name = "Server Available Memory";
             r.Description = "Checks to ensure sufficient free memory.";
+            RuleCounter AvailableMB = new RuleCounter("Memory\\Available MBytes", true, false, Color.Blue);
+            RuleCounter WorkingSet = new RuleCounter("Process\\Working Set\\_Total", false);
             r.Counters.Add(AvailableMB);
             r.Counters.Add(WorkingSet);
             r.RuleFunction = new Action(() =>
             {
                 r.RuleResult = RuleResultEnum.Pass;
-                // Create an expression
                 double totalMem = ((double)AvailableMB.ChartSeries.Points[0].Tag) + (((double)WorkingSet.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
-                // Add custom series
                 Series TotalMemory = r.AddCustomSeriesAtY("Total Physical Memory MB", totalMem, Color.Black);
-                Series MaximumUtilization = r.AddCustomSeriesAtY("3% Available Memory", totalMem * .03, Color.Red);
-                Series WarnUtilization = r.AddCustomSeriesAtY("5% Available Memory", totalMem * .05, Color.Yellow);
                 // Perform validation with a standard rule function and update rule result descriptions
-                r.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, null, null, false);
-                if (r.RuleResult == RuleResultEnum.Fail) r.ResultDescription = "Memory usage rose above 97%.";
-                if (r.RuleResult == RuleResultEnum.Warn) r.ResultDescription = "Memory usage rose above 95%.";
-                if (r.RuleResult == RuleResultEnum.Pass) r.ResultDescription = "Sufficient memory available at all times.";
+                r.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, "5% of Total Memory", "3% ot Total Memory", null, null, false);
+                if (r.RuleResult == RuleResultEnum.Fail) r.ResultDescription = "Fail: Less than 3% free memory.";
+                if (r.RuleResult == RuleResultEnum.Warn) r.ResultDescription = "Warning: Less than 5% free memory.";
+                if (r.RuleResult == RuleResultEnum.Pass) r.ResultDescription = "Pass: Sufficient memory available at all times.";
             });
             Rules.Add(r);
+            
         }
 
         private enum RuleResultEnum
@@ -137,12 +134,19 @@ namespace SSASDiag
                 CustomSeries.Add(s);
                 return s;
             }
-            public void ValidateThresholdRule(Series s, double WarnY, double ErrorY, Color? WarnColor = null, Color? ErrorColor = null, bool Below = true)
+            public void ValidateThresholdRule(Series s, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", Color? WarnColor = null, Color? ErrorColor = null, bool Below = true)
             {
                 if (!WarnColor.HasValue)
                     WarnColor = Color.Yellow;
                 if (!ErrorColor.HasValue)
                     ErrorColor = Color.Red;
+
+                Series WarnSeries = null;
+                Series ErrorSeries = null;
+                if (WarningLineText != "")
+                    WarnSeries = AddCustomSeriesAtY(WarningLineText, WarnY, WarnColor.Value);
+                if (ErrorLineText != "")
+                    ErrorSeries  = AddCustomSeriesAtY(ErrorLineText, ErrorY, ErrorColor.Value);
 
                 foreach (DataPoint p in s.Points)
                 {
