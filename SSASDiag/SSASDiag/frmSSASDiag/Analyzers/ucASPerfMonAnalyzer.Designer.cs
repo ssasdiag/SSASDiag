@@ -738,72 +738,76 @@
             // 
             // btnRunAllRules
             // 
+            this.btnRunAllRules.BackColor = System.Drawing.SystemColors.ControlDark;
             this.btnRunAllRules.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
             this.btnRunAllRules.FlatAppearance.BorderSize = 0;
             this.btnRunAllRules.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
             this.btnRunAllRules.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.btnRunAllRules.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRunAllRules.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRunAllRules.Location = new System.Drawing.Point(265, 0);
+            this.btnRunAllRules.Location = new System.Drawing.Point(153, 0);
             this.btnRunAllRules.Margin = new System.Windows.Forms.Padding(0);
             this.btnRunAllRules.Name = "btnRunAllRules";
             this.btnRunAllRules.Size = new System.Drawing.Size(110, 19);
             this.btnRunAllRules.TabIndex = 3;
             this.btnRunAllRules.Text = "Run All";
             this.btnRunAllRules.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.btnRunAllRules.UseVisualStyleBackColor = true;
+            this.btnRunAllRules.UseVisualStyleBackColor = false;
             this.btnRunAllRules.Click += new System.EventHandler(this.btnRunRules_Click);
             // 
             // btnRequestRule
             // 
+            this.btnRequestRule.BackColor = System.Drawing.SystemColors.ControlDark;
             this.btnRequestRule.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
             this.btnRequestRule.FlatAppearance.BorderSize = 0;
             this.btnRequestRule.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
             this.btnRequestRule.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.btnRequestRule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRequestRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRequestRule.Location = new System.Drawing.Point(154, 0);
+            this.btnRequestRule.Location = new System.Drawing.Point(264, 0);
             this.btnRequestRule.Margin = new System.Windows.Forms.Padding(0);
             this.btnRequestRule.Name = "btnRequestRule";
             this.btnRequestRule.Size = new System.Drawing.Size(110, 19);
             this.btnRequestRule.TabIndex = 2;
             this.btnRequestRule.Text = "Request New Rule";
             this.btnRequestRule.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.btnRequestRule.UseVisualStyleBackColor = true;
+            this.btnRequestRule.UseVisualStyleBackColor = false;
             // 
             // button2
             // 
+            this.button2.BackColor = System.Drawing.SystemColors.ControlDark;
             this.button2.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
             this.button2.FlatAppearance.BorderSize = 0;
             this.button2.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
             this.button2.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button2.Location = new System.Drawing.Point(43, 0);
+            this.button2.Location = new System.Drawing.Point(375, 0);
             this.button2.Margin = new System.Windows.Forms.Padding(0);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(110, 19);
             this.button2.TabIndex = 1;
             this.button2.Text = "Create New Rule";
             this.button2.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.button2.UseVisualStyleBackColor = true;
+            this.button2.UseVisualStyleBackColor = false;
             // 
             // btnRunRule
             // 
+            this.btnRunRule.BackColor = System.Drawing.SystemColors.ControlDark;
             this.btnRunRule.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
             this.btnRunRule.FlatAppearance.BorderSize = 0;
             this.btnRunRule.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
             this.btnRunRule.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.btnRunRule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRunRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRunRule.Location = new System.Drawing.Point(376, 0);
+            this.btnRunRule.Location = new System.Drawing.Point(42, 0);
             this.btnRunRule.Margin = new System.Windows.Forms.Padding(0);
             this.btnRunRule.Name = "btnRunRule";
             this.btnRunRule.Size = new System.Drawing.Size(110, 19);
             this.btnRunRule.TabIndex = 0;
             this.btnRunRule.Text = "Run Selected";
             this.btnRunRule.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.btnRunRule.UseVisualStyleBackColor = true;
+            this.btnRunRule.UseVisualStyleBackColor = false;
             this.btnRunRule.Click += new System.EventHandler(this.btnRunRules_Click);
             // 
             // lblRules
