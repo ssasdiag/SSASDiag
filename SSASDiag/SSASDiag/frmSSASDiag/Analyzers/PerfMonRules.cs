@@ -47,39 +47,33 @@ namespace SSASDiag
                 // Create custom series.
                 r.RuleResult = RuleResultEnum.Pass;
 
-                Series TotalMemory = new Series("Total Physical Memory MB");
-                TotalMemory.ChartType = SeriesChartType.Line;
-                TotalMemory.XValueType = ChartValueType.DateTime;
-                TotalMemory.EmptyPointStyle.BorderWidth = 0;
-                TotalMemory.BorderColor = TotalMemory.Color = Color.Black;
-
-                double MaxUtilizationPct = .97;
-                Series MaximumUtilization = new Series("97% Memory Utilization");
-                MaximumUtilization.ChartType = SeriesChartType.Line;
-                MaximumUtilization.XValueType = ChartValueType.DateTime;
-                MaximumUtilization.EmptyPointStyle.BorderWidth = 0;
-                MaximumUtilization.BorderColor = MaximumUtilization.Color = Color.Red;
-                MaximumUtilization.BorderDashStyle = ChartDashStyle.Dot;
-
                 DataPointCollection p1 = AvailableMB.ChartSeries.Points, p2 = WorkingSet.ChartSeries.Points;
                 double totalMem = ((double)p1[0].Tag) + (((double)p2[0].Tag) / 1024.0 / 1024.0);
-                for (int i = 0; i < p1.Count; i++)
-                {
-                    TotalMemory.Points.Add(new DataPoint(p1[i].XValue, totalMem));
-                    MaximumUtilization.Points.Add(new DataPoint(p1[i].XValue, totalMem * MaxUtilizationPct));
-                }
+                Series TotalMemory = r.CustomSeriesAtY("Total Physical Memory MB", totalMem, Color.Black);
+                Series MaximumUtilization = r.CustomSeriesAtY("97% Memory Utilization", totalMem * .97, Color.Red);
+                Series WarnUtilization = r.CustomSeriesAtY("95% Memory Utilization", totalMem * .95, Color.Yellow);
 
                 r.CustomSeries.Add(TotalMemory);
                 r.CustomSeries.Add(MaximumUtilization);
+                r.CustomSeries.Add(WarnUtilization);
 
                 // Call out data any points that fail the test.
                 foreach (DataPoint p in AvailableMB.ChartSeries.Points)
                 {
-                    if ((double)p.Tag >= totalMem * MaxUtilizationPct)
+                    if ((double)p.Tag >= totalMem * .97)
                     {
                         p.Color = Color.Red;
-                        p.BorderWidth = 2;
                         r.RuleResult = RuleResultEnum.Fail;
+                        r.ResultDescription = "Memory usage rose above 97%.";
+                    }
+                    else if ((double)p.Tag >= totalMem * .95)
+                    {
+                        p.Color = Color.Yellow;
+                        if (r.RuleResult != RuleResultEnum.Fail)
+                        {
+                            r.RuleResult = RuleResultEnum.Warn;
+                            r.ResultDescription = "Memory usage rose above 95%.";
+                        }
                     }
                 }
             });
@@ -149,6 +143,21 @@ namespace SSASDiag
                     }
                     return null;
                 }
+            }
+
+            public Series CustomSeriesAtY(string name, double y, Color color)
+            {
+                Series s = new Series(name);
+                s.ChartType = SeriesChartType.Line;
+                s.XValueType = ChartValueType.DateTime;
+                s.EmptyPointStyle.BorderWidth = 0;
+                s.BorderColor = s.Color = color;
+
+                DataPointCollection p1 = Counters[0].ChartSeries.Points;
+                for (int i = 0; i < p1.Count; i++)
+                    s.Points.Add(new DataPoint(p1[i].XValue, y));
+
+                return s;
             }
 
             protected void OnPropertyChanged(string name)

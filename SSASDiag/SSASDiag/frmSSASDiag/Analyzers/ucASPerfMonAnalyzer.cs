@@ -1461,7 +1461,7 @@ namespace SSASDiag
                 rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).First().ChartSeries = s;
 
             bool bNeverBeenRunBefore = true;
-            if (rule.RuleResult == RuleResultEnum.NotRun)
+            if (rule.RuleResult != RuleResultEnum.NotRun)
                 bNeverBeenRunBefore = false;
 
             Invoke(new Action(() => rule.RuleFunction()));
