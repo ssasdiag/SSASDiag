@@ -1032,7 +1032,6 @@ namespace SSASDiag
 
         private void TvCounters_AfterCheck(object sender, TreeViewEventArgs e)
         {
-
             for (int i = 0; i < CurrentRuleCustomSeries.Count; i++)
                 chartPerfMon.Series.Remove(chartPerfMon.Series[CurrentRuleCustomSeries[i]]);
             CurrentRuleCustomSeries.Clear();
@@ -1519,12 +1518,13 @@ namespace SSASDiag
                         {
                             tvCounters.SuspendLayout();
                             chartPerfMon.SuspendLayout();
-                            tvCounters.AfterCheck -= TvCounters_AfterCheck;
+
                             foreach (TreeNode node in tvCounters.GetLeafNodes())
                             {
                                 node.Checked = false;
-                                node.ImageIndex = 0;
+                                //node.ImageIndex = 0;
                             }
+                            tvCounters.AfterCheck -= TvCounters_AfterCheck;
                             while (chartPerfMon.Series.Count > 0)
                                 chartPerfMon.Series.RemoveAt(0);
                             double max = double.MinValue;

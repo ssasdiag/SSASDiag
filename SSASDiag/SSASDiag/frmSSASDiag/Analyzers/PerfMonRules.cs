@@ -47,7 +47,7 @@ namespace SSASDiag
                 double totalMem = ((double)AvailableMB.ChartSeries.Points[0].Tag) + (((double)WorkingSet.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
                 Series TotalMemory = r.AddCustomSeriesAtY("Total Physical Memory MB", totalMem, Color.Black);
                 // Perform validation with a standard rule function and update rule result descriptions
-                r.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, "5% of Total Memory", "3% ot Total Memory", null, null, false);
+                r.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, "5% of Total Memory", "3% of Total Memory", null, null, false);
                 if (r.RuleResult == RuleResultEnum.Fail) r.ResultDescription = "Fail: Less than 3% free memory.";
                 if (r.RuleResult == RuleResultEnum.Warn) r.ResultDescription = "Warning: Less than 5% free memory.";
                 if (r.RuleResult == RuleResultEnum.Pass) r.ResultDescription = "Pass: Sufficient memory available at all times.";
