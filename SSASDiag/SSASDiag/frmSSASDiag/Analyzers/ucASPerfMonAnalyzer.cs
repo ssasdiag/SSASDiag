@@ -212,6 +212,9 @@ namespace SSASDiag
             cmd.CommandText = "if not exists(select* from sysobjects where name= 'PerfMonLogs' and xtype = 'U') CREATE TABLE[dbo].[PerfMonLogs]"
                                 + " ([LogPath] [nvarchar] (max) NOT NULL) ON[PRIMARY] TEXTIMAGE_ON[PRIMARY]";
             cmd.ExecuteNonQuery();
+            cmd.CommandText = "if not exists(select* from sysobjects where name= 'RuleResults' and xtype = 'U') CREATE TABLE[dbo].[RuleResults]"
+                                + " ([RuleName] [nvarchar] (max) NOT NULL, [MachineName] [nvarchar] (max), [Result] int NOT NULL, [ResultDescription] [nvarchar] (max) NULL) ON[PRIMARY] TEXTIMAGE_ON[PRIMARY]";
+            cmd.ExecuteNonQuery();
 
 
             cmd.CommandText = "select * from PerfMonLogs";
@@ -467,6 +470,7 @@ namespace SSASDiag
                                             connLocal.Open();
                                             new SqlCommand("USE[" + DBName() + "]", connLocal).ExecuteNonQuery();
                                             new SqlCommand("insert into PerfMonLogs values ('" + l.LogPath + "')", connLocal).ExecuteNonQuery();
+                                            new SqlCommand("delete from RuleResults", connDB).ExecuteNonQuery();
                                             l.Analyzed = true;
                                             dgdLogList.Invoke(new System.Action(() =>
                                             {
@@ -982,6 +986,16 @@ namespace SSASDiag
             dr.Close();
 
             DefineRules();
+
+            dr = new SqlCommand("select * from RuleResults", connDB).ExecuteReader();
+            while (dr.Read())
+            {
+                Rule r = Rules.Where(rr => rr.Name == dr["RuleName"] as string).First();
+                r.RuleResult = (RuleResultEnum)dr["Result"];
+                if (dr["ResultDescription"] != null)
+                    r.ResultDescription = dr["ResultDescription"] as string;
+            }
+
             BindingSource b = new BindingSource();
             b.DataSource = Rules;
             dgdRules.DataSource = b;
@@ -1446,7 +1460,18 @@ namespace SSASDiag
             foreach (Series s in CurrentRuleHiddenSeries.Concat(chartPerfMon.Series))
                 rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).First().ChartSeries = s;
 
+            bool bNeverBeenRunBefore = true;
+            if (rule.RuleResult == RuleResultEnum.NotRun)
+                bNeverBeenRunBefore = false;
+
             Invoke(new Action(() => rule.RuleFunction()));
+
+            if (bNeverBeenRunBefore)
+            {
+                string qry = "";
+                Invoke(new Action(() => qry = "insert into RuleResults values ('" + rule.Name + "', '" + cmbServers.SelectedItem + "', " + (int)rule.RuleResult + ", '" + rule.ResultDescription + "')"));
+                new SqlCommand(qry, connDB).ExecuteNonQuery();
+            }
 
             if (ShouldUIUpdate)
                 foreach (Series s in rule.CustomSeries)
@@ -1459,7 +1484,7 @@ namespace SSASDiag
             {
                 foreach (DataGridViewRow row in dgdRules.Rows)
                     if (row.Selected || (sender as Button).Text == "Run All Rules")
-                        if ((row.DataBoundItem as Rule).RuleResult == RuleResultEnum.NotRun)
+                        if ((row.DataBoundItem as Rule).Counters[0].ChartSeries == null)
                             RunRule(row.DataBoundItem as Rule);
             })).Start();
         }
@@ -1483,7 +1508,7 @@ namespace SSASDiag
                 new Thread(new ThreadStart(() =>
                 {
                     Rule rule = dgdRules.Rows[e.RowIndex].DataBoundItem as Rule;
-                    if (rule.RuleResult == RuleResultEnum.NotRun)
+                    if (rule.Counters[0].ChartSeries == null)
                         RunRule(rule);
                     else
                     {
