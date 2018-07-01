@@ -177,7 +177,7 @@ namespace SSASDiag
                 s.Interval = 0;
                 s.Text = name;
                 if (y != y2)
-                    s.BackColor = Color.FromArgb(128, color);
+                    s.BackColor = Color.FromArgb(200, color);
                 else
                     s.BackColor = color;
                 s.BorderColor = color;
@@ -194,7 +194,7 @@ namespace SSASDiag
                 if (!WarnColor.HasValue)
                     WarnColor = Color.Yellow;
                 if (!ErrorColor.HasValue)
-                    ErrorColor = Color.DarkRed;
+                    ErrorColor = Color.Pink;
 
                 StripLine WarnRegion = null;
                 StripLine ErrorRegion = null;

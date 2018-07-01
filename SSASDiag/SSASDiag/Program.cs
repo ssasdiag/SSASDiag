@@ -326,8 +326,11 @@ namespace SSASDiag
                         Stream newBin = File.OpenWrite(TempPath + "\\cdb.zip");
                         req.GetResponse().GetResponseStream().CopyTo(newBin);
                     }
-                    ZipArchive zf = ZipFile.OpenRead(TempPath + "\\cdb.zip");
-                    zf.ExtractToDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "\\CDB");
+                    if (File.Exists(TempPath + "\\cdb.zip"))
+                    {
+                        ZipArchive zf = ZipFile.OpenRead(TempPath + "\\cdb.zip");
+                        zf.ExtractToDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "\\CDB");
+                    }
                 }
             }
             )).Start();

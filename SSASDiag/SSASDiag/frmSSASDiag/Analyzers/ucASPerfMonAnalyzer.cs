@@ -1051,6 +1051,10 @@ namespace SSASDiag
             for (int i = 0; i < CurrentRuleCustomSeries.Count; i++)
                 chartPerfMon.Series.Remove(chartPerfMon.Series[CurrentRuleCustomSeries[i]]);
             CurrentRuleCustomSeries.Clear();
+            CurrentRuleCustomStripLines.Clear();
+            chartPerfMon.ChartAreas[0].AxisY.StripLines.Clear();
+            chartPerfMon.Legends[0].CustomItems.Clear();
+            chkAutoScale.Enabled = true;
             if (e.Node.Nodes.Count == 0 && e.Node.Parent != null)
             {
                 if (e.Node.Checked && e.Node.Nodes.Count == 0)
@@ -1437,6 +1441,7 @@ namespace SSASDiag
                 Invoke(new Action(() =>
                 {
                     chkAutoScale.Checked = false;
+                    chkAutoScale.Enabled = false;
                     foreach (TreeNode node in tvCounters.GetLeafNodes())
                         node.Checked = false;
                 }));
@@ -1506,21 +1511,11 @@ namespace SSASDiag
                         LegendItem li = new LegendItem(s.Text, s.BackColor, "");
                         li.Tag = s.StripWidth;
                         chartPerfMon.Legends[0].CustomItems.Add(li);
-
                         double max = s.IntervalOffset;
-                        s.Tag = max;
-                        s.IntervalOffset = !chkAutoScale.Checked ? max : max * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10(max)))));
-                        s.StripWidth = !chkAutoScale.Checked ? (double)li.Tag : (double)li.Tag * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)li.Tag)))));
+                        s.Tag = max;;
                         CurrentRuleCustomStripLines.Add(s);
-
                         chartPerfMon.ChartAreas[0].AxisY.StripLines.Add(s);
-                        if (chkAutoScale.Checked)
-                            chartPerfMon.ChartAreas[0].AxisY.Maximum = 100;
-                        else
-                            chartPerfMon.ChartAreas[0].AxisY.Maximum = Double.NaN;
-
-
-
+                        chartPerfMon.ChartAreas[0].AxisY.Maximum = Double.NaN;
                         chartPerfMon.ChartAreas[0].RecalculateAxesScale();
                     }
                 }));
@@ -1561,6 +1556,13 @@ namespace SSASDiag
                 {
                     CurrentRuleCustomSeries.Clear();
                     CurrentRuleHiddenSeries.Clear();
+                    CurrentRuleCustomStripLines.Clear();
+                    Invoke(new Action(() =>
+                    {
+                        chartPerfMon.Legends[0].CustomItems.Clear();
+                        chartPerfMon.ChartAreas[0].AxisY.StripLines.Clear();
+                        chartPerfMon.Series.Clear();
+                    }));
                     Rule rule = dgdRules.Rows[e.RowIndex].DataBoundItem as Rule;
                     if (rule.Counters[0].ChartSeries == null)
                         RunRule(rule);
@@ -1572,10 +1574,7 @@ namespace SSASDiag
                             chartPerfMon.SuspendLayout();
 
                             foreach (TreeNode node in tvCounters.GetLeafNodes())
-                            {
                                 node.Checked = false;
-                                //node.ImageIndex = 0;
-                            }
                             tvCounters.AfterCheck -= TvCounters_AfterCheck;
                             while (chartPerfMon.Series.Count > 0)
                                 chartPerfMon.Series.RemoveAt(0);
@@ -1588,7 +1587,6 @@ namespace SSASDiag
                                 chartPerfMon.Series.Add(rc.ChartSeries);
                                 TreeNode node = tvCounters.FindNodeByPath(rc.Path);
                                 if (node == null) node = tvCounters.FindNodeByPath(FullPathAlternateHierarchy(rc.Path));
-                                
                                 node.ImageIndex = legend.Images.IndexOfKey(rc.Path);
                                 node.Checked = true;
                             }
@@ -1600,13 +1598,24 @@ namespace SSASDiag
                                 CurrentRuleCustomSeries.Add(s.Name);
                                 chartPerfMon.Series.Add(s);
                             }
-                            chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
+                            foreach (StripLine s in rule.CustomStripLines)
+                            {
+                                if (s.IntervalOffset > max)
+                                    max = s.IntervalOffset;
+                                LegendItem li = new LegendItem(s.Text, s.BackColor, "");
+                                chartPerfMon.Legends[0].CustomItems.Add(li);
+                                chartPerfMon.ChartAreas[0].AxisY.StripLines.Add(s);
+                                CurrentRuleCustomStripLines.Add(s);
+                            }
+                            chartPerfMon.ChartAreas[0].AxisY.Maximum = double.NaN;
                             chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
                             chartPerfMon.Legends[0].Enabled = true;
                             chartPerfMon.ChartAreas[0].RecalculateAxesScale();
                             tvCounters.AfterCheck += TvCounters_AfterCheck;
                             chartPerfMon.ResumeLayout();
                             tvCounters.ResumeLayout();
+                            chkAutoScale.Checked = false;
+                            chkAutoScale.Enabled = false;
                         }));
                     }
                 })).Start();
