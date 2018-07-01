@@ -1574,7 +1574,10 @@ namespace SSASDiag
                             chartPerfMon.SuspendLayout();
 
                             foreach (TreeNode node in tvCounters.GetLeafNodes())
+                            {
                                 node.Checked = false;
+                                node.ImageIndex = node.SelectedImageIndex = 0;
+                            }
                             tvCounters.AfterCheck -= TvCounters_AfterCheck;
                             while (chartPerfMon.Series.Count > 0)
                                 chartPerfMon.Series.RemoveAt(0);
@@ -1614,10 +1617,10 @@ namespace SSASDiag
                             tvCounters.AfterCheck += TvCounters_AfterCheck;
                             chartPerfMon.ResumeLayout();
                             tvCounters.ResumeLayout();
-                            chkAutoScale.Checked = false;
-                            chkAutoScale.Enabled = false;
                         }));
                     }
+                    chkAutoScale.Checked = false;
+                    chkAutoScale.Enabled = false;
                 })).Start();
             }
         }
