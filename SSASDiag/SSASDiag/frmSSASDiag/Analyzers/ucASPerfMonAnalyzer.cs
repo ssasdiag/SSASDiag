@@ -1297,6 +1297,8 @@ namespace SSASDiag
             chartPerfMon.ChartAreas[0].RecalculateAxesScale();
         }
 
+
+
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)
         {
             tvCounters.Height = splitPerfMonCountersAndChart.Height - dgdGrouping.Height;
@@ -1416,11 +1418,11 @@ namespace SSASDiag
         private void RunRule(Rule rule, bool ShouldUIUpdate = true)
         {
             List<KeyValuePair<string, string>> HiddenCountersToLookup = new List<KeyValuePair<string, string>>();
-
             if (ShouldUIUpdate)
             {
-                tvCounters.Invoke(new Action(() =>
+                Invoke(new Action(() =>
                 {
+                    chkAutoScale.Checked = false;
                     foreach (TreeNode node in tvCounters.GetLeafNodes())
                         node.Checked = false;
                 }));
@@ -1460,7 +1462,11 @@ namespace SSASDiag
             AddCounters(HiddenCountersToLookup, rule);
 
             foreach (Series s in CurrentRuleHiddenSeries.Concat(chartPerfMon.Series))
-                rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).First().ChartSeries = s;
+            {
+                RuleCounter rc = rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).FirstOrDefault();
+                if (rc != null)
+                    rc.ChartSeries = s;
+            }
 
             bool bNeverBeenRunBefore = true;
             if (rule.RuleResult != RuleResultEnum.NotRun)
@@ -1476,8 +1482,31 @@ namespace SSASDiag
             }
 
             if (ShouldUIUpdate)
-                foreach (Series s in rule.CustomSeries)
-                    Invoke(new Action(() => AddCustomSeries(s)));
+            {
+                Invoke(new Action(() =>
+                {
+                    foreach (Series s in rule.CustomSeries)
+                        AddCustomSeries(s);
+                    foreach (StripLine s in rule.CustomStripLines)
+                    {
+                        double max = s.IntervalOffset;
+                        s.Tag = max;
+                        s.IntervalOffset = !chkAutoScale.Checked ? max : max * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10(max)))));
+                        s.StripWidth = !chkAutoScale.Checked ? s.StripWidth : s.StripWidth * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10(s.StripWidth)))));
+                        CurrentRuleCustomStripLines.Add(s);
+
+                        chartPerfMon.ChartAreas[0].AxisY.StripLines.Add(s);
+                        if (chkAutoScale.Checked)
+                            chartPerfMon.ChartAreas[0].AxisY.Maximum = 100;
+                        else
+                            chartPerfMon.ChartAreas[0].AxisY.Maximum = Double.NaN;
+
+                        chartPerfMon.Legends[0].CustomItems.Add(new LegendItem(s.Text, s.BackColor, ""));
+
+                        chartPerfMon.ChartAreas[0].RecalculateAxesScale();
+                    }
+                }));
+            }
         }
 
         private void btnRunRules_Click(object sender, EventArgs e)
@@ -1494,6 +1523,8 @@ namespace SSASDiag
         public string FullPathAlternateHierarchy(string Path)
         {
             string[] pathParts = Path.Split('\\');
+            if (pathParts.Length == 1)
+                return pathParts[0];
             string sAlternatePath = pathParts[0] + "\\";
             for (int i = 1; i < pathParts.Length - 1; i++)
                 sAlternatePath += (pathParts[i + 1] + "\\");
@@ -1503,12 +1534,15 @@ namespace SSASDiag
 
         List<Series> CurrentRuleHiddenSeries = new List<Series>();
         List<string> CurrentRuleCustomSeries = new List<string>();
+        List<StripLine> CurrentRuleCustomStripLines = new List<StripLine>();
         private void dgdRules_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
                 new Thread(new ThreadStart(() =>
                 {
+                    CurrentRuleCustomSeries.Clear();
+                    CurrentRuleHiddenSeries.Clear();
                     Rule rule = dgdRules.Rows[e.RowIndex].DataBoundItem as Rule;
                     if (rule.Counters[0].ChartSeries == null)
                         RunRule(rule);

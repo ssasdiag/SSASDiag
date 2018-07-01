@@ -80,7 +80,7 @@ namespace SSASDiag
         }
         private void PopulateAnalysisTabs()
         {           
-            Text = "SSAS Diagnostics Analysis: " + txtFolderZipForAnalysis.Text.Substring(txtFolderZipForAnalysis.Text.LastIndexOf("\\") + 1);
+            Text = txtFolderZipForAnalysis.Text.Substring(txtFolderZipForAnalysis.Text.LastIndexOf("\\") + 1);
             tcAnalysis.Visible = false;
             lblInitialAnalysisPrompt.Visible = false;
             if (connSqlDb.State != ConnectionState.Closed)

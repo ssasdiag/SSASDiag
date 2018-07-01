@@ -33,27 +33,40 @@ namespace SSASDiag
 
             // Rule 0
 
-            Rule r = new Rule();
-            r.Category = "Memory";
-            r.Name = "Server Available Memory";
-            r.Description = "Checks to ensure sufficient free memory.";
+            Rule r0 = new Rule("Server Available Memory", "Memory", "Checks to ensure sufficient free memory.");
             RuleCounter AvailableMB = new RuleCounter("Memory\\Available MBytes", true, false, Color.Blue);
             RuleCounter WorkingSet = new RuleCounter("Process\\Working Set\\_Total", false);
-            r.Counters.Add(AvailableMB);
-            r.Counters.Add(WorkingSet);
-            r.RuleFunction = new Action(() =>
+            r0.Counters.Add(AvailableMB);
+            r0.Counters.Add(WorkingSet);
+            r0.RuleFunction = new Action(() =>
             {
-                r.RuleResult = RuleResultEnum.Pass;
+                r0.RuleResult = RuleResultEnum.Pass;
                 double totalMem = ((double)AvailableMB.ChartSeries.Points[0].Tag) + (((double)WorkingSet.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
-                Series TotalMemory = r.AddCustomSeriesAtY("Total Physical Memory MB", totalMem, Color.Black);
-                // Perform validation with a standard rule function and update rule result descriptions
-                r.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, "5% of Total Memory", "3% of Total Memory", null, null, false);
-                if (r.RuleResult == RuleResultEnum.Fail) r.ResultDescription = "Fail: Less than 3% free memory.";
-                if (r.RuleResult == RuleResultEnum.Warn) r.ResultDescription = "Warning: Less than 5% free memory.";
-                if (r.RuleResult == RuleResultEnum.Pass) r.ResultDescription = "Pass: Sufficient memory available at all times.";
+                r0.AddStripLine("Total Physical Memory MB", totalMem, totalMem, Color.Black);
+                r0.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, "5% available memory", "3% available memory", null, null, true);
+                if (r0.RuleResult == RuleResultEnum.Fail) r0.ResultDescription = "Fail: Less than 3% free memory.";
+                if (r0.RuleResult == RuleResultEnum.Warn) r0.ResultDescription = "Warning: Less than 5% free memory.";
+                if (r0.RuleResult == RuleResultEnum.Pass) r0.ResultDescription = "Pass: Sufficient memory available at all times.";
             });
-            Rules.Add(r);
-            
+            Rules.Add(r0);
+
+            Rule r1 = new Rule("Server Available Memory2", "Memory", "Checks to ensure LOTS of sufficient free memory.");
+            RuleCounter AvailableMB2 = new RuleCounter("Memory\\Available MBytes", true, false, Color.Blue);
+            RuleCounter WorkingSet2 = new RuleCounter("Process\\Working Set\\_Total", false);
+            r1.Counters.Add(AvailableMB2);
+            r1.Counters.Add(WorkingSet2);
+            r1.RuleFunction = new Action(() =>
+            {
+                r1.RuleResult = RuleResultEnum.Pass;
+                double totalMem = ((double)AvailableMB2.ChartSeries.Points[0].Tag) + (((double)WorkingSet2.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
+                r1.AddStripLine("Total Physical Memory MB", totalMem, totalMem, Color.Black);
+                r1.ValidateThresholdRule(AvailableMB2.ChartSeries, totalMem * .89, totalMem * .80, "89% of Total Memory", "80% of Total Memory", null, null, true);
+                if (r1.RuleResult == RuleResultEnum.Fail) r1.ResultDescription = "Fail: Less than 80% free memory.";
+                if (r1.RuleResult == RuleResultEnum.Warn) r1.ResultDescription = "Warning: Less than 89% free memory.";
+                if (r1.RuleResult == RuleResultEnum.Pass) r1.ResultDescription = "Pass: Sufficient memory available at all times.";
+            });
+            Rules.Add(r1);
+
         }
 
         private enum RuleResultEnum
@@ -79,6 +92,13 @@ namespace SSASDiag
 
         private class Rule : INotifyPropertyChanged
         {
+            public Rule(string Name, string Category, string Description)
+            {
+                this.Name = Name;
+                this.Category = Category;
+                this.Description = Description;
+            }
+
             public event PropertyChangedEventHandler PropertyChanged;
             public string Name { get; set; } = "";
             public string Description { get; set; } = "";
@@ -110,6 +130,7 @@ namespace SSASDiag
 
             public List<RuleCounter> Counters = new List<RuleCounter>();
             public List<Series> CustomSeries = new List<Series>();
+            public List<StripLine> CustomStripLines = new List<StripLine>();
 
             private RuleResultEnum ruleResult = RuleResultEnum.NotRun;
             [Browsable(false)]
@@ -119,19 +140,53 @@ namespace SSASDiag
             [Browsable(false)]
             public Action RuleFunction { get { return ruleFunction; } set { ruleFunction = value; } }
 
-            public Series AddCustomSeriesAtY(string name, double y, Color color)
+            public double MaxValueForRule()
             {
-                Series s = new Series(name);
-                s.ChartType = SeriesChartType.Line;
-                s.XValueType = ChartValueType.DateTime;
-                s.EmptyPointStyle.BorderWidth = 0;
-                s.BorderColor = s.Color = color;
+                double max = double.MinValue;
+                foreach (RuleCounter rc in Counters)
+                    if (rc.ChartSeries.Tag != null)
+                    {
+                        if ((double)rc.ChartSeries.Tag > max)
+                            max = (double)rc.ChartSeries.Tag;
+                    }
+                    else
+                    {
+                        if (rc.ChartSeries.Points.FindMaxByValue().YValues[0] > max)
+                            max = rc.ChartSeries.Points.FindMaxByValue().YValues[0];
+                    }
+                foreach (Series s in CustomSeries)
+                    if (s.Tag != null)
+                    {
+                        if ((double)s.Tag > max)
+                            max = (double)s.Tag;
+                    }
+                    else
+                    {
+                        if (s.Points.FindMaxByValue().YValues[0] > max)
+                            max = s.Points.FindMaxByValue().YValues[0];
+                    }
+                foreach (StripLine s in CustomStripLines)
+                    if (s.IntervalOffset > max)
+                        max = s.IntervalOffset;
+                return max;
+            }
 
-                DataPointCollection p1 = Counters[0].ChartSeries.Points;
-                for (int i = 0; i < p1.Count; i++)
-                    s.Points.Add(new DataPoint(p1[i].XValue, y));
+            public StripLine AddStripLine(string name, double y, double y2, Color color)
+            {
+                StripLine s = new StripLine();
+                s.Interval = 0;
+                s.Text = name;
+                if (y != y2)
+                    s.BackColor = Color.FromArgb(128, color);
+                else
+                    s.BackColor = color;
+                s.BorderColor = color;
+                s.ForeColor = Color.Transparent;
+                s.IntervalOffset = y > y2 ? y2 : y;
+                s.StripWidth = Math.Abs(y2 - y);
+                s.BorderWidth = 1;
 
-                CustomSeries.Add(s);
+                CustomStripLines.Add(s);
                 return s;
             }
             public void ValidateThresholdRule(Series s, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", Color? WarnColor = null, Color? ErrorColor = null, bool Below = true)
@@ -139,15 +194,24 @@ namespace SSASDiag
                 if (!WarnColor.HasValue)
                     WarnColor = Color.Yellow;
                 if (!ErrorColor.HasValue)
-                    ErrorColor = Color.Red;
+                    ErrorColor = Color.DarkRed;
 
-                Series WarnSeries = null;
-                Series ErrorSeries = null;
-                if (WarningLineText != "")
-                    WarnSeries = AddCustomSeriesAtY(WarningLineText, WarnY, WarnColor.Value);
-                if (ErrorLineText != "")
-                    ErrorSeries  = AddCustomSeriesAtY(ErrorLineText, ErrorY, ErrorColor.Value);
-
+                StripLine WarnRegion = null;
+                StripLine ErrorRegion = null;
+                if (Below)
+                {
+                    if (WarningLineText != "")
+                        WarnRegion = AddStripLine(WarningLineText, WarnY, ErrorY, WarnColor.Value);
+                    if (ErrorLineText != "")
+                        ErrorRegion = AddStripLine(ErrorLineText, 0, ErrorY, ErrorColor.Value);
+                }
+                else
+                {
+                    if (WarningLineText != "")
+                        WarnRegion = AddStripLine(WarningLineText, 0, WarnY, WarnColor.Value);
+                    if (ErrorLineText != "")
+                        ErrorRegion = AddStripLine(ErrorLineText, WarnY > 0 ? WarnY : 0, ErrorY, ErrorColor.Value);
+                }
                 foreach (DataPoint p in s.Points)
                 {
                     double val = 0;
@@ -158,32 +222,21 @@ namespace SSASDiag
 
                     if (Below)
                     {
-                        if (val >= ErrorY)
-                        {
-                            p.Color = ErrorColor.Value;
+                        if (val <= ErrorY)
                             RuleResult = RuleResultEnum.Fail;
-                        }
-                        else if (val >= WarnY)
-                        {
-                            p.Color = WarnColor.Value;
+                        else if (val <= WarnY)
                             if (RuleResult != RuleResultEnum.Fail)
                                 RuleResult = RuleResultEnum.Warn;
-                        }
                     }
                     else
                     {
-                        if (val <= ErrorY)
-                        {
-                            p.Color = ErrorColor.Value;
+                        if (val >= ErrorY)
                             RuleResult = RuleResultEnum.Fail;
-                        }
-                        else if (val <= WarnY)
-                        {
-                            p.Color = WarnColor.Value;
+                        else if (val >= WarnY)
                             if (RuleResult != RuleResultEnum.Fail)
                                 RuleResult = RuleResultEnum.Warn;
-                        }
                     }
+
                 }
             }
 
