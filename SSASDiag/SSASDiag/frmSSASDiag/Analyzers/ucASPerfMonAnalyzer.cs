@@ -1295,26 +1295,17 @@ namespace SSASDiag
             Program.MainForm.Invoke(new Action(() => DrawingControl.ResumeDrawing(Program.MainForm)));
         }
 
-        public void AddCustomSeries(Series s)
+        public double AddCustomSeries(Series s)
         {
             double max = s.Points.FindMaxByValue().YValues[0];
             s.Tag = max;
             foreach (DataPoint p in s.Points)
-            {
-                if (p.Tag == null)
-                    p.Tag = p.YValues[0];
-                p.YValues[0] = !chkAutoScale.Checked ? (double)p.Tag : p.YValues[0] * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)max)))));
-            }
+                p.YValues[0] = p.YValues[0] ;
             s.LegendText = s.Name;
             CurrentRuleCustomSeries.Add(s.Name);
 
             chartPerfMon.Series.Add(s);
-            if (chkAutoScale.Checked)
-                chartPerfMon.ChartAreas[0].AxisY.Maximum = 100;
-            else
-                chartPerfMon.ChartAreas[0].AxisY.Maximum = Double.NaN;
-
-            chartPerfMon.ChartAreas[0].RecalculateAxesScale();
+            return max;
         }
 
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)
@@ -1436,6 +1427,9 @@ namespace SSASDiag
         private void RunRule(Rule rule, bool ShouldUIUpdate = true)
         {
             List<KeyValuePair<string, string>> HiddenCountersToLookup = new List<KeyValuePair<string, string>>();
+
+            // Clean up prior UI
+
             if (ShouldUIUpdate)
             {
                 Invoke(new Action(() =>
@@ -1447,6 +1441,8 @@ namespace SSASDiag
                 }));
                 tvCounters.AfterCheck -= TvCounters_AfterCheck;
             }
+
+            // Load the actual counters
             TreeNode n = null;
             foreach (RuleCounter c in rule.Counters)
             {
@@ -1493,6 +1489,8 @@ namespace SSASDiag
 
             Invoke(new Action(() => rule.RuleFunction()));
 
+            double max = chartPerfMon.ChartAreas[0].AxisY.Maximum;
+
             if (bNeverBeenRunBefore)
             {
                 string qry = "";
@@ -1505,19 +1503,21 @@ namespace SSASDiag
                 Invoke(new Action(() =>
                 {
                     foreach (Series s in rule.CustomSeries)
-                        AddCustomSeries(s);
+                    {
+                        double smax = AddCustomSeries(s);
+                        if (smax > max)
+                            max = smax;
+                    }
                     foreach (StripLine s in rule.CustomStripLines)
                     {
                         LegendItem li = new LegendItem(s.Text, s.BackColor, "");
-                        li.Tag = s.StripWidth;
                         chartPerfMon.Legends[0].CustomItems.Add(li);
-                        double max = s.IntervalOffset;
-                        s.Tag = max;;
+                        if (s.IntervalOffset > max)
+                            max = s.IntervalOffset;
                         CurrentRuleCustomStripLines.Add(s);
                         chartPerfMon.ChartAreas[0].AxisY.StripLines.Add(s);
-                        chartPerfMon.ChartAreas[0].AxisY.Maximum = Double.NaN;
-                        chartPerfMon.ChartAreas[0].RecalculateAxesScale();
                     }
+                    chartPerfMon.ChartAreas[0].AxisY.Maximum = max * 1.05;
                 }));
             }
         }
@@ -1610,7 +1610,7 @@ namespace SSASDiag
                                 chartPerfMon.ChartAreas[0].AxisY.StripLines.Add(s);
                                 CurrentRuleCustomStripLines.Add(s);
                             }
-                            chartPerfMon.ChartAreas[0].AxisY.Maximum = double.NaN;
+                            chartPerfMon.ChartAreas[0].AxisY.Maximum = max * 1.05;
                             chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
                             chartPerfMon.Legends[0].Enabled = true;
                             chartPerfMon.ChartAreas[0].RecalculateAxesScale();
@@ -1619,8 +1619,11 @@ namespace SSASDiag
                             tvCounters.ResumeLayout();
                         }));
                     }
-                    chkAutoScale.Checked = false;
-                    chkAutoScale.Enabled = false;
+                    Invoke(new Action(() =>
+                    {
+                        chkAutoScale.Checked = false;
+                        chkAutoScale.Enabled = false;
+                    }));
                 })).Start();
             }
         }
