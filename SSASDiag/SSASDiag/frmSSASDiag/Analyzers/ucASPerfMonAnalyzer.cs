@@ -125,6 +125,7 @@ namespace SSASDiag
             cmbServers.SelectedIndexChanged += cmbServers_SelectedIndexChanged;
 
             #endregion non-designer controls
+            chartPerfMon.Legends[0].BackColor = Color.FromArgb(210, SystemColors.Window);
 
             StatusFloater = statusFloater;
             StatusFloater.lblStatus.Text = StatusFloater.lblSubStatus.Text = "";
@@ -1074,6 +1075,8 @@ namespace SSASDiag
                     if (s != null)
                     {
                         chartPerfMon.Series.Remove(s);
+                        if (!chkAutoScale.Checked)
+                            chartPerfMon.ChartAreas[0].AxisY.Maximum = double.NaN;
                         e.Node.SelectedImageIndex = e.Node.ImageIndex = 0;
                         TvCounters_AfterSelect(sender, e);
                     }
@@ -1587,8 +1590,12 @@ namespace SSASDiag
                                 if ((double)rc.ChartSeries.Tag > max)
                                     max = (double)rc.ChartSeries.Tag;
                                 ScaleSeries(rc.ChartSeries);
-                                chartPerfMon.Series.Add(rc.ChartSeries);
                                 TreeNode node = tvCounters.FindNodeByPath(rc.Path);
+                                if (tvCounters.SelectedNodes.Contains(node))
+                                    rc.ChartSeries.BorderWidth = 4;
+                                else
+                                    rc.ChartSeries.BorderWidth = 1;
+                                chartPerfMon.Series.Add(rc.ChartSeries);
                                 if (node == null) node = tvCounters.FindNodeByPath(FullPathAlternateHierarchy(rc.Path));
                                 node.ImageIndex = legend.Images.IndexOfKey(rc.Path);
                                 node.Checked = true;
