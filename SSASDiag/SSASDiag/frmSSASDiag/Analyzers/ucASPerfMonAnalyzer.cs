@@ -1024,6 +1024,22 @@ namespace SSASDiag
                     max = (double)s.Tag;
                 ScaleSeries(s);
             }
+            foreach (StripLine s in chartPerfMon.ChartAreas[0].AxisY.StripLines)
+            {
+                if ((double)s.Tag > max)
+                    max = (double)s.Tag;
+                
+                double newOffset = chkAutoScale.Checked ? (double)s.Tag * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)s.Tag))))) : (double)s.Tag;
+                LegendItem li = chartPerfMon.Legends[0].CustomItems.Where(ci => ci.Name == s.Text).First();
+                s.StripWidth = chkAutoScale.Checked ? (double)li.Tag * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)li.Tag))))) : (double)li.Tag;
+                if (Double.IsNaN(s.StripWidth))
+                    s.StripWidth = 0.0;
+                if (Double.IsNaN(newOffset))
+                    s.IntervalOffset = 0.0;
+                else
+                    s.IntervalOffset = newOffset;
+                
+            }
             chartPerfMon.ChartAreas[0].AxisY.LabelStyle.Enabled = !chkAutoScale.Checked;
             chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
             chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
@@ -1297,8 +1313,6 @@ namespace SSASDiag
             chartPerfMon.ChartAreas[0].RecalculateAxesScale();
         }
 
-
-
         private void ucASPerfMonAnalyzer_SizeChanged(object sender, EventArgs e)
         {
             tvCounters.Height = splitPerfMonCountersAndChart.Height - dgdGrouping.Height;
@@ -1489,10 +1503,14 @@ namespace SSASDiag
                         AddCustomSeries(s);
                     foreach (StripLine s in rule.CustomStripLines)
                     {
+                        LegendItem li = new LegendItem(s.Text, s.BackColor, "");
+                        li.Tag = s.StripWidth;
+                        chartPerfMon.Legends[0].CustomItems.Add(li);
+
                         double max = s.IntervalOffset;
                         s.Tag = max;
                         s.IntervalOffset = !chkAutoScale.Checked ? max : max * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10(max)))));
-                        s.StripWidth = !chkAutoScale.Checked ? s.StripWidth : s.StripWidth * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10(s.StripWidth)))));
+                        s.StripWidth = !chkAutoScale.Checked ? (double)li.Tag : (double)li.Tag * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)li.Tag)))));
                         CurrentRuleCustomStripLines.Add(s);
 
                         chartPerfMon.ChartAreas[0].AxisY.StripLines.Add(s);
@@ -1501,7 +1519,7 @@ namespace SSASDiag
                         else
                             chartPerfMon.ChartAreas[0].AxisY.Maximum = Double.NaN;
 
-                        chartPerfMon.Legends[0].CustomItems.Add(new LegendItem(s.Text, s.BackColor, ""));
+
 
                         chartPerfMon.ChartAreas[0].RecalculateAxesScale();
                     }
