@@ -34,8 +34,8 @@ namespace SSASDiag
             // Rule 0
 
             Rule r0 = new Rule("Server Available Memory", "Memory", "Checks to ensure sufficient free memory.");
-            RuleCounter AvailableMB = RuleCounter.CountersFromPath(tvCounters, "Memory\\Available MBytes", true, false, Color.Blue).First();
-            RuleCounter WorkingSet = RuleCounter.CountersFromPath(tvCounters, "Process\\Working Set\\_Total", false).First();
+            RuleCounter AvailableMB = RuleCounter.CountersFromPath("Memory\\Available MBytes", true, false, Color.Blue).First();
+            RuleCounter WorkingSet = RuleCounter.CountersFromPath("Process\\Working Set\\_Total", false).First();
             r0.Counters.Add(AvailableMB);
             r0.Counters.Add(WorkingSet);
             r0.RuleFunction = new Action(() =>
@@ -51,8 +51,8 @@ namespace SSASDiag
             Rules.Add(r0);
 
             Rule r1 = new Rule("Server Available Memory2", "Memory", "Checks to ensure LOTS of sufficient free memory.");
-            RuleCounter AvailableMB2 = RuleCounter.CountersFromPath(tvCounters, "Memory\\Available MBytes", true, false, Color.Blue).First();
-            RuleCounter WorkingSet2 = RuleCounter.CountersFromPath(tvCounters, "Process\\Working Set\\_Total", false).First();
+            RuleCounter AvailableMB2 = RuleCounter.CountersFromPath("Memory\\Available MBytes", true, false, Color.Blue).First();
+            RuleCounter WorkingSet2 = RuleCounter.CountersFromPath("Process\\Working Set\\_Total", false).First();
             r1.Counters.Add(AvailableMB2);
             r1.Counters.Add(WorkingSet2);
             r1.RuleFunction = new Action(() =>
@@ -68,7 +68,7 @@ namespace SSASDiag
             Rules.Add(r1);
 
             Rule r2 = new Rule("Disk Read Time", "IO", "Checks to ensure healthy disk read speed.");
-            List<RuleCounter> DiskSecsPerRead = RuleCounter.CountersFromPath(tvCounters, "PhysicalDisk\\Avg. Disk sec/Read\\*", true, false);
+            List<RuleCounter> DiskSecsPerRead = RuleCounter.CountersFromPath("PhysicalDisk\\Avg. Disk sec/Read\\-*", true, false);
             foreach (RuleCounter rc in DiskSecsPerRead)
                 r2.Counters.Add(rc);
             r2.RuleFunction = new Action(() =>
@@ -98,8 +98,9 @@ namespace SSASDiag
                 this.CounterColor = CounterColor;
             }
 
-            public static List<RuleCounter> CountersFromPath(TriStateTreeView tvCounters, string Path, bool ShowInChart = true, bool HighlightInChart = false, Color? CounterColor = null)
+            public static List<RuleCounter> CountersFromPath(string Path, bool ShowInChart = true, bool HighlightInChart = false, Color? CounterColor = null)
             {
+                TriStateTreeView tvCounters = ((Program.MainForm.tcCollectionAnalysisTabs.TabPages[1].Controls["tcAnalysis"] as TabControl).TabPages["Performance Logs"].Controls[0] as ucASPerfMonAnalyzer).tvCounters;
                 List<RuleCounter> counters = new List<RuleCounter>();
                 string[] parts = Path.Split('\\');
                 if (parts.Length > 1)

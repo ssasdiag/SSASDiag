@@ -126,6 +126,7 @@ namespace SSASDiag
 
             #endregion non-designer controls
             chartPerfMon.Legends[0].BackColor = Color.FromArgb(210, SystemColors.Window);
+            chartPerfMon.Legends[0].Font = txtDur.Font;
 
             StatusFloater = statusFloater;
             StatusFloater.lblStatus.Text = StatusFloater.lblSubStatus.Text = "";
