@@ -1596,7 +1596,21 @@ namespace SSASDiag
                     }));
                     Rule rule = dgdRules.Rows[e.RowIndex].DataBoundItem as Rule;
                     if (rule.Counters[0].ChartSeries == null)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            Form f = Program.MainForm;
+                            f.Enabled = false;
+                            StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
+                            StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
+                            StatusFloater.lblStatus.Text = "Running 1 rule...";
+                            StatusFloater.lblSubStatus.Text = "";
+                            StatusFloater.lblTime.Text = "00:00";
+                            StatusFloater.AutoUpdateDuration = true;
+                            StatusFloater.Show(f);
+                        }));
                         RunRule(rule);
+                    }
                     else
                     {
                         Invoke(new Action(() =>
@@ -1658,6 +1672,8 @@ namespace SSASDiag
                     {
                         chkAutoScale.Checked = false;
                         chkAutoScale.Enabled = false;
+                        Program.MainForm.Enabled = true;
+                        StatusFloater.Hide();
                     }));
                 })).Start();
             }
