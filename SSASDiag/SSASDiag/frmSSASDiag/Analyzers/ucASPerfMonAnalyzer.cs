@@ -1114,7 +1114,6 @@ namespace SSASDiag
             ParentNodeOfUpdateBatch = null;
             CurrentRuleHiddenSeries.Clear();
 
-            
             if (CountersToUpdate.Count != 0)
             {
 
@@ -1125,19 +1124,20 @@ namespace SSASDiag
                 List<TreeNode> nodes = tvCounters.GetLeafNodes().Where(n => n.ImageIndex < 1).ToList();
                 int iCurNode = 1;
 
-                StatusFloater.Invoke(new Action(() =>
-                {
-                    Form f = Program.MainForm;
-                    StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
-                    StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
-                    StatusFloater.lblStatus.Text = "Loading data for " + CountersToUpdate.Count + " counters...";
-                    StatusFloater.lblSubStatus.Text = "";
-                    StatusFloater.lblTime.Text = "00:00";
-                    StatusFloater.EscapePressed = false;
-                    StatusFloater.AutoUpdateDuration = true;
-                    StatusFloater.Visible = true;
-                    f.Enabled = false;
-                }));
+                if (rule == null)
+                    StatusFloater.Invoke(new Action(() =>
+                    {
+                        Form f = Program.MainForm;
+                        StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
+                        StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
+                        StatusFloater.lblStatus.Text = "Loading data for " + CountersToUpdate.Count + " counters...";
+                        StatusFloater.lblSubStatus.Text = "";
+                        StatusFloater.lblTime.Text = "00:00";
+                        StatusFloater.EscapePressed = false;
+                        StatusFloater.AutoUpdateDuration = true;
+                        StatusFloater.Visible = true;
+                        f.Enabled = false;
+                    }));
 
                 string qry = @" select a.*, b.MinutesToUTC, OriginalCounterID from CounterData a, DisplayToID b,
                             (select aa.CounterID as OriginalCounterID, bb.CounterID from (select * from CounterDetails where CounterID in (" + string.Join(", ", CountersToUpdate.Select(c => c.Key)) + @")) aa, CounterDetails bb where 
@@ -1227,7 +1227,7 @@ namespace SSASDiag
                                     g.DrawLine(pen, 0, 7, 16, 7);
                                 }
 
-                                if (StatusFloater.EscapePressed)
+                                if (StatusFloater.EscapePressed && rule == null)
                                     Invoke(new Action(() => tvCounters.FindNodeByPath(counter.Value).Checked = false));
                                 else
                                 {
@@ -1253,7 +1253,7 @@ namespace SSASDiag
                                         Application.DoEvents();
                                     }));
 
-                                    if (StatusFloater.Visible)
+                                    if (StatusFloater.Visible && rule == null)
                                         StatusFloater.Invoke(new Action(() =>
                                         {
                                             StatusFloater.lblStatus.Text = "Loaded " + iCurNode + " of " + nodes.Count + " counters...";
@@ -1284,14 +1284,13 @@ namespace SSASDiag
                         chartPerfMon.ChartAreas[0].RecalculateAxesScale();
                         chartPerfMon.Update();
                     }));
-                StatusFloater.Invoke(new Action(() =>
-                    {
-                        StatusFloater.EscapePressed = false;
-                        StatusFloater.Visible = false;
-                        Program.MainForm.Enabled = true;
-                    }));
-                // Removed in the AfterCheck function, the only place that ever invokes this...
-                
+                if (rule == null)
+                    StatusFloater.Invoke(new Action(() =>
+                        {
+                            StatusFloater.EscapePressed = false;
+                            StatusFloater.Visible = false;
+                            Program.MainForm.Enabled = true;
+                        }));                
                 tvCounters.ResumeLayout();
             }
 
@@ -1431,7 +1430,12 @@ namespace SSASDiag
         {
             List<KeyValuePair<string, string>> HiddenCountersToLookup = new List<KeyValuePair<string, string>>();
 
-            // Clean up prior UI
+            Invoke(new Action(() =>
+            {
+                StatusFloater.lblSubStatus.Text = rule.Name;
+                StatusFloater.Invalidate();
+                Application.DoEvents();
+            }));
 
             if (ShouldUIUpdate)
             {
@@ -1445,7 +1449,6 @@ namespace SSASDiag
                 tvCounters.AfterCheck -= TvCounters_AfterCheck;
             }
 
-            // Load the actual counters
             TreeNode n = null;
             foreach (RuleCounter c in rule.Counters)
             {
@@ -1529,10 +1532,33 @@ namespace SSASDiag
         {
             new Thread(new ThreadStart(() =>
             {
+                List<DataGridViewRow> RulesToRun = new List<DataGridViewRow>();
                 foreach (DataGridViewRow row in dgdRules.Rows)
                     if (row.Selected || (sender as Button).Text == "Run All")
                         if ((row.DataBoundItem as Rule).Counters[0].ChartSeries == null)
-                            RunRule(row.DataBoundItem as Rule, dgdRules.SelectedRows.Contains(row));
+                            RulesToRun.Add(row);
+                if (RulesToRun.Count > 0)
+                {
+                    Form f = Program.MainForm;
+                    Invoke(new Action(() =>
+                    {
+                        f.Enabled = false;
+                        StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
+                        StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
+                        StatusFloater.lblStatus.Text = "Running " + RulesToRun.Count + " rule" + (RulesToRun.Count > 1 ? "s..." : "...");
+                        StatusFloater.lblSubStatus.Text = "";
+                        StatusFloater.lblTime.Text = "";
+                        StatusFloater.AutoUpdateDuration = true;
+                        StatusFloater.Show(f);
+                    }));
+                    foreach (DataGridViewRow r in RulesToRun)
+                        RunRule(r.DataBoundItem as Rule, dgdRules.SelectedRows.Contains(r));
+                    Invoke(new Action(() =>
+                    {
+                        StatusFloater.Hide();
+                        f.Enabled = true;
+                    }));
+                }
             })).Start();
         }
 
