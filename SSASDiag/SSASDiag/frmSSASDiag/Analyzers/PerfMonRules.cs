@@ -34,8 +34,8 @@ namespace SSASDiag
             // Rule 0
 
             Rule r0 = new Rule("Server Available Memory", "Memory", "Checks to ensure sufficient free memory.");
-            RuleCounter AvailableMB = new RuleCounter("Memory\\Available MBytes", true, false, Color.Blue);
-            RuleCounter WorkingSet = new RuleCounter("Process\\Working Set\\_Total", false);
+            RuleCounter AvailableMB = RuleCounter.CountersFromPath(tvCounters, "Memory\\Available MBytes", true, false, Color.Blue).First();
+            RuleCounter WorkingSet = RuleCounter.CountersFromPath(tvCounters, "Process\\Working Set\\_Total", false).First();
             r0.Counters.Add(AvailableMB);
             r0.Counters.Add(WorkingSet);
             r0.RuleFunction = new Action(() =>
@@ -51,8 +51,8 @@ namespace SSASDiag
             Rules.Add(r0);
 
             Rule r1 = new Rule("Server Available Memory2", "Memory", "Checks to ensure LOTS of sufficient free memory.");
-            RuleCounter AvailableMB2 = new RuleCounter("Memory\\Available MBytes", true, false, Color.Blue);
-            RuleCounter WorkingSet2 = new RuleCounter("Process\\Working Set\\_Total", false);
+            RuleCounter AvailableMB2 = RuleCounter.CountersFromPath(tvCounters, "Memory\\Available MBytes", true, false, Color.Blue).First();
+            RuleCounter WorkingSet2 = RuleCounter.CountersFromPath(tvCounters, "Process\\Working Set\\_Total", false).First();
             r1.Counters.Add(AvailableMB2);
             r1.Counters.Add(WorkingSet2);
             r1.RuleFunction = new Action(() =>
@@ -67,6 +67,15 @@ namespace SSASDiag
             });
             Rules.Add(r1);
 
+            Rule r2 = new Rule("Disk Read Time", "IO", "Checks to ensure healthy disk read speed.");
+            List<RuleCounter> DiskSecsPerRead = RuleCounter.CountersFromPath(tvCounters, "PhysicalDisk\\Avg. Disk sec/Read\\*", true, false);
+            foreach (RuleCounter rc in DiskSecsPerRead)
+                r2.Counters.Add(rc);
+            r2.RuleFunction = new Action(() =>
+            {
+                r2.RuleResult = RuleResultEnum.Pass;
+            });
+            Rules.Add(r2);
         }
 
         private enum RuleResultEnum
@@ -81,12 +90,60 @@ namespace SSASDiag
             public bool HighlightInChart = true;
             public Series ChartSeries = null;
             public Color? CounterColor = null;
-            public RuleCounter(string Path, bool ShowInChart = true, bool HighlightInChart = false, Color? CounterColor = null)
+            private RuleCounter(string Path, bool ShowInChart = true, bool HighlightInChart = false, Color? CounterColor = null)
             {
                 this.Path = Path;
                 this.ShowInChart = ShowInChart;
                 this.HighlightInChart = HighlightInChart;
                 this.CounterColor = CounterColor;
+            }
+
+            public static List<RuleCounter> CountersFromPath(TriStateTreeView tvCounters, string Path, bool ShowInChart = true, bool HighlightInChart = false, Color? CounterColor = null)
+            {
+                List<RuleCounter> counters = new List<RuleCounter>();
+                string[] parts = Path.Split('\\');
+                if (parts.Length > 1)
+                {
+                    string counter = parts[0] + "\\" + parts[1];
+                    if (parts.Length > 2)
+                    {
+                        TreeNode node = tvCounters.FindNodeByPath(counter);
+                        if (node == null)
+                        {
+                            parts = ucASPerfMonAnalyzer.FullPathAlternateHierarchy(Path).Split('\\');
+                            counter = parts[0] + "\\" + parts[1];
+                            node = tvCounters.FindNodeByPath(counter);
+                        }
+                        if (node == null)
+                            return counters;
+                        if (parts[2].Contains("*"))
+                        {
+                            foreach (TreeNode child in node.Nodes)
+                                if ((parts[2].StartsWith("-") && child.Text != "_Total") ||
+                                    !parts[2].StartsWith("-"))
+                                {
+                                    if (parts.Length > 3)
+                                    {
+                                        if (parts[3].Contains("*"))
+                                        {
+                                            foreach (TreeNode grandchild in child.Nodes)
+                                            {
+                                                counters.Add(new RuleCounter(counter + "\\" + parts[3] + "\\" + grandchild.Name, ShowInChart, HighlightInChart, CounterColor));
+                                            }
+                                        }
+                                        else
+                                            counters.Add(new RuleCounter(counter + "\\" + parts[3], ShowInChart, HighlightInChart, CounterColor));
+                                    }
+                                    counters.Add(new RuleCounter(counter + "\\" + child.Name, ShowInChart, HighlightInChart, CounterColor));
+                                }
+                        }
+                        else
+                            counters.Add(new RuleCounter(counter + "\\" + parts[2], ShowInChart, HighlightInChart, CounterColor));
+                    }
+                    else
+                        counters.Add(new RuleCounter(counter, ShowInChart, HighlightInChart, CounterColor));
+                }
+                return counters;
             }
         }
 

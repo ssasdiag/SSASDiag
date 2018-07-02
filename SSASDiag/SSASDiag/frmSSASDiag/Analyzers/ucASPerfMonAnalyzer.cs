@@ -35,7 +35,7 @@ namespace SSASDiag
         int iNodesRemaingingToProcessInBatch = 0;
         ImageList legend = new ImageList();
         TimeRangeBar trTimeRange = new TimeRangeBar();
-        private TriStateTreeView tvCounters;
+        public TriStateTreeView tvCounters;
         private StripLine stripLine = new StripLine();
         int LogCountAnalyzedInCurrentRun = 0;
         public bool bCancel = false;
@@ -760,6 +760,25 @@ namespace SSASDiag
                         f.Enabled = true;
                     }));
 
+                    DefineRules();
+
+                    SqlDataReader dr = new SqlCommand("select * from RuleResults", connDB).ExecuteReader();
+                    while (dr.Read())
+                    {
+                        Rule r = Rules.Where(rr => rr.Name == dr["RuleName"] as string).First();
+                        r.RuleResult = (RuleResultEnum)dr["Result"];
+                        if (dr["ResultDescription"] != null)
+                            r.ResultDescription = dr["ResultDescription"] as string;
+                    }
+                    dr.Close();
+
+                    BindingSource b = new BindingSource();
+                    Invoke(new Action(() =>
+                    {
+                        b.DataSource = Rules;
+                        dgdRules.DataSource = b;
+                        dgdRules.ClearSelection();
+                    }));
                 })).Start();
             }
         }
@@ -984,23 +1003,6 @@ namespace SSASDiag
             chartPerfMon.ChartAreas[0].AxisX.Maximum = (dr["StopTime"] as DateTime?).Value.ToOADate();
             chartPerfMon.ChartAreas[0].AxisX.Maximum = ((dr["StopTime"] as DateTime?).Value).ToOADate();
             dr.Close();
-
-            DefineRules();
-
-            dr = new SqlCommand("select * from RuleResults", connDB).ExecuteReader();
-            while (dr.Read())
-            {
-                Rule r = Rules.Where(rr => rr.Name == dr["RuleName"] as string).First();
-                r.RuleResult = (RuleResultEnum)dr["Result"];
-                if (dr["ResultDescription"] != null)
-                    r.ResultDescription = dr["ResultDescription"] as string;
-            }
-            dr.Close();
-
-            BindingSource b = new BindingSource();
-            b.DataSource = Rules;
-            dgdRules.DataSource = b;
-            dgdRules.ClearSelection();
 
             DgdGrouping_ColumnDisplayIndexChanged(sender, new DataGridViewColumnEventArgs(dgdGrouping.Columns[0]));
         }
@@ -1547,7 +1549,7 @@ namespace SSASDiag
                         StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
                         StatusFloater.lblStatus.Text = "Running " + RulesToRun.Count + " rule" + (RulesToRun.Count > 1 ? "s..." : "...");
                         StatusFloater.lblSubStatus.Text = "";
-                        StatusFloater.lblTime.Text = "";
+                        StatusFloater.lblTime.Text = "00:00";
                         StatusFloater.AutoUpdateDuration = true;
                         StatusFloater.Show(f);
                     }));
@@ -1562,7 +1564,7 @@ namespace SSASDiag
             })).Start();
         }
 
-        public string FullPathAlternateHierarchy(string Path)
+        public static string FullPathAlternateHierarchy(string Path)
         {
             string[] pathParts = Path.Split('\\');
             if (pathParts.Length == 1)

@@ -863,6 +863,8 @@ namespace SSASDiag
             if (levels.Length > 0)
             {
                 TreeNode n = Nodes[levels[0]];
+                if (n == null)
+                    return null;
                 for (int i = 1; i < levels.Length; i++)
                 {
                     if (n.Nodes[levels[i]] != null)
