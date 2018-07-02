@@ -1409,18 +1409,18 @@ namespace SSASDiag
             {
                 ContextMenu cm = new ContextMenu();
                 RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"Applications\windbg.exe\shell\open\command");
-                string WinDbgPath = "";
+                string PerfMonPath = "";
                 if (key != null)
                 {
-                    WinDbgPath = key.GetValue("") as string;
-                    WinDbgPath = WinDbgPath.Substring(0, WinDbgPath.IndexOf(".exe") + ".exe".Length).Replace("\"", "");
+                    PerfMonPath = key.GetValue("") as string;
+                    PerfMonPath = PerfMonPath.Substring(0, PerfMonPath.IndexOf(".exe") + ".exe".Length).Replace("\"", "");
                 }
-                if (WinDbgPath != "")
+                if (PerfMonPath != "")
                 {
                     PerfMonLog l = (dgdLogList.Rows[e.RowIndex].DataBoundItem as PerfMonLog);
                     cm.MenuItems.Add(new MenuItem("Open " + l.LogName + " in WinDbg for further analysis...",
                         new EventHandler((object o, EventArgs ea) =>
-                            Process.Start(WinDbgPath, "-z \"" + l.LogPath + "\""))
+                            Process.Start(PerfMonPath, "-z \"" + l.LogPath + "\""))
                         ));
                     cm.Show(ParentForm, new Point(MousePosition.X - ParentForm.Left - 10, MousePosition.Y - ParentForm.Top - 26));
                 }
@@ -1530,9 +1530,9 @@ namespace SSASDiag
             new Thread(new ThreadStart(() =>
             {
                 foreach (DataGridViewRow row in dgdRules.Rows)
-                    if (row.Selected || (sender as Button).Text == "Run All Rules")
+                    if (row.Selected || (sender as Button).Text == "Run All")
                         if ((row.DataBoundItem as Rule).Counters[0].ChartSeries == null)
-                            RunRule(row.DataBoundItem as Rule);
+                            RunRule(row.DataBoundItem as Rule, dgdRules.SelectedRows.Contains(row));
             })).Start();
         }
 
