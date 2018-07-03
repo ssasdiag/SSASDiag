@@ -50,7 +50,7 @@ namespace SSASDiag
             });
             Rules.Add(r0);
 
-            Rule r1 = new Rule("Server Available Memory2", "Memory", "Checks to ensure LOTS of sufficient free memory.");
+            Rule r1 = new Rule("Server Available Memory2", "Memory", "Checks to ensure **LOTS** of free memory.");
             RuleCounter AvailableMB2 = RuleCounter.CountersFromPath("Memory\\Available MBytes", true, false, Color.Blue).First();
             RuleCounter WorkingSet2 = RuleCounter.CountersFromPath("Process\\Working Set\\_Total", false).First();
             r1.Counters.Add(AvailableMB2);
@@ -69,11 +69,15 @@ namespace SSASDiag
 
             Rule r2 = new Rule("Disk Read Time", "IO", "Checks to ensure healthy disk read speed.");
             List<RuleCounter> DiskSecsPerRead = RuleCounter.CountersFromPath("PhysicalDisk\\Avg. Disk sec/Read\\-*", true, false);
+            List<Series> ruleCheckSeries = new List<Series>();
             foreach (RuleCounter rc in DiskSecsPerRead)
                 r2.Counters.Add(rc);
             r2.RuleFunction = new Action(() =>
             {
+                foreach (RuleCounter rc in DiskSecsPerRead)
+                    ruleCheckSeries.Add(rc.ChartSeries);
                 r2.RuleResult = RuleResultEnum.Pass;
+                r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, "10ms read time", "15ms read time", null, null, false);
             });
             Rules.Add(r2);
         }
@@ -100,7 +104,7 @@ namespace SSASDiag
 
             public static List<RuleCounter> CountersFromPath(string Path, bool ShowInChart = true, bool HighlightInChart = false, Color? CounterColor = null)
             {
-                TriStateTreeView tvCounters = ((Program.MainForm.tcCollectionAnalysisTabs.TabPages[1].Controls["tcAnalysis"] as TabControl).TabPages["Performance Logs"].Controls[0] as ucASPerfMonAnalyzer).tvCounters;
+                ucASPerfMonAnalyzer HostControl = ((Program.MainForm.tcCollectionAnalysisTabs.TabPages[1].Controls["tcAnalysis"] as TabControl).TabPages["Performance Logs"].Controls[0] as ucASPerfMonAnalyzer);
                 List<RuleCounter> counters = new List<RuleCounter>();
                 string[] parts = Path.Split('\\');
                 if (parts.Length > 1)
@@ -108,12 +112,12 @@ namespace SSASDiag
                     string counter = parts[0] + "\\" + parts[1];
                     if (parts.Length > 2)
                     {
-                        TreeNode node = tvCounters.FindNodeByPath(counter);
+                        TreeNode node = HostControl.tvCounters.FindNodeByPath(counter);
                         if (node == null)
                         {
                             parts = ucASPerfMonAnalyzer.FullPathAlternateHierarchy(Path).Split('\\');
                             counter = parts[0] + "\\" + parts[1];
-                            node = tvCounters.FindNodeByPath(counter);
+                            node = HostControl.tvCounters.FindNodeByPath(counter);
                         }
                         if (node == null)
                             return counters;
@@ -144,6 +148,7 @@ namespace SSASDiag
                     else
                         counters.Add(new RuleCounter(counter, ShowInChart, HighlightInChart, CounterColor));
                 }
+
                 return counters;
             }
         }
@@ -247,7 +252,14 @@ namespace SSASDiag
                 CustomStripLines.Add(s);
                 return s;
             }
-            public void ValidateThresholdRule(Series s, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", Color? WarnColor = null, Color? ErrorColor = null, bool Below = true)
+
+            public void ValidateThresholdRule(Series series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText = "", Color? WarnColor = null, Color? ErrorColor = null, bool CheckIfValueBelowWarnError = true)
+            {
+                List<Series> s = new List<Series>();
+                s.Add(series);
+                ValidateThresholdRule(s, WarnY, ErrorY, WarningLineText, ErrorLineText, WarnColor, ErrorColor, CheckIfValueBelowWarnError);
+            }
+            public void ValidateThresholdRule(List<Series> series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", Color? WarnColor = null, Color? ErrorColor = null, bool CheckIfValueBelowWarnError = true)
             {
                 if (!WarnColor.HasValue)
                     WarnColor = Color.Yellow;
@@ -256,7 +268,7 @@ namespace SSASDiag
 
                 StripLine WarnRegion = null;
                 StripLine ErrorRegion = null;
-                if (Below)
+                if (CheckIfValueBelowWarnError)
                 {
                     if (WarningLineText != "")
                         WarnRegion = AddStripLine(WarningLineText, WarnY, ErrorY, WarnColor.Value);
@@ -270,31 +282,25 @@ namespace SSASDiag
                     if (ErrorLineText != "")
                         ErrorRegion = AddStripLine(ErrorLineText, WarnY > 0 ? WarnY : 0, ErrorY, ErrorColor.Value);
                 }
-                foreach (DataPoint p in s.Points)
+                foreach (Series s in series)
                 {
-                    double val = 0;
-                    if (p.Tag == null)
-                        val = p.YValues[0];
-                    else
-                        val = (double)p.Tag;
-
-                    if (Below)
+                    if (CheckIfValueBelowWarnError)
                     {
-                        if (val <= ErrorY)
+                        if (s.Points.FindMaxByValue().YValues[0] >= ErrorY)
                             RuleResult = RuleResultEnum.Fail;
-                        else if (val <= WarnY)
-                            if (RuleResult != RuleResultEnum.Fail)
-                                RuleResult = RuleResultEnum.Warn;
+                        else if (s.Points.FindMaxByValue().YValues[0] >= WarnY)
+                            RuleResult = RuleResultEnum.Warn;
                     }
                     else
                     {
-                        if (val >= ErrorY)
+                        if (s.Points.FindMinByValue().YValues[0] <= ErrorY)
                             RuleResult = RuleResultEnum.Fail;
-                        else if (val >= WarnY)
-                            if (RuleResult != RuleResultEnum.Fail)
-                                RuleResult = RuleResultEnum.Warn;
+                        else if (s.Points.FindMinByValue().YValues[0] <= WarnY)
+                            RuleResult = RuleResultEnum.Warn;
                     }
 
+                    if (RuleResult != RuleResultEnum.Pass)
+                        return;
                 }
             }
 
@@ -306,6 +312,23 @@ namespace SSASDiag
                     handler(this, new PropertyChangedEventArgs(name));
                 }
             }
+        }
+    }
+
+    static class DataPointExtensions
+    {
+        public static double AverageValue(this IEnumerable<DataPoint> points)
+        {
+            double sumY = 0, count = 0;
+            foreach (var pt in points)
+            {
+                sumY += pt.YValues[0];
+                count++;
+            }
+            // also calc average time?
+            if (count == 0)
+                return 0;
+            return sumY / count;
         }
     }
 }
