@@ -406,6 +406,7 @@
             this.txtDur.Size = new System.Drawing.Size(80, 18);
             this.txtDur.TabIndex = 4;
             this.txtDur.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.txtDur.MouseClick += new System.Windows.Forms.MouseEventHandler(this.SummaryTextBoxes_Enter);
             // 
             // label3
             // 
@@ -430,6 +431,7 @@
             this.txtAvg.Size = new System.Drawing.Size(100, 18);
             this.txtAvg.TabIndex = 4;
             this.txtAvg.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.txtAvg.MouseClick += new System.Windows.Forms.MouseEventHandler(this.SummaryTextBoxes_Enter);
             // 
             // label2
             // 
@@ -454,6 +456,7 @@
             this.txtMin.Size = new System.Drawing.Size(100, 18);
             this.txtMin.TabIndex = 2;
             this.txtMin.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.txtMin.MouseClick += new System.Windows.Forms.MouseEventHandler(this.SummaryTextBoxes_Enter);
             // 
             // txtMax
             // 
@@ -467,6 +470,7 @@
             this.txtMax.Size = new System.Drawing.Size(100, 18);
             this.txtMax.TabIndex = 0;
             this.txtMax.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.txtMax.MouseClick += new System.Windows.Forms.MouseEventHandler(this.SummaryTextBoxes_Enter);
             // 
             // label4
             // 

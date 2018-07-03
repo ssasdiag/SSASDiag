@@ -1,27 +1,11 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using System.Management;
-using System.ServiceProcess;
+﻿using System;
 using System.Collections.Generic;
+
 using System.ComponentModel;
 using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Diagnostics;
-using System.Threading;
-using System.Data.SqlClient;
-using System.IO;
-using SimpleMDXParser;
-using FastColoredTextBoxNS;
 using System.Windows.Forms.DataVisualization.Charting;
-using Ionic.Zip;
 
 namespace SSASDiag
 {
@@ -36,18 +20,23 @@ namespace SSASDiag
             Rule r0 = new Rule("Server Available Memory", "Memory", "Checks to ensure sufficient free memory.");
             RuleCounter AvailableMB = RuleCounter.CountersFromPath("Memory\\Available MBytes", true, false, Color.Blue).First();
             RuleCounter WorkingSet = RuleCounter.CountersFromPath("Process\\Working Set\\_Total", false).First();
-            r0.Counters.Add(AvailableMB);
-            r0.Counters.Add(WorkingSet);
-            r0.RuleFunction = new Action(() =>
+            if (AvailableMB == null || WorkingSet == null)
+                r0.RuleResult = RuleResultEnum.CountersUnavailable;
+            else
             {
-                r0.RuleResult = RuleResultEnum.Pass;
-                double totalMem = ((double)AvailableMB.ChartSeries.Points[0].Tag) + (((double)WorkingSet.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
-                r0.AddStripLine("Total Physical Memory MB", totalMem, totalMem, Color.Black);
-                r0.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, "5% available memory", "3% available memory", null, null, true);
-                if (r0.RuleResult == RuleResultEnum.Fail) r0.ResultDescription = "Fail: Less than 3% free memory.";
-                if (r0.RuleResult == RuleResultEnum.Warn) r0.ResultDescription = "Warning: Less than 5% free memory.";
-                if (r0.RuleResult == RuleResultEnum.Pass) r0.ResultDescription = "Pass: Sufficient memory available at all times.";
-            });
+                r0.Counters.Add(AvailableMB);
+                r0.Counters.Add(WorkingSet);
+                r0.RuleFunction = new Action(() =>
+                {
+                    r0.RuleResult = RuleResultEnum.Pass;
+                    double totalMem = ((double)AvailableMB.ChartSeries.Points[0].Tag) + (((double)WorkingSet.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
+                    r0.AddStripLine("Total Physical Memory MB", totalMem, totalMem, Color.Black);
+                    r0.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, "5% available memory", "3% available memory", null, null, false);
+                    if (r0.RuleResult == RuleResultEnum.Fail) r0.ResultDescription = "Fail: Less than 3% free memory.";
+                    if (r0.RuleResult == RuleResultEnum.Warn) r0.ResultDescription = "Warning: Less than 5% free memory.";
+                    if (r0.RuleResult == RuleResultEnum.Pass) r0.ResultDescription = "Pass: Sufficient memory available at all times.";
+                });
+            }
             Rules.Add(r0);
 
             Rule r1 = new Rule("Server Available Memory2", "Memory", "Checks to ensure **LOTS** of free memory.");
@@ -55,31 +44,51 @@ namespace SSASDiag
             RuleCounter WorkingSet2 = RuleCounter.CountersFromPath("Process\\Working Set\\_Total", false).First();
             r1.Counters.Add(AvailableMB2);
             r1.Counters.Add(WorkingSet2);
-            r1.RuleFunction = new Action(() =>
+            if (AvailableMB == null || WorkingSet == null)
+                r0.RuleResult = RuleResultEnum.CountersUnavailable;
+            else
             {
-                r1.RuleResult = RuleResultEnum.Pass;
-                double totalMem = ((double)AvailableMB2.ChartSeries.Points[0].Tag) + (((double)WorkingSet2.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
-                r1.AddStripLine("Total Physical Memory MB", totalMem, totalMem, Color.Black);
-                r1.ValidateThresholdRule(AvailableMB2.ChartSeries, totalMem * .89, totalMem * .80, "89% of Total Memory", "80% of Total Memory", null, null, true);
-                if (r1.RuleResult == RuleResultEnum.Fail) r1.ResultDescription = "Fail: Less than 80% free memory.";
-                if (r1.RuleResult == RuleResultEnum.Warn) r1.ResultDescription = "Warning: Less than 89% free memory.";
-                if (r1.RuleResult == RuleResultEnum.Pass) r1.ResultDescription = "Pass: Sufficient memory available at all times.";
-            });
+                r1.RuleFunction = new Action(() =>
+                {
+                    r1.RuleResult = RuleResultEnum.Pass;
+                    double totalMem = ((double)AvailableMB2.ChartSeries.Points[0].Tag) + (((double)WorkingSet2.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
+                    r1.AddStripLine("Total Physical Memory MB", totalMem, totalMem, Color.Black);
+                    r1.ValidateThresholdRule(AvailableMB2.ChartSeries, totalMem * .89, totalMem * .80, "89% of Total Memory", "80% of Total Memory", null, null, false);
+                    if (r1.RuleResult == RuleResultEnum.Fail) r1.ResultDescription = "Fail: Less than 80% free memory.";
+                    if (r1.RuleResult == RuleResultEnum.Warn) r1.ResultDescription = "Warning: Less than 89% free memory.";
+                    if (r1.RuleResult == RuleResultEnum.Pass) r1.ResultDescription = "Pass: Sufficient memory available at all times.";
+                });
+            }
             Rules.Add(r1);
 
             Rule r2 = new Rule("Disk Read Time", "IO", "Checks to ensure healthy disk read speed.");
             List<RuleCounter> DiskSecsPerRead = RuleCounter.CountersFromPath("PhysicalDisk\\Avg. Disk sec/Read\\-*", true, false);
-            List<Series> ruleCheckSeries = new List<Series>();
-            foreach (RuleCounter rc in DiskSecsPerRead)
-                r2.Counters.Add(rc);
-            r2.RuleFunction = new Action(() =>
+            if (DiskSecsPerRead.Count == 0)
+                r2.RuleResult = RuleResultEnum.CountersUnavailable;
+            else
             {
-                foreach (RuleCounter rc in DiskSecsPerRead)
-                    ruleCheckSeries.Add(rc.ChartSeries);
-                r2.RuleResult = RuleResultEnum.Pass;
-                r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, "10ms read time", "15ms read time", null, null, false);
-            });
+                List<Series> ruleCheckSeries = new List<Series>();
+                r2.Counters.AddRange(DiskSecsPerRead);
+                r2.RuleFunction = new Action(() =>
+                {
+                    r2.RuleResult = RuleResultEnum.Pass;
+                    foreach (RuleCounter rc in DiskSecsPerRead)
+                        ruleCheckSeries.Add(rc.ChartSeries);
+                    r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, "10ms Disk secs/Read time", "15ms Disk secs/Read time", null, null, true);
+                    if (r2.RuleResult == RuleResultEnum.Fail) r2.ResultDescription = "Fail: Disk reads taking longer than 15ms.";
+                    if (r2.RuleResult == RuleResultEnum.Warn) r2.ResultDescription = "Warning: Disk reads taking longer than 10ms.";
+                    if (r2.RuleResult == RuleResultEnum.Pass) r2.ResultDescription = "Pass: Disk secs/Read healthy at all times.";
+                });
+            }
             Rules.Add(r2);
+
+            Rule r3 = new Rule("Missing Counters Example", "Test", "Demonstrates UI behavior if counters are missing for a rule.");
+            if (RuleCounter.CountersFromPath("BadCounterName").Count == 0)
+                r3.RuleResult = RuleResultEnum.CountersUnavailable; // Path not found will return an empty list.  Rule is responsible to determine if essential counters are missing, and set result.
+            else
+                r3.RuleResult = RuleResultEnum.Fail; // if BadCounterName was a path found in the counters, something must have failed somewhere!
+            // No rule function even necessary if we already set the result before the function is needed.  We will never run it when counters are unavailable.
+            Rules.Add(r3);
         }
 
         private enum RuleResultEnum
@@ -119,36 +128,36 @@ namespace SSASDiag
                             counter = parts[0] + "\\" + parts[1];
                             node = HostControl.tvCounters.FindNodeByPath(counter);
                         }
-                        if (node == null)
-                            return counters;
-                        if (parts[2].Contains("*"))
+                        if (node != null)
                         {
-                            foreach (TreeNode child in node.Nodes)
-                                if ((parts[2].StartsWith("-") && child.Text != "_Total") ||
-                                    !parts[2].StartsWith("-"))
-                                {
-                                    if (parts.Length > 3)
+                            if (parts[2].Contains("*"))
+                            {
+                                foreach (TreeNode child in node.Nodes)
+                                    if ((parts[2].StartsWith("-") && child.Text != "_Total") ||
+                                        !parts[2].StartsWith("-"))
                                     {
-                                        if (parts[3].Contains("*"))
+                                        if (parts.Length > 3)
                                         {
-                                            foreach (TreeNode grandchild in child.Nodes)
+                                            if (parts[3].Contains("*"))
                                             {
-                                                counters.Add(new RuleCounter(counter + "\\" + parts[3] + "\\" + grandchild.Name, ShowInChart, HighlightInChart, CounterColor));
+                                                foreach (TreeNode grandchild in child.Nodes)
+                                                {
+                                                    counters.Add(new RuleCounter(counter + "\\" + parts[3] + "\\" + grandchild.Name, ShowInChart, HighlightInChart, CounterColor));
+                                                }
                                             }
+                                            else
+                                                counters.Add(new RuleCounter(counter + "\\" + parts[3], ShowInChart, HighlightInChart, CounterColor));
                                         }
-                                        else
-                                            counters.Add(new RuleCounter(counter + "\\" + parts[3], ShowInChart, HighlightInChart, CounterColor));
+                                        counters.Add(new RuleCounter(counter + "\\" + child.Name, ShowInChart, HighlightInChart, CounterColor));
                                     }
-                                    counters.Add(new RuleCounter(counter + "\\" + child.Name, ShowInChart, HighlightInChart, CounterColor));
-                                }
+                            }
+                            else
+                                counters.Add(new RuleCounter(counter + "\\" + parts[2], ShowInChart, HighlightInChart, CounterColor));
                         }
-                        else
-                            counters.Add(new RuleCounter(counter + "\\" + parts[2], ShowInChart, HighlightInChart, CounterColor));
                     }
                     else
                         counters.Add(new RuleCounter(counter, ShowInChart, HighlightInChart, CounterColor));
                 }
-
                 return counters;
             }
         }
@@ -197,11 +206,27 @@ namespace SSASDiag
 
             private RuleResultEnum ruleResult = RuleResultEnum.NotRun;
             [Browsable(false)]
-            public RuleResultEnum RuleResult { get { return ruleResult; } set { OnPropertyChanged("RuleResultImg"); ruleResult = value; } }
+            public RuleResultEnum RuleResult
+            {
+                get { return ruleResult; }
+                set
+                {
+                    OnPropertyChanged("RuleResultImg");
+                    if (value == RuleResultEnum.CountersUnavailable)
+                    {
+                        ResultDescription = "Missing required counter(s) to process this rule.";
+                        OnPropertyChanged("ResultDescription");
+                    }
+                    ruleResult = value;
+                }
+            }
 
             private Action ruleFunction = null;
             [Browsable(false)]
-            public Action RuleFunction { get { return ruleFunction; } set { ruleFunction = value; } }
+            public Action RuleFunction
+            {
+                get { return ruleFunction; } set { ruleFunction = value; }
+            }
 
             public double MaxValueForRule()
             {
@@ -273,7 +298,7 @@ namespace SSASDiag
                     if (WarningLineText != "")
                         WarnRegion = AddStripLine(WarningLineText, WarnY, ErrorY, WarnColor.Value);
                     if (ErrorLineText != "")
-                        ErrorRegion = AddStripLine(ErrorLineText, 0, ErrorY, ErrorColor.Value);
+                        ErrorRegion = AddStripLine(ErrorLineText, MaxValueForRule() * 1.05, ErrorY, ErrorColor.Value);
                 }
                 else
                 {

@@ -1028,22 +1028,6 @@ namespace SSASDiag
                     max = (double)s.Tag;
                 ScaleSeries(s);
             }
-            foreach (StripLine s in chartPerfMon.ChartAreas[0].AxisY.StripLines)
-            {
-                if ((double)s.Tag > max)
-                    max = (double)s.Tag;
-                
-                double newOffset = chkAutoScale.Checked ? (double)s.Tag * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)s.Tag))))) : (double)s.Tag;
-                LegendItem li = chartPerfMon.Legends[0].CustomItems.Where(ci => ci.Name == s.Text).First();
-                s.StripWidth = chkAutoScale.Checked ? (double)li.Tag * 100 / ((Math.Pow(10, (int)Math.Ceiling(Math.Log10((double)li.Tag))))) : (double)li.Tag;
-                if (Double.IsNaN(s.StripWidth))
-                    s.StripWidth = 0.0;
-                if (Double.IsNaN(newOffset))
-                    s.IntervalOffset = 0.0;
-                else
-                    s.IntervalOffset = newOffset;
-                
-            }
             chartPerfMon.ChartAreas[0].AxisY.LabelStyle.Enabled = !chkAutoScale.Checked;
             chartPerfMon.ChartAreas[0].AxisY.Maximum = chkAutoScale.Checked ? 100 : max;
             chartPerfMon.ChartAreas[0].AxisY.Minimum = 0;
@@ -1538,13 +1522,15 @@ namespace SSASDiag
                 List<DataGridViewRow> RulesToRun = new List<DataGridViewRow>();
                 foreach (DataGridViewRow row in dgdRules.Rows)
                     if (row.Selected || (sender as Button).Text == "Run All")
-                        if ((row.DataBoundItem as Rule).Counters[0].ChartSeries == null)
+                        if ((row.DataBoundItem as Rule).RuleResult == RuleResultEnum.NotRun)
                             RulesToRun.Add(row);
                 if (RulesToRun.Count > 0)
                 {
                     Form f = Program.MainForm;
                     Invoke(new Action(() =>
                     {
+                        chkAutoScale.Checked = false;
+                        chkAutoScale.Enabled = false;
                         f.Enabled = false;
                         StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
                         StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
@@ -1584,7 +1570,7 @@ namespace SSASDiag
         {
             if (e.RowIndex >= 0)
             {
-                new Thread(new ThreadStart(() =>
+                if ((dgdRules.Rows[e.RowIndex].DataBoundItem as Rule).RuleResult != RuleResultEnum.CountersUnavailable) new Thread(new ThreadStart(() =>
                 {
                     CurrentRuleCustomSeries.Clear();
                     CurrentRuleHiddenSeries.Clear();
@@ -1697,6 +1683,11 @@ namespace SSASDiag
                 SendMessage(parent.Handle, WM_SETREDRAW, true, 0);
                 parent.Refresh();
             }
+        }
+
+        private void SummaryTextBoxes_Enter(object sender, MouseEventArgs e)
+        {
+            (sender as TextBox).SelectAll();
         }
 
         private class PerfMonLog
