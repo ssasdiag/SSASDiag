@@ -74,10 +74,10 @@ namespace SSASDiag
                     r2.RuleResult = RuleResultEnum.Pass;
                     foreach (RuleCounter rc in DiskSecsPerRead)
                         ruleCheckSeries.Add(rc.ChartSeries);
-                    r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, "10ms Disk secs/Read time", "15ms Disk secs/Read time", "< 10ms Disk secs/Read time", true, true, false, 15);
+                    r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, ">10ms Disk secs/Read time", ">15ms Disk secs/Read time", "<10ms Disk secs/Read time", true, true, false, 15);
                     if (r2.RuleResult == RuleResultEnum.Fail) r2.ResultDescription = "Fail: More than 15% of disk reads taking longer than 15ms.";
                     if (r2.RuleResult == RuleResultEnum.Warn) r2.ResultDescription = "Warning: More than 15% of disk reads taking longer than 10ms.";
-                    if (r2.RuleResult == RuleResultEnum.Pass) r2.ResultDescription = "Pass: Disk secs/Read healthy at all times.";
+                    if (r2.RuleResult == RuleResultEnum.Pass) r2.ResultDescription = "Pass: Disk read speed healthy at all times.";
                 });
             }
             Rules.Add(r2);
