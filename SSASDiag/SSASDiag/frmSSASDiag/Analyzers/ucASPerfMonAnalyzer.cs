@@ -32,7 +32,7 @@ namespace SSASDiag
         string LogPath, AnalysisPath, PerfMonAnalysisId;
         SqlConnection connDB;
         List<PerfMonLog> LogFiles = new List<PerfMonLog>();
-        int iNodesRemaingingToProcessInBatch = 0;
+        List<TreeNode> NodesRemaingingToProcessInBatch = new List<TreeNode>();
         ImageList legend = new ImageList();
         TimeRangeBar trTimeRange = new TimeRangeBar();
         public TriStateTreeView tvCounters;
@@ -1047,13 +1047,24 @@ namespace SSASDiag
             {
                 if (e.Node.Checked && e.Node.Nodes.Count == 0)
                 {
-                    iNodesRemaingingToProcessInBatch--;
-                    if (iNodesRemaingingToProcessInBatch == -1)
-                        ParentNodeOfUpdateBatch = e.Node;
-                    if (iNodesRemaingingToProcessInBatch < 1)
+                    if (!NodesRemaingingToProcessInBatch.Contains(e.Node))
                     {
-                        iNodesRemaingingToProcessInBatch = 0;
-                        new Thread(new ThreadStart(() => AddCounters())).Start();
+                        if (ParentNodeOfUpdateBatch == null)
+                            ParentNodeOfUpdateBatch = e.Node;
+                        else
+                            return;
+                    }
+                    else
+                        NodesRemaingingToProcessInBatch.Remove(e.Node);
+                        
+                    if (NodesRemaingingToProcessInBatch.Count == 0)
+                    {
+                        new Thread(new ThreadStart(() =>
+                        {
+                            AddCounters();
+                            ParentNodeOfUpdateBatch = null;
+                            ;
+                        })).Start();
                     }
                 }
                 else
@@ -1071,16 +1082,20 @@ namespace SSASDiag
             }
             else
             {
-                if (e.Node.Checked && iNodesRemaingingToProcessInBatch == 0)
+                if (e.Node.Checked && NodesRemaingingToProcessInBatch.Count == 0)
                 {
-                    iNodesRemaingingToProcessInBatch = tvCounters.GetLeafNodes(e.Node, false).Count();
-                    ParentNodeOfUpdateBatch = e.Node;
-                    Program.MainForm.Invoke(new Action(() => DrawingControl.SuspendDrawing(Program.MainForm)));
+                    NodesRemaingingToProcessInBatch = tvCounters.GetLeafNodes(e.Node, false).Where(n=>n.Checked != e.Node.Checked).ToList();
+                    if (NodesRemaingingToProcessInBatch.Count > 0)
+                    {
+                        ParentNodeOfUpdateBatch = e.Node;
+                        Program.MainForm.Invoke(new Action(() => DrawingControl.SuspendDrawing(Program.MainForm)));
+                    }
                 }
             }
             if (chartPerfMon.Series.Count == 0)
                 chartPerfMon.ChartAreas[0].AxisY.Maximum = 0;
         }
+        
 
         private void AddCounters()
         {
@@ -1091,14 +1106,13 @@ namespace SSASDiag
             List<KeyValuePair<string, string>> CountersToUpdate = null;
             if (ParentNodeOfUpdateBatch != null)
                 CountersToUpdate = tvCounters.GetLeafNodes(ParentNodeOfUpdateBatch, false)
-                                             .Where(n => n.SelectedImageIndex < 1 || !n.Checked)
+                                             .Where(n => n.SelectedImageIndex < 1 || n.Checked != ParentNodeOfUpdateBatch.Checked)
                                              .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
             else
                 CountersToUpdate = tvCounters.GetLeafNodes()
                                              .Where(n => n.SelectedImageIndex < 1 || n.Checked)
                                              .Select(n => new KeyValuePair<string, string>(n.Tag as string, n.FullPath)).ToList();
             CountersToUpdate.AddRange(HiddenCountersToLookup);
-            ParentNodeOfUpdateBatch = null;
             CurrentRuleHiddenSeries.Clear();
 
             if (CountersToUpdate.Count != 0)
@@ -1195,7 +1209,7 @@ namespace SSASDiag
                                 if (rule == null || rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).First().CounterColor == null)
                                 {
                                     int colorIndex = iCurColor++ + randomColorOffset;
-                                    if (colorIndex > indexcolors.Length - 1) colorIndex %= indexcolors.Length - 1;
+                                    if (colorIndex > indexcolors.Length - 1) colorIndex %= (indexcolors.Length - 1);
                                     ColorConverter c = new ColorConverter();
                                     counterColor = (Color)c.ConvertFromString(indexcolors[colorIndex]);
                                 }
@@ -1522,7 +1536,8 @@ namespace SSASDiag
                 List<DataGridViewRow> RulesToRun = new List<DataGridViewRow>();
                 foreach (DataGridViewRow row in dgdRules.Rows)
                     if (row.Selected || (sender as Button).Text == "Run All")
-                        if ((row.DataBoundItem as Rule).RuleResult == RuleResultEnum.NotRun)
+                        if ((row.DataBoundItem as Rule).RuleResult != RuleResultEnum.CountersUnavailable && 
+                            (row.DataBoundItem as Rule).Counters[0].ChartSeries == null)
                             RulesToRun.Add(row);
                 if (RulesToRun.Count > 0)
                 {
@@ -1531,6 +1546,8 @@ namespace SSASDiag
                     {
                         chkAutoScale.Checked = false;
                         chkAutoScale.Enabled = false;
+                        foreach (TreeNode node in tvCounters.GetLeafNodes())
+                            node.Checked = false;
                         f.Enabled = false;
                         StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
                         StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
@@ -1544,6 +1561,7 @@ namespace SSASDiag
                         RunRule(r.DataBoundItem as Rule, dgdRules.SelectedRows.Contains(r));
                     Invoke(new Action(() =>
                     {
+                        dgdRules_CellClick(dgdRules, new DataGridViewCellEventArgs(0, dgdRules.SelectedRows.Count > 0 ? dgdRules.SelectedRows[0].Index : 0));
                         StatusFloater.Hide();
                         f.Enabled = true;
                     }));
@@ -1626,7 +1644,7 @@ namespace SSASDiag
                                     rc.ChartSeries.BorderWidth = 1;
                                 chartPerfMon.Series.Add(rc.ChartSeries);
                                 if (node == null) node = tvCounters.FindNodeByPath(FullPathAlternateHierarchy(rc.Path));
-                                node.ImageIndex = legend.Images.IndexOfKey(rc.Path);
+                                node.ImageIndex = node.SelectedImageIndex = legend.Images.IndexOfKey(rc.Path);
                                 node.Checked = true;
                             }
                             foreach (Series s in rule.CustomSeries)

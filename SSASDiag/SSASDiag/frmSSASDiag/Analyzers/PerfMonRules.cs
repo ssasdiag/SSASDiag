@@ -29,9 +29,9 @@ namespace SSASDiag
                 r0.RuleFunction = new Action(() =>
                 {
                     r0.RuleResult = RuleResultEnum.Pass;
-                    double totalMem = ((double)AvailableMB.ChartSeries.Points[0].Tag) + (((double)WorkingSet.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
+                    double totalMem = ((double)AvailableMB.ChartSeries.Points[0].YValues[0]) + (((double)WorkingSet.ChartSeries.Points[0].YValues[0]) / 1024.0 / 1024.0);
                     r0.AddStripLine("Total Physical Memory MB", totalMem, totalMem, Color.Black);
-                    r0.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, "5% available memory", "3% available memory", null, null, false);
+                    r0.ValidateThresholdRule(AvailableMB.ChartSeries, totalMem * .05, totalMem * .03, "5% available memory", "3% available memory", "> 5% available memory", false);
                     if (r0.RuleResult == RuleResultEnum.Fail) r0.ResultDescription = "Fail: Less than 3% free memory.";
                     if (r0.RuleResult == RuleResultEnum.Warn) r0.ResultDescription = "Warning: Less than 5% free memory.";
                     if (r0.RuleResult == RuleResultEnum.Pass) r0.ResultDescription = "Pass: Sufficient memory available at all times.";
@@ -44,16 +44,16 @@ namespace SSASDiag
             RuleCounter WorkingSet2 = RuleCounter.CountersFromPath("Process\\Working Set\\_Total", false).First();
             r1.Counters.Add(AvailableMB2);
             r1.Counters.Add(WorkingSet2);
-            if (AvailableMB == null || WorkingSet == null)
-                r0.RuleResult = RuleResultEnum.CountersUnavailable;
+            if (AvailableMB2 == null || WorkingSet2 == null)
+                r1.RuleResult = RuleResultEnum.CountersUnavailable;
             else
             {
                 r1.RuleFunction = new Action(() =>
                 {
                     r1.RuleResult = RuleResultEnum.Pass;
-                    double totalMem = ((double)AvailableMB2.ChartSeries.Points[0].Tag) + (((double)WorkingSet2.ChartSeries.Points[0].Tag) / 1024.0 / 1024.0);
-                    r1.AddStripLine("Total Physical Memory MB", totalMem, totalMem, Color.Black);
-                    r1.ValidateThresholdRule(AvailableMB2.ChartSeries, totalMem * .89, totalMem * .80, "89% of Total Memory", "80% of Total Memory", null, null, false);
+                    double totalMem = ((double)AvailableMB2.ChartSeries.Points[0].YValues[0]) + (((double)WorkingSet2.ChartSeries.Points[0].YValues[0]) / 1024.0 / 1024.0);
+                    r1.AddStripLine("Total Physical Memory MB", totalMem, totalMem + 1, Color.Black);
+                    r1.ValidateThresholdRule(AvailableMB2.ChartSeries, totalMem * .89, totalMem * .80, "89% available memory", "80% available memory", "> 89% available memory", false);
                     if (r1.RuleResult == RuleResultEnum.Fail) r1.ResultDescription = "Fail: Less than 80% free memory.";
                     if (r1.RuleResult == RuleResultEnum.Warn) r1.ResultDescription = "Warning: Less than 89% free memory.";
                     if (r1.RuleResult == RuleResultEnum.Pass) r1.ResultDescription = "Pass: Sufficient memory available at all times.";
@@ -74,7 +74,7 @@ namespace SSASDiag
                     r2.RuleResult = RuleResultEnum.Pass;
                     foreach (RuleCounter rc in DiskSecsPerRead)
                         ruleCheckSeries.Add(rc.ChartSeries);
-                    r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, "10ms Disk secs/Read time", "15ms Disk secs/Read time", null, null, true);
+                    r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, "10ms Disk secs/Read time", "15ms Disk secs/Read time", "< 10ms Disk secs/Read time", true);
                     if (r2.RuleResult == RuleResultEnum.Fail) r2.ResultDescription = "Fail: Disk reads taking longer than 15ms.";
                     if (r2.RuleResult == RuleResultEnum.Warn) r2.ResultDescription = "Warning: Disk reads taking longer than 10ms.";
                     if (r2.RuleResult == RuleResultEnum.Pass) r2.ResultDescription = "Pass: Disk secs/Read healthy at all times.";
@@ -265,10 +265,10 @@ namespace SSASDiag
                 s.Interval = 0;
                 s.Text = name;
                 if (y != y2)
-                    s.BackColor = Color.FromArgb(200, color);
+                    s.BackColor = Color.FromArgb(128, color);
                 else
                     s.BackColor = color;
-                s.BorderColor = color;
+                s.BorderColor = Color.FromArgb(128, color);
                 s.ForeColor = Color.Transparent;
                 s.IntervalOffset = y > y2 ? y2 : y;
                 s.StripWidth = Math.Abs(y2 - y);
@@ -278,34 +278,52 @@ namespace SSASDiag
                 return s;
             }
 
-            public void ValidateThresholdRule(Series series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText = "", Color? WarnColor = null, Color? ErrorColor = null, bool CheckIfValueBelowWarnError = true)
+            public void ValidateThresholdRule(Series series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText = "", string PassLineText = "", bool CheckIfValueBelowWarnError = true)
             {
                 List<Series> s = new List<Series>();
                 s.Add(series);
-                ValidateThresholdRule(s, WarnY, ErrorY, WarningLineText, ErrorLineText, WarnColor, ErrorColor, CheckIfValueBelowWarnError);
+                ValidateThresholdRule(s, WarnY, ErrorY, WarningLineText, ErrorLineText, PassLineText, CheckIfValueBelowWarnError);
             }
-            public void ValidateThresholdRule(List<Series> series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", Color? WarnColor = null, Color? ErrorColor = null, bool CheckIfValueBelowWarnError = true)
+            public void ValidateThresholdRule(List<Series> series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", string PassLineText = "", bool CheckIfValueBelowWarnError = true)
             {
-                if (!WarnColor.HasValue)
-                    WarnColor = Color.Yellow;
-                if (!ErrorColor.HasValue)
-                    ErrorColor = Color.Pink;
+                Color WarnColor = Color.Khaki;
+                Color ErrorColor = Color.Pink;
+                Color PassColor = Color.LightGreen;
+                StripLine PassRegion = new StripLine();
+                PassRegion.Interval = 0;
+                PassRegion.Text = PassLineText;
+                PassRegion.BackColor = Color.FromArgb(128, PassColor);
+                PassRegion.BorderColor = Color.FromArgb(128, PassColor);
+                PassRegion.ForeColor = Color.Transparent;
+                PassRegion.BorderWidth = 1;
 
                 StripLine WarnRegion = null;
                 StripLine ErrorRegion = null;
                 if (CheckIfValueBelowWarnError)
                 {
-                    if (WarningLineText != "")
-                        WarnRegion = AddStripLine(WarningLineText, WarnY, ErrorY, WarnColor.Value);
                     if (ErrorLineText != "")
-                        ErrorRegion = AddStripLine(ErrorLineText, MaxValueForRule() * 1.05, ErrorY, ErrorColor.Value);
+                    {
+                        ErrorRegion = AddStripLine(ErrorLineText, MaxValueForRule() * 1.05, ErrorY, ErrorColor);
+                        PassRegion.IntervalOffset = 0;
+                        PassRegion.StripWidth = WarnY > 0 ? WarnY : ErrorY;
+                    }
+                    if (WarningLineText != "")
+                        WarnRegion = AddStripLine(WarningLineText, WarnY, ErrorY, WarnColor);
+                    CustomStripLines.Add(PassRegion);
+
                 }
                 else
                 {
-                    if (WarningLineText != "")
-                        WarnRegion = AddStripLine(WarningLineText, 0, WarnY, WarnColor.Value);
                     if (ErrorLineText != "")
-                        ErrorRegion = AddStripLine(ErrorLineText, WarnY > 0 ? WarnY : 0, ErrorY, ErrorColor.Value);
+                    {
+                        ErrorRegion = AddStripLine(ErrorLineText, 0, ErrorY, ErrorColor);
+                        PassRegion.IntervalOffset = WarnY;
+                        PassRegion.StripWidth = MaxValueForRule() - (WarnY > 0 ? WarnY : ErrorY);
+                    }
+                    if (WarningLineText != "")
+                        WarnRegion = AddStripLine(WarningLineText, WarnY > 0 ? WarnY : 0, ErrorY, WarnColor);
+                    CustomStripLines.Add(PassRegion);
+
                 }
                 foreach (Series s in series)
                 {

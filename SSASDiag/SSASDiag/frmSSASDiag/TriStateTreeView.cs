@@ -692,7 +692,7 @@ namespace SSASDiag
             else
             {
                 if (tn.Checked)
-                    tn.StateImageIndex = (int)CheckedState.Mixed;
+                    tn.StateImageIndex = (int)CheckedState.Checked;
                 else
                     tn.StateImageIndex = (int)CheckedState.UnChecked;
             }

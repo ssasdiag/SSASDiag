@@ -20,6 +20,7 @@ namespace SSASDiag
             CreateHandle();
         }
 
+
         private bool escapePressed = false;
         private System.Threading.Timer tt = null;
 
@@ -81,6 +82,12 @@ namespace SSASDiag
         {
             if (!Visible && tt != null)
                 tt.Change(Timeout.Infinite, Timeout.Infinite);
+            if (!Visible)
+            {
+                lblTime.Text = "";
+                lblSubStatus.Text = "";
+                lblStatus.Text = "";
+            }
         }
 
         private void frmStatusFloater_KeyPress(object sender, KeyPressEventArgs e)
