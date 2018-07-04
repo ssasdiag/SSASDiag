@@ -797,6 +797,7 @@
             this.button2.Text = "Create New Rule";
             this.button2.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             this.button2.UseVisualStyleBackColor = false;
+            this.button2.Click += new System.EventHandler(this.btnAddRule_Click);
             // 
             // btnRunRule
             // 

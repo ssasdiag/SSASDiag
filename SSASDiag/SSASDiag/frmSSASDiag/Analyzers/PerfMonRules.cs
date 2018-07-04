@@ -16,7 +16,6 @@ namespace SSASDiag
             Rules.Clear();
 
             // Rule 0
-
             Rule r0 = new Rule("Server Available Memory", "Memory", "Checks to ensure sufficient free memory.");
             RuleCounter AvailableMB = RuleCounter.CountersFromPath("Memory\\Available MBytes", true, false, Color.Blue).First();
             RuleCounter WorkingSet = RuleCounter.CountersFromPath("Process\\Working Set\\_Total", false).First();

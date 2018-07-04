@@ -41,7 +41,7 @@ namespace SSASDiag
         public bool bCancel = false;
         public event EventHandler Shown;
         bool wasShown = false;
-        DataTable Counters = new DataTable();
+        public DataTable Counters = new DataTable();
         Point? prevPosition = null;
         ToolTip tooltip = new ToolTip();
         string CurrentSeriesUnderMouse = "";
@@ -568,15 +568,6 @@ namespace SSASDiag
                     Shown(this, EventArgs.Empty);
             }
         }
-
-        private void checkboxHeader_CheckedChanged(object sender, EventArgs e)
-        {
-            for (int i = 0; i < dgdLogList.RowCount; i++)
-            {
-                dgdLogList[0, i].Value = ((CheckBox)dgdLogList.Controls.Find("checkboxHeader", true)[0]).Checked;
-            }
-            dgdLogList.EndEdit();
-        }     
 
         private void DgdGrouping_ColumnDisplayIndexChanged(object sender, System.Windows.Forms.DataGridViewColumnEventArgs e)
         {
@@ -1403,30 +1394,6 @@ namespace SSASDiag
             dgdLogList.ResumeLayout();
         }
 
-        private void dgdLogList_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                ContextMenu cm = new ContextMenu();
-                RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"Applications\windbg.exe\shell\open\command");
-                string PerfMonPath = "";
-                if (key != null)
-                {
-                    PerfMonPath = key.GetValue("") as string;
-                    PerfMonPath = PerfMonPath.Substring(0, PerfMonPath.IndexOf(".exe") + ".exe".Length).Replace("\"", "");
-                }
-                if (PerfMonPath != "")
-                {
-                    PerfMonLog l = (dgdLogList.Rows[e.RowIndex].DataBoundItem as PerfMonLog);
-                    cm.MenuItems.Add(new MenuItem("Open " + l.LogName + " in WinDbg for further analysis...",
-                        new EventHandler((object o, EventArgs ea) =>
-                            Process.Start(PerfMonPath, "-z \"" + l.LogPath + "\""))
-                        ));
-                    cm.Show(ParentForm, new Point(MousePosition.X - ParentForm.Left - 10, MousePosition.Y - ParentForm.Top - 26));
-                }
-            }
-        }
-
         private void RunRule(Rule rule, bool ShouldUIUpdate = true)
         {
             List<KeyValuePair<string, string>> HiddenCountersToLookup = new List<KeyValuePair<string, string>>();
@@ -1706,6 +1673,12 @@ namespace SSASDiag
         private void SummaryTextBoxes_Enter(object sender, MouseEventArgs e)
         {
             (sender as TextBox).SelectAll();
+        }
+
+        private void btnAddRule_Click(object sender, EventArgs e)
+        {
+            frmAddPerfMonRule AddPerfMon = new frmAddPerfMonRule();
+            AddPerfMon.ShowDialog(Program.MainForm);
         }
 
         private class PerfMonLog

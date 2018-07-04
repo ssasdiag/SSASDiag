@@ -136,6 +136,12 @@
     <Compile Include="frmAbout.Designer.cs">
       <DependentUpon>frmAbout.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmSSASDiag\Analyzers\frmAddPerfMonRule.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSSASDiag\Analyzers\frmAddPerfMonRule.Designer.cs">
+      <DependentUpon>frmAddPerfMonRule.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmSSASDiag\Analyzers\PerfMonRules.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -219,6 +225,9 @@
     <EmbeddedResource Include="frmSimpleSQLServerPrompt.resx">
       <DependentUpon>frmSimpleSQLServerPrompt.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="frmSSASDiag\Analyzers\frmAddPerfMonRule.resx">
+      <DependentUpon>frmAddPerfMonRule.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmSSASDiag\Analyzers\ucASPerfMonAnalyzer.resx">
       <DependentUpon>ucASPerfMonAnalyzer.cs</DependentUpon>
     </EmbeddedResource>
@@ -289,10 +298,7 @@
     <None Include="Resources\package_new.png" />
     <None Include="Resources\Dump.png" />
     <None Include="Resources\Settings.png" />
-    <None Include="Resources\help.png" />
     <None Include="Resources\helpimg.png" />
-    <None Include="Resources\minussign.png" />
-    <None Include="Resources\plussign.png" />
     <None Include="Resources\RuleFail.png" />
     <None Include="Resources\RuleNotRun.png" />
     <None Include="Resources\RuleOther.png" />
