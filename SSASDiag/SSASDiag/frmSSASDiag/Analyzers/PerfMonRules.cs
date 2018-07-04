@@ -74,9 +74,9 @@ namespace SSASDiag
                     r2.RuleResult = RuleResultEnum.Pass;
                     foreach (RuleCounter rc in DiskSecsPerRead)
                         ruleCheckSeries.Add(rc.ChartSeries);
-                    r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, "10ms Disk secs/Read time", "15ms Disk secs/Read time", "< 10ms Disk secs/Read time", true);
-                    if (r2.RuleResult == RuleResultEnum.Fail) r2.ResultDescription = "Fail: Disk reads taking longer than 15ms.";
-                    if (r2.RuleResult == RuleResultEnum.Warn) r2.ResultDescription = "Warning: Disk reads taking longer than 10ms.";
+                    r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, "10ms Disk secs/Read time", "15ms Disk secs/Read time", "< 10ms Disk secs/Read time", true, true, false, 15);
+                    if (r2.RuleResult == RuleResultEnum.Fail) r2.ResultDescription = "Fail: More than 15% of disk reads taking longer than 15ms.";
+                    if (r2.RuleResult == RuleResultEnum.Warn) r2.ResultDescription = "Warning: More than 15% of disk reads taking longer than 10ms.";
                     if (r2.RuleResult == RuleResultEnum.Pass) r2.ResultDescription = "Pass: Disk secs/Read healthy at all times.";
                 });
             }
@@ -278,13 +278,13 @@ namespace SSASDiag
                 return s;
             }
 
-            public void ValidateThresholdRule(Series series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText = "", string PassLineText = "", bool CheckIfValueBelowWarnError = true)
+            public void ValidateThresholdRule(Series series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText = "", string PassLineText = "", bool CheckIfValueBelowWarnError = true, bool CheckAvg = false, bool IncludeZerosInAvg = true, int PctValuesToTriggerWarnFail = 0)
             {
                 List<Series> s = new List<Series>();
                 s.Add(series);
-                ValidateThresholdRule(s, WarnY, ErrorY, WarningLineText, ErrorLineText, PassLineText, CheckIfValueBelowWarnError);
+                ValidateThresholdRule(s, WarnY, ErrorY, WarningLineText, ErrorLineText, PassLineText, CheckIfValueBelowWarnError, CheckAvg, IncludeZerosInAvg, PctValuesToTriggerWarnFail);
             }
-            public void ValidateThresholdRule(List<Series> series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", string PassLineText = "", bool CheckIfValueBelowWarnError = true)
+            public void ValidateThresholdRule(List<Series> series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", string PassLineText = "", bool CheckIfValueBelowWarnError = true, bool CheckAvg = false, bool IncludeZerosInAvg = true, int PctValuesToTriggerWarnFail = 0)
             {
                 Color WarnColor = Color.Khaki;
                 Color ErrorColor = Color.Pink;
@@ -310,7 +310,6 @@ namespace SSASDiag
                     if (WarningLineText != "")
                         WarnRegion = AddStripLine(WarningLineText, WarnY, ErrorY, WarnColor);
                     CustomStripLines.Add(PassRegion);
-
                 }
                 else
                 {
@@ -327,21 +326,47 @@ namespace SSASDiag
                 }
                 foreach (Series s in series)
                 {
-                    if (CheckIfValueBelowWarnError)
+                    double comparisonValue = 0;
+                    if (PctValuesToTriggerWarnFail > 0)
                     {
-                        if (s.Points.FindMaxByValue().YValues[0] >= ErrorY)
+                        double dCount = 0;
+                        if (CheckIfValueBelowWarnError)
+                            dCount = s.Points.Where(p => p.YValues[0] >= ErrorY).Count();
+                        else
+                            dCount = s.Points.Where(p => p.YValues[0] <= ErrorY).Count();
+                        if ((double)dCount / (double)s.Points.Count * 100.0> PctValuesToTriggerWarnFail / 100.0)
+                        {
                             RuleResult = RuleResultEnum.Fail;
-                        else if (s.Points.FindMaxByValue().YValues[0] >= WarnY)
+                            return;
+                        }
+                        if (CheckIfValueBelowWarnError)
+                            dCount = s.Points.Where(p => p.YValues[0] >= WarnY).Count();
+                        else
+                            dCount = s.Points.Where(p => p.YValues[0] <= WarnY).Count();
+                        if ((double)dCount / (double)s.Points.Count * 100.0 > PctValuesToTriggerWarnFail / 100.0)
+                        {
                             RuleResult = RuleResultEnum.Warn;
+                            return;
+                        }
                     }
                     else
                     {
-                        if (s.Points.FindMinByValue().YValues[0] <= ErrorY)
-                            RuleResult = RuleResultEnum.Fail;
-                        else if (s.Points.FindMinByValue().YValues[0] <= WarnY)
-                            RuleResult = RuleResultEnum.Warn;
+                        comparisonValue = CheckAvg ? s.Points.AverageValue(true, IncludeZerosInAvg) : CheckIfValueBelowWarnError ? s.Points.FindMaxByValue().YValues[0] : s.Points.FindMinByValue().YValues[0];
+                        if (CheckIfValueBelowWarnError)
+                        {
+                            if (comparisonValue >= ErrorY)
+                                RuleResult = RuleResultEnum.Fail;
+                            else if (comparisonValue >= WarnY)
+                                RuleResult = RuleResultEnum.Warn;
+                        }
+                        else
+                        {
+                            if (comparisonValue <= ErrorY)
+                                RuleResult = RuleResultEnum.Fail;
+                            else if (comparisonValue <= WarnY)
+                                RuleResult = RuleResultEnum.Warn;
+                        }
                     }
-
                     if (RuleResult != RuleResultEnum.Pass)
                         return;
                 }
@@ -360,13 +385,16 @@ namespace SSASDiag
 
     static class DataPointExtensions
     {
-        public static double AverageValue(this IEnumerable<DataPoint> points)
+        public static double AverageValue(this IEnumerable<DataPoint> points, bool ExcludeNull = true, bool ExcludeZero = false)
         {
             double sumY = 0, count = 0;
             foreach (var pt in points)
             {
-                sumY += pt.YValues[0];
-                count++;
+                if ((pt.YValues[0] != null || ExcludeNull) && (pt.YValues[0] != 0 || ExcludeZero))
+                {
+                    sumY += pt.YValues[0];
+                    count++;
+                }
             }
             // also calc average time?
             if (count == 0)
