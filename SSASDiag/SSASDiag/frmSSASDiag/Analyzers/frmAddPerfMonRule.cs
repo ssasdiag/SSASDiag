@@ -516,6 +516,7 @@ namespace SSASDiag
                 pnlLow.BackColor = ErrorColor;
                 lblHighRegion.Visible = lblHighResultText.Visible = lblHighVal.Visible = txtHighRegion.Visible = txtHighResult.Visible = cmbValHigh.Visible = false;
                 lblLowRegion.Visible = lblLowResultText.Visible = lblLowVal.Visible = txtLowRegion.Visible = txtLowResult.Visible = cmbValLow.Visible = true;
+                lblWarnVal.Text = "Warn below value";
             }
             else
             {
@@ -524,6 +525,7 @@ namespace SSASDiag
                 pnlLow.BackColor = PassColor;
                 lblHighRegion.Visible = lblHighResultText.Visible = lblHighVal.Visible = txtHighRegion.Visible = txtHighResult.Visible = cmbValHigh.Visible = true;
                 lblLowRegion.Visible = lblLowResultText.Visible = lblLowVal.Visible = txtLowRegion.Visible = txtLowResult.Visible = cmbValLow.Visible = false;
+                lblWarnVal.Text = "Warn above value";
             }
             btnSaveRule.Enabled = IsRuleComplete();
         }
@@ -569,19 +571,40 @@ namespace SSASDiag
         {
             if (sender is ComboBox)
             {
-                if ((sender as ComboBox).SelectedIndex == -1)
-                    errorProvider1.SetError(sender as ComboBox, "Selection is required for a valid rule.");
+                ComboBox cb = sender as ComboBox;
+                if (cb == cmbWarnExpr && txtWarnRegion.Text.Trim() == "" && txtWarnResult.Text.Trim() == "")
+                    errorProvider1.SetError(cb, "");
                 else
-                    errorProvider1.SetError(sender as ComboBox, "");
+                {
+                    if (cb.SelectedIndex == -1)
+                    {
+                        if (cb == cmbWarnExpr)
+                            errorProvider1.SetError(cb, "Warning value required when a warning region label and result text are set.");
+                        else
+                            errorProvider1.SetError(cb, "Selection is required for a valid rule.");
+                    }
+                    else
+                        errorProvider1.SetError(cb, "");
+                }
             }
             else if (sender is TextBox)
             {
-                if ((sender as TextBox).Text.Trim() == "")
-                    errorProvider1.SetError(sender as TextBox, "This item is required for a valid rule.");
+                TextBox tb = sender as TextBox;
+                if ((tb == txtWarnResult || tb == txtWarnRegion) && cmbWarnExpr.SelectedIndex == -1  && txtWarnResult.Text.Trim() == "" && txtWarnRegion.Text.Trim() == "")
+                    errorProvider1.SetError(tb, "");
                 else
-                    errorProvider1.SetError(sender as TextBox, "");
+                {
+                    if (tb.Text.Trim() == "")
+                    {
+                        if (tb == txtWarnRegion || tb == txtWarnResult)
+                            errorProvider1.SetError(tb, "Warning region label and result text are required when a warning value is set.");
+                        else
+                            errorProvider1.SetError(tb, "This item is required for a valid rule.");
+                    }
+                    else
+                        errorProvider1.SetError(tb, "");
+                }
             }
-            
         }
 
         private void frmAddPerfMonRule_Shown(object sender, EventArgs e)

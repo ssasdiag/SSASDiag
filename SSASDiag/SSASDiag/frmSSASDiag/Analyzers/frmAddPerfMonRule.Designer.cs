@@ -29,11 +29,11 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle21 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle22 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmAddPerfMonRule));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle23 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle24 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitCountersAndRule = new System.Windows.Forms.SplitContainer();
             this.splitCounters = new System.Windows.Forms.SplitContainer();
             this.dgdSelectedCounters = new System.Windows.Forms.DataGridView();
@@ -52,7 +52,7 @@
             this.pnlRuleDetails = new System.Windows.Forms.Panel();
             this.cmbCheckAboveOrBelow = new System.Windows.Forms.ComboBox();
             this.pnlMed = new System.Windows.Forms.Panel();
-            this.lblMedVal = new System.Windows.Forms.Label();
+            this.lblWarnVal = new System.Windows.Forms.Label();
             this.txtWarnResult = new System.Windows.Forms.TextBox();
             this.txtWarnRegion = new System.Windows.Forms.TextBox();
             this.lblMedResultText = new System.Windows.Forms.Label();
@@ -164,28 +164,28 @@
             this.dgdSelectedCounters.BackgroundColor = System.Drawing.SystemColors.Window;
             this.dgdSelectedCounters.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdSelectedCounters.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            dataGridViewCellStyle21.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle21.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle21.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle21.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle21.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle21.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle21.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdSelectedCounters.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle21;
+            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle9.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle9.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle9.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle9.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle9.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle9.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdSelectedCounters.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle9;
             this.dgdSelectedCounters.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdSelectedCounters.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Counter,
             this.ShowInChart,
             this.HighlightInChart,
             this.WildcardWithTotal});
-            dataGridViewCellStyle22.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle22.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle22.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle22.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle22.SelectionBackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle22.SelectionForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle22.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdSelectedCounters.DefaultCellStyle = dataGridViewCellStyle22;
+            dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle10.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle10.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle10.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle10.SelectionBackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle10.SelectionForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle10.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdSelectedCounters.DefaultCellStyle = dataGridViewCellStyle10;
             this.dgdSelectedCounters.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdSelectedCounters.Location = new System.Drawing.Point(0, 0);
             this.dgdSelectedCounters.Margin = new System.Windows.Forms.Padding(0);
@@ -285,14 +285,14 @@
             this.dgdExpressions.BackgroundColor = System.Drawing.SystemColors.Window;
             this.dgdExpressions.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdExpressions.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            dataGridViewCellStyle23.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle23.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle23.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle23.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle23.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle23.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle23.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdExpressions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle23;
+            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle11.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle11.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle11.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle11.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle11.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle11.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdExpressions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle11;
             this.dgdExpressions.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdExpressions.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ExpressionName,
@@ -307,12 +307,12 @@
             this.dgdExpressions.MultiSelect = false;
             this.dgdExpressions.Name = "dgdExpressions";
             this.dgdExpressions.RowHeadersWidth = 24;
-            dataGridViewCellStyle24.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle24.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle24.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle24.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle24.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdExpressions.RowsDefaultCellStyle = dataGridViewCellStyle24;
+            dataGridViewCellStyle12.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle12.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle12.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle12.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdExpressions.RowsDefaultCellStyle = dataGridViewCellStyle12;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.ControlText;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
@@ -397,7 +397,7 @@
             // pnlMed
             // 
             this.pnlMed.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlMed.Controls.Add(this.lblMedVal);
+            this.pnlMed.Controls.Add(this.lblWarnVal);
             this.pnlMed.Controls.Add(this.txtWarnResult);
             this.pnlMed.Controls.Add(this.txtWarnRegion);
             this.pnlMed.Controls.Add(this.lblMedResultText);
@@ -408,32 +408,32 @@
             this.pnlMed.Size = new System.Drawing.Size(408, 60);
             this.pnlMed.TabIndex = 9;
             // 
-            // lblMedVal
+            // lblWarnVal
             // 
-            this.lblMedVal.AutoSize = true;
-            this.lblMedVal.BackColor = System.Drawing.Color.Transparent;
-            this.lblMedVal.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblMedVal.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.lblMedVal.Location = new System.Drawing.Point(27, 10);
-            this.lblMedVal.Name = "lblMedVal";
-            this.lblMedVal.Size = new System.Drawing.Size(75, 12);
-            this.lblMedVal.TabIndex = 8;
-            this.lblMedVal.Text = "Warn Expression";
+            this.lblWarnVal.AutoSize = true;
+            this.lblWarnVal.BackColor = System.Drawing.Color.Transparent;
+            this.lblWarnVal.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblWarnVal.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.lblWarnVal.Location = new System.Drawing.Point(26, 11);
+            this.lblWarnVal.Name = "lblWarnVal";
+            this.lblWarnVal.Size = new System.Drawing.Size(80, 12);
+            this.lblWarnVal.TabIndex = 8;
+            this.lblWarnVal.Text = "Warn above value";
             // 
-            // txtMedResult
+            // txtWarnResult
             // 
             this.txtWarnResult.Location = new System.Drawing.Point(198, 32);
-            this.txtWarnResult.Name = "txtMedResult";
+            this.txtWarnResult.Name = "txtWarnResult";
             this.txtWarnResult.Size = new System.Drawing.Size(190, 20);
             this.txtWarnResult.TabIndex = 7;
             this.tt.SetToolTip(this.txtWarnResult, "Leave warn values empty to check only pass/fail.");
             this.txtWarnResult.TextChanged += new System.EventHandler(this.txtErrorWarnRegions_TextChanged);
             this.txtWarnResult.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
-            // txtMedRegion
+            // txtWarnRegion
             // 
             this.txtWarnRegion.Location = new System.Drawing.Point(198, 6);
-            this.txtWarnRegion.Name = "txtMedRegion";
+            this.txtWarnRegion.Name = "txtWarnRegion";
             this.txtWarnRegion.Size = new System.Drawing.Size(190, 20);
             this.txtWarnRegion.TabIndex = 6;
             this.tt.SetToolTip(this.txtWarnRegion, "Leave warn values empty to check only pass/fail.");
@@ -446,19 +446,19 @@
             this.lblMedResultText.BackColor = System.Drawing.Color.Transparent;
             this.lblMedResultText.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblMedResultText.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.lblMedResultText.Location = new System.Drawing.Point(153, 36);
+            this.lblMedResultText.Location = new System.Drawing.Point(142, 36);
             this.lblMedResultText.Name = "lblMedResultText";
-            this.lblMedResultText.Size = new System.Drawing.Size(45, 12);
+            this.lblMedResultText.Size = new System.Drawing.Size(57, 12);
             this.lblMedResultText.TabIndex = 10;
-            this.lblMedResultText.Text = "Warn text";
+            this.lblMedResultText.Text = "Warning text";
             // 
-            // cmbValMed
+            // cmbWarnExpr
             // 
             this.cmbWarnExpr.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbWarnExpr.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.cmbWarnExpr.FormattingEnabled = true;
-            this.cmbWarnExpr.Location = new System.Drawing.Point(4, 28);
-            this.cmbWarnExpr.Name = "cmbValMed";
+            this.cmbWarnExpr.Location = new System.Drawing.Point(6, 29);
+            this.cmbWarnExpr.Name = "cmbWarnExpr";
             this.cmbWarnExpr.Size = new System.Drawing.Size(121, 20);
             this.cmbWarnExpr.TabIndex = 1;
             this.tt.SetToolTip(this.cmbWarnExpr, "Leave warn values empty to check only pass/fail.");
@@ -471,11 +471,11 @@
             this.lblMedRegion.BackColor = System.Drawing.Color.Transparent;
             this.lblMedRegion.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblMedRegion.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.lblMedRegion.Location = new System.Drawing.Point(124, 12);
+            this.lblMedRegion.Location = new System.Drawing.Point(112, 13);
             this.lblMedRegion.Name = "lblMedRegion";
-            this.lblMedRegion.Size = new System.Drawing.Size(75, 12);
+            this.lblMedRegion.Size = new System.Drawing.Size(87, 12);
             this.lblMedRegion.TabIndex = 9;
-            this.lblMedRegion.Text = "Warn region label";
+            this.lblMedRegion.Text = "Warning region label";
             // 
             // pnlLow
             // 
@@ -497,11 +497,11 @@
             this.lblLowVal.BackColor = System.Drawing.Color.Transparent;
             this.lblLowVal.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblLowVal.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.lblLowVal.Location = new System.Drawing.Point(28, 12);
+            this.lblLowVal.Location = new System.Drawing.Point(28, 13);
             this.lblLowVal.Name = "lblLowVal";
-            this.lblLowVal.Size = new System.Drawing.Size(73, 12);
+            this.lblLowVal.Size = new System.Drawing.Size(77, 12);
             this.lblLowVal.TabIndex = 8;
-            this.lblLowVal.Text = "Error Expression";
+            this.lblLowVal.Text = "Error below value";
             // 
             // txtLowResult
             // 
@@ -538,7 +538,7 @@
             this.cmbValLow.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbValLow.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.cmbValLow.FormattingEnabled = true;
-            this.cmbValLow.Location = new System.Drawing.Point(4, 28);
+            this.cmbValLow.Location = new System.Drawing.Point(6, 29);
             this.cmbValLow.Name = "cmbValLow";
             this.cmbValLow.Size = new System.Drawing.Size(121, 20);
             this.cmbValLow.TabIndex = 1;
@@ -577,11 +577,11 @@
             this.lblHighVal.BackColor = System.Drawing.Color.Transparent;
             this.lblHighVal.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblHighVal.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.lblHighVal.Location = new System.Drawing.Point(28, 11);
+            this.lblHighVal.Location = new System.Drawing.Point(27, 12);
             this.lblHighVal.Name = "lblHighVal";
-            this.lblHighVal.Size = new System.Drawing.Size(73, 12);
+            this.lblHighVal.Size = new System.Drawing.Size(78, 12);
             this.lblHighVal.TabIndex = 3;
-            this.lblHighVal.Text = "Error Expression";
+            this.lblHighVal.Text = "Error above value";
             // 
             // txtHighResult
             // 
@@ -606,7 +606,7 @@
             this.cmbValHigh.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbValHigh.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.cmbValHigh.FormattingEnabled = true;
-            this.cmbValHigh.Location = new System.Drawing.Point(4, 28);
+            this.cmbValHigh.Location = new System.Drawing.Point(6, 29);
             this.cmbValHigh.Name = "cmbValHigh";
             this.cmbValHigh.Size = new System.Drawing.Size(121, 20);
             this.cmbValHigh.TabIndex = 0;
@@ -972,7 +972,7 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label lblMedRegion;
-        private System.Windows.Forms.Label lblMedVal;
+        private System.Windows.Forms.Label lblWarnVal;
         private System.Windows.Forms.TextBox txtWarnResult;
         private System.Windows.Forms.TextBox txtWarnRegion;
         private System.Windows.Forms.Label lblMedResultText;
