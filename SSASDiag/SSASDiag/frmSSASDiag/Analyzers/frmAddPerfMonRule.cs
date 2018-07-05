@@ -73,6 +73,7 @@ namespace SSASDiag
         }
 
         /* Drag & Drop */
+        #region
         private Rectangle dragBoxFromMouseDown;
         private object valueFromMouseDown;
 
@@ -168,6 +169,7 @@ namespace SSASDiag
             cmbValMed.Items.Clear();
             cmbValLow.Items.Clear();
             cmbValHigh.Items.Clear();
+            btnSaveRule.Enabled = false;
             foreach (DataGridViewRow r in dgdSelectedCounters.Rows)
                 if (r.Cells[0].Value != null)
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
@@ -224,21 +226,6 @@ namespace SSASDiag
             }
         }
 
-        List<TreeNode> ListNodes(TreeView tv)
-        {
-            List<TreeNode> nodes = new List<TreeNode>();
-            foreach (TreeNode subnode in tv.Nodes)
-                nodes.AddRange(ListNodes(subnode));
-            return nodes;
-        }
-        List<TreeNode> ListNodes(TreeNode node)
-        {
-            List<TreeNode> nodes = new List<TreeNode>();
-            foreach (TreeNode subnode in node.Nodes)
-                nodes.AddRange(ListNodes(subnode));
-            return nodes;
-        }
-
         private void dgdExpressions_DragDrop(object sender, DragEventArgs e)
         {
             DataGridViewRow r = (DataGridViewRow)e.Data.GetData("System.Windows.Forms.DataGridViewRow");
@@ -272,6 +259,38 @@ namespace SSASDiag
                 e.Effect = DragDropEffects.Move;
             else
                 e.Effect = DragDropEffects.None;
+        }
+        #endregion
+
+        private bool IsRuleComplete()
+        {
+            if (txtName.Text == "" || txtDescription.Text == "" ||
+                dgdSelectedCounters.Rows.Count == 0 || dgdExpressions.Rows.Count == 0 ||
+                cmbValueToCheck.SelectedIndex >= 0 ||
+                (cmbSeriesFunction.Visible && cmbSeriesFunction.SelectedItem == null) ||
+                (cmbCheckAboveOrBelow.SelectedIndex == 0 && (cmbValHigh.SelectedIndex == -1 || txtHighRegion.Text == "" || txtHighResult.Text == "")) ||
+                (cmbCheckAboveOrBelow.SelectedIndex == 1 && (cmbValLow.SelectedIndex == -1 || txtLowRegion.Text == "" || txtLowResult.Text == "")) ||
+                (cmbValMed.SelectedIndex >= 0 && (txtMedRegion.Text == "" || txtMedResult.Text == "")))
+                return false;
+            foreach (DataGridViewRow r in dgdExpressions.Rows)
+                if (r.Cells[0].ErrorText != "" || r.Cells[1].ErrorText != "")
+                    return false;
+            return true;
+        }
+
+        List<TreeNode> ListNodes(TreeView tv)
+        {
+            List<TreeNode> nodes = new List<TreeNode>();
+            foreach (TreeNode subnode in tv.Nodes)
+                nodes.AddRange(ListNodes(subnode));
+            return nodes;
+        }
+        List<TreeNode> ListNodes(TreeNode node)
+        {
+            List<TreeNode> nodes = new List<TreeNode>();
+            foreach (TreeNode subnode in node.Nodes)
+                nodes.AddRange(ListNodes(subnode));
+            return nodes;
         }
 
         private bool IsValidExpressionToken(string token)
@@ -505,6 +524,8 @@ namespace SSASDiag
                 lblHighRegion.Visible = lblHighResultText.Visible = lblHighVal.Visible = txtHighRegion.Visible = txtHighResult.Visible = cmbValHigh.Visible = true;
                 lblLowRegion.Visible = lblLowResultText.Visible = lblLowVal.Visible = txtLowRegion.Visible = txtLowResult.Visible = cmbValLow.Visible = false;
             }
+            if (IsRuleComplete())
+                btnSaveRule.Enabled = true;
         }
 
         private void frmAddPerfMonRule_SizeChanged(object sender, EventArgs e)
@@ -523,15 +544,8 @@ namespace SSASDiag
                 e.Handled = true;
                 tt.Show("Rules must start with a letter and use only letter, number, space, dash, or underscore.", txtName, 0, 0, 2000);
             }
-        }
-
-        private void txtDescription_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == '\"')
-            {
-                e.Handled = true;
-                tt.Show("Wah Wah...  Rule description cannot include double quotes.", txtDescription, 0, 0, 2000);
-            }
+            if (IsRuleComplete())
+                btnSaveRule.Enabled = true;
         }
 
         private void dgdSelectedCounters_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e)
@@ -540,6 +554,18 @@ namespace SSASDiag
             foreach (DataGridViewRow r in dgdExpressions.Rows)
                 dgdExpressions_CellEndEdit(dgdExpressions, new DataGridViewCellEventArgs(1, r.Index));
             UpdateExpressionsAndCountersCombo();
+        }
+
+        private void cmbValHigh_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (IsRuleComplete())
+                btnSaveRule.Enabled = true;
+        }
+
+        private void txtHighRegion_TextChanged(object sender, EventArgs e)
+        {
+            if (IsRuleComplete())
+                btnSaveRule.Enabled = true;
         }
 
         private void cmbValueToCheck_SelectedIndexChanged(object sender, EventArgs e)
@@ -554,11 +580,15 @@ namespace SSASDiag
                 cmbSeriesFunction.Visible = lblSeriesFunction.Visible = true;
             else
                 cmbSeriesFunction.Visible = lblSeriesFunction.Visible = false;
+            if (IsRuleComplete())
+                btnSaveRule.Enabled = true;
         }
 
         private void cmbSeriesFunction_SelectedIndexChanged(object sender, EventArgs e)
         {
             lblPctMatchCheck.Visible = udPctMatchCheck.Visible = cmbSeriesFunction.SelectedItem as string == "X% of values to warn/error";
+            if (IsRuleComplete())
+                btnSaveRule.Enabled = true;
         }
     }
 
