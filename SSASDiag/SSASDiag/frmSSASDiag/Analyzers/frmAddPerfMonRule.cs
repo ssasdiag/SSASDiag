@@ -28,7 +28,7 @@ namespace SSASDiag
     {
         TreeView tvCounters;
         ucASPerfMonAnalyzer HostControl = ((Program.MainForm.tcCollectionAnalysisTabs.TabPages[1].Controls["tcAnalysis"] as TabControl).TabPages["Performance Logs"].Controls[0] as ucASPerfMonAnalyzer);
-
+        Color WarnColor, ErrorColor, PassColor = Color.Empty;
         public frmAddPerfMonRule()
         {
             InitializeComponent();
@@ -56,6 +56,10 @@ namespace SSASDiag
             dgdExpressions.Columns[0].CellTemplate = new DataGridViewTextBoxColumnWithExpandedEditArea();
             dgdExpressions.Columns[1].CellTemplate = new DataGridViewTextBoxColumnWithExpandedEditArea();
             dgdExpressions.Rows.Clear();
+            WarnColor = Color.FromArgb(128, Color.Khaki);
+            ErrorColor = Color.FromArgb(128, Color.Pink);
+            PassColor = Color.FromArgb(128, Color.LightGreen);
+            cmbCheckAboveOrBelow.SelectedIndex = 0;
         }
 
         private void frmAddPerfMonRule_Load(object sender, EventArgs e)
@@ -162,17 +166,32 @@ namespace SSASDiag
         private void UpdateExpressionsAndCountersCombo()
         {
             cmbValueToCheck.Items.Clear();
+            cmbValMed.Items.Clear();
+            cmbValLow.Items.Clear();
+            cmbValHigh.Items.Clear();
             foreach (DataGridViewRow r in dgdSelectedCounters.Rows)
                 if (r.Cells[0].Value != null)
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
             foreach (DataGridViewRow r in dgdExpressions.Rows)
                 if (r.Cells[0].Value != null && r.Cells[0].ErrorText == "" && r.Cells[1].ErrorText == "")
+                {
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
+                    cmbValLow.Items.Add(r.Cells[0].Value as string);
+                    cmbValHigh.Items.Add(r.Cells[0].Value as string);
+                    cmbValMed.Items.Add(r.Cells[0].Value as string);
+                }
+
             cmbValueToCheck.Text = "";
+
             if (cmbValueToCheck.Items.Count == 0)
                 cmbValueToCheck.Enabled = false;
             else
                 cmbValueToCheck.Enabled = true;
+
+            if (cmbValHigh.Items.Count == 0)
+                cmbValLow.Visible = cmbValHigh.Enabled = cmbValMed.Enabled = false;
+            else
+                cmbValLow.Enabled = cmbValHigh.Enabled = cmbValMed.Enabled = true;
             cmbSeriesFunction.Visible = lblSeriesFunction.Visible = lblPctMatchCheck.Visible = udPctMatchCheck.Visible = false;
         }
 
@@ -425,6 +444,26 @@ namespace SSASDiag
         private void dgdExpressions_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
         {
             UpdateExpressionsAndCountersCombo();
+        }
+
+        private void cmbCheckAboveOrBelow_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cmbCheckAboveOrBelow.SelectedIndex == 0)
+            {
+                pnlHigh.BackColor = PassColor;
+                pnlMed.BackColor = WarnColor;
+                pnlLow.BackColor = ErrorColor;
+                cmbValHigh.Visible = false;
+                cmbValLow.Visible = true;
+            }
+            else
+            {
+                pnlHigh.BackColor = ErrorColor;
+                pnlMed.BackColor = WarnColor;
+                pnlLow.BackColor = PassColor;
+                cmbValLow.Visible = false;
+                cmbValHigh.Visible = true;
+            }
         }
 
         private void cmbValueToCheck_SelectedIndexChanged(object sender, EventArgs e)

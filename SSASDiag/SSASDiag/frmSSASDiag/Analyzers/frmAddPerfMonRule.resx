@@ -130,7 +130,7 @@
     <value>True</value>
   </metadata>
   <data name="label3.Text" xml:space="preserve">
-    <value>Define any required expressions for the rule.
+    <value>Define expressions required to check the rule.
 
 Each counter can return the following functions:
 

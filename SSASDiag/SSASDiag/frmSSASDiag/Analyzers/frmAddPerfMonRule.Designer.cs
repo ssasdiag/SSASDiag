@@ -29,11 +29,11 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmAddPerfMonRule));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitCountersAndRule = new System.Windows.Forms.SplitContainer();
             this.splitCounters = new System.Windows.Forms.SplitContainer();
             this.dgdSelectedCounters = new System.Windows.Forms.DataGridView();
@@ -57,6 +57,13 @@
             this.cmbSeriesFunction = new System.Windows.Forms.ComboBox();
             this.lblPctMatchCheck = new System.Windows.Forms.Label();
             this.udPctMatchCheck = new System.Windows.Forms.NumericUpDown();
+            this.pnlHigh = new System.Windows.Forms.Panel();
+            this.pnlMed = new System.Windows.Forms.Panel();
+            this.pnlLow = new System.Windows.Forms.Panel();
+            this.cmbCheckAboveOrBelow = new System.Windows.Forms.ComboBox();
+            this.cmbValHigh = new System.Windows.Forms.ComboBox();
+            this.cmbValMed = new System.Windows.Forms.ComboBox();
+            this.cmbValLow = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitCountersAndRule)).BeginInit();
             this.splitCountersAndRule.Panel1.SuspendLayout();
             this.splitCountersAndRule.Panel2.SuspendLayout();
@@ -77,6 +84,9 @@
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udPctMatchCheck)).BeginInit();
+            this.pnlHigh.SuspendLayout();
+            this.pnlMed.SuspendLayout();
+            this.pnlLow.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitCountersAndRule
@@ -94,7 +104,7 @@
             // splitCountersAndRule.Panel2
             // 
             this.splitCountersAndRule.Panel2.Controls.Add(this.splitExpressionsAndRule);
-            this.splitCountersAndRule.Size = new System.Drawing.Size(636, 669);
+            this.splitCountersAndRule.Size = new System.Drawing.Size(636, 651);
             this.splitCountersAndRule.SplitterDistance = 220;
             this.splitCountersAndRule.TabIndex = 0;
             // 
@@ -121,28 +131,28 @@
             this.dgdSelectedCounters.BackgroundColor = System.Drawing.SystemColors.Window;
             this.dgdSelectedCounters.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdSelectedCounters.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdSelectedCounters.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdSelectedCounters.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
             this.dgdSelectedCounters.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdSelectedCounters.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Counter,
             this.ShowInChart,
             this.HighlightInChart,
             this.WildcardWithTotal});
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdSelectedCounters.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdSelectedCounters.DefaultCellStyle = dataGridViewCellStyle6;
             this.dgdSelectedCounters.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdSelectedCounters.Location = new System.Drawing.Point(0, 0);
             this.dgdSelectedCounters.Margin = new System.Windows.Forms.Padding(0);
@@ -199,7 +209,7 @@
             // splitExpressionsAndRule.Panel2
             // 
             this.splitExpressionsAndRule.Panel2.Controls.Add(this.panel2);
-            this.splitExpressionsAndRule.Size = new System.Drawing.Size(636, 445);
+            this.splitExpressionsAndRule.Size = new System.Drawing.Size(636, 427);
             this.splitExpressionsAndRule.SplitterDistance = 215;
             this.splitExpressionsAndRule.TabIndex = 0;
             // 
@@ -240,14 +250,14 @@
             this.dgdExpressions.BackgroundColor = System.Drawing.SystemColors.Window;
             this.dgdExpressions.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdExpressions.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdExpressions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle7.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle7.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle7.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdExpressions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle7;
             this.dgdExpressions.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdExpressions.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ExpressionName,
@@ -260,12 +270,12 @@
             this.dgdExpressions.MultiSelect = false;
             this.dgdExpressions.Name = "dgdExpressions";
             this.dgdExpressions.RowHeadersWidth = 24;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdExpressions.RowsDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle8.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdExpressions.RowsDefaultCellStyle = dataGridViewCellStyle8;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.ControlText;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
@@ -313,6 +323,10 @@
             // panel2
             // 
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.cmbCheckAboveOrBelow);
+            this.panel2.Controls.Add(this.pnlMed);
+            this.panel2.Controls.Add(this.pnlLow);
+            this.panel2.Controls.Add(this.pnlHigh);
             this.panel2.Controls.Add(this.udPctMatchCheck);
             this.panel2.Controls.Add(this.lblPctMatchCheck);
             this.panel2.Controls.Add(this.lblSeriesFunction);
@@ -322,14 +336,14 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel2.Location = new System.Drawing.Point(0, 0);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(636, 226);
+            this.panel2.Size = new System.Drawing.Size(636, 208);
             this.panel2.TabIndex = 0;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.label2.Location = new System.Drawing.Point(50, 2);
+            this.label2.Location = new System.Drawing.Point(50, 4);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(95, 12);
             this.label2.TabIndex = 3;
@@ -337,10 +351,11 @@
             // 
             // cmbValueToCheck
             // 
+            this.cmbValueToCheck.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbValueToCheck.Enabled = false;
             this.cmbValueToCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.cmbValueToCheck.FormattingEnabled = true;
-            this.cmbValueToCheck.Location = new System.Drawing.Point(7, 17);
+            this.cmbValueToCheck.Location = new System.Drawing.Point(7, 24);
             this.cmbValueToCheck.Name = "cmbValueToCheck";
             this.cmbValueToCheck.Size = new System.Drawing.Size(181, 20);
             this.cmbValueToCheck.TabIndex = 2;
@@ -350,7 +365,7 @@
             // 
             this.lblSeriesFunction.AutoSize = true;
             this.lblSeriesFunction.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.lblSeriesFunction.Location = new System.Drawing.Point(27, 40);
+            this.lblSeriesFunction.Location = new System.Drawing.Point(27, 52);
             this.lblSeriesFunction.Name = "lblSeriesFunction";
             this.lblSeriesFunction.Size = new System.Drawing.Size(140, 12);
             this.lblSeriesFunction.TabIndex = 5;
@@ -359,6 +374,7 @@
             // 
             // cmbSeriesFunction
             // 
+            this.cmbSeriesFunction.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbSeriesFunction.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.cmbSeriesFunction.FormattingEnabled = true;
             this.cmbSeriesFunction.Items.AddRange(new object[] {
@@ -370,7 +386,7 @@
             "Avg (ignore nulls and zeros)",
             "Avg (include all values)",
             "X% of values to warn/error"});
-            this.cmbSeriesFunction.Location = new System.Drawing.Point(7, 55);
+            this.cmbSeriesFunction.Location = new System.Drawing.Point(7, 72);
             this.cmbSeriesFunction.Name = "cmbSeriesFunction";
             this.cmbSeriesFunction.Size = new System.Drawing.Size(181, 20);
             this.cmbSeriesFunction.TabIndex = 4;
@@ -381,7 +397,7 @@
             // 
             this.lblPctMatchCheck.AutoSize = true;
             this.lblPctMatchCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.lblPctMatchCheck.Location = new System.Drawing.Point(35, 78);
+            this.lblPctMatchCheck.Location = new System.Drawing.Point(35, 100);
             this.lblPctMatchCheck.Name = "lblPctMatchCheck";
             this.lblPctMatchCheck.Size = new System.Drawing.Size(124, 12);
             this.lblPctMatchCheck.TabIndex = 6;
@@ -391,7 +407,7 @@
             // udPctMatchCheck
             // 
             this.udPctMatchCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.udPctMatchCheck.Location = new System.Drawing.Point(72, 93);
+            this.udPctMatchCheck.Location = new System.Drawing.Point(72, 120);
             this.udPctMatchCheck.Name = "udPctMatchCheck";
             this.udPctMatchCheck.Size = new System.Drawing.Size(50, 17);
             this.udPctMatchCheck.TabIndex = 7;
@@ -403,11 +419,79 @@
             0});
             this.udPctMatchCheck.Visible = false;
             // 
+            // pnlHigh
+            // 
+            this.pnlHigh.Controls.Add(this.cmbValHigh);
+            this.pnlHigh.Location = new System.Drawing.Point(227, 32);
+            this.pnlHigh.Name = "pnlHigh";
+            this.pnlHigh.Size = new System.Drawing.Size(408, 60);
+            this.pnlHigh.TabIndex = 8;
+            // 
+            // pnlMed
+            // 
+            this.pnlMed.Controls.Add(this.cmbValMed);
+            this.pnlMed.Location = new System.Drawing.Point(227, 89);
+            this.pnlMed.Name = "pnlMed";
+            this.pnlMed.Size = new System.Drawing.Size(408, 60);
+            this.pnlMed.TabIndex = 9;
+            // 
+            // pnlLow
+            // 
+            this.pnlLow.Controls.Add(this.cmbValLow);
+            this.pnlLow.Location = new System.Drawing.Point(227, 147);
+            this.pnlLow.Name = "pnlLow";
+            this.pnlLow.Size = new System.Drawing.Size(408, 60);
+            this.pnlLow.TabIndex = 9;
+            // 
+            // cmbCheckAboveOrBelow
+            // 
+            this.cmbCheckAboveOrBelow.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbCheckAboveOrBelow.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.cmbCheckAboveOrBelow.FormattingEnabled = true;
+            this.cmbCheckAboveOrBelow.Items.AddRange(new object[] {
+            "Check for values above thresholds",
+            "Check for values below thresholds"});
+            this.cmbCheckAboveOrBelow.Location = new System.Drawing.Point(227, 2);
+            this.cmbCheckAboveOrBelow.Name = "cmbCheckAboveOrBelow";
+            this.cmbCheckAboveOrBelow.Size = new System.Drawing.Size(169, 20);
+            this.cmbCheckAboveOrBelow.TabIndex = 0;
+            this.cmbCheckAboveOrBelow.SelectedIndexChanged += new System.EventHandler(this.cmbCheckAboveOrBelow_SelectedIndexChanged);
+            // 
+            // cmbValHigh
+            // 
+            this.cmbValHigh.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbValHigh.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.cmbValHigh.FormattingEnabled = true;
+            this.cmbValHigh.Location = new System.Drawing.Point(14, 20);
+            this.cmbValHigh.Name = "cmbValHigh";
+            this.cmbValHigh.Size = new System.Drawing.Size(121, 20);
+            this.cmbValHigh.TabIndex = 0;
+            // 
+            // cmbValMed
+            // 
+            this.cmbValMed.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbValMed.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.cmbValMed.FormattingEnabled = true;
+            this.cmbValMed.Location = new System.Drawing.Point(14, 21);
+            this.cmbValMed.Name = "cmbValMed";
+            this.cmbValMed.Size = new System.Drawing.Size(121, 20);
+            this.cmbValMed.TabIndex = 1;
+            // 
+            // cmbValLow
+            // 
+            this.cmbValLow.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbValLow.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.cmbValLow.FormattingEnabled = true;
+            this.cmbValLow.Location = new System.Drawing.Point(14, 21);
+            this.cmbValLow.Name = "cmbValLow";
+            this.cmbValLow.Size = new System.Drawing.Size(121, 20);
+            this.cmbValLow.TabIndex = 1;
+            // 
             // frmAddPerfMonRule
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(636, 700);
+            this.ClientSize = new System.Drawing.Size(636, 682);
             this.Controls.Add(this.splitCountersAndRule);
             this.Controls.Add(this.panel1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -438,6 +522,9 @@
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udPctMatchCheck)).EndInit();
+            this.pnlHigh.ResumeLayout(false);
+            this.pnlMed.ResumeLayout(false);
+            this.pnlLow.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -467,5 +554,12 @@
         private System.Windows.Forms.ComboBox cmbSeriesFunction;
         private System.Windows.Forms.NumericUpDown udPctMatchCheck;
         private System.Windows.Forms.Label lblPctMatchCheck;
+        private System.Windows.Forms.Panel pnlMed;
+        private System.Windows.Forms.Panel pnlLow;
+        private System.Windows.Forms.Panel pnlHigh;
+        private System.Windows.Forms.ComboBox cmbCheckAboveOrBelow;
+        private System.Windows.Forms.ComboBox cmbValMed;
+        private System.Windows.Forms.ComboBox cmbValLow;
+        private System.Windows.Forms.ComboBox cmbValHigh;
     }
 }
