@@ -130,7 +130,9 @@
     <value>True</value>
   </metadata>
   <data name="label3.Text" xml:space="preserve">
-    <value>Each counter can return the following functions:
+    <value>Define any required expressions for the rule.
+
+Each counter can return the following functions:
 
 First: first value in series, Last: last value in series
 Max: highest value in series, Min: lowest value in series

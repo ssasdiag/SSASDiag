@@ -47,8 +47,8 @@
             this.dgdExpressions = new System.Windows.Forms.DataGridView();
             this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.panel2 = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
+            this.cmbValueToCheck = new System.Windows.Forms.ComboBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.tt = new System.Windows.Forms.ToolTip(this.components);
@@ -62,13 +62,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgdSelectedCounters)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitExpressionsAndRule)).BeginInit();
             this.splitExpressionsAndRule.Panel1.SuspendLayout();
+            this.splitExpressionsAndRule.Panel2.SuspendLayout();
             this.splitExpressionsAndRule.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitExpressions)).BeginInit();
             this.splitExpressions.Panel1.SuspendLayout();
             this.splitExpressions.Panel2.SuspendLayout();
             this.splitExpressions.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdExpressions)).BeginInit();
-            this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -82,12 +82,13 @@
             // splitCountersAndRule.Panel1
             // 
             this.splitCountersAndRule.Panel1.Controls.Add(this.splitCounters);
+            this.splitCountersAndRule.Panel1MinSize = 220;
             // 
             // splitCountersAndRule.Panel2
             // 
             this.splitCountersAndRule.Panel2.Controls.Add(this.splitExpressionsAndRule);
-            this.splitCountersAndRule.Size = new System.Drawing.Size(636, 496);
-            this.splitCountersAndRule.SplitterDistance = 136;
+            this.splitCountersAndRule.Size = new System.Drawing.Size(636, 669);
+            this.splitCountersAndRule.SplitterDistance = 220;
             this.splitCountersAndRule.TabIndex = 0;
             // 
             // splitCounters
@@ -100,7 +101,7 @@
             // splitCounters.Panel2
             // 
             this.splitCounters.Panel2.Controls.Add(this.dgdSelectedCounters);
-            this.splitCounters.Size = new System.Drawing.Size(636, 136);
+            this.splitCounters.Size = new System.Drawing.Size(636, 220);
             this.splitCounters.SplitterDistance = 260;
             this.splitCounters.TabIndex = 0;
             this.splitCounters.SplitterMoving += new System.Windows.Forms.SplitterCancelEventHandler(this.splitCounters_SplitterMoving);
@@ -140,8 +141,9 @@
             this.dgdSelectedCounters.Margin = new System.Windows.Forms.Padding(0);
             this.dgdSelectedCounters.Name = "dgdSelectedCounters";
             this.dgdSelectedCounters.RowHeadersVisible = false;
+            this.dgdSelectedCounters.RowTemplate.Height = 30;
             this.dgdSelectedCounters.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgdSelectedCounters.Size = new System.Drawing.Size(372, 136);
+            this.dgdSelectedCounters.Size = new System.Drawing.Size(372, 220);
             this.dgdSelectedCounters.TabIndex = 0;
             this.dgdSelectedCounters.DragDrop += new System.Windows.Forms.DragEventHandler(this.dgdSelectedCounters_DragDrop);
             this.dgdSelectedCounters.DragEnter += new System.Windows.Forms.DragEventHandler(this.dgdSelectedCounters_DragEnter);
@@ -185,16 +187,20 @@
             // splitExpressionsAndRule.Panel1
             // 
             this.splitExpressionsAndRule.Panel1.Controls.Add(this.splitExpressions);
-            this.splitExpressionsAndRule.Panel1.Controls.Add(this.panel2);
             this.splitExpressionsAndRule.Panel1MinSize = 215;
-            this.splitExpressionsAndRule.Size = new System.Drawing.Size(636, 356);
+            // 
+            // splitExpressionsAndRule.Panel2
+            // 
+            this.splitExpressionsAndRule.Panel2.Controls.Add(this.label2);
+            this.splitExpressionsAndRule.Panel2.Controls.Add(this.cmbValueToCheck);
+            this.splitExpressionsAndRule.Size = new System.Drawing.Size(636, 445);
             this.splitExpressionsAndRule.SplitterDistance = 215;
             this.splitExpressionsAndRule.TabIndex = 0;
             // 
             // splitExpressions
             // 
             this.splitExpressions.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitExpressions.Location = new System.Drawing.Point(0, 30);
+            this.splitExpressions.Location = new System.Drawing.Point(0, 0);
             this.splitExpressions.Name = "splitExpressions";
             // 
             // splitExpressions.Panel1
@@ -205,7 +211,7 @@
             // splitExpressions.Panel2
             // 
             this.splitExpressions.Panel2.Controls.Add(this.dgdExpressions);
-            this.splitExpressions.Size = new System.Drawing.Size(636, 185);
+            this.splitExpressions.Size = new System.Drawing.Size(636, 215);
             this.splitExpressions.SplitterDistance = 260;
             this.splitExpressions.TabIndex = 3;
             this.splitExpressions.SplitterMoving += new System.Windows.Forms.SplitterCancelEventHandler(this.splitExpressions_SplitterMoving);
@@ -216,7 +222,7 @@
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.label3.Location = new System.Drawing.Point(3, 1);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(241, 180);
+            this.label3.Size = new System.Drawing.Size(241, 204);
             this.label3.TabIndex = 2;
             this.label3.Text = resources.GetString("label3.Text");
             // 
@@ -241,28 +247,31 @@
             this.ExpressionName,
             this.Expression});
             this.dgdExpressions.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgdExpressions.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
+            this.dgdExpressions.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnKeystroke;
             this.dgdExpressions.GridColor = System.Drawing.SystemColors.Window;
             this.dgdExpressions.Location = new System.Drawing.Point(0, 0);
             this.dgdExpressions.Margin = new System.Windows.Forms.Padding(0);
             this.dgdExpressions.MultiSelect = false;
             this.dgdExpressions.Name = "dgdExpressions";
-            this.dgdExpressions.RowHeadersVisible = false;
-            this.dgdExpressions.RowHeadersWidth = 25;
+            this.dgdExpressions.RowHeadersWidth = 24;
             dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
             dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dgdExpressions.RowsDefaultCellStyle = dataGridViewCellStyle4;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.ControlText;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            this.dgdExpressions.RowTemplate.Height = 30;
             this.dgdExpressions.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgdExpressions.Size = new System.Drawing.Size(372, 185);
+            this.dgdExpressions.Size = new System.Drawing.Size(372, 215);
             this.dgdExpressions.TabIndex = 3;
             this.dgdExpressions.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdExpressions_CellEndEdit);
+            this.dgdExpressions.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.dgdExpressions_RowsRemoved);
             this.dgdExpressions.DragDrop += new System.Windows.Forms.DragEventHandler(this.dgdExpressions_DragDrop);
             this.dgdExpressions.DragEnter += new System.Windows.Forms.DragEventHandler(this.dgdExpressions_DragEnter);
+            this.dgdExpressions.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dgdExpressions_MouseClick);
             // 
             // ExpressionName
             // 
@@ -275,24 +284,25 @@
             this.Expression.HeaderText = "Expression";
             this.Expression.Name = "Expression";
             // 
-            // panel2
-            // 
-            this.panel2.Controls.Add(this.label2);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel2.Location = new System.Drawing.Point(0, 0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(636, 30);
-            this.panel2.TabIndex = 2;
-            // 
             // label2
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.label2.Location = new System.Drawing.Point(3, 9);
+            this.label2.Location = new System.Drawing.Point(3, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(184, 12);
+            this.label2.Size = new System.Drawing.Size(95, 12);
             this.label2.TabIndex = 1;
-            this.label2.Text = "Define any expressions required for the rule:";
+            this.label2.Text = "Value/Series to check";
+            // 
+            // cmbValueToCheck
+            // 
+            this.cmbValueToCheck.Enabled = false;
+            this.cmbValueToCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.cmbValueToCheck.FormattingEnabled = true;
+            this.cmbValueToCheck.Location = new System.Drawing.Point(5, 16);
+            this.cmbValueToCheck.Name = "cmbValueToCheck";
+            this.cmbValueToCheck.Size = new System.Drawing.Size(181, 20);
+            this.cmbValueToCheck.TabIndex = 0;
             // 
             // panel1
             // 
@@ -318,7 +328,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(636, 527);
+            this.ClientSize = new System.Drawing.Size(636, 700);
             this.Controls.Add(this.splitCountersAndRule);
             this.Controls.Add(this.panel1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -335,6 +345,8 @@
             this.splitCounters.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgdSelectedCounters)).EndInit();
             this.splitExpressionsAndRule.Panel1.ResumeLayout(false);
+            this.splitExpressionsAndRule.Panel2.ResumeLayout(false);
+            this.splitExpressionsAndRule.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitExpressionsAndRule)).EndInit();
             this.splitExpressionsAndRule.ResumeLayout(false);
             this.splitExpressions.Panel1.ResumeLayout(false);
@@ -343,8 +355,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitExpressions)).EndInit();
             this.splitExpressions.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgdExpressions)).EndInit();
-            this.panel2.ResumeLayout(false);
-            this.panel2.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.ResumeLayout(false);
@@ -369,7 +379,7 @@
         private System.Windows.Forms.DataGridView dgdExpressions;
         private System.Windows.Forms.DataGridViewTextBoxColumn ExpressionName;
         private System.Windows.Forms.DataGridViewTextBoxColumn Expression;
-        private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ComboBox cmbValueToCheck;
     }
 }

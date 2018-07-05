@@ -52,6 +52,10 @@ namespace SSASDiag
             foreach (TreeNode node in HostControl.tvCounters.Nodes)
                 tvCounters.Nodes.Add(node.Clone() as TreeNode);
             tt.SetToolTip(tvCounters, "Tip: To select counters by alternate groupings, exit this dialog, reorder headers above the counter treeview in the main browser, then reopen this dialog.");
+
+            dgdExpressions.Columns[0].CellTemplate = new DataGridViewTextBoxColumnWithExpandedEditArea();
+            dgdExpressions.Columns[1].CellTemplate = new DataGridViewTextBoxColumnWithExpandedEditArea();
+            dgdExpressions.Rows.Clear();
         }
 
         private void frmAddPerfMonRule_Load(object sender, EventArgs e)
@@ -150,7 +154,23 @@ namespace SSASDiag
                 else
                     newNode.Parent.Nodes.Remove(newNode);
                 r.Cells[0].Value = CounterPath;
+                UpdateExpressionsAndCountersCombo();
             }
+        }
+
+        private void UpdateExpressionsAndCountersCombo()
+        {
+            cmbValueToCheck.Items.Clear();
+            foreach (DataGridViewRow r in dgdSelectedCounters.Rows)
+                if (r.Cells[0].Value != null)
+                    cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
+            foreach (DataGridViewRow r in dgdExpressions.Rows)
+                if (r.Cells[0].Value != null)
+                    cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
+            if (cmbValueToCheck.Items.Count == 0)
+                cmbValueToCheck.Enabled = false;
+            else
+                cmbValueToCheck.Enabled = true;
         }
 
         private void dgdSelectedCounters_MouseDown(object sender, MouseEventArgs e)
@@ -161,7 +181,7 @@ namespace SSASDiag
             {
                 valueFromMouseDown = dgdSelectedCounters.Rows[hittestInfo.RowIndex];
                 if (valueFromMouseDown != null)
-                {           
+                {
                     Size dragSize = SystemInformation.DragSize;
                     dragBoxFromMouseDown = new Rectangle(new Point(e.X - (dragSize.Width / 2), e.Y - (dragSize.Height / 2)), dragSize);
                 }
@@ -221,10 +241,11 @@ namespace SSASDiag
                 dgdExpressions.CurrentRow.Cells[1].Value = existingVal + (existingVal == "" ? "" : " ") + "[" + r.Cells[0].Value + "]";
                 dgdExpressions.CurrentCell = dgdExpressions.CurrentRow.Cells[1];
                 dgdExpressions.BeginEdit(false);
+                SendKeys.Send(" ");
             }
         }
 
-        private void dgdExpressions_DragEnter(object sender, DragEventArgs e) 
+        private void dgdExpressions_DragEnter(object sender, DragEventArgs e)
         {
             DataGridViewRow r = (DataGridViewRow)e.Data.GetData("System.Windows.Forms.DataGridViewRow");
             if (r != null)
@@ -276,7 +297,7 @@ namespace SSASDiag
             {
                 if (dgdExpressions.Rows[e.RowIndex].Cells[0].Value == null)
                     dgdExpressions.Rows[e.RowIndex].Cells[0].Value = "Expr" + e.RowIndex;
-                bool bValidExpression = true, bLastTokenWasSeries = false, bInCounterName = false, bPriorSeriesFound = false, bOperatorProcessed = true;
+                bool bValidExpression = true, bInCounterName = false, bPriorSeriesFound = false, bOperatorProcessed = true;
                 string currentToken = "";
                 string priorToken = "";
                 int iCurPos = 0;
@@ -293,15 +314,13 @@ namespace SSASDiag
                         if (priorToken != "")
                             bPriorSeriesFound = true;
                         bInCounterName = true;
-                        if (bLastTokenWasSeries != currentToken.Trim().EndsWith("]"))
+                        if (currentToken.Trim() != "" && bPriorSeriesFound != currentToken.Trim().EndsWith("]"))
                         {
                             // We were trying to compare a series with a scalar...
                             bValidExpression = false;
                             break;
                         }
-                        bLastTokenWasSeries = currentToken.Trim().EndsWith("]");
-                        priorToken = currentToken;
-                        currentToken = "";
+                        bPriorSeriesFound = currentToken.Trim().EndsWith("]");
                         if (!IsValidExpressionToken(priorToken))
                         {
                             bValidExpression = false;
@@ -315,7 +334,21 @@ namespace SSASDiag
                     if (!bInCounterName && (c == '+' || c == '-' || c == '/' || c == '*' || c == '\\'))
                     {
                         bOperatorProcessed = true;
-                        if (!IsValidExpressionToken(currentToken) && currentToken.Trim().EndsWith("]") == bLastTokenWasSeries)
+                        if (bPriorSeriesFound && currentToken.Trim().EndsWith("]") && currentToken.Contains("*"))
+                        {
+                            string root = currentToken.Replace("\\*", "");
+                            if (root.Contains("\\"))
+                                root = root.Substring(0, root.IndexOf("\\"));
+                            string oldRoot = priorToken.Replace("\\*", "");
+                            if (oldRoot.Contains("\\"))
+                                oldRoot = root.Substring(0, root.IndexOf("\\"));
+                            if (root != oldRoot)
+                            {
+                                cell.ErrorText = "Wildcard counters can only be used in conjunction with counters under the same path.";
+                                return;
+                            }
+                        }
+                        if (!IsValidExpressionToken(currentToken) && currentToken.Trim().EndsWith("]") == bPriorSeriesFound)
                         {
                             bValidExpression = false;
                             break;
@@ -323,7 +356,7 @@ namespace SSASDiag
                         if (currentToken.Trim() != "")
                         {
                             priorToken = currentToken;
-                            bLastTokenWasSeries = priorToken.Trim().EndsWith("]");
+                            bPriorSeriesFound = priorToken.Trim().EndsWith("]");
                             currentToken = "";
                         }
                     }
@@ -333,12 +366,25 @@ namespace SSASDiag
                 }
                 if (priorToken.EndsWith("]"))
                     bPriorSeriesFound = true;
-                
-                if (!IsValidExpressionToken(currentToken) || (currentToken.Trim() == "" || (currentToken.Trim().EndsWith("]") != bLastTokenWasSeries && bPriorSeriesFound)))
+                if (!IsValidExpressionToken(currentToken) || (currentToken.Trim() == "" || ((currentToken.Trim().EndsWith("]") != bPriorSeriesFound) && priorToken.Trim() != "")))
                     bValidExpression = false;
+                if (bPriorSeriesFound && currentToken.Trim().EndsWith("]") && currentToken.Contains("*") && priorToken.Trim() != "")
+                {
+                    string root = currentToken.Replace("\\*", "");
+                    if (root.Contains("\\"))
+                        root = root.Substring(0, root.IndexOf("\\"));
+                    string oldRoot = priorToken.Replace("\\*", "");
+                    if (oldRoot.Contains("\\"))
+                        oldRoot = root.Substring(0, root.IndexOf("\\"));
+                    if (root != oldRoot)
+                    {
+                        cell.ErrorText = "Wildcard counters can only be used in conjunction with counters under the same path.";
+                        return;
+                    }
+                }
                 if (!bValidExpression)
                 {
-                    if (currentToken.Trim().EndsWith("]") != bLastTokenWasSeries)
+                    if (currentToken.Trim().EndsWith("]") != bPriorSeriesFound)
                         cell.ErrorText = "Counter series and scalar expressions cannot be used together.  Use First, Last, Max, Min, or Avg instead.";
                     else
                         cell.ErrorText = "Invalid token at '" + (cell.Value as string).Substring(0, iCurPos) + "'.";
@@ -356,6 +402,50 @@ namespace SSASDiag
                     if (!char.IsLetterOrDigit(c))
                         cell.ErrorText = "Expression names can only contain alphabeticnumeric characters.";
             }
+            if (cell.Value == null || (cell.Value as string).Trim() == "")
+                cell.ErrorText = "Please enter a value for the " + dgdExpressions.Columns[e.ColumnIndex].Name + ".";
+            dgdExpressions.EndEdit();
+            UpdateExpressionsAndCountersCombo();
+        }
+
+        private void dgdExpressions_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (dgdExpressions.HitTest(e.X, e.Y).Type == DataGridViewHitTestType.RowHeader)
+            {
+                dgdExpressions.EditMode = DataGridViewEditMode.EditOnKeystrokeOrF2;
+                dgdExpressions.EndEdit();
+            }
+            else
+                dgdExpressions.EditMode = DataGridViewEditMode.EditOnEnter;
+        }
+
+        private void dgdExpressions_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
+        {
+            UpdateExpressionsAndCountersCombo();
+        }
+    }
+    public class DataGridViewTextBoxColumnWithExpandedEditArea : DataGridViewTextBoxCell
+    {
+        public override void PositionEditingControl(bool setLocation, bool setSize,
+            Rectangle cellBounds, Rectangle cellClip, DataGridViewCellStyle cellStyle,
+            bool singleVerticalBorderAdded, bool singleHorizontalBorderAdded,
+            bool isFirstDisplayedColumn, bool isFirstDisplayedRow)
+        {
+            cellClip.Height = cellClip.Height; // ← Or any other suitable height
+            cellBounds.Height = cellBounds.Height;
+            var r = base.PositionEditingPanel(cellBounds, cellClip, cellStyle,
+                singleVerticalBorderAdded, singleHorizontalBorderAdded,
+                isFirstDisplayedColumn, isFirstDisplayedRow);
+            this.DataGridView.EditingControl.Location = r.Location;
+            this.DataGridView.EditingControl.Size = r.Size;
+        }
+        public override void InitializeEditingControl(int rowIndex,
+            object initialFormattedValue, DataGridViewCellStyle dataGridViewCellStyle)
+        {
+            base.InitializeEditingControl(rowIndex, initialFormattedValue,
+                dataGridViewCellStyle);
+            ((TextBox)this.DataGridView.EditingControl).Multiline = true;
+            ((TextBox)this.DataGridView.EditingControl).BorderStyle = BorderStyle.Fixed3D;
         }
     }
 }
