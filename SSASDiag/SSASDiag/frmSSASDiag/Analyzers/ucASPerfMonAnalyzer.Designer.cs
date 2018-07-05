@@ -73,7 +73,6 @@
             this.pnAnalyses = new System.Windows.Forms.Panel();
             this.pnlRuleButtons = new System.Windows.Forms.Panel();
             this.btnRunAllRules = new System.Windows.Forms.Button();
-            this.btnRequestRule = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.btnRunRule = new System.Windows.Forms.Button();
             this.lblRules = new System.Windows.Forms.Label();
@@ -734,7 +733,6 @@
             // pnlRuleButtons
             // 
             this.pnlRuleButtons.Controls.Add(this.btnRunAllRules);
-            this.pnlRuleButtons.Controls.Add(this.btnRequestRule);
             this.pnlRuleButtons.Controls.Add(this.button2);
             this.pnlRuleButtons.Controls.Add(this.btnRunRule);
             this.pnlRuleButtons.Dock = System.Windows.Forms.DockStyle.Right;
@@ -752,33 +750,15 @@
             this.btnRunAllRules.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.btnRunAllRules.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRunAllRules.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRunAllRules.Location = new System.Drawing.Point(153, 0);
+            this.btnRunAllRules.Location = new System.Drawing.Point(253, 0);
             this.btnRunAllRules.Margin = new System.Windows.Forms.Padding(0);
             this.btnRunAllRules.Name = "btnRunAllRules";
-            this.btnRunAllRules.Size = new System.Drawing.Size(110, 19);
+            this.btnRunAllRules.Size = new System.Drawing.Size(121, 19);
             this.btnRunAllRules.TabIndex = 3;
             this.btnRunAllRules.Text = "Run All";
             this.btnRunAllRules.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             this.btnRunAllRules.UseVisualStyleBackColor = false;
             this.btnRunAllRules.Click += new System.EventHandler(this.btnRunRules_Click);
-            // 
-            // btnRequestRule
-            // 
-            this.btnRequestRule.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.btnRequestRule.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
-            this.btnRequestRule.FlatAppearance.BorderSize = 0;
-            this.btnRequestRule.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
-            this.btnRequestRule.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
-            this.btnRequestRule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRequestRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRequestRule.Location = new System.Drawing.Point(264, 0);
-            this.btnRequestRule.Margin = new System.Windows.Forms.Padding(0);
-            this.btnRequestRule.Name = "btnRequestRule";
-            this.btnRequestRule.Size = new System.Drawing.Size(110, 19);
-            this.btnRequestRule.TabIndex = 2;
-            this.btnRequestRule.Text = "Request New Rule";
-            this.btnRequestRule.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.btnRequestRule.UseVisualStyleBackColor = false;
             // 
             // button2
             // 
@@ -808,10 +788,10 @@
             this.btnRunRule.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.btnRunRule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRunRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRunRule.Location = new System.Drawing.Point(42, 0);
+            this.btnRunRule.Location = new System.Drawing.Point(131, 0);
             this.btnRunRule.Margin = new System.Windows.Forms.Padding(0);
             this.btnRunRule.Name = "btnRunRule";
-            this.btnRunRule.Size = new System.Drawing.Size(110, 19);
+            this.btnRunRule.Size = new System.Drawing.Size(121, 19);
             this.btnRunRule.TabIndex = 0;
             this.btnRunRule.Text = "Run Selected";
             this.btnRunRule.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -914,7 +894,6 @@
         private System.Windows.Forms.DataGridView dgdRules;
         private System.Windows.Forms.Panel pnlRuleButtons;
         private System.Windows.Forms.Button btnRunAllRules;
-        private System.Windows.Forms.Button btnRequestRule;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button btnRunRule;
         private System.Windows.Forms.Panel pnlCounters;

@@ -129,6 +129,26 @@
   <metadata name="WildcardWithTotal.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
+  <data name="label3.Text" xml:space="preserve">
+    <value>Each counter can return the following functions:
+
+First: first value in series, Last: last value in series
+Max: highest value in series, Min: lowest value in series
+Avg(bool IncludeZeros = true, bool IncludeNulls = false):
+  Avg: average excluding nulls.
+  Avg(false): average excluding zeros and nulls.
+  Avg(true, true): average including  nulls and zeros
+
+Valid Expressions for counters A and B:
+[A] + [B] (a new counter series adding A and B)
+[B].Max (greatest value from B)
+[A].Avg (simple average without nulls)
+[A].Avg(true) (average without nulls or zeros)
+[A].First + [B].First (sum of the first values of each series)</value>
+  </data>
+  <metadata name="Expression.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <metadata name="tt.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
