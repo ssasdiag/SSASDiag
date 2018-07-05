@@ -56,9 +56,9 @@ namespace SSASDiag
             dgdExpressions.Columns[0].CellTemplate = new DataGridViewTextBoxColumnWithExpandedEditArea();
             dgdExpressions.Columns[1].CellTemplate = new DataGridViewTextBoxColumnWithExpandedEditArea();
             dgdExpressions.Rows.Clear();
-            WarnColor = Color.FromArgb(128, Color.Khaki);
-            ErrorColor = Color.FromArgb(128, Color.Pink);
-            PassColor = Color.FromArgb(128, Color.LightGreen);
+            WarnColor = Color.FromArgb(255, Color.Khaki);
+            ErrorColor = Color.FromArgb(255, Color.Pink);
+            PassColor = Color.FromArgb(255, Color.LightGreen);
             cmbCheckAboveOrBelow.SelectedIndex = 0;
         }
 
@@ -453,17 +453,23 @@ namespace SSASDiag
                 pnlHigh.BackColor = PassColor;
                 pnlMed.BackColor = WarnColor;
                 pnlLow.BackColor = ErrorColor;
-                cmbValHigh.Visible = false;
-                cmbValLow.Visible = true;
+                lblHighRegion.Visible = lblHighResultText.Visible = lblHighVal.Visible = txtHighRegion.Visible = txtHighResult.Visible = cmbValHigh.Visible = false;
+                lblLowRegion.Visible = lblLowResultText.Visible = lblLowVal.Visible = txtLowRegion.Visible = txtLowResult.Visible = cmbValLow.Visible = true;
             }
             else
             {
                 pnlHigh.BackColor = ErrorColor;
                 pnlMed.BackColor = WarnColor;
                 pnlLow.BackColor = PassColor;
-                cmbValLow.Visible = false;
-                cmbValHigh.Visible = true;
+                lblHighRegion.Visible = lblHighResultText.Visible = lblHighVal.Visible = txtHighRegion.Visible = txtHighResult.Visible = cmbValHigh.Visible = true;
+                lblLowRegion.Visible = lblLowResultText.Visible = lblLowVal.Visible = txtLowRegion.Visible = txtLowResult.Visible = cmbValLow.Visible = false;
             }
+        }
+
+        private void frmAddPerfMonRule_SizeChanged(object sender, EventArgs e)
+        {
+            pnlHigh.Width = pnlLow.Width = pnlMed.Width = Width - pnlHigh.Left;
+            txtLowRegion.Width = txtLowResult.Width = txtMedRegion.Width = txtMedResult.Width = txtHighRegion.Width = txtHighResult.Width = pnlHigh.Width - txtHighResult.Left - 22;
         }
 
         private void cmbValueToCheck_SelectedIndexChanged(object sender, EventArgs e)
