@@ -183,7 +183,7 @@ namespace SSASDiag
                 cmbValueToCheck.Enabled = true;
 
             if (cmbValHigh.Items.Count == 0)
-                cmbValLow.Visible = cmbValHigh.Enabled = cmbValMed.Enabled = false;
+                cmbValLow.Enabled = cmbValHigh.Enabled = cmbValMed.Enabled = false;
             else
                 cmbValLow.Enabled = cmbValHigh.Enabled = cmbValMed.Enabled = true;
             cmbSeriesFunction.Visible = lblSeriesFunction.Visible = lblPctMatchCheck.Visible = udPctMatchCheck.Visible = false;
@@ -279,7 +279,8 @@ namespace SSASDiag
                 return true;
             string originalToken = token;
             token = token.Replace(" ", "");
-            if (!token.StartsWith("[") ||
+            if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(token) && r.Index < dgdExpressions.CurrentCell.RowIndex).Count() == 0 &&
+                (!token.StartsWith("[") ||
                 !(
                     token.EndsWith("]") ||
                     token.EndsWith("].first") || token.EndsWith("].first()") ||
@@ -290,14 +291,18 @@ namespace SSASDiag
                     token.EndsWith("].avg(true)") || token.EndsWith("].avg(false)") ||
                     token.EndsWith("].avg(true,true)") || token.EndsWith("].avg(true,false)") ||
                     token.EndsWith("].avg(false,true)") || token.EndsWith("].avg(false,false)")
-                  ))
+                  )))
                 return false;
             else
             {
                 token = originalToken;
-                token = token.Substring(0, token.IndexOf(']'));
-                token = token.TrimStart('[');
-                if (dgdSelectedCounters.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value.ToString().ToLower().Equals(token)).Count() > 0)
+                if (token.Contains("]"))
+                {
+                    token = token.Substring(0, token.IndexOf(']'));
+                    token = token.TrimStart('[');
+                }
+                if (dgdSelectedCounters.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value.ToString().ToLower().Equals(token)).Count() > 0 ||
+                    dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(token) && r.Index < dgdExpressions.CurrentCell.RowIndex).Count() > 0)
                     return true;
                 else
                     return false;
@@ -404,8 +409,13 @@ namespace SSASDiag
                         bPriorSeriesFound = true;
                     if (!IsValidExpressionToken(currentToken) || (currentToken.Trim() == "" ||
                         ((currentToken.Trim().EndsWith("]") != bPriorSeriesFound) && priorToken.Trim() != "")))
+                    {
+                        cell.ErrorText = "Unrecognized token: " + currentToken;
+                        if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(currentToken) && r.Index >= dgdExpressions.CurrentCell.RowIndex).Count() > 0)
+                            cell.ErrorText += "\nExpressions must use only _prior_ expressions from the list.";
                         bValidExpression = false;
-                    if (bPriorSeriesFound && currentToken.Trim().EndsWith("]") && currentToken.Contains("*") && priorToken.Trim() != "")
+                    }
+                    if (bValidExpression && bPriorSeriesFound && currentToken.Trim().EndsWith("]") && currentToken.Contains("*") && priorToken.Trim() != "")
                     {
                         string root = currentToken.Replace("\\*", "");
                         if (root.Contains("\\"))
@@ -438,7 +448,7 @@ namespace SSASDiag
                     if (!char.IsLetterOrDigit(c))
                         cell.ErrorText = "Expression names can only contain alphabeticnumeric characters.";
             }
-            if (cell.Value == null || (cell.Value as string).Trim() == "")
+            if (e.ColumnIndex < 2 && (cell.Value == null || (cell.Value as string).Trim() == ""))
                 cell.ErrorText = "Please enter a value for the " + dgdExpressions.Columns[e.ColumnIndex].Name + ".";
             dgdExpressions.EndEdit();
             UpdateExpressionsAndCountersCombo();
