@@ -279,7 +279,9 @@ namespace SSASDiag
                 return true;
             string originalToken = token;
             token = token.Replace(" ", "");
-            if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(token) && r.Index < dgdExpressions.CurrentCell.RowIndex).Count() == 0 &&
+            if ((dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(token) && r.Index < dgdExpressions.CurrentCell.RowIndex).Count() == 0 &&
+                    !token.StartsWith("[") && !token.Contains("]")
+                ) ||
                 (!token.StartsWith("[") ||
                 !(
                     token.EndsWith("]") ||
