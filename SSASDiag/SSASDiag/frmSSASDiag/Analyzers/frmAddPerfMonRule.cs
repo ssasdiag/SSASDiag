@@ -628,6 +628,7 @@ namespace SSASDiag
             foreach (string ruleName in rules.GetSubKeyNames())
                 if (ruleName.ToLower() == txtName.Text.ToLower().Trim())
                 {
+                    MessageBox.Show(this, "A rule with this name already exists!", "Rule exists", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     errorProvider1.SetError(txtName, "A rule with this name already exists!");
                     return;
                 }
@@ -636,29 +637,36 @@ namespace SSASDiag
             RegistryKey counters = rule.CreateSubKey("Counters", RegistryKeyPermissionCheck.ReadWriteSubTree);
             foreach (DataGridViewRow r in dgdSelectedCounters.Rows)
             {
-                RegistryKey counter = counters.CreateSubKey(r.Cells[0].Value as string, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                counter.SetValue("Display", (bool)r.Cells[1].Value);
-                counter.SetValue("Highlight", (bool)r.Cells[2].Value);
-                counter.SetValue("WildcardIncludes_Total", (bool)r.Cells[3].Value);
+                RegistryKey counter = counters.CreateSubKey((r.Cells[0].Value as string).Replace("\\", "{SLASH}"), RegistryKeyPermissionCheck.ReadWriteSubTree);
+                counter.SetValue("Display", r.Cells[1].Value == null ? 0 : Convert.ToInt32(r.Cells[1].Value));
+                counter.SetValue("Highlight", r.Cells[2].Value == null ? 0 : Convert.ToInt32(r.Cells[2].Value));
+                counter.SetValue("WildcardIncludes_Total", r.Cells[3].Value == null ? 0 : Convert.ToInt32(r.Cells[3].Value));
                 counter.Close();
             }
             counters.Close();
             rule.DeleteSubKeyTree("Expressions", false);
-            RegistryKey expressions = rules.CreateSubKey("Expressions", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            RegistryKey expressions = rule.CreateSubKey("Expressions", RegistryKeyPermissionCheck.ReadWriteSubTree);
             foreach (DataGridViewRow r in dgdExpressions.Rows)
             {
-                RegistryKey expr = expressions.CreateSubKey(r.Cells[0].Value as string, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                expr.SetValue("Display", (bool)r.Cells[2].Value);
-                expr.SetValue("Highlight", (bool)r.Cells[3].Value);
-                expr.SetValue("Expression", r.Cells[1].Value as string);
-                expr.Close();
+                if (r.Cells[0].Value != null)
+                {
+                    RegistryKey expr = expressions.CreateSubKey(r.Cells[0].Value as string, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                    expr.SetValue("Display", r.Cells[2].Value == null ? 0 : Convert.ToInt32(r.Cells[2].Value));
+                    expr.SetValue("Highlight", r.Cells[3].Value == null ? 0 : Convert.ToInt32(r.Cells[3].Value));
+                    expr.SetValue("Expression", r.Cells[1].Value as string);
+                    expr.Close();
+                }
             }
             expressions.Close();
             rule.SetValue("ValueOrSeriesToCheck", cmbValueToCheck.SelectedItem as string);
-            rule.SetValue("SeriesFunction", cmbSeriesFunction.SelectedItem as string);
-            rule.SetValue("PctRequiredToMatchWarnError", cmbSeriesFunction.SelectedItem as string);
+            if (cmbSeriesFunction.Visible)
+            {
+                rule.SetValue("SeriesFunction", cmbSeriesFunction.SelectedItem == null ? "" : cmbSeriesFunction.SelectedItem as string);
+                if (udPctMatchCheck.Visible)
+                    rule.SetValue("PctRequiredToMatchWarnError", udPctMatchCheck.Value);
+            }
             rule.SetValue("CheckValueAboveOrBelowWarnError", cmbCheckAboveOrBelow.SelectedIndex);
-            if (cmbCheckAboveOrBelow.SelectedIndex == 0)
+            if (cmbCheckAboveOrBelow.SelectedIndex == 1)
             {
                 rule.SetValue("ErrorExpr", cmbValHigh.SelectedItem as string);
                 rule.SetValue("ErrorRegionLabel", txtHighRegion.Text.Trim());
@@ -670,7 +678,6 @@ namespace SSASDiag
                 rule.SetValue("ErrorRegionLabel", txtLowRegion.Text.Trim());
                 rule.SetValue("ErrorText", txtLowResult.Text.Trim());
             }
-            
             if (cmbWarnExpr.SelectedIndex > -1)
             {
                 rule.SetValue("WarnExpr", cmbWarnExpr.SelectedItem as string);
