@@ -166,7 +166,7 @@ namespace SSASDiag
         private void UpdateExpressionsAndCountersCombo()
         {
             cmbValueToCheck.Items.Clear();
-            cmbValMed.Items.Clear();
+            cmbWarnExpr.Items.Clear();
             cmbValLow.Items.Clear();
             cmbValHigh.Items.Clear();
             btnSaveRule.Enabled = false;
@@ -179,7 +179,7 @@ namespace SSASDiag
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
                     cmbValLow.Items.Add(r.Cells[0].Value as string);
                     cmbValHigh.Items.Add(r.Cells[0].Value as string);
-                    cmbValMed.Items.Add(r.Cells[0].Value as string);
+                    cmbWarnExpr.Items.Add(r.Cells[0].Value as string);
                 }
 
             cmbValueToCheck.Text = "";
@@ -190,9 +190,9 @@ namespace SSASDiag
                 cmbValueToCheck.Enabled = true;
 
             if (cmbValHigh.Items.Count == 0)
-                cmbValLow.Enabled = cmbValHigh.Enabled = cmbValMed.Enabled = false;
+                cmbValLow.Enabled = cmbValHigh.Enabled = cmbWarnExpr.Enabled = false;
             else
-                cmbValLow.Enabled = cmbValHigh.Enabled = cmbValMed.Enabled = true;
+                cmbValLow.Enabled = cmbValHigh.Enabled = cmbWarnExpr.Enabled = true;
             cmbSeriesFunction.Visible = lblSeriesFunction.Visible = lblPctMatchCheck.Visible = udPctMatchCheck.Visible = false;
             ValidateChildren();
         }
@@ -271,7 +271,7 @@ namespace SSASDiag
                 (cmbSeriesFunction.Visible && cmbSeriesFunction.SelectedIndex == -1) ||
                 (cmbCheckAboveOrBelow.SelectedIndex == 1 && (cmbValHigh.SelectedIndex == -1 || txtHighRegion.Text == "" || txtHighResult.Text == "")) ||
                 (cmbCheckAboveOrBelow.SelectedIndex == 0 && (cmbValLow.SelectedIndex == -1 || txtLowRegion.Text == "" || txtLowResult.Text == "")) ||
-                (cmbValMed.SelectedIndex >= 0 && (txtMedRegion.Text == "" || txtMedResult.Text == "")))
+                (cmbWarnExpr.SelectedIndex >= 0 && (txtWarnRegion.Text == "" || txtWarnResult.Text == "")))
                 return false;
             foreach (DataGridViewRow r in dgdExpressions.Rows)
                 if (r.Cells[0].ErrorText != "" || r.Cells[1].ErrorText != "")
@@ -531,7 +531,7 @@ namespace SSASDiag
         private void frmAddPerfMonRule_SizeChanged(object sender, EventArgs e)
         {
             pnlHigh.Width = pnlLow.Width = pnlMed.Width = Width - pnlHigh.Left;
-            txtLowRegion.Width = txtLowResult.Width = txtMedRegion.Width = txtMedResult.Width = txtHighRegion.Width = txtHighResult.Width = pnlHigh.Width - txtHighResult.Left - 38;
+            txtLowRegion.Width = txtLowResult.Width = txtWarnRegion.Width = txtWarnResult.Width = txtHighRegion.Width = txtHighResult.Width = pnlHigh.Width - txtHighResult.Left - 38;
             btnCancel.Left = Width - btnCancel.Width - 20;
             btnSaveRule.Left = btnCancel.Left - btnSaveRule.Width - 6;
         }
@@ -587,6 +587,72 @@ namespace SSASDiag
         private void frmAddPerfMonRule_Shown(object sender, EventArgs e)
         {
             ValidateChildren();
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+            Close();
+        }
+
+        private void btnSaveRule_Click(object sender, EventArgs e)
+        {
+            RegistryKey rules = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            foreach (string ruleName in rules.GetSubKeyNames())
+                if (ruleName.ToLower() == txtName.Text.ToLower().Trim())
+                {
+                    errorProvider1.SetError(txtName, "A rule with this name already exists!");
+                    return;
+                }
+            RegistryKey rule = rules.CreateSubKey(txtName.Text.Trim(), RegistryKeyPermissionCheck.ReadWriteSubTree);
+            rule.DeleteSubKeyTree("Counters", false);
+            RegistryKey counters = rule.CreateSubKey("Counters", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            foreach (DataGridViewRow r in dgdSelectedCounters.Rows)
+            {
+                RegistryKey counter = counters.CreateSubKey(r.Cells[0].Value as string, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                counter.SetValue("Display", (bool)r.Cells[1].Value);
+                counter.SetValue("Highlight", (bool)r.Cells[2].Value);
+                counter.SetValue("WildcardIncludes_Total", (bool)r.Cells[3].Value);
+                counter.Close();
+            }
+            counters.Close();
+            rule.DeleteSubKeyTree("Expressions", false);
+            RegistryKey expressions = rules.CreateSubKey("Expressions", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            foreach (DataGridViewRow r in dgdExpressions.Rows)
+            {
+                RegistryKey expr = expressions.CreateSubKey(r.Cells[0].Value as string, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                expr.SetValue("Display", (bool)r.Cells[2].Value);
+                expr.SetValue("Highlight", (bool)r.Cells[3].Value);
+                expr.SetValue("Expression", r.Cells[1].Value as string);
+                expr.Close();
+            }
+            expressions.Close();
+            rule.SetValue("ValueOrSeriesToCheck", cmbValueToCheck.SelectedItem as string);
+            rule.SetValue("SeriesFunction", cmbSeriesFunction.SelectedItem as string);
+            rule.SetValue("PctRequiredToMatchWarnError", cmbSeriesFunction.SelectedItem as string);
+            rule.SetValue("CheckValueAboveOrBelowWarnError", cmbCheckAboveOrBelow.SelectedIndex);
+            if (cmbCheckAboveOrBelow.SelectedIndex == 0)
+            {
+                rule.SetValue("ErrorExpr", cmbValHigh.SelectedItem as string);
+                rule.SetValue("ErrorRegionLabel", txtHighRegion.Text.Trim());
+                rule.SetValue("ErrorText", txtHighResult.Text.Trim());
+            }
+            else
+            {
+                rule.SetValue("ErrorExpr", cmbValLow.SelectedItem as string);
+                rule.SetValue("ErrorRegionLabel", txtLowRegion.Text.Trim());
+                rule.SetValue("ErrorText", txtLowResult.Text.Trim());
+            }
+            
+            if (cmbWarnExpr.SelectedIndex > -1)
+            {
+                rule.SetValue("WarnExpr", cmbWarnExpr.SelectedItem as string);
+                rule.SetValue("WarnRegionLabel", txtWarnRegion.Text.Trim());
+                rule.SetValue("WarningText", txtWarnResult.Text.Trim());
+            }
+            rule.Close();
+            DialogResult = DialogResult.OK;
+            Close();
         }
 
         private void cmbValueToCheck_SelectedIndexChanged(object sender, EventArgs e)
