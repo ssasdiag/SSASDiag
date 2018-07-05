@@ -194,6 +194,7 @@ namespace SSASDiag
             else
                 cmbValLow.Enabled = cmbValHigh.Enabled = cmbValMed.Enabled = true;
             cmbSeriesFunction.Visible = lblSeriesFunction.Visible = lblPctMatchCheck.Visible = udPctMatchCheck.Visible = false;
+            ValidateChildren();
         }
 
         private void dgdSelectedCounters_MouseDown(object sender, MouseEventArgs e)
@@ -266,10 +267,10 @@ namespace SSASDiag
         {
             if (txtName.Text == "" || txtDescription.Text == "" ||
                 dgdSelectedCounters.Rows.Count == 0 || dgdExpressions.Rows.Count == 0 ||
-                cmbValueToCheck.SelectedIndex >= 0 ||
-                (cmbSeriesFunction.Visible && cmbSeriesFunction.SelectedItem == null) ||
-                (cmbCheckAboveOrBelow.SelectedIndex == 0 && (cmbValHigh.SelectedIndex == -1 || txtHighRegion.Text == "" || txtHighResult.Text == "")) ||
-                (cmbCheckAboveOrBelow.SelectedIndex == 1 && (cmbValLow.SelectedIndex == -1 || txtLowRegion.Text == "" || txtLowResult.Text == "")) ||
+                cmbValueToCheck.SelectedIndex == -1 ||
+                (cmbSeriesFunction.Visible && cmbSeriesFunction.SelectedIndex == -1) ||
+                (cmbCheckAboveOrBelow.SelectedIndex == 1 && (cmbValHigh.SelectedIndex == -1 || txtHighRegion.Text == "" || txtHighResult.Text == "")) ||
+                (cmbCheckAboveOrBelow.SelectedIndex == 0 && (cmbValLow.SelectedIndex == -1 || txtLowRegion.Text == "" || txtLowResult.Text == "")) ||
                 (cmbValMed.SelectedIndex >= 0 && (txtMedRegion.Text == "" || txtMedResult.Text == "")))
                 return false;
             foreach (DataGridViewRow r in dgdExpressions.Rows)
@@ -524,14 +525,13 @@ namespace SSASDiag
                 lblHighRegion.Visible = lblHighResultText.Visible = lblHighVal.Visible = txtHighRegion.Visible = txtHighResult.Visible = cmbValHigh.Visible = true;
                 lblLowRegion.Visible = lblLowResultText.Visible = lblLowVal.Visible = txtLowRegion.Visible = txtLowResult.Visible = cmbValLow.Visible = false;
             }
-            if (IsRuleComplete())
-                btnSaveRule.Enabled = true;
+            btnSaveRule.Enabled = IsRuleComplete();
         }
 
         private void frmAddPerfMonRule_SizeChanged(object sender, EventArgs e)
         {
             pnlHigh.Width = pnlLow.Width = pnlMed.Width = Width - pnlHigh.Left;
-            txtLowRegion.Width = txtLowResult.Width = txtMedRegion.Width = txtMedResult.Width = txtHighRegion.Width = txtHighResult.Width = pnlHigh.Width - txtHighResult.Left - 22;
+            txtLowRegion.Width = txtLowResult.Width = txtMedRegion.Width = txtMedResult.Width = txtHighRegion.Width = txtHighResult.Width = pnlHigh.Width - txtHighResult.Left - 38;
             btnCancel.Left = Width - btnCancel.Width - 20;
             btnSaveRule.Left = btnCancel.Left - btnSaveRule.Width - 6;
         }
@@ -544,8 +544,7 @@ namespace SSASDiag
                 e.Handled = true;
                 tt.Show("Rules must start with a letter and use only letter, number, space, dash, or underscore.", txtName, 0, 0, 2000);
             }
-            if (IsRuleComplete())
-                btnSaveRule.Enabled = true;
+            btnSaveRule.Enabled = IsRuleComplete();
         }
 
         private void dgdSelectedCounters_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e)
@@ -556,16 +555,38 @@ namespace SSASDiag
             UpdateExpressionsAndCountersCombo();
         }
 
-        private void cmbValHigh_SelectedIndexChanged(object sender, EventArgs e)
+        private void cmbErrorWarnVals_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (IsRuleComplete())
-                btnSaveRule.Enabled = true;
+            btnSaveRule.Enabled = IsRuleComplete();
         }
 
-        private void txtHighRegion_TextChanged(object sender, EventArgs e)
+        private void txtErrorWarnRegions_TextChanged(object sender, EventArgs e)
         {
-            if (IsRuleComplete())
-                btnSaveRule.Enabled = true;
+            btnSaveRule.Enabled = IsRuleComplete();
+        }
+
+        private void RequireRuleElements_Validating(object sender, CancelEventArgs e)
+        {
+            if (sender is ComboBox)
+            {
+                if ((sender as ComboBox).SelectedIndex == -1)
+                    errorProvider1.SetError(sender as ComboBox, "Selection is required for a valid rule.");
+                else
+                    errorProvider1.SetError(sender as ComboBox, "");
+            }
+            else if (sender is TextBox)
+            {
+                if ((sender as TextBox).Text.Trim() == "")
+                    errorProvider1.SetError(sender as TextBox, "This item is required for a valid rule.");
+                else
+                    errorProvider1.SetError(sender as TextBox, "");
+            }
+            
+        }
+
+        private void frmAddPerfMonRule_Shown(object sender, EventArgs e)
+        {
+            ValidateChildren();
         }
 
         private void cmbValueToCheck_SelectedIndexChanged(object sender, EventArgs e)
@@ -580,15 +601,13 @@ namespace SSASDiag
                 cmbSeriesFunction.Visible = lblSeriesFunction.Visible = true;
             else
                 cmbSeriesFunction.Visible = lblSeriesFunction.Visible = false;
-            if (IsRuleComplete())
-                btnSaveRule.Enabled = true;
+            btnSaveRule.Enabled = IsRuleComplete();
         }
 
         private void cmbSeriesFunction_SelectedIndexChanged(object sender, EventArgs e)
         {
             lblPctMatchCheck.Visible = udPctMatchCheck.Visible = cmbSeriesFunction.SelectedItem as string == "X% of values to warn/error";
-            if (IsRuleComplete())
-                btnSaveRule.Enabled = true;
+            btnSaveRule.Enabled = IsRuleComplete();
         }
     }
 
