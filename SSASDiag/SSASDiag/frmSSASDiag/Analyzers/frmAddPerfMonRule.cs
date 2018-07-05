@@ -84,6 +84,13 @@ namespace SSASDiag
         private void TvCounters_DragDrop(object sender, DragEventArgs e)
         {
             DataGridViewRow r = (DataGridViewRow)e.Data.GetData("System.Windows.Forms.DataGridViewRow");
+            AddCountersBackToTreeViewFromGrid(r);
+            dgdSelectedCounters.Rows.Remove(r);
+            UpdateExpressionsAndCountersCombo();
+        }
+
+        private void AddCountersBackToTreeViewFromGrid(DataGridViewRow r)
+        {
             TreeNode node = r.Tag as TreeNode;
             string[] parts = (r.Cells[0].Value as string).Split('\\');
             TreeNode newNode = tvCounters.Nodes[parts[0]];
@@ -112,8 +119,6 @@ namespace SSASDiag
                     }
                 }
             }
-            dgdSelectedCounters.Rows.Remove(r);
-            UpdateExpressionsAndCountersCombo();
         }
 
         private void TvCounters_DragEnter(object sender, DragEventArgs e)
@@ -256,7 +261,7 @@ namespace SSASDiag
                 dgdExpressions.CurrentRow.Cells[1].Value = existingVal + (existingVal == "" ? "" : " ") + "[" + r.Cells[0].Value + "]";
                 dgdExpressions.CurrentCell = dgdExpressions.CurrentRow.Cells[1];
                 dgdExpressions.BeginEdit(false);
-                SendKeys.Send(" ");
+                SendKeys.Send(" {BS}");
             }
         }
 
@@ -279,9 +284,10 @@ namespace SSASDiag
                 return true;
             string originalToken = token;
             token = token.Replace(" ", "");
-            if ((dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(token) && r.Index < dgdExpressions.CurrentCell.RowIndex).Count() == 0 &&
+            if (
+                (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(token) && r.Index < dgdExpressions.CurrentCell.RowIndex).Count() == 0 &&
                     !token.StartsWith("[") && !token.Contains("]")
-                ) ||
+                ) &&
                 (!token.StartsWith("[") ||
                 !(
                     token.EndsWith("]") ||
@@ -400,7 +406,7 @@ namespace SSASDiag
                             currentToken = "";
                         }
                     }
-                    else if (c != ' ' && c != ')' && c != '(')
+                    else if ((c != ' ' && c != ')' && c != '(') || bInCounterName)
                         currentToken += c;
                     iCurPos++;
                 }
@@ -412,7 +418,10 @@ namespace SSASDiag
                     if (!IsValidExpressionToken(currentToken) || (currentToken.Trim() == "" ||
                         ((currentToken.Trim().EndsWith("]") != bPriorSeriesFound) && priorToken.Trim() != "")))
                     {
-                        cell.ErrorText = "Unrecognized token: " + currentToken;
+                        if (currentToken.Trim().EndsWith("]") != bPriorSeriesFound && priorToken != "")
+                            cell.ErrorText = "Counter series and scalar expressions cannot be used together.  Use First, Last, Max, Min, or Avg instead.";
+                        else
+                            cell.ErrorText = "Unrecognized token: " + currentToken;
                         if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(currentToken) && r.Index >= dgdExpressions.CurrentCell.RowIndex).Count() > 0)
                             cell.ErrorText += "\nExpressions must use only _prior_ expressions from the list.";
                         bValidExpression = false;
@@ -451,7 +460,11 @@ namespace SSASDiag
                         cell.ErrorText = "Expression names can only contain alphabeticnumeric characters.";
             }
             if (e.ColumnIndex < 2 && (cell.Value == null || (cell.Value as string).Trim() == ""))
-                cell.ErrorText = "Please enter a value for the " + dgdExpressions.Columns[e.ColumnIndex].Name + ".";
+            {
+                string OtherCellVal = (dgdExpressions.Rows[e.RowIndex].Cells[Convert.ToInt32((!Convert.ToBoolean(e.ColumnIndex)))].Value) as string;
+                if (!(OtherCellVal == null || OtherCellVal.Trim() == ""))
+                    cell.ErrorText = "Please enter a value for the " + dgdExpressions.Columns[e.ColumnIndex].Name + ".";
+            }
             dgdExpressions.EndEdit();
             UpdateExpressionsAndCountersCombo();
         }
@@ -469,6 +482,8 @@ namespace SSASDiag
 
         private void dgdExpressions_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
         {
+            foreach (DataGridViewRow r in dgdExpressions.Rows)
+                dgdExpressions_CellEndEdit(sender, new DataGridViewCellEventArgs(1, r.Index));
             UpdateExpressionsAndCountersCombo();
         }
 
@@ -496,16 +511,17 @@ namespace SSASDiag
         {
             pnlHigh.Width = pnlLow.Width = pnlMed.Width = Width - pnlHigh.Left;
             txtLowRegion.Width = txtLowResult.Width = txtMedRegion.Width = txtMedResult.Width = txtHighRegion.Width = txtHighResult.Width = pnlHigh.Width - txtHighResult.Left - 22;
-            txtDescription.Width = Width - txtDescription.Left - 20;
+            btnCancel.Left = Width - btnCancel.Width - 20;
+            btnSaveRule.Left = btnCancel.Left - btnSaveRule.Width - 6;
         }
 
         private void txtName_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if ((!char.IsLetterOrDigit(e.KeyChar) && e.KeyChar != '-' && e.KeyChar!= '_') ||
+            if ((!char.IsLetterOrDigit(e.KeyChar) && e.KeyChar != '-' && e.KeyChar!= '_' && e.KeyChar != ' ') ||
                 (txtName.Text == "" && char.IsNumber(e.KeyChar)))
             {
                 e.Handled = true;
-                tt.Show("Rules must start with a letter and use only letter, number, dash, or underscore.", txtName, 0, 0, 2000);
+                tt.Show("Rules must start with a letter and use only letter, number, space, dash, or underscore.", txtName, 0, 0, 2000);
             }
         }
 
@@ -516,6 +532,14 @@ namespace SSASDiag
                 e.Handled = true;
                 tt.Show("Wah Wah...  Rule description cannot include double quotes.", txtDescription, 0, 0, 2000);
             }
+        }
+
+        private void dgdSelectedCounters_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e)
+        {
+            AddCountersBackToTreeViewFromGrid(e.Row);
+            foreach (DataGridViewRow r in dgdExpressions.Rows)
+                dgdExpressions_CellEndEdit(dgdExpressions, new DataGridViewCellEventArgs(1, r.Index));
+            UpdateExpressionsAndCountersCombo();
         }
 
         private void cmbValueToCheck_SelectedIndexChanged(object sender, EventArgs e)

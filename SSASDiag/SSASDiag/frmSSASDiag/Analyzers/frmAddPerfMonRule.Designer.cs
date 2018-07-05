@@ -29,11 +29,11 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmAddPerfMonRule));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitCountersAndRule = new System.Windows.Forms.SplitContainer();
             this.splitCounters = new System.Windows.Forms.SplitContainer();
             this.dgdSelectedCounters = new System.Windows.Forms.DataGridView();
@@ -45,6 +45,10 @@
             this.splitExpressions = new System.Windows.Forms.SplitContainer();
             this.label3 = new System.Windows.Forms.Label();
             this.dgdExpressions = new System.Windows.Forms.DataGridView();
+            this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Display = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.Highlight = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.pnlRuleDetails = new System.Windows.Forms.Panel();
             this.cmbCheckAboveOrBelow = new System.Windows.Forms.ComboBox();
             this.pnlMed = new System.Windows.Forms.Panel();
@@ -82,6 +86,7 @@
             this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.btnCancel = new System.Windows.Forms.Button();
             this.txtDescription = new System.Windows.Forms.TextBox();
             this.label12 = new System.Windows.Forms.Label();
             this.txtName = new System.Windows.Forms.TextBox();
@@ -89,10 +94,6 @@
             this.btnSaveRule = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.tt = new System.Windows.Forms.ToolTip(this.components);
-            this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Display = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.Highlight = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.splitCountersAndRule)).BeginInit();
             this.splitCountersAndRule.Panel1.SuspendLayout();
             this.splitCountersAndRule.Panel2.SuspendLayout();
@@ -161,37 +162,38 @@
             this.dgdSelectedCounters.BackgroundColor = System.Drawing.SystemColors.Window;
             this.dgdSelectedCounters.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdSelectedCounters.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdSelectedCounters.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdSelectedCounters.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dgdSelectedCounters.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdSelectedCounters.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Counter,
             this.ShowInChart,
             this.HighlightInChart,
             this.WildcardWithTotal});
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdSelectedCounters.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdSelectedCounters.DefaultCellStyle = dataGridViewCellStyle2;
             this.dgdSelectedCounters.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdSelectedCounters.Location = new System.Drawing.Point(0, 0);
             this.dgdSelectedCounters.Margin = new System.Windows.Forms.Padding(0);
             this.dgdSelectedCounters.Name = "dgdSelectedCounters";
-            this.dgdSelectedCounters.RowHeadersVisible = false;
-            this.dgdSelectedCounters.RowTemplate.Height = 30;
+            this.dgdSelectedCounters.RowHeadersWidth = 24;
+            this.dgdSelectedCounters.RowTemplate.Height = 20;
             this.dgdSelectedCounters.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgdSelectedCounters.Size = new System.Drawing.Size(373, 220);
             this.dgdSelectedCounters.TabIndex = 0;
+            this.dgdSelectedCounters.UserDeletingRow += new System.Windows.Forms.DataGridViewRowCancelEventHandler(this.dgdSelectedCounters_UserDeletingRow);
             this.dgdSelectedCounters.DragDrop += new System.Windows.Forms.DragEventHandler(this.dgdSelectedCounters_DragDrop);
             this.dgdSelectedCounters.DragEnter += new System.Windows.Forms.DragEventHandler(this.dgdSelectedCounters_DragEnter);
             this.dgdSelectedCounters.MouseDown += new System.Windows.Forms.MouseEventHandler(this.dgdSelectedCounters_MouseDown);
@@ -281,14 +283,14 @@
             this.dgdExpressions.BackgroundColor = System.Drawing.SystemColors.Window;
             this.dgdExpressions.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdExpressions.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle7.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle7.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle7.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdExpressions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdExpressions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgdExpressions.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdExpressions.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ExpressionName,
@@ -303,16 +305,16 @@
             this.dgdExpressions.MultiSelect = false;
             this.dgdExpressions.Name = "dgdExpressions";
             this.dgdExpressions.RowHeadersWidth = 24;
-            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle8.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdExpressions.RowsDefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdExpressions.RowsDefaultCellStyle = dataGridViewCellStyle4;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.ControlText;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            this.dgdExpressions.RowTemplate.Height = 30;
+            this.dgdExpressions.RowTemplate.Height = 20;
             this.dgdExpressions.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgdExpressions.Size = new System.Drawing.Size(373, 215);
             this.dgdExpressions.TabIndex = 3;
@@ -321,6 +323,33 @@
             this.dgdExpressions.DragDrop += new System.Windows.Forms.DragEventHandler(this.dgdExpressions_DragDrop);
             this.dgdExpressions.DragEnter += new System.Windows.Forms.DragEventHandler(this.dgdExpressions_DragEnter);
             this.dgdExpressions.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dgdExpressions_MouseClick);
+            // 
+            // ExpressionName
+            // 
+            this.ExpressionName.HeaderText = "Name";
+            this.ExpressionName.Name = "ExpressionName";
+            // 
+            // Expression
+            // 
+            this.Expression.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Expression.HeaderText = "Expression";
+            this.Expression.Name = "Expression";
+            // 
+            // Display
+            // 
+            this.Display.HeaderText = "Display";
+            this.Display.Name = "Display";
+            this.Display.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.Display.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.Display.Width = 50;
+            // 
+            // Highlight
+            // 
+            this.Highlight.HeaderText = "Highlight";
+            this.Highlight.Name = "Highlight";
+            this.Highlight.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.Highlight.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.Highlight.Width = 50;
             // 
             // pnlRuleDetails
             // 
@@ -382,11 +411,11 @@
             this.lblMedVal.BackColor = System.Drawing.Color.Transparent;
             this.lblMedVal.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblMedVal.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.lblMedVal.Location = new System.Drawing.Point(32, 10);
+            this.lblMedVal.Location = new System.Drawing.Point(27, 10);
             this.lblMedVal.Name = "lblMedVal";
-            this.lblMedVal.Size = new System.Drawing.Size(52, 12);
+            this.lblMedVal.Size = new System.Drawing.Size(75, 12);
             this.lblMedVal.TabIndex = 8;
-            this.lblMedVal.Text = "Warn value";
+            this.lblMedVal.Text = "Warn Expression";
             // 
             // txtMedResult
             // 
@@ -459,11 +488,11 @@
             this.lblLowVal.BackColor = System.Drawing.Color.Transparent;
             this.lblLowVal.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblLowVal.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.lblLowVal.Location = new System.Drawing.Point(32, 12);
+            this.lblLowVal.Location = new System.Drawing.Point(28, 12);
             this.lblLowVal.Name = "lblLowVal";
-            this.lblLowVal.Size = new System.Drawing.Size(50, 12);
+            this.lblLowVal.Size = new System.Drawing.Size(73, 12);
             this.lblLowVal.TabIndex = 8;
-            this.lblLowVal.Text = "Error value";
+            this.lblLowVal.Text = "Error Expression";
             // 
             // txtLowResult
             // 
@@ -533,11 +562,11 @@
             this.lblHighVal.BackColor = System.Drawing.Color.Transparent;
             this.lblHighVal.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblHighVal.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.lblHighVal.Location = new System.Drawing.Point(33, 11);
+            this.lblHighVal.Location = new System.Drawing.Point(28, 11);
             this.lblHighVal.Name = "lblHighVal";
-            this.lblHighVal.Size = new System.Drawing.Size(50, 12);
+            this.lblHighVal.Size = new System.Drawing.Size(73, 12);
             this.lblHighVal.TabIndex = 3;
-            this.lblHighVal.Text = "Error value";
+            this.lblHighVal.Text = "Error Expression";
             // 
             // txtHighResult
             // 
@@ -558,7 +587,7 @@
             this.cmbValHigh.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbValHigh.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.cmbValHigh.FormattingEnabled = true;
-            this.cmbValHigh.Location = new System.Drawing.Point(3, 28);
+            this.cmbValHigh.Location = new System.Drawing.Point(4, 28);
             this.cmbValHigh.Name = "cmbValHigh";
             this.cmbValHigh.Size = new System.Drawing.Size(121, 20);
             this.cmbValHigh.TabIndex = 0;
@@ -740,6 +769,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.btnCancel);
             this.panel1.Controls.Add(this.txtDescription);
             this.panel1.Controls.Add(this.label12);
             this.panel1.Controls.Add(this.txtName);
@@ -752,12 +782,22 @@
             this.panel1.Size = new System.Drawing.Size(637, 55);
             this.panel1.TabIndex = 1;
             // 
+            // btnCancel
+            // 
+            this.btnCancel.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.btnCancel.Location = new System.Drawing.Point(477, 6);
+            this.btnCancel.Name = "btnCancel";
+            this.btnCancel.Size = new System.Drawing.Size(75, 23);
+            this.btnCancel.TabIndex = 6;
+            this.btnCancel.Text = "&Cancel";
+            this.btnCancel.UseVisualStyleBackColor = true;
+            // 
             // txtDescription
             // 
             this.txtDescription.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.txtDescription.Location = new System.Drawing.Point(323, 30);
+            this.txtDescription.Location = new System.Drawing.Point(63, 22);
             this.txtDescription.Name = "txtDescription";
-            this.txtDescription.Size = new System.Drawing.Size(310, 17);
+            this.txtDescription.Size = new System.Drawing.Size(378, 17);
             this.txtDescription.TabIndex = 5;
             this.txtDescription.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtDescription_KeyPress);
             // 
@@ -765,7 +805,7 @@
             // 
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.55F);
-            this.label12.Location = new System.Drawing.Point(266, 33);
+            this.label12.Location = new System.Drawing.Point(6, 25);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(52, 12);
             this.label12.TabIndex = 4;
@@ -774,7 +814,7 @@
             // txtName
             // 
             this.txtName.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.txtName.Location = new System.Drawing.Point(63, 30);
+            this.txtName.Location = new System.Drawing.Point(63, 3);
             this.txtName.Name = "txtName";
             this.txtName.Size = new System.Drawing.Size(196, 17);
             this.txtName.TabIndex = 3;
@@ -784,7 +824,7 @@
             // 
             this.label11.AutoSize = true;
             this.label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.55F);
-            this.label11.Location = new System.Drawing.Point(6, 33);
+            this.label11.Location = new System.Drawing.Point(6, 6);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(51, 12);
             this.label11.TabIndex = 2;
@@ -793,7 +833,7 @@
             // btnSaveRule
             // 
             this.btnSaveRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.btnSaveRule.Location = new System.Drawing.Point(558, 3);
+            this.btnSaveRule.Location = new System.Drawing.Point(558, 6);
             this.btnSaveRule.Name = "btnSaveRule";
             this.btnSaveRule.Size = new System.Drawing.Size(75, 23);
             this.btnSaveRule.TabIndex = 1;
@@ -804,39 +844,12 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.label1.Location = new System.Drawing.Point(3, 9);
+            this.label1.Location = new System.Drawing.Point(3, 41);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(438, 12);
+            this.label1.Size = new System.Drawing.Size(614, 12);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Include counters in the rule by dragging available counters on the left onto the " +
-    "rule\'s counter list on the right.";
-            // 
-            // ExpressionName
-            // 
-            this.ExpressionName.HeaderText = "Name";
-            this.ExpressionName.Name = "ExpressionName";
-            // 
-            // Expression
-            // 
-            this.Expression.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Expression.HeaderText = "Expression";
-            this.Expression.Name = "Expression";
-            // 
-            // Display
-            // 
-            this.Display.HeaderText = "Display";
-            this.Display.Name = "Display";
-            this.Display.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Display.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.Display.Width = 50;
-            // 
-            // Highlight
-            // 
-            this.Highlight.HeaderText = "Highlight";
-            this.Highlight.Name = "Highlight";
-            this.Highlight.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Highlight.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.Highlight.Width = 50;
+            this.label1.Text = "Include counters by dragging those available on the left to the rule counter list" +
+    " on the right.  Then drag rule counters onto expressions to use them there.";
             // 
             // frmAddPerfMonRule
             // 
@@ -948,5 +961,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Expression;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Display;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Highlight;
+        private System.Windows.Forms.Button btnCancel;
     }
 }
