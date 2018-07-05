@@ -115,6 +115,7 @@ namespace SSASDiag
                 }
             }
             dgdSelectedCounters.Rows.Remove(r);
+            UpdateExpressionsAndCountersCombo();
         }
 
         private void TvCounters_DragEnter(object sender, DragEventArgs e)
@@ -165,12 +166,14 @@ namespace SSASDiag
                 if (r.Cells[0].Value != null)
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
             foreach (DataGridViewRow r in dgdExpressions.Rows)
-                if (r.Cells[0].Value != null)
+                if (r.Cells[0].Value != null && r.Cells[0].ErrorText == "" && r.Cells[1].ErrorText == "")
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
+            cmbValueToCheck.Text = "";
             if (cmbValueToCheck.Items.Count == 0)
                 cmbValueToCheck.Enabled = false;
             else
                 cmbValueToCheck.Enabled = true;
+            cmbSeriesFunction.Visible = lblSeriesFunction.Visible = lblPctMatchCheck.Visible = udPctMatchCheck.Visible = false;
         }
 
         private void dgdSelectedCounters_MouseDown(object sender, MouseEventArgs e)
@@ -423,7 +426,27 @@ namespace SSASDiag
         {
             UpdateExpressionsAndCountersCombo();
         }
+
+        private void cmbValueToCheck_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            bool bSeries = false;
+            foreach (DataGridViewRow r in dgdSelectedCounters.Rows)
+                if (r.Cells[0].Value as string == cmbValueToCheck.SelectedItem as string)
+                    bSeries = true;
+            cmbSeriesFunction.SelectedIndex = -1;
+            lblPctMatchCheck.Visible = udPctMatchCheck.Visible = false;
+            if (bSeries)
+                cmbSeriesFunction.Visible = lblSeriesFunction.Visible = true;
+            else
+                cmbSeriesFunction.Visible = lblSeriesFunction.Visible = false;
+        }
+
+        private void cmbSeriesFunction_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            lblPctMatchCheck.Visible = udPctMatchCheck.Visible = cmbSeriesFunction.SelectedItem as string == "X% of values to warn/error";
+        }
     }
+
     public class DataGridViewTextBoxColumnWithExpandedEditArea : DataGridViewTextBoxCell
     {
         public override void PositionEditingControl(bool setLocation, bool setSize,

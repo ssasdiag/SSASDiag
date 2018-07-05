@@ -47,11 +47,16 @@
             this.dgdExpressions = new System.Windows.Forms.DataGridView();
             this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.label2 = new System.Windows.Forms.Label();
-            this.cmbValueToCheck = new System.Windows.Forms.ComboBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.tt = new System.Windows.Forms.ToolTip(this.components);
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.label2 = new System.Windows.Forms.Label();
+            this.cmbValueToCheck = new System.Windows.Forms.ComboBox();
+            this.lblSeriesFunction = new System.Windows.Forms.Label();
+            this.cmbSeriesFunction = new System.Windows.Forms.ComboBox();
+            this.lblPctMatchCheck = new System.Windows.Forms.Label();
+            this.udPctMatchCheck = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.splitCountersAndRule)).BeginInit();
             this.splitCountersAndRule.Panel1.SuspendLayout();
             this.splitCountersAndRule.Panel2.SuspendLayout();
@@ -70,6 +75,8 @@
             this.splitExpressions.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgdExpressions)).BeginInit();
             this.panel1.SuspendLayout();
+            this.panel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.udPctMatchCheck)).BeginInit();
             this.SuspendLayout();
             // 
             // splitCountersAndRule
@@ -191,8 +198,7 @@
             // 
             // splitExpressionsAndRule.Panel2
             // 
-            this.splitExpressionsAndRule.Panel2.Controls.Add(this.label2);
-            this.splitExpressionsAndRule.Panel2.Controls.Add(this.cmbValueToCheck);
+            this.splitExpressionsAndRule.Panel2.Controls.Add(this.panel2);
             this.splitExpressionsAndRule.Size = new System.Drawing.Size(636, 445);
             this.splitExpressionsAndRule.SplitterDistance = 215;
             this.splitExpressionsAndRule.TabIndex = 0;
@@ -284,26 +290,6 @@
             this.Expression.HeaderText = "Expression";
             this.Expression.Name = "Expression";
             // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.label2.Location = new System.Drawing.Point(3, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(95, 12);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Value/Series to check";
-            // 
-            // cmbValueToCheck
-            // 
-            this.cmbValueToCheck.Enabled = false;
-            this.cmbValueToCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.cmbValueToCheck.FormattingEnabled = true;
-            this.cmbValueToCheck.Location = new System.Drawing.Point(5, 16);
-            this.cmbValueToCheck.Name = "cmbValueToCheck";
-            this.cmbValueToCheck.Size = new System.Drawing.Size(181, 20);
-            this.cmbValueToCheck.TabIndex = 0;
-            // 
             // panel1
             // 
             this.panel1.Controls.Add(this.label1);
@@ -323,6 +309,99 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Include counters in the rule by dragging available counters on the left onto the " +
     "rule\'s counter list on the right.";
+            // 
+            // panel2
+            // 
+            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.udPctMatchCheck);
+            this.panel2.Controls.Add(this.lblPctMatchCheck);
+            this.panel2.Controls.Add(this.lblSeriesFunction);
+            this.panel2.Controls.Add(this.cmbSeriesFunction);
+            this.panel2.Controls.Add(this.label2);
+            this.panel2.Controls.Add(this.cmbValueToCheck);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Location = new System.Drawing.Point(0, 0);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(636, 226);
+            this.panel2.TabIndex = 0;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.label2.Location = new System.Drawing.Point(50, 2);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(95, 12);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Value/Series to check";
+            // 
+            // cmbValueToCheck
+            // 
+            this.cmbValueToCheck.Enabled = false;
+            this.cmbValueToCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.cmbValueToCheck.FormattingEnabled = true;
+            this.cmbValueToCheck.Location = new System.Drawing.Point(7, 17);
+            this.cmbValueToCheck.Name = "cmbValueToCheck";
+            this.cmbValueToCheck.Size = new System.Drawing.Size(181, 20);
+            this.cmbValueToCheck.TabIndex = 2;
+            this.cmbValueToCheck.SelectedIndexChanged += new System.EventHandler(this.cmbValueToCheck_SelectedIndexChanged);
+            // 
+            // lblSeriesFunction
+            // 
+            this.lblSeriesFunction.AutoSize = true;
+            this.lblSeriesFunction.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.lblSeriesFunction.Location = new System.Drawing.Point(27, 40);
+            this.lblSeriesFunction.Name = "lblSeriesFunction";
+            this.lblSeriesFunction.Size = new System.Drawing.Size(140, 12);
+            this.lblSeriesFunction.TabIndex = 5;
+            this.lblSeriesFunction.Text = "Function to Compare from Series";
+            this.lblSeriesFunction.Visible = false;
+            // 
+            // cmbSeriesFunction
+            // 
+            this.cmbSeriesFunction.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.cmbSeriesFunction.FormattingEnabled = true;
+            this.cmbSeriesFunction.Items.AddRange(new object[] {
+            "First",
+            "Last",
+            "Max",
+            "Min",
+            "Avg (ignore nulls)",
+            "Avg (ignore nulls and zeros)",
+            "Avg (include all values)",
+            "X% of values to warn/error"});
+            this.cmbSeriesFunction.Location = new System.Drawing.Point(7, 55);
+            this.cmbSeriesFunction.Name = "cmbSeriesFunction";
+            this.cmbSeriesFunction.Size = new System.Drawing.Size(181, 20);
+            this.cmbSeriesFunction.TabIndex = 4;
+            this.cmbSeriesFunction.Visible = false;
+            this.cmbSeriesFunction.SelectedIndexChanged += new System.EventHandler(this.cmbSeriesFunction_SelectedIndexChanged);
+            // 
+            // lblPctMatchCheck
+            // 
+            this.lblPctMatchCheck.AutoSize = true;
+            this.lblPctMatchCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.lblPctMatchCheck.Location = new System.Drawing.Point(35, 78);
+            this.lblPctMatchCheck.Name = "lblPctMatchCheck";
+            this.lblPctMatchCheck.Size = new System.Drawing.Size(124, 12);
+            this.lblPctMatchCheck.TabIndex = 6;
+            this.lblPctMatchCheck.Text = "% to match for error/warning:";
+            this.lblPctMatchCheck.Visible = false;
+            // 
+            // udPctMatchCheck
+            // 
+            this.udPctMatchCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.udPctMatchCheck.Location = new System.Drawing.Point(72, 93);
+            this.udPctMatchCheck.Name = "udPctMatchCheck";
+            this.udPctMatchCheck.Size = new System.Drawing.Size(50, 17);
+            this.udPctMatchCheck.TabIndex = 7;
+            this.udPctMatchCheck.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.udPctMatchCheck.Value = new decimal(new int[] {
+            15,
+            0,
+            0,
+            0});
+            this.udPctMatchCheck.Visible = false;
             // 
             // frmAddPerfMonRule
             // 
@@ -346,7 +425,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgdSelectedCounters)).EndInit();
             this.splitExpressionsAndRule.Panel1.ResumeLayout(false);
             this.splitExpressionsAndRule.Panel2.ResumeLayout(false);
-            this.splitExpressionsAndRule.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitExpressionsAndRule)).EndInit();
             this.splitExpressionsAndRule.ResumeLayout(false);
             this.splitExpressions.Panel1.ResumeLayout(false);
@@ -357,6 +435,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgdExpressions)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.panel2.ResumeLayout(false);
+            this.panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.udPctMatchCheck)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -379,7 +460,12 @@
         private System.Windows.Forms.DataGridView dgdExpressions;
         private System.Windows.Forms.DataGridViewTextBoxColumn ExpressionName;
         private System.Windows.Forms.DataGridViewTextBoxColumn Expression;
+        private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox cmbValueToCheck;
+        private System.Windows.Forms.Label lblSeriesFunction;
+        private System.Windows.Forms.ComboBox cmbSeriesFunction;
+        private System.Windows.Forms.NumericUpDown udPctMatchCheck;
+        private System.Windows.Forms.Label lblPctMatchCheck;
     }
 }
