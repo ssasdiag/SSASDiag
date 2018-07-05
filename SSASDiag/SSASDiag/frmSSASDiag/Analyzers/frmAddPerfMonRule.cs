@@ -559,11 +559,15 @@ namespace SSASDiag
 
         private void cmbErrorWarnVals_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (sender == cmbWarnExpr)
+                ValidateChildren();
             btnSaveRule.Enabled = IsRuleComplete();
         }
 
         private void txtErrorWarnRegions_TextChanged(object sender, EventArgs e)
         {
+            if (sender == txtWarnRegion || sender == txtWarnResult)
+                ValidateChildren();
             btnSaveRule.Enabled = IsRuleComplete();
         }
 
