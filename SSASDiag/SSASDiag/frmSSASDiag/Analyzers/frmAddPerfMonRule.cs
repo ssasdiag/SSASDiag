@@ -62,12 +62,6 @@ namespace SSASDiag
             cmbCheckAboveOrBelow.SelectedIndex = 0;
         }
 
-        private void frmAddPerfMonRule_Load(object sender, EventArgs e)
-        {
-
-        }
-
-
         private void splitExpressions_SplitterMoving(object sender, SplitterCancelEventArgs e)
         {
             splitCounters.SplitterDistance = e.SplitX;
@@ -240,7 +234,6 @@ namespace SSASDiag
             return nodes;
         }
 
-
         private void dgdExpressions_DragDrop(object sender, DragEventArgs e)
         {
             DataGridViewRow r = (DataGridViewRow)e.Data.GetData("System.Windows.Forms.DataGridViewRow");
@@ -322,17 +315,25 @@ namespace SSASDiag
                 bool bValidExpression = true, bInCounterName = false, bPriorSeriesFound = false, bOperatorProcessed = true;
                 string currentToken = "";
                 string priorToken = "";
-                int iCurPos = 0;
+                int iCurPos = 0, iOpenParens = 0;
                 foreach (char c in (cell.Value as string).ToLower().TrimStart().TrimEnd())
                 {
-                    if (c == '[')
+                    if (c == '\"')
+                    {
+                        bValidExpression = false;
+                        break;
+                    }
+                    if (c == '[' || c == '(')
                     {
                         if (!bOperatorProcessed)
                         {
                             bValidExpression = false;
                             break;
                         }
-                        bOperatorProcessed = false;
+                        if (c == '[')
+                            bOperatorProcessed = false;
+                        else
+                            iOpenParens++;
                         if (priorToken != "")
                             bPriorSeriesFound = true;
                         bInCounterName = true;
@@ -352,6 +353,16 @@ namespace SSASDiag
                     if (c == ']')
                     {
                         bInCounterName = false;
+                    }
+                    if (c == ')')
+                    {
+                        iOpenParens--;
+                        bOperatorProcessed = false;
+                        if (iOpenParens < 0)
+                        {
+                            bValidExpression = false;
+                            break;
+                        }
                     }
                     if (!bInCounterName && (c == '+' || c == '-' || c == '/' || c == '*' || c == '\\'))
                     {
@@ -382,37 +393,40 @@ namespace SSASDiag
                             currentToken = "";
                         }
                     }
-                    else if (c != ' ')
+                    else if (c != ' ' && c != ')' && c != '(')
                         currentToken += c;
                     iCurPos++;
                 }
-                if (priorToken.EndsWith("]"))
-                    bPriorSeriesFound = true;
-                if (!IsValidExpressionToken(currentToken) || (currentToken.Trim() == "" || ((currentToken.Trim().EndsWith("]") != bPriorSeriesFound) && priorToken.Trim() != "")))
-                    bValidExpression = false;
-                if (bPriorSeriesFound && currentToken.Trim().EndsWith("]") && currentToken.Contains("*") && priorToken.Trim() != "")
+                if (bValidExpression)
                 {
-                    string root = currentToken.Replace("\\*", "");
-                    if (root.Contains("\\"))
-                        root = root.Substring(0, root.IndexOf("\\"));
-                    string oldRoot = priorToken.Replace("\\*", "");
-                    if (oldRoot.Contains("\\"))
-                        oldRoot = root.Substring(0, root.IndexOf("\\"));
-                    if (root != oldRoot)
+                    cell.ErrorText = "";
+                    if (priorToken.EndsWith("]"))
+                        bPriorSeriesFound = true;
+                    if (!IsValidExpressionToken(currentToken) || (currentToken.Trim() == "" ||
+                        ((currentToken.Trim().EndsWith("]") != bPriorSeriesFound) && priorToken.Trim() != "")))
+                        bValidExpression = false;
+                    if (bPriorSeriesFound && currentToken.Trim().EndsWith("]") && currentToken.Contains("*") && priorToken.Trim() != "")
                     {
-                        cell.ErrorText = "Wildcard counters can only be used in conjunction with counters under the same path.";
-                        return;
+                        string root = currentToken.Replace("\\*", "");
+                        if (root.Contains("\\"))
+                            root = root.Substring(0, root.IndexOf("\\"));
+                        string oldRoot = priorToken.Replace("\\*", "");
+                        if (oldRoot.Contains("\\"))
+                            oldRoot = root.Substring(0, root.IndexOf("\\"));
+                        if (root != oldRoot)
+                        {
+                            cell.ErrorText = "Wildcard counters can only be used in conjunction with counters under the same path.";
+                            return;
+                        }
                     }
                 }
-                if (!bValidExpression)
+                else
                 {
                     if (currentToken.Trim().EndsWith("]") != bPriorSeriesFound)
                         cell.ErrorText = "Counter series and scalar expressions cannot be used together.  Use First, Last, Max, Min, or Avg instead.";
                     else
-                        cell.ErrorText = "Invalid token at '" + (cell.Value as string).Substring(0, iCurPos) + "'.";
-                }
-                else
-                    cell.ErrorText = "";
+                        cell.ErrorText = "Invalid token at: " + (cell.Value as string).Substring(0, iCurPos);
+                }                   
             }
             else if (e.ColumnIndex == 0 && cell.Value as string != null)
             {
@@ -470,6 +484,26 @@ namespace SSASDiag
         {
             pnlHigh.Width = pnlLow.Width = pnlMed.Width = Width - pnlHigh.Left;
             txtLowRegion.Width = txtLowResult.Width = txtMedRegion.Width = txtMedResult.Width = txtHighRegion.Width = txtHighResult.Width = pnlHigh.Width - txtHighResult.Left - 22;
+            txtDescription.Width = Width - txtDescription.Left - 20;
+        }
+
+        private void txtName_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if ((!char.IsLetterOrDigit(e.KeyChar) && e.KeyChar != '-' && e.KeyChar!= '_') ||
+                (txtName.Text == "" && char.IsNumber(e.KeyChar)))
+            {
+                e.Handled = true;
+                tt.Show("Rules must start with a letter and use only letter, number, dash, or underscore.", txtName, 0, 0, 2000);
+            }
+        }
+
+        private void txtDescription_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '\"')
+            {
+                e.Handled = true;
+                tt.Show("Wah Wah...  Rule description cannot include double quotes.", txtDescription, 0, 0, 2000);
+            }
         }
 
         private void cmbValueToCheck_SelectedIndexChanged(object sender, EventArgs e)
