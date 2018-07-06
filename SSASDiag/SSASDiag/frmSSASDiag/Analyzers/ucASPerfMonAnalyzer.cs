@@ -134,12 +134,13 @@ namespace SSASDiag
             splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
         }
 
-        double BreakdownExpression(string expr, Rule rule)
+        double BreakdownExpression(string expr, Rule rule, List<RuleExpression> ruleExpressions)
         {
+            int iCurPos = 0;
             MatchCollection Counters = Regex.Matches(expr, "(\\[.*?\\])");
             foreach(Match c in Counters)
             {
-                int iCurPos = expr.IndexOf(c.Value);
+                iCurPos = expr.IndexOf(c.Value);
                 while (iCurPos != -1)
                 {
                     iCurPos += c.Value.Length;
@@ -196,16 +197,45 @@ namespace SSASDiag
                     }
                     else
                     {
-
+                        // process series
                     }
                 }
                 
             }
-
-
-
-
-            return 0;
+            iCurPos = 0;
+            int iWordStart = -1;
+            while (iCurPos < expr.Length)
+            {
+                if (char.IsLetter(expr[iCurPos]))
+                {
+                    if (iWordStart == -1)
+                        iWordStart = iCurPos;
+                    iCurPos++;
+                }
+                else
+                {
+                    if (char.IsLetterOrDigit(expr[iCurPos]) || expr[iCurPos] == '-' || expr[iCurPos] == '_')
+                        iCurPos++;
+                    else
+                    {
+                        if (iWordStart != -1)
+                        {
+                            string subExpr = expr.Substring(iWordStart, iCurPos - iWordStart);
+                            double d;
+                            if (double.TryParse(subExpr, out d))
+                                return d;
+                            d = ruleExpressions.Where(re => re.Name == subExpr).First().Value;
+                            expr = expr.Replace(subExpr, d.ToString());
+                            if (Regex.Matches(expr, @"[a-zA-Z]").Count == 0)
+                                return Convert.ToDouble(new DataTable().Compute(expr, ""));
+                            iCurPos = -1;
+                            iWordStart = -1;
+                        }
+                        iCurPos++;
+                    }
+                }
+            }
+            return Convert.ToDouble(new DataTable().Compute(expr, ""));
         }
 
         private void LoadRuleFromRegistry(string rule)
@@ -248,8 +278,8 @@ namespace SSASDiag
                     if (Double.TryParse(re.Expression, out d))
                         re.Value = d;
                     else
-                        re.Value = BreakdownExpression(re.Expression, NewRule);
-                };
+                        re.Value = BreakdownExpression(re.Expression, NewRule, NewRuleExpressions);
+                }
                 string ValOrSeriesToCheck = r.GetValue("ValueOrSeriesToCheck") as string;
                 if (NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Count() > 0)
                 {
