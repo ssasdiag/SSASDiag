@@ -144,7 +144,7 @@ namespace SSASDiag
                 foreach (string c in counters.GetSubKeyNames())
                 {
                     RegistryKey ctr = counters.OpenSubKey(c);
-                    NewRule.Counters.AddRange(RuleCounter.CountersFromPath(c, Convert.ToBoolean(ctr.GetValue("Display")), Convert.ToBoolean(ctr.GetValue("Highlight"))));
+                    NewRule.Counters.AddRange(RuleCounter.CountersFromPath(c.Replace("{SLASH}", "\\"), Convert.ToBoolean(ctr.GetValue("Display")), Convert.ToBoolean(ctr.GetValue("Highlight"))));
                     ctr.Close();
                 }
                 counters.Close();
@@ -155,7 +155,13 @@ namespace SSASDiag
                     RegistryKey expr = expressions.OpenSubKey(e);
                     NewRuleExpressions.Add(new RuleExpression(e, expr.GetValue("Expression") as string, Convert.ToInt32(expr.GetValue("Index")), Convert.ToBoolean(expr.GetValue("Display")), Convert.ToBoolean(expr.GetValue("Highlight"))));
                 }
-
+                NewRule.RuleFunction = new Action(()=>
+                {
+                    foreach (RuleExpression re in NewRuleExpressions.OrderBy(x=>x.Index))
+                    {
+                    };
+                });
+                Rules.Add(NewRule);
             }
         }
 
@@ -768,7 +774,8 @@ namespace SSASDiag
                         f.Enabled = true;
                     }));
 
-                    DefineRules();
+                    //DefineRules();
+                    LoadRulesFromRegistry();
 
                     SqlDataReader dr = new SqlCommand("select * from RuleResults", connDB).ExecuteReader();
                     while (dr.Read())
@@ -787,7 +794,7 @@ namespace SSASDiag
                         dgdRules.DataSource = b;
                         dgdRules.ClearSelection();
                     }));
-                    LoadRulesFromRegistry();
+                    
                 })).Start();
             }
         }

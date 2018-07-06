@@ -174,7 +174,7 @@ namespace SSASDiag
             public string Name { get; set; } = "";
             public string Description { get; set; } = "";
             public string Category { get; set; } = "";
-            public string ResultDescription { get; set; } = "";
+            public string ResultDescription { get; set; } = "Rule has not been run.";
 
             public Image RuleResultImg
             {
@@ -212,10 +212,10 @@ namespace SSASDiag
                 {
                     OnPropertyChanged("RuleResultImg");
                     if (value == RuleResultEnum.CountersUnavailable)
-                    {
-                        ResultDescription = "Missing required counter(s) to process this rule.";
-                        OnPropertyChanged("ResultDescription");
-                    }
+                        ResultDescription = "Missing required counter(s) to run rule.";
+                    if (value == RuleResultEnum.NotRun)
+                        ResultDescription = "Rule has not been run.";
+                    OnPropertyChanged("ResultDescription");
                     ruleResult = value;
                 }
             }
