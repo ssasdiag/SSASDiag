@@ -393,12 +393,12 @@ namespace SSASDiag
 
     static class DataPointExtensions
     {
-        public static double AverageValue(this IEnumerable<DataPoint> points, bool ExcludeNull = true, bool ExcludeZero = false)
+        public static double AverageValue(this IEnumerable<DataPoint> points, bool IncludeNull = false, bool IncludeZero = true)
         {
             double sumY = 0, count = 0;
             foreach (var pt in points)
             {
-                if ((pt.YValues[0] != null || ExcludeNull) && (pt.YValues[0] != 0 || ExcludeZero))
+                if ((pt.YValues[0] != null || !IncludeNull) && (pt.YValues[0] != 0 || !IncludeZero))
                 {
                     sumY += pt.YValues[0];
                     count++;

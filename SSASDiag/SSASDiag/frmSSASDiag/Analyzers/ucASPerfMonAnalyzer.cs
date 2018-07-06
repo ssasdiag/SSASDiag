@@ -134,7 +134,7 @@ namespace SSASDiag
             splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
         }
 
-        double BreakdownExpression(string expr)
+        double BreakdownExpression(string expr, Rule rule)
         {
             MatchCollection Counters = Regex.Matches(expr, "(\\[.*?\\])");
             foreach(Match c in Counters)
@@ -146,14 +146,53 @@ namespace SSASDiag
                     if (expr.Substring(iCurPos++, 1) == ".")
                     {
                         char breakchar = '\0';
-                        while (breakchar != ' ' && breakchar != '(')
+                        while (breakchar != ' ' && breakchar != '(' && iCurPos < expr.Length)
                             breakchar = expr.Substring(iCurPos++, 1)[0];
                         if (breakchar == '(')
                             while (breakchar != ')')
                                 breakchar = expr.Substring(iCurPos++, 1)[0];
-                        string SeriesWithFunction = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value));
+                        Series series = rule.Counters.Where(cc => cc.Path == c.Value.Replace("[", "").Replace("]", "")).First().ChartSeries;
+                        string function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").ToLower().Replace(" ", "").Replace("()", "");
+                        double val = 0;
+                        switch (function)
+                        {
+                            case "first":
+                                val = series.Points[0].YValues[0];
+                                break;
+                            case "last":
+                                val = series.Points.Last().YValues[0];
+                                break;
+                            case "max":
+                                val = series.Points.FindMaxByValue().YValues[0];
+                                break;
+                            case "min":
+                                val = series.Points.FindMinByValue().YValues[0];
+                                break;
+                            case "avg":
+                                val = series.Points.AverageValue();
+                                break;
+                            case "avg(true)":
+                                val = series.Points.AverageValue();
+                                break;
+                            case "avg(false)":
+                                val = series.Points.AverageValue(false);
+                                break;
+                            case "avg(true,true)":
+                                val = series.Points.AverageValue(true, true);
+                                break;
+                            case "avg(true,false)":
+                                val = series.Points.AverageValue(true, false);
+                                break;
+                            case "avg(false,true)":
+                                val = series.Points.AverageValue(false, true);
+                                break;
+                            case "avg(false,false)":
+                                val = series.Points.AverageValue(false, false);
+                                break;
 
-                        
+                        }
+                        expr = expr.Substring(0, expr.IndexOf(c.Value)) + val + expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1);
+                        iCurPos = expr.IndexOf(c.Value);
                     }
                     else
                     {
@@ -209,7 +248,7 @@ namespace SSASDiag
                     if (Double.TryParse(re.Expression, out d))
                         re.Value = d;
                     else
-                        re.Value = BreakdownExpression(re.Expression);
+                        re.Value = BreakdownExpression(re.Expression, NewRule);
                 };
                 string ValOrSeriesToCheck = r.GetValue("ValueOrSeriesToCheck") as string;
                 if (NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Count() > 0)
