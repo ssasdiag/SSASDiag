@@ -143,7 +143,13 @@ namespace SSASDiag
             foreach (string c in counters.GetSubKeyNames())
             {
                 RegistryKey ctr = counters.OpenSubKey(c);
-                NewRule.Counters.AddRange(RuleCounter.CountersFromPath(c.Replace("{SLASH}", "\\"), Convert.ToBoolean(ctr.GetValue("Display")), Convert.ToBoolean(ctr.GetValue("Highlight"))));
+                List<RuleCounter> ctrs = RuleCounter.CountersFromPath(c.Replace("{SLASH}", "\\"), Convert.ToBoolean(ctr.GetValue("Display")), Convert.ToBoolean(ctr.GetValue("Highlight")));
+                if (ctrs.Count == 0)
+                {
+                    NewRule.RuleResult = RuleResultEnum.CountersUnavailable;
+                    return;
+                }
+                NewRule.Counters.AddRange(ctrs);
                 ctr.Close();
             }
             counters.Close();
@@ -156,8 +162,10 @@ namespace SSASDiag
             }
             expressions.Close();
             r.Close();
+            
             NewRule.RuleFunction = new Action(() =>
             {
+                NewRule.RuleResult = RuleResultEnum.Pass;
                 r = rules.OpenSubKey(rule, false);
                 foreach (RuleExpression re in NewRuleExpressions.OrderBy(x => x.Index))
                 {
@@ -172,19 +180,26 @@ namespace SSASDiag
                     NewRule.ValidateThresholdRule(NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Select(rc => rc.ChartSeries).ToList(),
                                                     r.GetValue("WarnExpr") == null ? -1 : NewRuleExpressions.Where(re => re.Name == r.GetValue("WarnExpr") as string).First().Value,
                                                     NewRuleExpressions.Where(re => re.Name == r.GetValue("ErrorExpr") as string).First().Value,
-                                                    r.GetValue("WarningText") == null ? null : r.GetValue("WarnText") as string,
-                                                    r.GetValue("ErrorText") as string,
-                                                    r.GetValue("PassText") as string,
+                                                    r.GetValue("WarnRegionLabel") == null ? null : r.GetValue("WarnRegionLabel") as string,
+                                                    r.GetValue("ErrorRegionLabel") as string,
+                                                    r.GetValue("PassRegionLabel") as string,
                                                     Convert.ToBoolean(r.GetValue("CheckValueAboveOrBelowWarnError")),
                                                     SeriesFunction.StartsWith("Avg"), SeriesFunction.Contains("ignore nulls and zeros"), SeriesFunction.Contains("include all values"),
                                                     Convert.ToInt32(r.GetValue("PctRequiredToMatchWarnError")));
+                    if (NewRule.RuleResult == RuleResultEnum.Fail)
+                        NewRule.ResultDescription = "Fail: " + r.GetValue("ErrorText") as string;
+                    else if (NewRule.RuleResult == RuleResultEnum.Warn)
+                        NewRule.ResultDescription = "Warn: " + r.GetValue("WarningText") as string;
+                    else if (NewRule.RuleResult == RuleResultEnum.Pass)
+                        NewRule.ResultDescription = "Pass: " + r.GetValue("PassText") as string;
+                    else
+                        NewRule.ResultDescription = "";
                 }
 
                 r.Close();
             });
             
             Rules.Add(NewRule);
-            dgdRules.
         }
 
         private void LoadRulesFromRegistry()
@@ -804,7 +819,7 @@ namespace SSASDiag
                         f.Enabled = true;
                     }));
 
-                    DefineRules();
+                    //DefineRules();
                     LoadRulesFromRegistry();
 
                     SqlDataReader dr = new SqlCommand("select * from RuleResults", connDB).ExecuteReader();
@@ -1620,11 +1635,11 @@ namespace SSASDiag
                         chartPerfMon.Series.Clear();
                     }));
                     Rule rule = dgdRules.Rows[e.RowIndex].DataBoundItem as Rule;
+                    Form f = Program.MainForm;
                     if (rule.Counters[0].ChartSeries == null)
                     {
                         Invoke(new Action(() =>
                         {
-                            Form f = Program.MainForm;
                             f.Enabled = false;
                             StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
                             StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
@@ -1697,8 +1712,9 @@ namespace SSASDiag
                     {
                         chkAutoScale.Checked = false;
                         chkAutoScale.Enabled = false;
-                        Program.MainForm.Enabled = true;
-                        StatusFloater.Hide();
+                        StatusFloater.AutoUpdateDuration = false;
+                        StatusFloater.Visible = false;
+                        f.Enabled = true;
                     }));
                 })).Start();
             }

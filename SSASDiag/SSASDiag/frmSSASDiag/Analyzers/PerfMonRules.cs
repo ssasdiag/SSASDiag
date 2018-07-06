@@ -330,7 +330,6 @@ namespace SSASDiag
                     if (WarningLineText != "")
                         WarnRegion = AddStripLine(WarningLineText, WarnY > 0 ? WarnY : 0, ErrorY, WarnColor);
                     CustomStripLines.Add(PassRegion);
-
                 }
                 foreach (Series s in series)
                 {
@@ -339,18 +338,18 @@ namespace SSASDiag
                     {
                         double dCount = 0;
                         if (CheckIfValueBelowWarnError)
-                            dCount = s.Points.Where(p => p.YValues[0] >= ErrorY).Count();
-                        else
                             dCount = s.Points.Where(p => p.YValues[0] <= ErrorY).Count();
+                        else
+                            dCount = s.Points.Where(p => p.YValues[0] >= ErrorY).Count();
                         if ((double)dCount / (double)s.Points.Count * 100.0> PctValuesToTriggerWarnFail / 100.0)
                         {
                             RuleResult = RuleResultEnum.Fail;
                             return;
                         }
                         if (CheckIfValueBelowWarnError)
-                            dCount = s.Points.Where(p => p.YValues[0] >= WarnY).Count();
-                        else
                             dCount = s.Points.Where(p => p.YValues[0] <= WarnY).Count();
+                        else
+                            dCount = s.Points.Where(p => p.YValues[0] >= WarnY).Count();
                         if ((double)dCount / (double)s.Points.Count * 100.0 > PctValuesToTriggerWarnFail / 100.0)
                         {
                             RuleResult = RuleResultEnum.Warn;

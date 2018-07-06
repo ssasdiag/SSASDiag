@@ -909,10 +909,10 @@
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.label1.Location = new System.Drawing.Point(3, 41);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(614, 12);
+            this.label1.Size = new System.Drawing.Size(609, 12);
             this.label1.TabIndex = 0;
             this.label1.Text = "Include counters by dragging those available on the left to the rule counter list" +
-    " on the right.  Then drag rule counters onto expressions to use them there.";
+    " on the right.  Drag rule counters onto expressions to use them there too.";
             // 
             // errorProvider1
             // 
