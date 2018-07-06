@@ -273,9 +273,9 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.label3.Location = new System.Drawing.Point(3, 1);
+            this.label3.Location = new System.Drawing.Point(9, 21);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(241, 204);
+            this.label3.Size = new System.Drawing.Size(240, 180);
             this.label3.TabIndex = 2;
             this.label3.Text = resources.GetString("label3.Text");
             // 
@@ -387,8 +387,8 @@
             this.cmbCheckAboveOrBelow.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.cmbCheckAboveOrBelow.FormattingEnabled = true;
             this.cmbCheckAboveOrBelow.Items.AddRange(new object[] {
-            "Values pass when above thresholds",
-            "Values pass when below thresholds"});
+            "Values fail when below thresholds",
+            "Values fail when above thresholds"});
             this.cmbCheckAboveOrBelow.Location = new System.Drawing.Point(229, 5);
             this.cmbCheckAboveOrBelow.Name = "cmbCheckAboveOrBelow";
             this.cmbCheckAboveOrBelow.Size = new System.Drawing.Size(169, 20);

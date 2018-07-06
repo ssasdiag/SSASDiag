@@ -144,61 +144,44 @@ namespace SSASDiag
                 while (iCurPos != -1)
                 {
                     iCurPos += c.Value.Length;
-                    if (expr.Substring(iCurPos++, 1) == ".")
-                    {
-                        char breakchar = '\0';
-                        while (breakchar != ' ' && breakchar != '(' && iCurPos < expr.Length)
+                    char breakchar = '\0';
+                    while (breakchar != ' ' && breakchar != '(' && iCurPos < expr.Length)
+                        breakchar = expr.Substring(iCurPos++, 1)[0];
+                    if (breakchar == '(')
+                        while (breakchar != ')')
                             breakchar = expr.Substring(iCurPos++, 1)[0];
-                        if (breakchar == '(')
-                            while (breakchar != ')')
-                                breakchar = expr.Substring(iCurPos++, 1)[0];
-                        Series series = rule.Counters.Where(cc => cc.Path == c.Value.Replace("[", "").Replace("]", "")).First().ChartSeries;
-                        string function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").ToLower().Replace(" ", "").Replace("()", "");
-                        double val = 0;
-                        switch (function)
-                        {
-                            case "first":
-                                val = series.Points[0].YValues[0];
-                                break;
-                            case "last":
-                                val = series.Points.Last().YValues[0];
-                                break;
-                            case "max":
-                                val = series.Points.FindMaxByValue().YValues[0];
-                                break;
-                            case "min":
-                                val = series.Points.FindMinByValue().YValues[0];
-                                break;
-                            case "avg":
-                                val = series.Points.AverageValue();
-                                break;
-                            case "avg(true)":
-                                val = series.Points.AverageValue();
-                                break;
-                            case "avg(false)":
-                                val = series.Points.AverageValue(false);
-                                break;
-                            case "avg(true,true)":
-                                val = series.Points.AverageValue(true, true);
-                                break;
-                            case "avg(true,false)":
-                                val = series.Points.AverageValue(true, false);
-                                break;
-                            case "avg(false,true)":
-                                val = series.Points.AverageValue(false, true);
-                                break;
-                            case "avg(false,false)":
-                                val = series.Points.AverageValue(false, false);
-                                break;
-
-                        }
-                        expr = expr.Substring(0, expr.IndexOf(c.Value)) + val + expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1);
-                        iCurPos = expr.IndexOf(c.Value);
-                    }
-                    else
+                    List<Series> series = rule.Counters.Where(cc => cc.WildcardPath == c.Value.Replace("[", "").Replace("]", "") && !cc.WildcardPath.Contains("*") && (cc.Include_TotalSeriesInWildcard ? true : !cc.Path.Contains("_Total"))).Select(rc=>rc.ChartSeries).ToList();
+                    string function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").ToLower().Replace(" ", "");
+                    double val = 0;
+                    switch (function)
                     {
-                        // process series
+                        case "first":
+                            val = series.First().Points[0].YValues[0];
+                            break;
+                        case "last":
+                            val = series.Last().Points.Last().YValues[0];
+                            break;
+                        case "max":
+                            val = series.Max(sr=>sr.Points.FindMaxByValue().YValues[0]);
+                            break;
+                        case "min":
+                            val = series.Min(sr=>sr.Points.FindMinByValue().YValues[0]);
+                            break;
+                        case "avg":
+                            val = series.Average(sr=>sr.Points.AverageValue());
+                            break;
+                        case "avgexcludezero":
+                            val = series.Average(sr=>sr.Points.AverageValue(false, false));
+                            break;
+                        case "avgincludenull":
+                            val = series.Average(sr=>sr.Points.AverageValue(true));
+                            break;
+                        case "count":
+                            val = series.Count();
+                            break;
                     }
+                    expr = expr.Substring(0, expr.IndexOf(c.Value)) + val + expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1);
+                    iCurPos = expr.IndexOf(c.Value);
                 }
                 
             }
@@ -248,7 +231,7 @@ namespace SSASDiag
             foreach (string c in counters.GetSubKeyNames())
             {
                 RegistryKey ctr = counters.OpenSubKey(c);
-                List<RuleCounter> ctrs = RuleCounter.CountersFromPath(c.Replace("{SLASH}", "\\"), Convert.ToBoolean(ctr.GetValue("Display")), Convert.ToBoolean(ctr.GetValue("Highlight")));
+                List<RuleCounter> ctrs = RuleCounter.CountersFromPath(c.Replace("{SLASH}", "\\"), Convert.ToBoolean(ctr.GetValue("Display")), Convert.ToBoolean(ctr.GetValue("Highlight")), Convert.ToBoolean(ctr.GetValue("WildcardIncludes_Total")));
                 if (ctrs.Count == 0)
                 {
                     NewRule.RuleResult = RuleResultEnum.CountersUnavailable;
@@ -263,7 +246,7 @@ namespace SSASDiag
             foreach (string e in expressions.GetSubKeyNames())
             {
                 RegistryKey expr = expressions.OpenSubKey(e);
-                NewRuleExpressions.Add(new RuleExpression(e, expr.GetValue("Expression") as string, Convert.ToInt32(expr.GetValue("Index")), Convert.ToBoolean(expr.GetValue("Display")), Convert.ToBoolean(expr.GetValue("Highlight"))));
+                NewRuleExpressions.Add(new RuleExpression(e, expr.GetValue("Expression") as string, Convert.ToInt32(expr.GetValue("Index")), Convert.ToBoolean(expr.GetValue("Display")), Convert.ToBoolean(expr.GetValue("Highlight")), Convert.ToBoolean(expr.GetValue("WildcardIncludes_Total"))));
             }
             expressions.Close();
             r.Close();
@@ -284,13 +267,13 @@ namespace SSASDiag
                 if (NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Count() > 0)
                 {
                     string SeriesFunction = r.GetValue("SeriesFunction") as string;
-                    NewRule.ValidateThresholdRule(NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Select(rc => rc.ChartSeries).ToList(),
+                    NewRule.ValidateThresholdRule(NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck && (c.Include_TotalSeriesInWildcard ? true : !c.Path.Contains("_Total"))).Select(rc => rc.ChartSeries).ToList(),
                                                     r.GetValue("WarnExpr") == null ? -1 : NewRuleExpressions.Where(re => re.Name == r.GetValue("WarnExpr") as string).First().Value,
                                                     NewRuleExpressions.Where(re => re.Name == r.GetValue("ErrorExpr") as string).First().Value,
                                                     r.GetValue("WarnRegionLabel") == null ? null : r.GetValue("WarnRegionLabel") as string,
                                                     r.GetValue("ErrorRegionLabel") as string,
                                                     r.GetValue("PassRegionLabel") as string,
-                                                    Convert.ToBoolean(r.GetValue("CheckValueAboveOrBelowWarnError")),
+                                                    Convert.ToBoolean(r.GetValue("FailIfBelowWarnError")),
                                                     SeriesFunction.StartsWith("Avg"), SeriesFunction.Contains("ignore nulls and zeros"), SeriesFunction.Contains("include all values"),
                                                     Convert.ToInt32(r.GetValue("PctRequiredToMatchWarnError")));
                     if (NewRule.RuleResult == RuleResultEnum.Fail)
@@ -305,8 +288,10 @@ namespace SSASDiag
 
                 r.Close();
             });
-            
-            Rules.Add(NewRule);
+            if (InvokeRequired)
+                Invoke(new Action(()=>Rules.Add(NewRule)));
+            else
+                Rules.Add(NewRule);
         }
 
         private void LoadRulesFromRegistry()
@@ -1875,9 +1860,9 @@ namespace SSASDiag
 
         private class RuleExpression
         {
-            public RuleExpression(string Name, string Expression, int Index, bool Display = false, bool Highlight = false)
+            public RuleExpression(string Name, string Expression, int Index, bool Display = false, bool Highlight = false, bool Include_TotalSeriesInWildcard = true)
             {
-                this.Name = Name; this.Expression = Expression; this.Index = Index; this.Display = Display; this.Highlight = Highlight;
+                this.Name = Name; this.Expression = Expression; this.Index = Index; this.Display = Display; this.Highlight = Highlight; this.Include_TotalSeriesInWildcard = Include_TotalSeriesInWildcard;
             }
 
             public string Name;
@@ -1886,6 +1871,7 @@ namespace SSASDiag
             public bool Highlight;
             public double Value;
             public int Index;
+            public bool Include_TotalSeriesInWildcard;
         }
 
         public string[] indexcolors = new string[]{

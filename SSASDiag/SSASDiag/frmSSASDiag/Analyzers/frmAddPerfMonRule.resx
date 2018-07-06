@@ -132,21 +132,20 @@
   <data name="label3.Text" xml:space="preserve">
     <value>Define expressions required to check the rule.
 
-Each counter can return the following functions:
+Counters support the following functions:
 
 First: first value in series, Last: last value in series
 Max: highest value in series, Min: lowest value in series
-Avg(bool IncludeZeros = true, bool IncludeNulls = false):
-  Avg: average excluding nulls.
-  Avg(false): average excluding zeros and nulls.
-  Avg(true, true): average including  nulls and zeros
+Avg: average excluding null values
+AvgExcludeZero: average excluding zero and null values
+AvgIncludeNull: average including null values
+Count: count of counters matching a wildcard series
 
-Valid Expressions for counters A and B:
-[A] + [B] (a new counter series adding A and B)
-[B].Max (greatest value from B)
-[A].Avg (simple average without nulls)
-[A].Avg(true) (average without nulls or zeros)
-[A].First + [B].First (sum of the first values of each series)</value>
+Example expressions:
+MaxCPU = ([Processor\% C1 Time\*].Count * 100)
+SSASMax = [Process\msmdsrv\% Processor Time].Max
+PctCPU = SSASMax / MaxCPU
+</value>
   </data>
   <metadata name="Expression.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>

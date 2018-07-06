@@ -17,7 +17,7 @@ namespace SSASDiag
 
             // Rule 0
             Rule r0 = new Rule("Server Available Memory", "Memory", "Checks to ensure sufficient free memory.");
-            RuleCounter AvailableMB = RuleCounter.CountersFromPath("Memory\\Available MBytes", true, false, Color.Blue).First();
+            RuleCounter AvailableMB = RuleCounter.CountersFromPath("Memory\\Available MBytes", true, false, false, Color.Blue).First();
             RuleCounter WorkingSet = RuleCounter.CountersFromPath("Process\\Working Set\\_Total", false).First();
             if (AvailableMB == null || WorkingSet == null)
                 r0.RuleResult = RuleResultEnum.CountersUnavailable;
@@ -39,7 +39,7 @@ namespace SSASDiag
             Rules.Add(r0);
 
             Rule r1 = new Rule("Server Available Memory2", "Memory", "Checks to ensure **LOTS** of free memory.");
-            RuleCounter AvailableMB2 = RuleCounter.CountersFromPath("Memory\\Available MBytes", true, false, Color.Blue).First();
+            RuleCounter AvailableMB2 = RuleCounter.CountersFromPath("Memory\\Available MBytes", true, false, false, Color.Blue).First();
             RuleCounter WorkingSet2 = RuleCounter.CountersFromPath("Process\\Working Set\\_Total", false).First();
             r1.Counters.Add(AvailableMB2);
             r1.Counters.Add(WorkingSet2);
@@ -101,18 +101,20 @@ namespace SSASDiag
             public string WildcardPath;
             public bool ShowInChart;
             public bool HighlightInChart = true;
+            public bool Include_TotalSeriesInWildcard = false;
             public Series ChartSeries = null;
             public Color? CounterColor = null;
-            private RuleCounter(string Path, string WildcardPath = "", bool ShowInChart = true, bool HighlightInChart = false, Color? CounterColor = null)
+            private RuleCounter(string Path, string WildcardPath = "", bool ShowInChart = true, bool HighlightInChart = false, bool Include_TotalSeriesInWildcard = true, Color? CounterColor = null)
             {
                 this.Path = Path;
                 this.WildcardPath = WildcardPath;
                 this.ShowInChart = ShowInChart;
                 this.HighlightInChart = HighlightInChart;
                 this.CounterColor = CounterColor;
+                this.Include_TotalSeriesInWildcard = Include_TotalSeriesInWildcard;
             }
 
-            public static List<RuleCounter> CountersFromPath(string Path, bool ShowInChart = true, bool HighlightInChart = false, Color? CounterColor = null)
+            public static List<RuleCounter> CountersFromPath(string Path, bool ShowInChart = true, bool HighlightInChart = false, bool Include_TotalSeriesInWildcard = true,  Color? CounterColor = null)
             {
                 ucASPerfMonAnalyzer HostControl = ((Program.MainForm.tcCollectionAnalysisTabs.TabPages[1].Controls["tcAnalysis"] as TabControl).TabPages["Performance Logs"].Controls[0] as ucASPerfMonAnalyzer);
                 List<RuleCounter> counters = new List<RuleCounter>();
@@ -143,21 +145,26 @@ namespace SSASDiag
                                             {
                                                 foreach (TreeNode grandchild in child.Nodes)
                                                 {
-                                                    counters.Add(new RuleCounter(counter + "\\" + parts[3] + "\\" + grandchild.Name, Path, ShowInChart, HighlightInChart, CounterColor));
+                                                    if (Include_TotalSeriesInWildcard || parts[3] != "_Total")
+                                                        counters.Add(new RuleCounter(counter + "\\" + parts[3] + "\\" + grandchild.Name, Path, ShowInChart, HighlightInChart, Include_TotalSeriesInWildcard, CounterColor));
                                                 }
                                             }
                                             else
-                                                counters.Add(new RuleCounter(counter + "\\" + parts[3], Path, ShowInChart, HighlightInChart, CounterColor));
+                                            if (Include_TotalSeriesInWildcard || parts[3] != "_Total")
+                                                counters.Add(new RuleCounter(counter + "\\" + parts[3], Path, ShowInChart, HighlightInChart, Include_TotalSeriesInWildcard, CounterColor));
                                         }
-                                        counters.Add(new RuleCounter(counter + "\\" + child.Name, Path, ShowInChart, HighlightInChart, CounterColor));
+                                        if (Include_TotalSeriesInWildcard || child.Name != "_Total")
+                                            counters.Add(new RuleCounter(counter + "\\" + child.Name, Path, ShowInChart, HighlightInChart, Include_TotalSeriesInWildcard, CounterColor));
                                     }
                             }
                             else
-                                counters.Add(new RuleCounter(counter + "\\" + parts[2], Path, ShowInChart, HighlightInChart, CounterColor));
+                            if (Include_TotalSeriesInWildcard || parts[2] != "_Total")
+                                counters.Add(new RuleCounter(counter + "\\" + parts[2], Path, ShowInChart, HighlightInChart, Include_TotalSeriesInWildcard, CounterColor));
                         }
                     }
                     else
-                        counters.Add(new RuleCounter(counter, Path, ShowInChart, HighlightInChart, CounterColor));
+                    if (Include_TotalSeriesInWildcard || Path != "_Total")
+                        counters.Add(new RuleCounter(counter, Path, ShowInChart, HighlightInChart, Include_TotalSeriesInWildcard, CounterColor));
                 }
                 return counters;
             }
@@ -235,7 +242,7 @@ namespace SSASDiag
                 foreach (RuleCounter rc in Counters)
                     if (rc.ChartSeries.Tag != null)
                     {
-                        if ((double)rc.ChartSeries.Tag > max)
+                        if ((double)rc.ChartSeries.Tag > max && rc.ShowInChart)
                             max = (double)rc.ChartSeries.Tag;
                     }
                     else
@@ -272,6 +279,7 @@ namespace SSASDiag
                 s.BorderColor = Color.FromArgb(128, color);
                 s.ForeColor = Color.Transparent;
                 s.IntervalOffset = y > y2 ? y2 : y;
+                double stripWidth = Math.Abs(y2 - y);
                 s.StripWidth = Math.Abs(y2 - y);
                 s.BorderWidth = 1;
 
@@ -292,44 +300,35 @@ namespace SSASDiag
                 s.Add(series);
                 ValidateThresholdRule(s, WarnY, ErrorY, WarningLineText, ErrorLineText, PassLineText, CheckIfValueBelowWarnError, CheckAvg, IncludeZerosInAvg, IncludeNullsInAvg, PctValuesToTriggerWarnFail);
             }
-            public void ValidateThresholdRule(List<Series> series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", string PassLineText = "", bool CheckIfValueBelowWarnError = true, bool CheckAvg = false, bool IncludeZerosInAvg = true, bool IncludeNullsInAvg = false, int PctValuesToTriggerWarnFail = 0)
+            public void ValidateThresholdRule(List<Series> series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", string PassLineText = "", bool FailIfValueBelowWarnError = true, bool CheckAvg = false, bool IncludeZerosInAvg = true, bool IncludeNullsInAvg = false, int PctValuesToTriggerWarnFail = 0)
             {
                 Color WarnColor = Color.Khaki;
                 Color ErrorColor = Color.Pink;
                 Color PassColor = Color.LightGreen;
-                StripLine PassRegion = new StripLine();
-                PassRegion.Interval = 0;
-                PassRegion.Text = PassLineText;
-                PassRegion.BackColor = Color.FromArgb(128, PassColor);
-                PassRegion.BorderColor = Color.FromArgb(128, PassColor);
-                PassRegion.ForeColor = Color.Transparent;
-                PassRegion.BorderWidth = 1;
 
                 StripLine WarnRegion = null;
                 StripLine ErrorRegion = null;
-                if (CheckIfValueBelowWarnError)
+                StripLine PassRegion = null;
+                if (FailIfValueBelowWarnError)
                 {
                     if (ErrorLineText != "")
                     {
+                        PassRegion = AddStripLine(PassLineText, (WarnY > 0 ? WarnY : ErrorY), MaxValueForRule() * 1.05, PassColor);
+                        CustomStripLines.Add(PassRegion);
                         ErrorRegion = AddStripLine(ErrorLineText, 0, ErrorY, ErrorColor);
-                        PassRegion.IntervalOffset = WarnY;
-                        PassRegion.StripWidth = MaxValueForRule() - (WarnY > 0 ? WarnY : ErrorY);
+                        if (WarningLineText != "")
+                            WarnRegion = AddStripLine(WarningLineText, WarnY > 0 ? WarnY : 0, ErrorY, WarnColor);
                     }
-                    if (WarningLineText != "")
-                        WarnRegion = AddStripLine(WarningLineText, WarnY > 0 ? WarnY : 0, ErrorY, WarnColor);
-                    CustomStripLines.Add(PassRegion);
                 }
                 else
                 {
                     if (ErrorLineText != "")
                     {
                         ErrorRegion = AddStripLine(ErrorLineText, MaxValueForRule() * 1.05, ErrorY, ErrorColor);
-                        PassRegion.IntervalOffset = 0;
-                        PassRegion.StripWidth = WarnY > 0 ? WarnY : ErrorY;
+                        PassRegion = AddStripLine(PassLineText, 0, WarnY > 0 ? WarnY : ErrorY, PassColor);
                     }
                     if (WarningLineText != "")
                         WarnRegion = AddStripLine(WarningLineText, WarnY, ErrorY, WarnColor);
-                    CustomStripLines.Add(PassRegion);
                 }
 
                 foreach (Series s in series)
@@ -338,7 +337,7 @@ namespace SSASDiag
                     if (PctValuesToTriggerWarnFail > 0)
                     {
                         double dCount = 0;
-                        if (CheckIfValueBelowWarnError)
+                        if (FailIfValueBelowWarnError)
                             dCount = s.Points.Where(p => p.YValues[0] <= ErrorY).Count();
                         else
                             dCount = s.Points.Where(p => p.YValues[0] >= ErrorY).Count();
@@ -347,7 +346,7 @@ namespace SSASDiag
                             RuleResult = RuleResultEnum.Fail;
                             return;
                         }
-                        if (CheckIfValueBelowWarnError)
+                        if (FailIfValueBelowWarnError)
                             dCount = s.Points.Where(p => p.YValues[0] <= WarnY).Count();
                         else
                             dCount = s.Points.Where(p => p.YValues[0] >= WarnY).Count();
@@ -359,19 +358,19 @@ namespace SSASDiag
                     }
                     else
                     {
-                        comparisonValue = CheckAvg ? s.Points.AverageValue(true, IncludeZerosInAvg) : CheckIfValueBelowWarnError ? s.Points.FindMaxByValue().YValues[0] : s.Points.FindMinByValue().YValues[0];
-                        if (CheckIfValueBelowWarnError)
-                        {
-                            if (comparisonValue >= ErrorY)
-                                RuleResult = RuleResultEnum.Fail;
-                            else if (comparisonValue >= WarnY)
-                                RuleResult = RuleResultEnum.Warn;
-                        }
-                        else
+                        comparisonValue = CheckAvg ? s.Points.AverageValue(true, IncludeZerosInAvg) : FailIfValueBelowWarnError ? s.Points.FindMaxByValue().YValues[0] : s.Points.FindMinByValue().YValues[0];
+                        if (FailIfValueBelowWarnError)
                         {
                             if (comparisonValue <= ErrorY)
                                 RuleResult = RuleResultEnum.Fail;
                             else if (comparisonValue <= WarnY)
+                                RuleResult = RuleResultEnum.Warn;
+                        }
+                        else
+                        {
+                            if (comparisonValue >= ErrorY)
+                                RuleResult = RuleResultEnum.Fail;
+                            else if (comparisonValue >= WarnY)
                                 RuleResult = RuleResultEnum.Warn;
                         }
                     }
@@ -391,7 +390,7 @@ namespace SSASDiag
         }
     }
 
-    static class DataPointExtensions
+    static class Extensions
     {
         public static double AverageValue(this IEnumerable<DataPoint> points, bool IncludeNull = false, bool IncludeZero = true)
         {
@@ -409,5 +408,18 @@ namespace SSASDiag
                 return 0;
             return sumY / count;
         }
+
+        public static bool In<T>(this T t, params T[] values)
+        {
+            foreach (T value in values)
+            {
+                if (t.Equals(value))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+       
     }
 }

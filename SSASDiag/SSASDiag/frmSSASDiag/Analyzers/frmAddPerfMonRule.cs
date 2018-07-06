@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Data;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
@@ -85,38 +86,44 @@ namespace SSASDiag
         private void TvCounters_DragDrop(object sender, DragEventArgs e)
         {
             DataGridViewRow r = (DataGridViewRow)e.Data.GetData("System.Windows.Forms.DataGridViewRow");
-            AddCountersBackToTreeViewFromGrid(r);
-            dgdSelectedCounters.Rows.Remove(r);
-            UpdateExpressionsAndCountersCombo();
+            if (r != null)
+            {
+                AddCountersBackToTreeViewFromGrid(r);
+                dgdSelectedCounters.Rows.Remove(r);
+                UpdateExpressionsAndCountersCombo();
+            }
         }
 
         private void AddCountersBackToTreeViewFromGrid(DataGridViewRow r)
         {
-            TreeNode node = r.Tag as TreeNode;
-            string[] parts = (r.Cells[0].Value as string).Split('\\');
-            TreeNode newNode = tvCounters.Nodes[parts[0]];
-            for (int i = 1; i < parts.Count() - 2; i++)
-                if (parts[i] != "*")
-                    newNode = newNode.Nodes[parts[i]];
-            if (newNode == null)
+            if (r != null)
             {
-                for (int i = 0; i < tvCounters.Nodes.Count; i++)
+                TreeNode node = r.Tag as TreeNode;
+                string[] parts = (r.Cells[0].Value as string).Split('\\');
+                TreeNode newNode = tvCounters.Nodes[parts[0]];
+                for (int i = 1; i < parts.Count() - 2; i++)
+                    if (parts[i] != "*")
+                        newNode = newNode.Nodes[parts[i]];
+                if (newNode == null)
                 {
-                    if (tvCounters.Nodes[i].Name.CompareTo(node.Name) == 1)
+                    for (int i = 0; i < tvCounters.Nodes.Count; i++)
                     {
-                        tvCounters.Nodes.Insert(i, node);
-                        break;
+                        if (tvCounters.Nodes[i].Name.CompareTo(node.Name) == 1)
+                        {
+                            tvCounters.Nodes.Insert(i, node);
+                            break;
+                        }
                     }
                 }
-            }
-            else
-            {
-                for (int i = 0; i < newNode.Nodes.Count; i++)
+                else
                 {
-                    if (newNode.Nodes[i].Name.CompareTo(node.Name) == 1)
+                    for (int i = 0; i < newNode.Nodes.Count; i++)
                     {
-                        newNode.Nodes.Insert(i, node);
-                        break;
+                        if (newNode.Nodes[i].Name.CompareTo(node.Name) == 1)
+                        {
+                            newNode.Nodes.Insert(i, node);
+                            break;
+                        }
                     }
                 }
             }
@@ -296,196 +303,131 @@ namespace SSASDiag
             return nodes;
         }
 
-        private bool IsValidExpressionToken(string token)
+        string BreakdownExpression(string expr, int CurrentRowIndex)
         {
-            if (token.Trim() == "")
-                return true;
-            token = token.TrimStart().TrimEnd().ToLower();
-            double testNum = double.NaN;
-            if (double.TryParse(token, out testNum))
-                return true;
-            string originalToken = token;
-            token = token.Replace(" ", "");
-            if (
-                (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(token) && r.Index < dgdExpressions.CurrentCell.RowIndex).Count() == 0 &&
-                    !token.StartsWith("[") && !token.Contains("]")
-                ) &&
-                (!token.StartsWith("[") ||
-                !(
-                    token.EndsWith("]") ||
-                    token.EndsWith("].first") || token.EndsWith("].first()") ||
-                    token.EndsWith("].last") || token.EndsWith("].last()") ||
-                    token.EndsWith("].min") || token.EndsWith("].min()") ||
-                    token.EndsWith("].max") || token.EndsWith("].max()") ||
-                    token.EndsWith("].avg") || token.EndsWith("].avg()") ||
-                    token.EndsWith("].avg(true)") || token.EndsWith("].avg(false)") ||
-                    token.EndsWith("].avg(true,true)") || token.EndsWith("].avg(true,false)") ||
-                    token.EndsWith("].avg(false,true)") || token.EndsWith("].avg(false,false)")
-                  )))
-                return false;
+            int iCurPos = 0;
+            MatchCollection Counters = Regex.Matches(expr, "(\\[.*?\\])");
+            foreach (Match c in Counters)
+            {
+                if (dgdSelectedCounters.Rows.Cast<DataGridViewRow>().Where(r => "[" + r.Cells[0].Value as string + "]" == c.Value as string).Count() == 0)
+                    return "Invalid counter expression.\n\"Square brackets\" [ ] should only surround valid counter names from the rule counters chosen above.\nDrag rule counters onto the expression to add them directly.";
+                iCurPos = expr.IndexOf(c.Value);
+                while (iCurPos != -1)
+                {
+                    iCurPos += c.Value.Length;
+                    string function = "";
+                    if (expr.Length > iCurPos && expr.Substring(iCurPos++, 1) == ".")
+                    {
+                        char breakchar = '\0';
+                        while (breakchar != ' ' && iCurPos < expr.Length)
+                            breakchar = expr.Substring(iCurPos++, 1)[0];
+
+                        function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").Replace(" ", "").Replace("(", "").Replace(")", "");
+                        if (!function.ToLower().In(new string[] { "first", "last", "max", "min", "avg", "avgincludenull", "avgexcludezero", "count" }))
+                            return "Invalid counter function at: ." + function;
+                    }
+                    else
+                        return "Counter expressions must include a function.  See valid examples on the left.";
+                    string RestOfExpression = "";
+                    if (expr.Length > expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1)
+                        RestOfExpression = expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1);
+                    expr = expr.Substring(0, expr.IndexOf(c.Value)) + (12345.67890 + iCurPos).ToString() + RestOfExpression; // plug in a number nobody will actually ever use in an expression.  big hack but sufficient to cover our simple uses without ever failing unless user created a very intentional expression, and then worst case we just crash or error.
+                    iCurPos = expr.IndexOf(c.Value);
+                }
+            }
+
+            iCurPos = 0;
+            int iWordStart = -1;
+            while (iCurPos < expr.Length)
+            {
+                if (char.IsLetter(expr[iCurPos]))
+                {
+                    if (iWordStart == -1)
+                        iWordStart = iCurPos;
+                    iCurPos++;
+                }
+                else
+                {
+                    if (char.IsLetterOrDigit(expr[iCurPos]) || expr[iCurPos] == '-' || expr[iCurPos] == '_')
+                        iCurPos++;
+                    else
+                    {
+                        if (iWordStart != -1)
+                        {
+                            string subExpr = expr.Substring(iWordStart, iCurPos - iWordStart);
+                            double d;
+                            if (double.TryParse(subExpr, out d))
+                            {
+                                iCurPos++;
+                                break;
+                            }
+                            if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower() && r.Index < CurrentRowIndex).Count() > 0)
+                                expr = expr.Replace(subExpr, (12345.67890 + iCurPos).ToString());
+                            else
+                            {
+                                if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr).Count() > 0)
+                                    return "Expression '" + subExpr.TrimStart().TrimEnd() + "' invalid.\nExpressions may only refer to prior expressions in the list.";
+                                else
+                                    return "Invalid token at: '" + subExpr + "'.";
+                            }
+
+                            if (Regex.Matches(expr, @"[a-zA-Z]").Count == 0)
+                                try { new DataTable().Compute(expr, ""); }
+                                catch { return "Invalid token at end of expression."; }
+                            iCurPos = -1;
+                            iWordStart = -1;
+                        }
+                        iCurPos++;
+                    }
+                }
+            }
+            if (iWordStart != -1)
+            {
+                string exp = expr.Substring(iWordStart, iCurPos - iWordStart).ToLower();
+                double d;
+                if (!double.TryParse(exp, out d))
+                {
+                    if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp && r.Index < CurrentRowIndex).Count() > 0)
+                        expr = expr.Replace(exp, (12345.67890 + iCurPos).ToString());
+                    else
+                    {
+                        if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp).Count() > 0)
+                            return "Expression '" + exp.TrimStart().TrimEnd() + "' invalid.\nExpressions may only refer to prior expressions in the list.";
+                        else
+                            return "Invalid token at: '" + exp + "'.";
+                    }
+                }
+            }
+            if (Regex.Matches(expr, @"[a-zA-Z]").Count == 0)
+                try { new DataTable().Compute(expr, ""); }
+                catch { return "Invalid token at end of expression."; }  // If the expression fails to parse after replacing all subexpressions and counters with dummy values, then it is a bad expression.
             else
             {
-                token = originalToken;
-                if (token.Contains("]"))
-                {
-                    token = token.Substring(0, token.IndexOf(']'));
-                    token = token.TrimStart('[');
-                }
-                if (dgdSelectedCounters.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value.ToString().ToLower().Equals(token)).Count() > 0 ||
-                    dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(token) && r.Index < dgdExpressions.CurrentCell.RowIndex).Count() > 0)
-                    return true;
-                else
-                    return false;
+
             }
+            return "";
         }
 
         private void dgdExpressions_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            DataGridViewCell cell = dgdExpressions.Rows[e.RowIndex].Cells[e.ColumnIndex] as DataGridViewCell;
-            cell.ErrorText = "";
-            if (e.ColumnIndex == 1 && cell.Value as string != null)
+            DataGridViewCell cell = dgdExpressions.Rows[e.RowIndex].Cells[1] as DataGridViewCell;
+            if (cell.Value == null)
+                cell.ErrorText = "Expression required.";
+            else
+                cell.ErrorText = BreakdownExpression(cell.Value as string, e.RowIndex);
+            cell = dgdExpressions.Rows[e.RowIndex].Cells[0] as DataGridViewCell;
+            if (cell.Value == null)
+                cell.ErrorText = "Name required.";
+            else
             {
-                if (dgdExpressions.Rows[e.RowIndex].Cells[0].Value == null)
-                    dgdExpressions.Rows[e.RowIndex].Cells[0].Value = "Expr" + e.RowIndex;
-                bool bValidExpression = true, bInCounterName = false, bPriorSeriesFound = false, bOperatorProcessed = true;
-                string currentToken = "";
-                string priorToken = "";
-                int iCurPos = 0, iOpenParens = 0;
-                foreach (char c in (cell.Value as string).ToLower().TrimStart().TrimEnd())
-                {
-                    if (c == '\"')
-                    {
-                        bValidExpression = false;
-                        break;
-                    }
-                    if (c == '[' || c == '(')
-                    {
-                        if (!bOperatorProcessed)
-                        {
-                            bValidExpression = false;
-                            break;
-                        }
-                        if (c == '[')
-                            bOperatorProcessed = false;
-                        else
-                            iOpenParens++;
-                        if (priorToken != "")
-                            bPriorSeriesFound = true;
-                        bInCounterName = true;
-                        if (currentToken.Trim() != "" && bPriorSeriesFound != currentToken.Trim().EndsWith("]"))
-                        {
-                            // We were trying to compare a series with a scalar...
-                            bValidExpression = false;
-                            break;
-                        }
-                        bPriorSeriesFound = currentToken.Trim().EndsWith("]");
-                        if (!IsValidExpressionToken(priorToken))
-                        {
-                            bValidExpression = false;
-                            break;
-                        }
-                    }
-                    if (c == ']')
-                    {
-                        bInCounterName = false;
-                    }
-                    if (c == ')')
-                    {
-                        iOpenParens--;
-                        bOperatorProcessed = false;
-                        if (iOpenParens < 0)
-                        {
-                            bValidExpression = false;
-                            break;
-                        }
-                    }
-                    if (!bInCounterName && (c == '+' || c == '-' || c == '/' || c == '*' || c == '\\'))
-                    {
-                        bOperatorProcessed = true;
-                        if (bPriorSeriesFound && currentToken.Trim().EndsWith("]") && currentToken.Contains("*"))
-                        {
-                            string root = currentToken.Replace("\\*", "");
-                            if (root.Contains("\\"))
-                                root = root.Substring(0, root.IndexOf("\\"));
-                            string oldRoot = priorToken.Replace("\\*", "");
-                            if (oldRoot.Contains("\\"))
-                                oldRoot = root.Substring(0, root.IndexOf("\\"));
-                            if (root != oldRoot)
-                            {
-                                cell.ErrorText = "Wildcard counters can only be used in conjunction with counters under the same path.";
-                                return;
-                            }
-                        }
-                        if (!IsValidExpressionToken(currentToken) && currentToken.Trim().EndsWith("]") == bPriorSeriesFound)
-                        {
-                            bValidExpression = false;
-                            break;
-                        }
-                        if (currentToken.Trim() != "")
-                        {
-                            priorToken = currentToken;
-                            bPriorSeriesFound = priorToken.Trim().EndsWith("]");
-                            currentToken = "";
-                        }
-                    }
-                    else if ((c != ' ' && c != ')' && c != '(') || bInCounterName)
-                        currentToken += c;
-                    iCurPos++;
-                }
-                if (bValidExpression)
-                {
-                    cell.ErrorText = "";
-                    if (priorToken.EndsWith("]"))
-                        bPriorSeriesFound = true;
-                    if (!IsValidExpressionToken(currentToken) || (currentToken.Trim() == "" ||
-                        ((currentToken.Trim().EndsWith("]") != bPriorSeriesFound) && priorToken.Trim() != "")))
-                    {
-                        if (currentToken.Trim().EndsWith("]") != bPriorSeriesFound && priorToken != "")
-                            cell.ErrorText = "Counter series and scalar expressions cannot be used together.  Use First, Last, Max, Min, or Avg instead.";
-                        else
-                            cell.ErrorText = "Unrecognized token: " + currentToken;
-                        if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value == null ? false : r.Cells[0].Value.ToString().ToLower().Equals(currentToken) && r.Index >= dgdExpressions.CurrentCell.RowIndex).Count() > 0)
-                            cell.ErrorText += "\nExpressions must use only _prior_ expressions from the list.";
-                        bValidExpression = false;
-                    }
-                    if (bValidExpression && bPriorSeriesFound && currentToken.Trim().EndsWith("]") && currentToken.Contains("*") && priorToken.Trim() != "")
-                    {
-                        string root = currentToken.Replace("\\*", "");
-                        if (root.Contains("\\"))
-                            root = root.Substring(0, root.IndexOf("\\"));
-                        string oldRoot = priorToken.Replace("\\*", "");
-                        if (oldRoot.Contains("\\"))
-                            oldRoot = root.Substring(0, root.IndexOf("\\"));
-                        if (root != oldRoot)
-                        {
-                            cell.ErrorText = "Wildcard counters can only be used in conjunction with counters under the same path.";
-                            return;
-                        }
-                    }
-                }
-                else
-                {
-                    if (currentToken.Trim().EndsWith("]") != bPriorSeriesFound)
-                        cell.ErrorText = "Counter series and scalar expressions cannot be used together.  Use First, Last, Max, Min, or Avg instead.";
-                    else
-                        cell.ErrorText = "Invalid token at: " + (cell.Value as string).Substring(0, iCurPos);
-                }                   
-            }
-            else if (e.ColumnIndex == 0 && cell.Value as string != null)
-            {
+                cell.ErrorText = "";
                 string val = cell.Value as string;
                 val = val.TrimStart().TrimEnd();
                 if (!char.IsLetter(val[0]))
                     cell.ErrorText = "Expression names must start with an alphabetic character.";
                 foreach (char c in val)
                     if (!char.IsLetterOrDigit(c))
-                        cell.ErrorText = "Expression names can only contain alphabeticnumeric characters.";
-            }
-            if (e.ColumnIndex < 2 && (cell.Value == null || (cell.Value as string).Trim() == ""))
-            {
-                string OtherCellVal = (dgdExpressions.Rows[e.RowIndex].Cells[Convert.ToInt32((!Convert.ToBoolean(e.ColumnIndex)))].Value) as string;
-                if (!(OtherCellVal == null || OtherCellVal.Trim() == ""))
-                    cell.ErrorText = "Please enter a value for the " + dgdExpressions.Columns[e.ColumnIndex].Name + ".";
+                        cell.ErrorText = "Expression names can only contain alphanumeric characters.";
             }
             dgdExpressions.EndEdit();
             UpdateExpressionsAndCountersCombo();
@@ -682,7 +624,7 @@ namespace SSASDiag
                 if (udPctMatchCheck.Visible)
                     rule.SetValue("PctRequiredToMatchWarnError", (int)udPctMatchCheck.Value);
             }
-            rule.SetValue("CheckValueAboveOrBelowWarnError", cmbCheckAboveOrBelow.SelectedIndex);
+            rule.SetValue("FailIfBelowWarnError", cmbCheckAboveOrBelow.SelectedIndex);
             if (cmbCheckAboveOrBelow.SelectedIndex == 1)
             {
                 rule.SetValue("ErrorExpr", cmbValHigh.SelectedItem as string);
