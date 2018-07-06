@@ -624,6 +624,7 @@ namespace SSASDiag
         private void frmAddPerfMonRule_Shown(object sender, EventArgs e)
         {
             ValidateChildren();
+            txtName.Focus();
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
@@ -722,7 +723,7 @@ namespace SSASDiag
 
         private void cmbSeriesFunction_SelectedIndexChanged(object sender, EventArgs e)
         {
-            lblPctMatchCheck.Visible = udPctMatchCheck.Visible = cmbSeriesFunction.SelectedItem as string == "X% of values to warn/error";
+            lblPctMatchCheck.Visible = udPctMatchCheck.Visible = cmbSeriesFunction.SelectedIndex == (cmbSeriesFunction.Items.Count - 1);
             btnSaveRule.Enabled = IsRuleComplete();
         }
     }
