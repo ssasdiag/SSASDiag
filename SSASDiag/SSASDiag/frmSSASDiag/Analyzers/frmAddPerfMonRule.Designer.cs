@@ -70,7 +70,7 @@
             this.txtHighResult = new System.Windows.Forms.TextBox();
             this.txtHighRegion = new System.Windows.Forms.TextBox();
             this.cmbValHigh = new System.Windows.Forms.ComboBox();
-            this.lblHighResultText = new System.Windows.Forms.Label();
+            this.lblHighResult = new System.Windows.Forms.Label();
             this.lblHighRegion = new System.Windows.Forms.Label();
             this.udPctMatchCheck = new System.Windows.Forms.NumericUpDown();
             this.lblPctMatchCheck = new System.Windows.Forms.Label();
@@ -86,6 +86,8 @@
             this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.txtCategory = new System.Windows.Forms.TextBox();
+            this.label13 = new System.Windows.Forms.Label();
             this.btnCancel = new System.Windows.Forms.Button();
             this.txtDescription = new System.Windows.Forms.TextBox();
             this.label12 = new System.Windows.Forms.Label();
@@ -194,7 +196,7 @@
             this.dgdSelectedCounters.RowTemplate.Height = 20;
             this.dgdSelectedCounters.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgdSelectedCounters.Size = new System.Drawing.Size(373, 220);
-            this.dgdSelectedCounters.TabIndex = 0;
+            this.dgdSelectedCounters.TabIndex = 4;
             this.dgdSelectedCounters.UserDeletingRow += new System.Windows.Forms.DataGridViewRowCancelEventHandler(this.dgdSelectedCounters_UserDeletingRow);
             this.dgdSelectedCounters.DragDrop += new System.Windows.Forms.DragEventHandler(this.dgdSelectedCounters_DragDrop);
             this.dgdSelectedCounters.DragEnter += new System.Windows.Forms.DragEventHandler(this.dgdSelectedCounters_DragEnter);
@@ -319,7 +321,7 @@
             this.dgdExpressions.RowTemplate.Height = 20;
             this.dgdExpressions.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgdExpressions.Size = new System.Drawing.Size(373, 215);
-            this.dgdExpressions.TabIndex = 3;
+            this.dgdExpressions.TabIndex = 5;
             this.dgdExpressions.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdExpressions_CellEndEdit);
             this.dgdExpressions.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.dgdExpressions_RowsRemoved);
             this.dgdExpressions.DragDrop += new System.Windows.Forms.DragEventHandler(this.dgdExpressions_DragDrop);
@@ -390,7 +392,7 @@
             this.cmbCheckAboveOrBelow.Location = new System.Drawing.Point(229, 5);
             this.cmbCheckAboveOrBelow.Name = "cmbCheckAboveOrBelow";
             this.cmbCheckAboveOrBelow.Size = new System.Drawing.Size(169, 20);
-            this.cmbCheckAboveOrBelow.TabIndex = 0;
+            this.cmbCheckAboveOrBelow.TabIndex = 6;
             this.cmbCheckAboveOrBelow.SelectedIndexChanged += new System.EventHandler(this.cmbCheckAboveOrBelow_SelectedIndexChanged);
             this.cmbCheckAboveOrBelow.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
@@ -426,7 +428,7 @@
             this.txtWarnResult.Location = new System.Drawing.Point(198, 34);
             this.txtWarnResult.Name = "txtWarnResult";
             this.txtWarnResult.Size = new System.Drawing.Size(190, 17);
-            this.txtWarnResult.TabIndex = 7;
+            this.txtWarnResult.TabIndex = 15;
             this.tt.SetToolTip(this.txtWarnResult, "Leave warn values empty to check only pass/fail.");
             this.txtWarnResult.TextChanged += new System.EventHandler(this.txtErrorWarnRegions_TextChanged);
             this.txtWarnResult.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
@@ -437,7 +439,7 @@
             this.txtWarnRegion.Location = new System.Drawing.Point(198, 13);
             this.txtWarnRegion.Name = "txtWarnRegion";
             this.txtWarnRegion.Size = new System.Drawing.Size(190, 17);
-            this.txtWarnRegion.TabIndex = 6;
+            this.txtWarnRegion.TabIndex = 14;
             this.tt.SetToolTip(this.txtWarnRegion, "Leave warn values empty to check only pass/fail.");
             this.txtWarnRegion.TextChanged += new System.EventHandler(this.txtErrorWarnRegions_TextChanged);
             this.txtWarnRegion.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
@@ -453,12 +455,14 @@
             this.lblMedResultText.Size = new System.Drawing.Size(57, 12);
             this.lblMedResultText.TabIndex = 10;
             this.lblMedResultText.Text = "Warning text";
+            this.lblMedResultText.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // cmbWarnExpr
             // 
             this.cmbWarnExpr.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbWarnExpr.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.cmbWarnExpr.FormattingEnabled = true;
+            this.cmbWarnExpr.ItemHeight = 12;
             this.cmbWarnExpr.Location = new System.Drawing.Point(6, 29);
             this.cmbWarnExpr.Name = "cmbWarnExpr";
             this.cmbWarnExpr.Size = new System.Drawing.Size(121, 20);
@@ -478,6 +482,7 @@
             this.lblMedRegion.Size = new System.Drawing.Size(75, 12);
             this.lblMedRegion.TabIndex = 9;
             this.lblMedRegion.Text = "Warn region label";
+            this.lblMedRegion.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // pnlLow
             // 
@@ -511,7 +516,7 @@
             this.txtLowResult.Location = new System.Drawing.Point(198, 34);
             this.txtLowResult.Name = "txtLowResult";
             this.txtLowResult.Size = new System.Drawing.Size(190, 17);
-            this.txtLowResult.TabIndex = 7;
+            this.txtLowResult.TabIndex = 18;
             this.txtLowResult.TextChanged += new System.EventHandler(this.txtErrorWarnRegions_TextChanged);
             this.txtLowResult.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
@@ -521,7 +526,7 @@
             this.txtLowRegion.Location = new System.Drawing.Point(198, 12);
             this.txtLowRegion.Name = "txtLowRegion";
             this.txtLowRegion.Size = new System.Drawing.Size(190, 17);
-            this.txtLowRegion.TabIndex = 6;
+            this.txtLowRegion.TabIndex = 17;
             this.txtLowRegion.TextChanged += new System.EventHandler(this.txtErrorWarnRegions_TextChanged);
             this.txtLowRegion.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
@@ -536,6 +541,7 @@
             this.lblLowResultText.Size = new System.Drawing.Size(51, 12);
             this.lblLowResultText.TabIndex = 10;
             this.lblLowResultText.Text = "Failure text";
+            this.lblLowResultText.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // cmbValLow
             // 
@@ -545,7 +551,7 @@
             this.cmbValLow.Location = new System.Drawing.Point(6, 29);
             this.cmbValLow.Name = "cmbValLow";
             this.cmbValLow.Size = new System.Drawing.Size(121, 20);
-            this.cmbValLow.TabIndex = 1;
+            this.cmbValLow.TabIndex = 16;
             this.cmbValLow.SelectedIndexChanged += new System.EventHandler(this.cmbErrorWarnVals_SelectedIndexChanged);
             this.cmbValLow.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
@@ -560,6 +566,7 @@
             this.lblLowRegion.Size = new System.Drawing.Size(73, 12);
             this.lblLowRegion.TabIndex = 9;
             this.lblLowRegion.Text = "Error region label";
+            this.lblLowRegion.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // pnlHigh
             // 
@@ -568,7 +575,7 @@
             this.pnlHigh.Controls.Add(this.txtHighResult);
             this.pnlHigh.Controls.Add(this.txtHighRegion);
             this.pnlHigh.Controls.Add(this.cmbValHigh);
-            this.pnlHigh.Controls.Add(this.lblHighResultText);
+            this.pnlHigh.Controls.Add(this.lblHighResult);
             this.pnlHigh.Controls.Add(this.lblHighRegion);
             this.pnlHigh.Location = new System.Drawing.Point(227, 30);
             this.pnlHigh.Name = "pnlHigh";
@@ -593,7 +600,7 @@
             this.txtHighResult.Location = new System.Drawing.Point(198, 33);
             this.txtHighResult.Name = "txtHighResult";
             this.txtHighResult.Size = new System.Drawing.Size(190, 17);
-            this.txtHighResult.TabIndex = 2;
+            this.txtHighResult.TabIndex = 12;
             this.txtHighResult.TextChanged += new System.EventHandler(this.txtErrorWarnRegions_TextChanged);
             this.txtHighResult.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
@@ -603,7 +610,7 @@
             this.txtHighRegion.Location = new System.Drawing.Point(198, 11);
             this.txtHighRegion.Name = "txtHighRegion";
             this.txtHighRegion.Size = new System.Drawing.Size(190, 17);
-            this.txtHighRegion.TabIndex = 1;
+            this.txtHighRegion.TabIndex = 11;
             this.txtHighRegion.TextChanged += new System.EventHandler(this.txtErrorWarnRegions_TextChanged);
             this.txtHighRegion.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
@@ -615,21 +622,22 @@
             this.cmbValHigh.Location = new System.Drawing.Point(6, 29);
             this.cmbValHigh.Name = "cmbValHigh";
             this.cmbValHigh.Size = new System.Drawing.Size(121, 20);
-            this.cmbValHigh.TabIndex = 0;
+            this.cmbValHigh.TabIndex = 10;
             this.cmbValHigh.SelectedIndexChanged += new System.EventHandler(this.cmbErrorWarnVals_SelectedIndexChanged);
             this.cmbValHigh.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
-            // lblHighResultText
+            // lblHighResult
             // 
-            this.lblHighResultText.AutoSize = true;
-            this.lblHighResultText.BackColor = System.Drawing.Color.Transparent;
-            this.lblHighResultText.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblHighResultText.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.lblHighResultText.Location = new System.Drawing.Point(148, 36);
-            this.lblHighResultText.Name = "lblHighResultText";
-            this.lblHighResultText.Size = new System.Drawing.Size(51, 12);
-            this.lblHighResultText.TabIndex = 5;
-            this.lblHighResultText.Text = "Failure text";
+            this.lblHighResult.AutoSize = true;
+            this.lblHighResult.BackColor = System.Drawing.Color.Transparent;
+            this.lblHighResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblHighResult.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.lblHighResult.Location = new System.Drawing.Point(148, 36);
+            this.lblHighResult.Name = "lblHighResult";
+            this.lblHighResult.Size = new System.Drawing.Size(51, 12);
+            this.lblHighResult.TabIndex = 5;
+            this.lblHighResult.Text = "Failure text";
+            this.lblHighResult.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // lblHighRegion
             // 
@@ -642,6 +650,7 @@
             this.lblHighRegion.Size = new System.Drawing.Size(73, 12);
             this.lblHighRegion.TabIndex = 4;
             this.lblHighRegion.Text = "Error region label";
+            this.lblHighRegion.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // udPctMatchCheck
             // 
@@ -649,7 +658,7 @@
             this.udPctMatchCheck.Location = new System.Drawing.Point(82, 163);
             this.udPctMatchCheck.Name = "udPctMatchCheck";
             this.udPctMatchCheck.Size = new System.Drawing.Size(50, 17);
-            this.udPctMatchCheck.TabIndex = 7;
+            this.udPctMatchCheck.TabIndex = 9;
             this.udPctMatchCheck.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.udPctMatchCheck.Value = new decimal(new int[] {
             15,
@@ -697,7 +706,7 @@
             this.cmbSeriesFunction.Location = new System.Drawing.Point(17, 115);
             this.cmbSeriesFunction.Name = "cmbSeriesFunction";
             this.cmbSeriesFunction.Size = new System.Drawing.Size(181, 20);
-            this.cmbSeriesFunction.TabIndex = 4;
+            this.cmbSeriesFunction.TabIndex = 8;
             this.cmbSeriesFunction.Visible = false;
             this.cmbSeriesFunction.SelectedIndexChanged += new System.EventHandler(this.cmbSeriesFunction_SelectedIndexChanged);
             this.cmbSeriesFunction.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
@@ -721,7 +730,7 @@
             this.cmbValueToCheck.Location = new System.Drawing.Point(17, 67);
             this.cmbValueToCheck.Name = "cmbValueToCheck";
             this.cmbValueToCheck.Size = new System.Drawing.Size(181, 20);
-            this.cmbValueToCheck.TabIndex = 2;
+            this.cmbValueToCheck.TabIndex = 7;
             this.cmbValueToCheck.SelectedIndexChanged += new System.EventHandler(this.cmbValueToCheck_SelectedIndexChanged);
             this.cmbValueToCheck.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
@@ -798,6 +807,8 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.txtCategory);
+            this.panel1.Controls.Add(this.label13);
             this.panel1.Controls.Add(this.btnCancel);
             this.panel1.Controls.Add(this.txtDescription);
             this.panel1.Controls.Add(this.label12);
@@ -811,13 +822,32 @@
             this.panel1.Size = new System.Drawing.Size(637, 55);
             this.panel1.TabIndex = 1;
             // 
+            // txtCategory
+            // 
+            this.txtCategory.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.txtCategory.Location = new System.Drawing.Point(283, 3);
+            this.txtCategory.Name = "txtCategory";
+            this.txtCategory.Size = new System.Drawing.Size(157, 17);
+            this.txtCategory.TabIndex = 1;
+            this.txtCategory.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.55F);
+            this.label13.Location = new System.Drawing.Point(234, 6);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(43, 12);
+            this.label13.TabIndex = 7;
+            this.label13.Text = "Category";
+            // 
             // btnCancel
             // 
             this.btnCancel.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.btnCancel.Location = new System.Drawing.Point(477, 6);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
-            this.btnCancel.TabIndex = 6;
+            this.btnCancel.TabIndex = 19;
             this.btnCancel.Text = "&Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
@@ -828,7 +858,7 @@
             this.txtDescription.Location = new System.Drawing.Point(63, 22);
             this.txtDescription.Name = "txtDescription";
             this.txtDescription.Size = new System.Drawing.Size(378, 17);
-            this.txtDescription.TabIndex = 5;
+            this.txtDescription.TabIndex = 2;
             this.txtDescription.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
             // label12
@@ -846,8 +876,8 @@
             this.txtName.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.txtName.Location = new System.Drawing.Point(63, 3);
             this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(196, 17);
-            this.txtName.TabIndex = 3;
+            this.txtName.Size = new System.Drawing.Size(157, 17);
+            this.txtName.TabIndex = 0;
             this.txtName.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtName_KeyPress);
             this.txtName.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
@@ -868,7 +898,7 @@
             this.btnSaveRule.Location = new System.Drawing.Point(558, 6);
             this.btnSaveRule.Name = "btnSaveRule";
             this.btnSaveRule.Size = new System.Drawing.Size(75, 23);
-            this.btnSaveRule.TabIndex = 1;
+            this.btnSaveRule.TabIndex = 20;
             this.btnSaveRule.Text = "&Save";
             this.btnSaveRule.UseVisualStyleBackColor = true;
             this.btnSaveRule.Click += new System.EventHandler(this.btnSaveRule_Click);
@@ -991,7 +1021,7 @@
         private System.Windows.Forms.Label lblHighVal;
         private System.Windows.Forms.TextBox txtHighResult;
         private System.Windows.Forms.TextBox txtHighRegion;
-        private System.Windows.Forms.Label lblHighResultText;
+        private System.Windows.Forms.Label lblHighResult;
         private System.Windows.Forms.Button btnSaveRule;
         private System.Windows.Forms.TextBox txtDescription;
         private System.Windows.Forms.Label label12;
@@ -1003,5 +1033,7 @@
         private System.Windows.Forms.DataGridViewCheckBoxColumn Highlight;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.ErrorProvider errorProvider1;
+        private System.Windows.Forms.TextBox txtCategory;
+        private System.Windows.Forms.Label label13;
     }
 }

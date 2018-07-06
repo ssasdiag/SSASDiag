@@ -41,7 +41,7 @@ namespace SSASDiag
             tvCounters.Dock = System.Windows.Forms.DockStyle.Fill;
             tvCounters.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             tvCounters.Name = "tvCounters";
-            tvCounters.TabIndex = 0;
+            tvCounters.TabIndex = 3;
             tvCounters.Margin = new Padding(0);
             tvCounters.ShowNodeToolTips = true;
             tvCounters.AllowDrop = true;
@@ -265,13 +265,15 @@ namespace SSASDiag
 
         private bool IsRuleComplete()
         {
-            if (txtName.Text == "" || txtDescription.Text == "" ||
+            if (txtName.Text.Trim() == "" || txtDescription.Text.Trim() == "" || txtCategory.Text.Trim() == "" ||
+                txtHighRegion.Text.Trim() == "" || txtHighResult.Text.Trim() == "" ||
+                txtLowRegion.Text.Trim() == "" || txtLowResult.Text.Trim() == "" ||
                 dgdSelectedCounters.Rows.Count == 0 || dgdExpressions.Rows.Count == 0 ||
                 cmbValueToCheck.SelectedIndex == -1 ||
                 (cmbSeriesFunction.Visible && cmbSeriesFunction.SelectedIndex == -1) ||
-                (cmbCheckAboveOrBelow.SelectedIndex == 1 && (cmbValHigh.SelectedIndex == -1 || txtHighRegion.Text == "" || txtHighResult.Text == "")) ||
-                (cmbCheckAboveOrBelow.SelectedIndex == 0 && (cmbValLow.SelectedIndex == -1 || txtLowRegion.Text == "" || txtLowResult.Text == "")) ||
-                (cmbWarnExpr.SelectedIndex >= 0 && (txtWarnRegion.Text == "" || txtWarnResult.Text == "")))
+                (cmbCheckAboveOrBelow.SelectedIndex == 1 && cmbValHigh.SelectedIndex == -1)  ||
+                (cmbCheckAboveOrBelow.SelectedIndex == 0 && cmbValLow.SelectedIndex == -1) ||
+                (cmbWarnExpr.SelectedIndex >= 0 && (txtWarnRegion.Text.Trim() == "" || txtWarnResult.Text.Trim() == "")))
                 return false;
             foreach (DataGridViewRow r in dgdExpressions.Rows)
                 if (r.Cells[0].ErrorText != "" || r.Cells[1].ErrorText != "")
@@ -514,8 +516,12 @@ namespace SSASDiag
                 pnlHigh.BackColor = PassColor;
                 pnlMed.BackColor = WarnColor;
                 pnlLow.BackColor = ErrorColor;
-                lblHighRegion.Visible = lblHighResultText.Visible = lblHighVal.Visible = txtHighRegion.Visible = txtHighResult.Visible = cmbValHigh.Visible = false;
-                lblLowRegion.Visible = lblLowResultText.Visible = lblLowVal.Visible = txtLowRegion.Visible = txtLowResult.Visible = cmbValLow.Visible = true;
+                lblHighVal.Visible = cmbValHigh.Visible = false;
+                lblLowVal.Visible = cmbValLow.Visible = true;
+                lblHighRegion.Text = "Pass region label";
+                lblHighResult.Text = "Pass text";
+                lblLowRegion.Text = "Error region label";
+                lblLowResultText.Text = "Failure text";
                 lblWarnVal.Text = "Warn below value";
             }
             else
@@ -523,8 +529,12 @@ namespace SSASDiag
                 pnlHigh.BackColor = ErrorColor;
                 pnlMed.BackColor = WarnColor;
                 pnlLow.BackColor = PassColor;
-                lblHighRegion.Visible = lblHighResultText.Visible = lblHighVal.Visible = txtHighRegion.Visible = txtHighResult.Visible = cmbValHigh.Visible = true;
-                lblLowRegion.Visible = lblLowResultText.Visible = lblLowVal.Visible = txtLowRegion.Visible = txtLowResult.Visible = cmbValLow.Visible = false;
+                lblHighVal.Visible = cmbValHigh.Visible = true;
+                lblLowVal.Visible = cmbValLow.Visible = false;
+                lblHighRegion.Text = "Error region label";
+                lblHighResult.Text = "Failure text";
+                lblLowRegion.Text = "Pass region label";
+                lblLowResultText.Text = "Pass text";
                 lblWarnVal.Text = "Warn above value";
             }
             btnSaveRule.Enabled = IsRuleComplete();
@@ -659,6 +669,8 @@ namespace SSASDiag
             }
             expressions.Close();
             rule.SetValue("ValueOrSeriesToCheck", cmbValueToCheck.SelectedItem as string);
+            rule.SetValue("Description", txtDescription.Text.Trim());
+            rule.SetValue("Category", txtCategory.Text.Trim());
             if (cmbSeriesFunction.Visible)
             {
                 rule.SetValue("SeriesFunction", cmbSeriesFunction.SelectedItem == null ? "" : cmbSeriesFunction.SelectedItem as string);
