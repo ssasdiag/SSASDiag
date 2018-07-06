@@ -1,27 +1,19 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Net;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Management;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
-using System.Management;
 using System.ServiceProcess;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Diagnostics;
 using System.Threading;
-using System.Data.SqlClient;
-using System.IO;
-using SimpleMDXParser;
-using FastColoredTextBoxNS;
+using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
-using Ionic.Zip;
 
 namespace SSASDiag
 {
@@ -127,20 +119,44 @@ namespace SSASDiag
             #endregion non-designer controls
             chartPerfMon.Legends[0].BackColor = Color.FromArgb(210, SystemColors.Window);
             chartPerfMon.Legends[0].Font = txtDur.Font;
-
             StatusFloater = statusFloater;
             StatusFloater.lblStatus.Text = StatusFloater.lblSubStatus.Text = "";
             LogPath = logPath;
             connDB = new SqlConnection(conndb.ConnectionString);
             connDB.Open();
             HandleDestroyed += UcASPerfMonAnalyzer_HandleDestroyed;
-
             ChartArea c = chartPerfMon.ChartAreas[0];
             c.IsSameFontSizeForAllAxes = true;
             c.AxisX.LabelAutoFitMaxFontSize = c.AxisY.LabelAutoFitMaxFontSize = c.AxisX2.LabelAutoFitMaxFontSize = c.AxisY2.LabelAutoFitMaxFontSize = 7;
             this.dgdGrouping.Columns[0].SortMode = this.dgdGrouping.Columns[1].SortMode = DataGridViewColumnSortMode.NotSortable;
-
             splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
+        }
+
+        private void LoadRulesFromRegistry()
+        {
+            RegistryKey rules = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules", RegistryKeyPermissionCheck.ReadSubTree);
+            foreach (string r in rules.GetSubKeyNames())
+            {
+                RegistryKey rule = rules.OpenSubKey(r, false);
+                string desc = rule.GetValue("Description") as string, cat = rule.GetValue("Category") as string;
+                Rule NewRule = new Rule(r, cat, desc);
+                RegistryKey counters = rule.OpenSubKey("Counters", false);
+                foreach (string c in counters.GetSubKeyNames())
+                {
+                    RegistryKey ctr = counters.OpenSubKey(c);
+                    NewRule.Counters.AddRange(RuleCounter.CountersFromPath(c, Convert.ToBoolean(ctr.GetValue("Display")), Convert.ToBoolean(ctr.GetValue("Highlight"))));
+                    ctr.Close();
+                }
+                counters.Close();
+                RegistryKey expressions = rule.OpenSubKey("Expressions", false);
+                List<RuleExpression> NewRuleExpressions = new List<RuleExpression>();
+                foreach (string e in expressions.GetSubKeyNames())
+                {
+                    RegistryKey expr = expressions.OpenSubKey(e);
+                    NewRuleExpressions.Add(new RuleExpression(e, expr.GetValue("Expression") as string, Convert.ToInt32(expr.GetValue("Index")), Convert.ToBoolean(expr.GetValue("Display")), Convert.ToBoolean(expr.GetValue("Highlight"))));
+                }
+
+            }
         }
 
         private void UcASPerfMonAnalyzer_Shown(object sender, EventArgs e)
@@ -771,6 +787,7 @@ namespace SSASDiag
                         dgdRules.DataSource = b;
                         dgdRules.ClearSelection();
                     }));
+                    LoadRulesFromRegistry();
                 })).Start();
             }
         }
@@ -1694,6 +1711,20 @@ namespace SSASDiag
                 get { return LogPath != null ? LogPath.Substring(LogPath.LastIndexOf("\\") + 1) : ""; }
             }
             public bool Analyzed { get; set; }
+        }
+
+        private class RuleExpression
+        {
+            public RuleExpression(string Name, string Expression, int Index, bool Display = false, bool Highlight = false)
+            {
+                this.Name = Name; this.Expression = Expression; this.Index = Index; this.Display = Display; this.Highlight = Highlight;
+            }
+
+            public string Name;
+            public string Expression;
+            public bool Display;
+            public bool Highlight;
+            public int Index;
         }
 
         public string[] indexcolors = new string[]{
