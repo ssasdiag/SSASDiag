@@ -73,7 +73,7 @@ namespace SSASDiag
                     r2.RuleResult = RuleResultEnum.Pass;
                     foreach (RuleCounter rc in DiskSecsPerRead)
                         ruleCheckSeries.Add(rc.ChartSeries);
-                    r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, ">10ms Disk secs/Read time", ">15ms Disk secs/Read time", "<10ms Disk secs/Read time", true, true, false, 15);
+                    r2.ValidateThresholdRule(ruleCheckSeries, .010, .015, ">10ms Disk secs/Read time", ">15ms Disk secs/Read time", "<10ms Disk secs/Read time", true, true, false, false, 15);
                     if (r2.RuleResult == RuleResultEnum.Fail) r2.ResultDescription = "Fail: More than 15% of disk reads taking longer than 15ms.";
                     if (r2.RuleResult == RuleResultEnum.Warn) r2.ResultDescription = "Warning: More than 15% of disk reads taking longer than 10ms.";
                     if (r2.RuleResult == RuleResultEnum.Pass) r2.ResultDescription = "Pass: Disk read speed healthy at all times.";
@@ -98,13 +98,15 @@ namespace SSASDiag
         private class RuleCounter
         {
             public string Path;
+            public string WildcardPath;
             public bool ShowInChart;
             public bool HighlightInChart = true;
             public Series ChartSeries = null;
             public Color? CounterColor = null;
-            private RuleCounter(string Path, bool ShowInChart = true, bool HighlightInChart = false, Color? CounterColor = null)
+            private RuleCounter(string Path, string WildcardPath = "", bool ShowInChart = true, bool HighlightInChart = false, Color? CounterColor = null)
             {
                 this.Path = Path;
+                this.WildcardPath = WildcardPath;
                 this.ShowInChart = ShowInChart;
                 this.HighlightInChart = HighlightInChart;
                 this.CounterColor = CounterColor;
@@ -141,21 +143,21 @@ namespace SSASDiag
                                             {
                                                 foreach (TreeNode grandchild in child.Nodes)
                                                 {
-                                                    counters.Add(new RuleCounter(counter + "\\" + parts[3] + "\\" + grandchild.Name, ShowInChart, HighlightInChart, CounterColor));
+                                                    counters.Add(new RuleCounter(counter + "\\" + parts[3] + "\\" + grandchild.Name, Path, ShowInChart, HighlightInChart, CounterColor));
                                                 }
                                             }
                                             else
-                                                counters.Add(new RuleCounter(counter + "\\" + parts[3], ShowInChart, HighlightInChart, CounterColor));
+                                                counters.Add(new RuleCounter(counter + "\\" + parts[3], Path, ShowInChart, HighlightInChart, CounterColor));
                                         }
-                                        counters.Add(new RuleCounter(counter + "\\" + child.Name, ShowInChart, HighlightInChart, CounterColor));
+                                        counters.Add(new RuleCounter(counter + "\\" + child.Name, Path, ShowInChart, HighlightInChart, CounterColor));
                                     }
                             }
                             else
-                                counters.Add(new RuleCounter(counter + "\\" + parts[2], ShowInChart, HighlightInChart, CounterColor));
+                                counters.Add(new RuleCounter(counter + "\\" + parts[2], Path, ShowInChart, HighlightInChart, CounterColor));
                         }
                     }
                     else
-                        counters.Add(new RuleCounter(counter, ShowInChart, HighlightInChart, CounterColor));
+                        counters.Add(new RuleCounter(counter, Path, ShowInChart, HighlightInChart, CounterColor));
                 }
                 return counters;
             }
@@ -277,13 +279,20 @@ namespace SSASDiag
                 return s;
             }
 
-            public void ValidateThresholdRule(Series series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText = "", string PassLineText = "", bool CheckIfValueBelowWarnError = true, bool CheckAvg = false, bool IncludeZerosInAvg = true, int PctValuesToTriggerWarnFail = 0)
+            public void ValidateThresholdRule(double ScalarComparison, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText = "", string PassLineText = "", bool CheckIfValueBelowWarnError = true, bool CheckAvg = false, bool IncludeZerosInAvg = true, bool IncludeNullsInAvg = false, int PctValuesToTriggerWarnFail = 0)
+            {
+                Series s = new Series();
+                foreach (DataPoint p in Counters[0].ChartSeries.Points)
+                    s.Points.AddXY(p.XValue, ScalarComparison);
+                ValidateThresholdRule(s, WarnY, ErrorY, WarningLineText, ErrorLineText, PassLineText, CheckIfValueBelowWarnError, CheckAvg, IncludeZerosInAvg, IncludeNullsInAvg, PctValuesToTriggerWarnFail);
+            }
+            public void ValidateThresholdRule(Series series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText = "", string PassLineText = "", bool CheckIfValueBelowWarnError = true, bool CheckAvg = false, bool IncludeZerosInAvg = true, bool IncludeNullsInAvg = false, int PctValuesToTriggerWarnFail = 0)
             {
                 List<Series> s = new List<Series>();
                 s.Add(series);
-                ValidateThresholdRule(s, WarnY, ErrorY, WarningLineText, ErrorLineText, PassLineText, CheckIfValueBelowWarnError, CheckAvg, IncludeZerosInAvg, PctValuesToTriggerWarnFail);
+                ValidateThresholdRule(s, WarnY, ErrorY, WarningLineText, ErrorLineText, PassLineText, CheckIfValueBelowWarnError, CheckAvg, IncludeZerosInAvg, IncludeNullsInAvg, PctValuesToTriggerWarnFail);
             }
-            public void ValidateThresholdRule(List<Series> series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", string PassLineText = "", bool CheckIfValueBelowWarnError = true, bool CheckAvg = false, bool IncludeZerosInAvg = true, int PctValuesToTriggerWarnFail = 0)
+            public void ValidateThresholdRule(List<Series> series, double WarnY, double ErrorY, string WarningLineText = "", string ErrorLineText= "", string PassLineText = "", bool CheckIfValueBelowWarnError = true, bool CheckAvg = false, bool IncludeZerosInAvg = true, bool IncludeNullsInAvg = false, int PctValuesToTriggerWarnFail = 0)
             {
                 Color WarnColor = Color.Khaki;
                 Color ErrorColor = Color.Pink;

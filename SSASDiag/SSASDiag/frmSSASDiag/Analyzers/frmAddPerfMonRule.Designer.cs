@@ -1025,7 +1025,6 @@
         private System.Windows.Forms.Button btnSaveRule;
         private System.Windows.Forms.TextBox txtDescription;
         private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.TextBox txtName;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.DataGridViewTextBoxColumn ExpressionName;
         private System.Windows.Forms.DataGridViewTextBoxColumn Expression;
@@ -1035,5 +1034,6 @@
         private System.Windows.Forms.ErrorProvider errorProvider1;
         private System.Windows.Forms.TextBox txtCategory;
         private System.Windows.Forms.Label label13;
+        public System.Windows.Forms.TextBox txtName;
     }
 }

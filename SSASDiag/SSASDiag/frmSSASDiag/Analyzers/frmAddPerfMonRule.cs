@@ -680,7 +680,7 @@ namespace SSASDiag
             {
                 rule.SetValue("SeriesFunction", cmbSeriesFunction.SelectedItem == null ? "" : cmbSeriesFunction.SelectedItem as string);
                 if (udPctMatchCheck.Visible)
-                    rule.SetValue("PctRequiredToMatchWarnError", udPctMatchCheck.Value);
+                    rule.SetValue("PctRequiredToMatchWarnError", (int)udPctMatchCheck.Value);
             }
             rule.SetValue("CheckValueAboveOrBelowWarnError", cmbCheckAboveOrBelow.SelectedIndex);
             if (cmbCheckAboveOrBelow.SelectedIndex == 1)
@@ -688,12 +688,16 @@ namespace SSASDiag
                 rule.SetValue("ErrorExpr", cmbValHigh.SelectedItem as string);
                 rule.SetValue("ErrorRegionLabel", txtHighRegion.Text.Trim());
                 rule.SetValue("ErrorText", txtHighResult.Text.Trim());
+                rule.SetValue("PassRegionLabel", txtLowRegion.Text.Trim());
+                rule.SetValue("PassText", txtLowResult.Text.Trim());
             }
             else
             {
                 rule.SetValue("ErrorExpr", cmbValLow.SelectedItem as string);
                 rule.SetValue("ErrorRegionLabel", txtLowRegion.Text.Trim());
                 rule.SetValue("ErrorText", txtLowResult.Text.Trim());
+                rule.SetValue("PassRegionLabel", txtHighRegion.Text.Trim());
+                rule.SetValue("PassText", txtHighResult.Text.Trim());
             }
             if (cmbWarnExpr.SelectedIndex > -1)
             {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace SSASDiag
         ToolTip tooltip = new ToolTip();
         string CurrentSeriesUnderMouse = "";
         TreeNode ParentNodeOfUpdateBatch = null;
-        List<Rule> Rules = new List<Rule>();
+        BindingList<Rule> Rules = new BindingList<Rule>();
 
         private string DBName()
         {
@@ -132,37 +133,66 @@ namespace SSASDiag
             splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
         }
 
+        private void LoadRuleFromRegistry(string rule)
+        {
+            RegistryKey rules = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules", RegistryKeyPermissionCheck.ReadSubTree);
+            RegistryKey r = rules.OpenSubKey(rule, false);
+            string desc = r.GetValue("Description") as string, cat = r.GetValue("Category") as string;
+            Rule NewRule = new Rule(rule, cat, desc);
+            RegistryKey counters = r.OpenSubKey("Counters", false);
+            foreach (string c in counters.GetSubKeyNames())
+            {
+                RegistryKey ctr = counters.OpenSubKey(c);
+                NewRule.Counters.AddRange(RuleCounter.CountersFromPath(c.Replace("{SLASH}", "\\"), Convert.ToBoolean(ctr.GetValue("Display")), Convert.ToBoolean(ctr.GetValue("Highlight"))));
+                ctr.Close();
+            }
+            counters.Close();
+            RegistryKey expressions = r.OpenSubKey("Expressions", false);
+            List<RuleExpression> NewRuleExpressions = new List<RuleExpression>();
+            foreach (string e in expressions.GetSubKeyNames())
+            {
+                RegistryKey expr = expressions.OpenSubKey(e);
+                NewRuleExpressions.Add(new RuleExpression(e, expr.GetValue("Expression") as string, Convert.ToInt32(expr.GetValue("Index")), Convert.ToBoolean(expr.GetValue("Display")), Convert.ToBoolean(expr.GetValue("Highlight"))));
+            }
+            expressions.Close();
+            r.Close();
+            NewRule.RuleFunction = new Action(() =>
+            {
+                r = rules.OpenSubKey(rule, false);
+                foreach (RuleExpression re in NewRuleExpressions.OrderBy(x => x.Index))
+                {
+                    double d;
+                    if (Double.TryParse(re.Expression, out d))
+                        re.Value = d;
+                };
+                string ValOrSeriesToCheck = r.GetValue("ValueOrSeriesToCheck") as string;
+                if (NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Count() > 0)
+                {
+                    string SeriesFunction = r.GetValue("SeriesFunction") as string;
+                    NewRule.ValidateThresholdRule(NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Select(rc => rc.ChartSeries).ToList(),
+                                                    r.GetValue("WarnExpr") == null ? -1 : NewRuleExpressions.Where(re => re.Name == r.GetValue("WarnExpr") as string).First().Value,
+                                                    NewRuleExpressions.Where(re => re.Name == r.GetValue("ErrorExpr") as string).First().Value,
+                                                    r.GetValue("WarningText") == null ? null : r.GetValue("WarnText") as string,
+                                                    r.GetValue("ErrorText") as string,
+                                                    r.GetValue("PassText") as string,
+                                                    Convert.ToBoolean(r.GetValue("CheckValueAboveOrBelowWarnError")),
+                                                    SeriesFunction.StartsWith("Avg"), SeriesFunction.Contains("ignore nulls and zeros"), SeriesFunction.Contains("include all values"),
+                                                    Convert.ToInt32(r.GetValue("PctRequiredToMatchWarnError")));
+                }
+
+                r.Close();
+            });
+            
+            Rules.Add(NewRule);
+            dgdRules.
+        }
+
         private void LoadRulesFromRegistry()
         {
             RegistryKey rules = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules", RegistryKeyPermissionCheck.ReadSubTree);
             foreach (string r in rules.GetSubKeyNames())
-            {
-                RegistryKey rule = rules.OpenSubKey(r, false);
-                string desc = rule.GetValue("Description") as string, cat = rule.GetValue("Category") as string;
-                Rule NewRule = new Rule(r, cat, desc);
-                RegistryKey counters = rule.OpenSubKey("Counters", false);
-                foreach (string c in counters.GetSubKeyNames())
-                {
-                    RegistryKey ctr = counters.OpenSubKey(c);
-                    NewRule.Counters.AddRange(RuleCounter.CountersFromPath(c.Replace("{SLASH}", "\\"), Convert.ToBoolean(ctr.GetValue("Display")), Convert.ToBoolean(ctr.GetValue("Highlight"))));
-                    ctr.Close();
-                }
-                counters.Close();
-                RegistryKey expressions = rule.OpenSubKey("Expressions", false);
-                List<RuleExpression> NewRuleExpressions = new List<RuleExpression>();
-                foreach (string e in expressions.GetSubKeyNames())
-                {
-                    RegistryKey expr = expressions.OpenSubKey(e);
-                    NewRuleExpressions.Add(new RuleExpression(e, expr.GetValue("Expression") as string, Convert.ToInt32(expr.GetValue("Index")), Convert.ToBoolean(expr.GetValue("Display")), Convert.ToBoolean(expr.GetValue("Highlight"))));
-                }
-                NewRule.RuleFunction = new Action(()=>
-                {
-                    foreach (RuleExpression re in NewRuleExpressions.OrderBy(x=>x.Index))
-                    {
-                    };
-                });
-                Rules.Add(NewRule);
-            }
+                LoadRuleFromRegistry(r);
+            rules.Close();
         }
 
         private void UcASPerfMonAnalyzer_Shown(object sender, EventArgs e)
@@ -774,7 +804,7 @@ namespace SSASDiag
                         f.Enabled = true;
                     }));
 
-                    //DefineRules();
+                    DefineRules();
                     LoadRulesFromRegistry();
 
                     SqlDataReader dr = new SqlCommand("select * from RuleResults", connDB).ExecuteReader();
@@ -1111,7 +1141,6 @@ namespace SSASDiag
                 chartPerfMon.ChartAreas[0].AxisY.Maximum = 0;
         }
         
-
         private void AddCounters()
         {
             AddCounters(new List<KeyValuePair<string, string>>(), null);
@@ -1702,7 +1731,8 @@ namespace SSASDiag
         private void btnAddRule_Click(object sender, EventArgs e)
         {
             frmAddPerfMonRule AddPerfMon = new frmAddPerfMonRule();
-            AddPerfMon.ShowDialog(Program.MainForm);
+            if (AddPerfMon.ShowDialog(Program.MainForm) == DialogResult.OK)
+                LoadRuleFromRegistry(AddPerfMon.txtName.Text);
         }
 
         private class PerfMonLog
@@ -1731,6 +1761,7 @@ namespace SSASDiag
             public string Expression;
             public bool Display;
             public bool Highlight;
+            public double Value;
             public int Index;
         }
 
