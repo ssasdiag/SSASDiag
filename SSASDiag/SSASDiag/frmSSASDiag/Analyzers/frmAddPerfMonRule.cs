@@ -645,17 +645,20 @@ namespace SSASDiag
             RegistryKey rule = rules.CreateSubKey(txtName.Text.Trim(), RegistryKeyPermissionCheck.ReadWriteSubTree);
             rule.DeleteSubKeyTree("Counters", false);
             RegistryKey counters = rule.CreateSubKey("Counters", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            int iCurPos = 0;
             foreach (DataGridViewRow r in dgdSelectedCounters.Rows)
             {
                 RegistryKey counter = counters.CreateSubKey((r.Cells[0].Value as string).Replace("\\", "{SLASH}"), RegistryKeyPermissionCheck.ReadWriteSubTree);
                 counter.SetValue("Display", r.Cells[1].Value == null ? 0 : Convert.ToInt32(r.Cells[1].Value));
                 counter.SetValue("Highlight", r.Cells[2].Value == null ? 0 : Convert.ToInt32(r.Cells[2].Value));
                 counter.SetValue("WildcardIncludes_Total", r.Cells[3].Value == null ? 0 : Convert.ToInt32(r.Cells[3].Value));
+                counter.SetValue("Index", iCurPos++);
                 counter.Close();
             }
             counters.Close();
             rule.DeleteSubKeyTree("Expressions", false);
             RegistryKey expressions = rule.CreateSubKey("Expressions", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            iCurPos = 0;
             foreach (DataGridViewRow r in dgdExpressions.Rows)
             {
                 if (r.Cells[0].Value != null)
@@ -664,6 +667,7 @@ namespace SSASDiag
                     expr.SetValue("Display", r.Cells[2].Value == null ? 0 : Convert.ToInt32(r.Cells[2].Value));
                     expr.SetValue("Highlight", r.Cells[3].Value == null ? 0 : Convert.ToInt32(r.Cells[3].Value));
                     expr.SetValue("Expression", r.Cells[1].Value as string);
+                    expr.SetValue("Index", iCurPos++);
                     expr.Close();
                 }
             }
