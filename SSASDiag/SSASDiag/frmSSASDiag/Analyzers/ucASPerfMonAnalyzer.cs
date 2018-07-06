@@ -14,6 +14,7 @@ using System.Security.AccessControl;
 using System.ServiceProcess;
 using System.Threading;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 using System.Windows.Forms.DataVisualization.Charting;
 
 namespace SSASDiag
@@ -133,6 +134,41 @@ namespace SSASDiag
             splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
         }
 
+        double BreakdownExpression(string expr)
+        {
+            MatchCollection Counters = Regex.Matches(expr, "(\\[.*?\\])");
+            foreach(Match c in Counters)
+            {
+                int iCurPos = expr.IndexOf(c.Value);
+                while (iCurPos != -1)
+                {
+                    iCurPos += c.Value.Length;
+                    if (expr.Substring(iCurPos++, 1) == ".")
+                    {
+                        char breakchar = '\0';
+                        while (breakchar != ' ' && breakchar != '(')
+                            breakchar = expr.Substring(iCurPos++, 1)[0];
+                        if (breakchar == '(')
+                            while (breakchar != ')')
+                                breakchar = expr.Substring(iCurPos++, 1)[0];
+                        string SeriesWithFunction = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value));
+
+                        
+                    }
+                    else
+                    {
+
+                    }
+                }
+                
+            }
+
+
+
+
+            return 0;
+        }
+
         private void LoadRuleFromRegistry(string rule)
         {
             RegistryKey rules = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules", RegistryKeyPermissionCheck.ReadSubTree);
@@ -172,6 +208,8 @@ namespace SSASDiag
                     double d;
                     if (Double.TryParse(re.Expression, out d))
                         re.Value = d;
+                    else
+                        re.Value = BreakdownExpression(re.Expression);
                 };
                 string ValOrSeriesToCheck = r.GetValue("ValueOrSeriesToCheck") as string;
                 if (NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Count() > 0)
