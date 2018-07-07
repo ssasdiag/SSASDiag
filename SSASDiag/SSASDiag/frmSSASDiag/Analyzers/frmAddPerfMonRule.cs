@@ -247,6 +247,7 @@ namespace SSASDiag
                 cmbValLow.Enabled = cmbValHigh.Enabled = cmbWarnExpr.Enabled = true;
             lblSeriesFunction.Visible = cmbSeriesFunction.Visible = cmbValueToCheck.SelectedIndex != -1 && dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value as string == cmbValueToCheck.SelectedItem as string).Count() == 0;
             lblPctMatchCheck.Visible = udPctMatchCheck.Visible = cmbSeriesFunction.Visible && cmbSeriesFunction.SelectedIndex == cmbSeriesFunction.Items.Count - 1;
+            btnSaveRule.Enabled = IsRuleComplete();
             ValidateChildren();
         }
 
