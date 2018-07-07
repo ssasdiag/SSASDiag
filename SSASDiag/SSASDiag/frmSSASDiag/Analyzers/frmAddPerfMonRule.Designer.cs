@@ -37,11 +37,6 @@
             this.splitCountersAndRule = new System.Windows.Forms.SplitContainer();
             this.splitCounters = new System.Windows.Forms.SplitContainer();
             this.dgdSelectedCounters = new System.Windows.Forms.DataGridView();
-            this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ShowInChart = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.HighlightInChart = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.CounterColor = new System.Windows.Forms.DataGridViewComboBoxColumn();
-            this.WildcardWithTotal = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.splitExpressionsAndRule = new System.Windows.Forms.SplitContainer();
             this.splitExpressions = new System.Windows.Forms.SplitContainer();
             this.label3 = new System.Windows.Forms.Label();
@@ -94,11 +89,14 @@
             this.label1 = new System.Windows.Forms.Label();
             this.tt = new System.Windows.Forms.ToolTip(this.components);
             this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
+            this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ShowInChart = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.HighlightInChart = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.WildcardWithTotal = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Display = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.Highlight = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.ExpressionColor = new System.Windows.Forms.DataGridViewComboBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.splitCountersAndRule)).BeginInit();
             this.splitCountersAndRule.Panel1.SuspendLayout();
             this.splitCountersAndRule.Panel2.SuspendLayout();
@@ -181,7 +179,6 @@
             this.Counter,
             this.ShowInChart,
             this.HighlightInChart,
-            this.CounterColor,
             this.WildcardWithTotal});
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
@@ -205,39 +202,6 @@
             this.dgdSelectedCounters.DragEnter += new System.Windows.Forms.DragEventHandler(this.dgdSelectedCounters_DragEnter);
             this.dgdSelectedCounters.MouseDown += new System.Windows.Forms.MouseEventHandler(this.dgdSelectedCounters_MouseDown);
             this.dgdSelectedCounters.MouseMove += new System.Windows.Forms.MouseEventHandler(this.dgdSelectedCounters_MouseMove);
-            // 
-            // Counter
-            // 
-            this.Counter.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Counter.HeaderText = "Counter Name";
-            this.Counter.Name = "Counter";
-            this.Counter.ReadOnly = true;
-            // 
-            // ShowInChart
-            // 
-            this.ShowInChart.HeaderText = "Display";
-            this.ShowInChart.Name = "ShowInChart";
-            this.ShowInChart.Width = 50;
-            // 
-            // HighlightInChart
-            // 
-            this.HighlightInChart.HeaderText = "Highlight";
-            this.HighlightInChart.Name = "HighlightInChart";
-            this.HighlightInChart.Width = 50;
-            // 
-            // CounterColor
-            // 
-            this.CounterColor.HeaderText = "Color";
-            this.CounterColor.Name = "CounterColor";
-            this.CounterColor.Width = 50;
-            // 
-            // WildcardWithTotal
-            // 
-            this.WildcardWithTotal.HeaderText = "* Includes _Total";
-            this.WildcardWithTotal.Name = "WildcardWithTotal";
-            this.WildcardWithTotal.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.WildcardWithTotal.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.WildcardWithTotal.ToolTipText = "If the counter features a wildcard, include _Total in the child nodes.";
             // 
             // splitExpressionsAndRule
             // 
@@ -309,8 +273,7 @@
             this.ExpressionName,
             this.Expression,
             this.Display,
-            this.Highlight,
-            this.ExpressionColor});
+            this.Highlight});
             this.dgdExpressions.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdExpressions.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnKeystroke;
             this.dgdExpressions.GridColor = System.Drawing.SystemColors.Window;
@@ -902,6 +865,33 @@
             this.errorProvider1.BlinkStyle = System.Windows.Forms.ErrorBlinkStyle.NeverBlink;
             this.errorProvider1.ContainerControl = this;
             // 
+            // Counter
+            // 
+            this.Counter.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Counter.HeaderText = "Counter Name";
+            this.Counter.Name = "Counter";
+            this.Counter.ReadOnly = true;
+            // 
+            // ShowInChart
+            // 
+            this.ShowInChart.HeaderText = "Display";
+            this.ShowInChart.Name = "ShowInChart";
+            this.ShowInChart.Width = 50;
+            // 
+            // HighlightInChart
+            // 
+            this.HighlightInChart.HeaderText = "Highlight";
+            this.HighlightInChart.Name = "HighlightInChart";
+            this.HighlightInChart.Width = 50;
+            // 
+            // WildcardWithTotal
+            // 
+            this.WildcardWithTotal.HeaderText = "* Includes _Total";
+            this.WildcardWithTotal.Name = "WildcardWithTotal";
+            this.WildcardWithTotal.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.WildcardWithTotal.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.WildcardWithTotal.ToolTipText = "If the counter features a wildcard, include _Total in the child nodes.";
+            // 
             // ExpressionName
             // 
             this.ExpressionName.HeaderText = "Name";
@@ -928,12 +918,6 @@
             this.Highlight.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.Highlight.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.Highlight.Width = 50;
-            // 
-            // ExpressionColor
-            // 
-            this.ExpressionColor.HeaderText = "Color";
-            this.ExpressionColor.Name = "ExpressionColor";
-            this.ExpressionColor.Width = 50;
             // 
             // frmAddPerfMonRule
             // 
@@ -1046,12 +1030,10 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Counter;
         private System.Windows.Forms.DataGridViewCheckBoxColumn ShowInChart;
         private System.Windows.Forms.DataGridViewCheckBoxColumn HighlightInChart;
-        private System.Windows.Forms.DataGridViewComboBoxColumn CounterColor;
         private System.Windows.Forms.DataGridViewCheckBoxColumn WildcardWithTotal;
         private System.Windows.Forms.DataGridViewTextBoxColumn ExpressionName;
         private System.Windows.Forms.DataGridViewTextBoxColumn Expression;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Display;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Highlight;
-        private System.Windows.Forms.DataGridViewComboBoxColumn ExpressionColor;
     }
 }
