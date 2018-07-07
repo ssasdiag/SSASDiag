@@ -82,6 +82,10 @@ namespace SSASDiag
             DataGridViewRow r = (DataGridViewRow)e.Data.GetData("System.Windows.Forms.DataGridViewRow");
             AddCountersBackToTreeViewFromGrid(r);
             dgdSelectedCounters.Rows.Remove(r);
+            foreach (DataGridViewRow row in dgdExpressions.Rows)
+                if (row.Index != dgdExpressions.Rows.Count - 1)
+                    foreach (DataGridViewCell c in r.Cells)
+                        dgdExpressions_CellEndEdit(dgdExpressions, new DataGridViewCellEventArgs(c.ColumnIndex, row.Index));
             UpdateExpressionsAndCountersCombo();
         }
 
@@ -161,26 +165,76 @@ namespace SSASDiag
             }
         }
 
+        private void ValidateExpressionCombosAfterUpdate(ComboBox cb)
+        {
+            
+            for (int i = 0; i < cb.Items.Count; i++)
+            {
+                bool bValExists = false;
+                string cbi = cb.Items[i] as string;
+                foreach (DataGridViewRow expr in dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null))
+                    if (expr.Cells[0].Value as string == cbi && expr.Cells[1].ErrorText == "")
+                    {
+                        bValExists = true;
+                        break;
+                    }
+                if (!bValExists)
+                {
+                    if (cb.SelectedIndex == i)
+                        cb.SelectedIndex = -1;
+                    cb.Items.RemoveAt(i);
+                    i--;
+                }
+            }
+        }
+
         private void UpdateExpressionsAndCountersCombo()
         {
-            cmbValueToCheck.Items.Clear();
-            cmbWarnExpr.Items.Clear();
-            cmbValLow.Items.Clear();
-            cmbValHigh.Items.Clear();
             btnSaveRule.Enabled = false;
             foreach (DataGridViewRow r in dgdSelectedCounters.Rows)
-                if (r.Cells[0].Value != null)
+                if (r.Cells[0].Value != null && !cmbValueToCheck.Items.Contains(r.Cells[0].Value as string))
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
             foreach (DataGridViewRow r in dgdExpressions.Rows)
-                if (r.Cells[0].Value != null && r.Cells[0].ErrorText == "" && r.Cells[1].ErrorText == "")
+                if (r.Cells[0].Value != null && r.Cells[0].ErrorText == "" && r.Cells[1].ErrorText == "" && !cmbValueToCheck.Items.Contains(r.Cells[0].Value as string))
                 {
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
                     cmbValLow.Items.Add(r.Cells[0].Value as string);
                     cmbValHigh.Items.Add(r.Cells[0].Value as string);
                     cmbWarnExpr.Items.Add(r.Cells[0].Value as string);
+                    cmbValueToCheck.Enabled = cmbValLow.Enabled = cmbWarnExpr.Enabled = cmbValHigh.Enabled = true;
                 }
 
-            cmbValueToCheck.Text = "";
+            // Update the value if we removed an item.
+            bool bValExists;
+            for (int i = 0; i < cmbValueToCheck.Items.Count; i++)
+            {
+                string cbi = cmbValueToCheck.Items[i] as string;
+                bValExists = false;
+                foreach (string ctr in dgdSelectedCounters.Rows.Cast<DataGridViewRow>().Select(r => r.Cells[0].Value as string))
+                    if (ctr == cbi)
+                    {
+                        bValExists = true;
+                        break;
+                    }
+                foreach (DataGridViewRow expr in dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r=>r.Cells[0].Value != null))
+                    if (expr.Cells[0].Value as string == cbi && expr.Cells[1].ErrorText == "")
+                    {
+                        bValExists = true;
+                        break;
+                    }
+                if (!bValExists)
+                {
+                    if (cmbValueToCheck.SelectedIndex == i)
+                        cmbValueToCheck.SelectedIndex = -1;
+                    cmbValueToCheck.Items.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            // Also update the error/warn/pass expression combos...
+            ValidateExpressionCombosAfterUpdate(cmbValHigh);
+            ValidateExpressionCombosAfterUpdate(cmbWarnExpr);
+            ValidateExpressionCombosAfterUpdate(cmbValLow);
 
             if (cmbValueToCheck.Items.Count == 0)
                 cmbValueToCheck.Enabled = false;
@@ -191,7 +245,8 @@ namespace SSASDiag
                 cmbValLow.Enabled = cmbValHigh.Enabled = cmbWarnExpr.Enabled = false;
             else
                 cmbValLow.Enabled = cmbValHigh.Enabled = cmbWarnExpr.Enabled = true;
-            cmbSeriesFunction.Visible = lblSeriesFunction.Visible = lblPctMatchCheck.Visible = udPctMatchCheck.Visible = false;
+            lblSeriesFunction.Visible = cmbSeriesFunction.Visible = cmbValueToCheck.SelectedIndex != -1 && dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value as string == cmbValueToCheck.SelectedItem as string).Count() == 0;
+            lblPctMatchCheck.Visible = udPctMatchCheck.Visible = cmbSeriesFunction.Visible && cmbSeriesFunction.SelectedIndex == cmbSeriesFunction.Items.Count - 1;
             ValidateChildren();
         }
 
@@ -358,12 +413,14 @@ namespace SSASDiag
                                 iCurPos++;
                                 break;
                             }
-                            if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower() && r.Index < CurrentRowIndex).Count() > 0)
+                            if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower() && r.Index < CurrentRowIndex && r.Cells[1].ErrorText == "").Count() > 0)
                                 expr = expr.Replace(subExpr, (12345.67890 + iCurPos).ToString());
                             else
                             {
-                                if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr).Count() > 0)
+                                if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower() && r.Cells[1].ErrorText == "").Count() > 0)
                                     return "Expression '" + subExpr.TrimStart().TrimEnd() + "' invalid.\nExpressions may only refer to prior expressions in the list.";
+                                else if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower()).Count() > 0)
+                                    return "Expression '" + subExpr.TrimStart().TrimEnd() + "' is invalid.";
                                 else
                                     return "Invalid token at: '" + subExpr + "'.";
                             }
@@ -407,27 +464,41 @@ namespace SSASDiag
 
         private void dgdExpressions_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            DataGridViewCell cell = dgdExpressions.Rows[e.RowIndex].Cells[1] as DataGridViewCell;
-            if (cell.Value == null)
-                cell.ErrorText = "Expression required.";
-            else
-                cell.ErrorText = BreakdownExpression(cell.Value as string, e.RowIndex);
-            cell = dgdExpressions.Rows[e.RowIndex].Cells[0] as DataGridViewCell;
-            if (cell.Value == null)
-                cell.ErrorText = "Name required.";
-            else
+            if (e.RowIndex != -1 && e.ColumnIndex != -1)
             {
+                dgdExpressions.EndEdit();
+                DataGridViewCell cell = dgdExpressions.Rows[e.RowIndex].Cells[1] as DataGridViewCell;
                 cell.ErrorText = "";
-                string val = cell.Value as string;
-                val = val.TrimStart().TrimEnd();
-                if (!char.IsLetter(val[0]))
-                    cell.ErrorText = "Expression names must start with an alphabetic character.";
-                foreach (char c in val)
-                    if (!char.IsLetterOrDigit(c))
-                        cell.ErrorText = "Expression names can only contain alphanumeric characters.";
+                if (cell.Value == null)
+                    cell.ErrorText = "Expression required.";
+                else
+                    cell.ErrorText = BreakdownExpression(cell.Value as string, e.RowIndex);
+                UpdateExpressionsAndCountersCombo();
+                cell = dgdExpressions.Rows[e.RowIndex].Cells[0] as DataGridViewCell;
+                if (cell.Value == null)
+                    cell.ErrorText = "Name required.";
+                else
+                {
+                    string val = cell.Value as string;
+                    val = val.TrimStart().TrimEnd();
+                    if (!char.IsLetter(val[0]))
+                        cell.ErrorText = "Expression names must start with an alphabetic character.";
+                    foreach (char c in val)
+                        if (!char.IsLetterOrDigit(c))
+                            cell.ErrorText = "Expression names can only contain alphanumeric characters.";
+                }
+                
+                if (sender != null)
+                {
+                    foreach (DataGridViewRow r in dgdExpressions.Rows)
+                        if (r.Index != dgdExpressions.Rows.Count - 1)
+                            foreach (DataGridViewCell c in r.Cells)
+                            {
+                                if (!(c.RowIndex == e.RowIndex && c.ColumnIndex == e.ColumnIndex))
+                                    dgdExpressions_CellEndEdit(null, new DataGridViewCellEventArgs(c.ColumnIndex, c.RowIndex));
+                            }
+                }
             }
-            dgdExpressions.EndEdit();
-            UpdateExpressionsAndCountersCombo();
         }
 
         private void dgdExpressions_MouseClick(object sender, MouseEventArgs e)
@@ -764,7 +835,7 @@ namespace SSASDiag
             bool singleVerticalBorderAdded, bool singleHorizontalBorderAdded,
             bool isFirstDisplayedColumn, bool isFirstDisplayedRow)
         {
-            cellClip.Height = cellClip.Height; // ← Or any other suitable height
+            cellClip.Height = cellClip.Height;
             cellBounds.Height = cellBounds.Height;
             var r = base.PositionEditingPanel(cellBounds, cellClip, cellStyle,
                 singleVerticalBorderAdded, singleHorizontalBorderAdded,
@@ -777,7 +848,7 @@ namespace SSASDiag
         {
             base.InitializeEditingControl(rowIndex, initialFormattedValue,
                 dataGridViewCellStyle);
-            ((TextBox)this.DataGridView.EditingControl).Multiline = true;
+            ((TextBox)this.DataGridView.EditingControl).Multiline = false;
             ((TextBox)this.DataGridView.EditingControl).BorderStyle = BorderStyle.Fixed3D;
         }
     }

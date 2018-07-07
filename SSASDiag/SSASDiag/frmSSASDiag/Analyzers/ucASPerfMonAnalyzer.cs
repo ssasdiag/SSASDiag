@@ -1610,22 +1610,13 @@ namespace SSASDiag
                     tvCounters.Invoke(new Action(() =>
                     {
                         if (c.ShowInChart)
-                        {
                             n.Checked = true;
-                            while (n.Parent != null)
-                            {
-                                n = n.Parent;
-                                n.Expand();
-                            }
-                        }
                         else
                             HiddenCountersToLookup.Add(new KeyValuePair<string, string>(n.Tag as string, n.FullPath));
                     }));
                 }
                 else
-                {
                     HiddenCountersToLookup.Add(new KeyValuePair<string, string>(n.Tag as string, n.FullPath));
-                }
             }
             if (ShouldUIUpdate)
                 tvCounters.AfterCheck += TvCounters_AfterCheck;

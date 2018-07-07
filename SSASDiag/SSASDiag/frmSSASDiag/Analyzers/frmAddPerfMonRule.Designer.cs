@@ -37,6 +37,10 @@
             this.splitCountersAndRule = new System.Windows.Forms.SplitContainer();
             this.splitCounters = new System.Windows.Forms.SplitContainer();
             this.dgdSelectedCounters = new System.Windows.Forms.DataGridView();
+            this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ShowInChart = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.HighlightInChart = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.WildcardWithTotal = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.splitExpressionsAndRule = new System.Windows.Forms.SplitContainer();
             this.splitExpressions = new System.Windows.Forms.SplitContainer();
             this.label3 = new System.Windows.Forms.Label();
@@ -89,10 +93,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.tt = new System.Windows.Forms.ToolTip(this.components);
             this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
-            this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ShowInChart = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.HighlightInChart = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.WildcardWithTotal = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Display = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -202,6 +202,33 @@
             this.dgdSelectedCounters.DragEnter += new System.Windows.Forms.DragEventHandler(this.dgdSelectedCounters_DragEnter);
             this.dgdSelectedCounters.MouseDown += new System.Windows.Forms.MouseEventHandler(this.dgdSelectedCounters_MouseDown);
             this.dgdSelectedCounters.MouseMove += new System.Windows.Forms.MouseEventHandler(this.dgdSelectedCounters_MouseMove);
+            // 
+            // Counter
+            // 
+            this.Counter.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Counter.HeaderText = "Counter Name";
+            this.Counter.Name = "Counter";
+            this.Counter.ReadOnly = true;
+            // 
+            // ShowInChart
+            // 
+            this.ShowInChart.HeaderText = "Display";
+            this.ShowInChart.Name = "ShowInChart";
+            this.ShowInChart.Width = 50;
+            // 
+            // HighlightInChart
+            // 
+            this.HighlightInChart.HeaderText = "Highlight";
+            this.HighlightInChart.Name = "HighlightInChart";
+            this.HighlightInChart.Width = 50;
+            // 
+            // WildcardWithTotal
+            // 
+            this.WildcardWithTotal.HeaderText = "* Includes _Total";
+            this.WildcardWithTotal.Name = "WildcardWithTotal";
+            this.WildcardWithTotal.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.WildcardWithTotal.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.WildcardWithTotal.ToolTipText = "If the counter features a wildcard, include _Total in the child nodes.";
             // 
             // splitExpressionsAndRule
             // 
@@ -355,6 +382,7 @@
             this.pnlMed.Name = "pnlMed";
             this.pnlMed.Size = new System.Drawing.Size(408, 60);
             this.pnlMed.TabIndex = 9;
+            this.tt.SetToolTip(this.pnlMed, "Rule will only implement Pass/Fail if all warn values are left empty.");
             // 
             // lblWarnVal
             // 
@@ -865,50 +893,24 @@
             this.errorProvider1.BlinkStyle = System.Windows.Forms.ErrorBlinkStyle.NeverBlink;
             this.errorProvider1.ContainerControl = this;
             // 
-            // Counter
-            // 
-            this.Counter.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Counter.HeaderText = "Counter Name";
-            this.Counter.Name = "Counter";
-            this.Counter.ReadOnly = true;
-            // 
-            // ShowInChart
-            // 
-            this.ShowInChart.HeaderText = "Display";
-            this.ShowInChart.Name = "ShowInChart";
-            this.ShowInChart.Width = 50;
-            // 
-            // HighlightInChart
-            // 
-            this.HighlightInChart.HeaderText = "Highlight";
-            this.HighlightInChart.Name = "HighlightInChart";
-            this.HighlightInChart.Width = 50;
-            // 
-            // WildcardWithTotal
-            // 
-            this.WildcardWithTotal.HeaderText = "* Includes _Total";
-            this.WildcardWithTotal.Name = "WildcardWithTotal";
-            this.WildcardWithTotal.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.WildcardWithTotal.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.WildcardWithTotal.ToolTipText = "If the counter features a wildcard, include _Total in the child nodes.";
-            // 
             // ExpressionName
             // 
             this.ExpressionName.HeaderText = "Name";
             this.ExpressionName.Name = "ExpressionName";
+            this.ExpressionName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // Expression
             // 
             this.Expression.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
             this.Expression.HeaderText = "Expression";
             this.Expression.Name = "Expression";
+            this.Expression.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // Display
             // 
             this.Display.HeaderText = "Display";
             this.Display.Name = "Display";
             this.Display.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Display.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.Display.Width = 50;
             // 
             // Highlight
@@ -916,7 +918,6 @@
             this.Highlight.HeaderText = "Highlight";
             this.Highlight.Name = "Highlight";
             this.Highlight.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Highlight.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.Highlight.Width = 50;
             // 
             // frmAddPerfMonRule
