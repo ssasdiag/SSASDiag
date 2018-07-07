@@ -675,7 +675,6 @@
             this.dgdRules.TabIndex = 3;
             this.dgdRules.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdRules_CellClick);
             this.dgdRules.SelectionChanged += new System.EventHandler(this.dgdRules_SelectionChanged);
-            this.dgdRules.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dgdRules_MouseClick);
             // 
             // Category
             // 

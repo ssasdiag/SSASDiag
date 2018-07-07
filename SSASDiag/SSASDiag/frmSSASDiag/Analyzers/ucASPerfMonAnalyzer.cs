@@ -1361,7 +1361,8 @@ namespace SSASDiag
                                 if (node != null && tvCounters.SelectedNodes.Contains(node))
                                     s.BorderWidth = 4;
                                 Color counterColor;
-                                if (rule == null || rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).First().CounterColor == null)
+                                IEnumerable<RuleCounter> MatchingCountersInRuleWithColor = rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name));
+                                if (rule == null || (MatchingCountersInRuleWithColor.Count() == 0 || (MatchingCountersInRuleWithColor.Count() > 0 && MatchingCountersInRuleWithColor.First().CounterColor == null)))
                                 {
                                     int colorIndex = iCurColor++ + randomColorOffset;
                                     if (colorIndex > indexcolors.Length - 1) colorIndex %= (indexcolors.Length - 1);
@@ -1403,7 +1404,8 @@ namespace SSASDiag
                                             chartPerfMon.ChartAreas[0].RecalculateAxesScale();
                                             node = tvCounters.FindNodeByPath(s.Name);
                                             node.SelectedImageIndex = node.ImageIndex = legend.Images.Count - 1;
-                                            chartPerfMon.Series.Add(s);
+                                            if (!chartPerfMon.Series.Select(sr=>sr.Name).Contains(s.Name))
+                                                chartPerfMon.Series.Add(s);
                                         }
                                         chartPerfMon.Update();
                                         Application.DoEvents();
@@ -1947,16 +1949,6 @@ namespace SSASDiag
             }
         }
 
-        private void btnImport_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void dgdRules_MouseClick(object sender, MouseEventArgs e)
-        {
-
-        }
-
         public class RuleExpression
         {
             public RuleExpression(string Name, string Expression, int Index, bool Display = false, bool Highlight = false, bool Include_TotalSeriesInWildcard = true)
@@ -2103,7 +2095,4 @@ namespace SSASDiag
         "#4D5C5E", "#C9403A", "#DDD7F3", "#005844", "#B4A200", "#488F69", "#858182", "#D4E9B9",
         "#3D7397", "#CAE8CE", "#D60034", "#AA6746", "#9E5585", "#BA6200"};
     }
-
-
-
 }
