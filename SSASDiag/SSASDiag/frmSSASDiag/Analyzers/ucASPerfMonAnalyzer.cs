@@ -151,7 +151,7 @@ namespace SSASDiag
                         while (breakchar != ')')
                             breakchar = expr.Substring(iCurPos++, 1)[0];
                     List<Series> series = rule.Counters.Where(cc => cc.WildcardPath == c.Value.Replace("[", "").Replace("]", "") && (cc.Include_TotalSeriesInWildcard ? true : !cc.Path.Contains("_Total"))).Select(rc=>rc.ChartSeries).ToList();
-                    string function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").ToLower().Replace(" ", "");
+                    string function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").ToLower().Replace(" ", "").Replace(")", "");
                     double val = 0;
                     switch (function)
                     {
@@ -183,7 +183,6 @@ namespace SSASDiag
                     expr = expr.Substring(0, expr.IndexOf(c.Value)) + val + expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1);
                     iCurPos = expr.IndexOf(c.Value);
                 }
-                
             }
             iCurPos = 0;
             int iWordStart = -1;
@@ -276,18 +275,29 @@ namespace SSASDiag
                     }
                 }
                 string ValOrSeriesToCheck = r.GetValue("ValueOrSeriesToCheck") as string;
-                if (NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Count() > 0)
+                if (NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Count() > 0 || NewRuleExpressions.Where(e=>e.Name == ValOrSeriesToCheck).Count() > 0)
                 {
                     string SeriesFunction = r.GetValue("SeriesFunction") as string;
-                    NewRule.ValidateThresholdRule(NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck && (c.Include_TotalSeriesInWildcard ? true : !c.Path.Contains("_Total"))).Select(rc => rc.ChartSeries).ToList(),
-                                                    r.GetValue("WarnExpr") == null ? -1 : NewRuleExpressions.Where(re => re.Name == r.GetValue("WarnExpr") as string).First().Value,
-                                                    NewRuleExpressions.Where(re => re.Name == r.GetValue("ErrorExpr") as string).First().Value,
-                                                    r.GetValue("WarnRegionLabel") == null ? null : r.GetValue("WarnRegionLabel") as string,
-                                                    r.GetValue("ErrorRegionLabel") as string,
-                                                    r.GetValue("PassRegionLabel") as string,
-                                                    Convert.ToBoolean(r.GetValue("FailIfBelowWarnError")),
-                                                    SeriesFunction.StartsWith("Avg"), SeriesFunction.Contains("ignore nulls and zeros"), SeriesFunction.Contains("include all values"),
-                                                    Convert.ToInt32(r.GetValue("PctRequiredToMatchWarnError")));
+                    if (NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck && (c.Include_TotalSeriesInWildcard ? true : !c.Path.Contains("_Total"))).Select(rc => rc.ChartSeries).Count() > 0)
+                        NewRule.ValidateThresholdRule(NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck && (c.Include_TotalSeriesInWildcard ? true : !c.Path.Contains("_Total"))).Select(rc => rc.ChartSeries).ToList(),
+                                                        r.GetValue("WarnExpr") == null ? -1 : NewRuleExpressions.Where(re => re.Name == r.GetValue("WarnExpr") as string).First().Value,
+                                                        NewRuleExpressions.Where(re => re.Name == r.GetValue("ErrorExpr") as string).First().Value,
+                                                        r.GetValue("WarnRegionLabel") == null ? null : r.GetValue("WarnRegionLabel") as string,
+                                                        r.GetValue("ErrorRegionLabel") as string,
+                                                        r.GetValue("PassRegionLabel") as string,
+                                                        Convert.ToBoolean(r.GetValue("FailIfBelowWarnError")),
+                                                        SeriesFunction.StartsWith("Avg"), SeriesFunction.Contains("ignore nulls and zeros"), SeriesFunction.Contains("include all values"),
+                                                        Convert.ToInt32(r.GetValue("PctRequiredToMatchWarnError")));
+                    else
+                        NewRule.ValidateThresholdRule(NewRuleExpressions.Where(ex=>ex.Name == ValOrSeriesToCheck).First().Value,
+                                                            r.GetValue("WarnExpr") == null ? -1 : NewRuleExpressions.Where(re => re.Name == r.GetValue("WarnExpr") as string).First().Value,
+                                                            NewRuleExpressions.Where(re => re.Name == r.GetValue("ErrorExpr") as string).First().Value,
+                                                            r.GetValue("WarnRegionLabel") == null ? null : r.GetValue("WarnRegionLabel") as string,
+                                                            r.GetValue("ErrorRegionLabel") as string,
+                                                            r.GetValue("PassRegionLabel") as string,
+                                                            Convert.ToBoolean(r.GetValue("FailIfBelowWarnError")),
+                                                            false, false, false,
+                                                            Convert.ToInt32(r.GetValue("PctRequiredToMatchWarnError")));
                     if (NewRule.RuleResult == RuleResultEnum.Fail)
                         NewRule.ResultDescription = "Fail: " + r.GetValue("ErrorText") as string;
                     else if (NewRule.RuleResult == RuleResultEnum.Warn)
@@ -1641,7 +1651,13 @@ namespace SSASDiag
             if (bNeverBeenRunBefore)
             {
                 string qry = "";
-                Invoke(new Action(() => qry = "insert into RuleResults values ('" + rule.Name + "', '" + cmbServers.SelectedItem + "', " + (int)rule.RuleResult + ", '" + rule.ResultDescription + "')"));
+                Invoke(new Action(() => qry = "insert into RuleResults values ('" + rule.Name.Replace("'", "''") + "', '" + cmbServers.SelectedItem + "', " + (int)rule.RuleResult + ", '" + rule.ResultDescription.Replace("'", "''") + "')"));
+                new SqlCommand(qry, connDB).ExecuteNonQuery();
+            }
+            else
+            {
+                string qry = "";
+                Invoke(new Action(() => qry = "update RuleResults set Result = " + (int)rule.RuleResult + ", ResultDescription = '" + rule.ResultDescription + "' where MachineName = '" + cmbServers.SelectedItem + "' and RuleName = '" + rule.Name.Replace("'", "''") + "'"));
                 new SqlCommand(qry, connDB).ExecuteNonQuery();
             }
 

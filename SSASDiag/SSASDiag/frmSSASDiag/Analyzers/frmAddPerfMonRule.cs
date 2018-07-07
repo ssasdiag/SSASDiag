@@ -195,14 +195,33 @@ namespace SSASDiag
                 if (r.Cells[0].Value != null && !cmbValueToCheck.Items.Contains(r.Cells[0].Value as string))
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
             foreach (DataGridViewRow r in dgdExpressions.Rows)
+            {
                 if (r.Cells[0].Value != null && r.Cells[0].ErrorText == "" && r.Cells[1].ErrorText == "" && !cmbValueToCheck.Items.Contains(r.Cells[0].Value as string))
                 {
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
-                    cmbValLow.Items.Add(r.Cells[0].Value as string);
-                    cmbValHigh.Items.Add(r.Cells[0].Value as string);
-                    cmbWarnExpr.Items.Add(r.Cells[0].Value as string);
-                    cmbValueToCheck.Enabled = cmbValLow.Enabled = cmbWarnExpr.Enabled = cmbValHigh.Enabled = true;
+                    cmbValueToCheck.Enabled = true;
                 }
+                if (r.Tag as string == "Scalar")
+                {
+                    if (!cmbValLow.Items.Contains(r.Cells[0].Value as string))
+                    {
+                        cmbValLow.Items.Add(r.Cells[0].Value as string);
+                        cmbValHigh.Items.Add(r.Cells[0].Value as string);
+                        cmbWarnExpr.Items.Add(r.Cells[0].Value as string);
+                    }
+                    cmbValLow.Enabled = cmbWarnExpr.Enabled = cmbValHigh.Enabled = true;
+                }
+                else if (r.Tag as string == "Series")
+                {
+                    if (cmbValLow.Items.Contains(r.Cells[0].Value as string))
+                    {
+                        cmbValLow.Items.Remove(r.Cells[0].Value as string);
+                        cmbValHigh.Items.Remove(r.Cells[0].Value as string);
+                        cmbWarnExpr.Items.Remove(r.Cells[0].Value as string);
+                    }
+                    cmbValLow.Enabled = cmbWarnExpr.Enabled = cmbValHigh.Enabled = false;
+                }
+            }
 
             // Update the value if we removed an item.
             bool bValExists;
@@ -359,6 +378,7 @@ namespace SSASDiag
         string BreakdownExpression(string expr, int CurrentRowIndex)
         {
             int iCurPos = 0;
+            dgdExpressions.Rows[CurrentRowIndex].Tag = "Scalar";
             MatchCollection Counters = Regex.Matches(expr, "(\\[.*?\\])");
             foreach (Match c in Counters)
             {
@@ -380,7 +400,7 @@ namespace SSASDiag
                             return "Invalid counter function at: ." + function;
                     }
                     else
-                        return "Counter expressions must include a function.  See valid examples on the left.";
+                        dgdExpressions.Rows[CurrentRowIndex].Tag = "Series";
                     string RestOfExpression = "";
                     if (expr.Length > expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1)
                         RestOfExpression = expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1);
@@ -458,14 +478,14 @@ namespace SSASDiag
                 catch { return "Invalid token at end of expression."; }  // If the expression fails to parse after replacing all subexpressions and counters with dummy values, then it is a bad expression.
             else
             {
-
+                // Occurs if expression was series.  Does it matter and we can remove the whole clause?
             }
             return "";
         }
 
         private void dgdExpressions_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex != -1 && e.ColumnIndex != -1)
+            if (e.RowIndex != -1 && e.ColumnIndex != -1 && e.RowIndex != dgdExpressions.Rows.Count - 1)
             {
                 dgdExpressions.EndEdit();
                 DataGridViewCell cell = dgdExpressions.Rows[e.RowIndex].Cells[1] as DataGridViewCell;
@@ -476,6 +496,7 @@ namespace SSASDiag
                     cell.ErrorText = BreakdownExpression(cell.Value as string, e.RowIndex);
                 UpdateExpressionsAndCountersCombo();
                 cell = dgdExpressions.Rows[e.RowIndex].Cells[0] as DataGridViewCell;
+                cell.ErrorText = "";
                 if (cell.Value == null)
                     cell.ErrorText = "Name required.";
                 else
