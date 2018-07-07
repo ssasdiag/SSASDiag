@@ -756,18 +756,21 @@ namespace SSASDiag
                 tvCounters.AfterSelect -= TvCounters_AfterSelect;
 
                 Form f = Program.MainForm;
-                StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
-                StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
-                StatusFloater.lblStatus.Text = "Loading counter hierarchy...";
-                StatusFloater.lblSubStatus.Text = "";
-                StatusFloater.lblTime.Text = "";
-                StatusFloater.AutoUpdateDuration = false;
-                StatusFloater.Show(f);
                 DrawingControl.SuspendDrawing(f);
                 f.Enabled = false;
 
                 new Thread(new ThreadStart(() =>
                 {
+                    StatusFloater.Invoke(new Action(() =>
+                    {
+                        StatusFloater.Top = f.Top + f.Height / 2 - StatusFloater.Height / 2;
+                        StatusFloater.Left = f.Left + f.Width / 2 - StatusFloater.Width / 2;
+                        StatusFloater.lblStatus.Text = "Loading counter hierarchy...";
+                        StatusFloater.lblSubStatus.Text = "";
+                        StatusFloater.lblTime.Text = "";
+                        StatusFloater.AutoUpdateDuration = false;
+                        StatusFloater.Visible = true;
+                    }));
                     List<TreeNode> nodes = tvCounters.GetLeafNodes();
                     List<TreeNode> clonedOldNodes = nodes.Select(
                         x =>
@@ -920,7 +923,7 @@ namespace SSASDiag
                     }
                     tvCounters.AfterCheck += TvCounters_AfterCheck;
                     tvCounters.AfterSelect += TvCounters_AfterSelect;
-                    f.Invoke(new Action(() =>
+                    Invoke(new Action(() =>
                     {
                         DrawingControl.ResumeDrawing(f);
                         tvCounters.CollapseAll();
@@ -929,13 +932,9 @@ namespace SSASDiag
                         StatusFloater.Visible = false;
                         f.BringToFront();
                         f.Enabled = true;
+                        Rules.Clear();
                     }));
-
-                    //DefineRules();
-                    LoadRulesFromRegistry();
-
-                    
-                    
+                    LoadRulesFromRegistry();                   
                 })).Start();
             }
         }
