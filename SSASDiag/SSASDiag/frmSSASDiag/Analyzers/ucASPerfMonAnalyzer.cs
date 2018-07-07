@@ -1373,7 +1373,9 @@ namespace SSASDiag
                                 if (node != null && tvCounters.SelectedNodes.Contains(node))
                                     s.BorderWidth = 3;
                                 Color counterColor;
-                                IEnumerable<RuleCounter> MatchingCountersInRuleWithColor = rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name));
+                                List<RuleCounter> MatchingCountersInRuleWithColor = new List<RuleCounter>();
+                                if (rule != null)
+                                    MatchingCountersInRuleWithColor = rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).ToList();
                                 if (rule == null || (MatchingCountersInRuleWithColor.Count() == 0 || (MatchingCountersInRuleWithColor.Count() > 0 && MatchingCountersInRuleWithColor.First().CounterColor == null)))
                                 {
                                     int colorIndex = iCurColor++ + randomColorOffset;

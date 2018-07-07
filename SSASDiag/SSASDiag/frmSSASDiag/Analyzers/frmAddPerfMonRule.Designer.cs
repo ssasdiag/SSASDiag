@@ -40,15 +40,12 @@
             this.Counter = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ShowInChart = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.HighlightInChart = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.CounterColor = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.WildcardWithTotal = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.splitExpressionsAndRule = new System.Windows.Forms.SplitContainer();
             this.splitExpressions = new System.Windows.Forms.SplitContainer();
             this.label3 = new System.Windows.Forms.Label();
             this.dgdExpressions = new System.Windows.Forms.DataGridView();
-            this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Display = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.Highlight = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.pnlRuleDetails = new System.Windows.Forms.Panel();
             this.cmbFailIfValueAboveBelow = new System.Windows.Forms.ComboBox();
             this.pnlMed = new System.Windows.Forms.Panel();
@@ -97,6 +94,11 @@
             this.label1 = new System.Windows.Forms.Label();
             this.tt = new System.Windows.Forms.ToolTip(this.components);
             this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
+            this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Display = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.Highlight = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.ExpressionColor = new System.Windows.Forms.DataGridViewComboBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.splitCountersAndRule)).BeginInit();
             this.splitCountersAndRule.Panel1.SuspendLayout();
             this.splitCountersAndRule.Panel2.SuspendLayout();
@@ -179,6 +181,7 @@
             this.Counter,
             this.ShowInChart,
             this.HighlightInChart,
+            this.CounterColor,
             this.WildcardWithTotal});
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
@@ -221,6 +224,12 @@
             this.HighlightInChart.HeaderText = "Highlight";
             this.HighlightInChart.Name = "HighlightInChart";
             this.HighlightInChart.Width = 50;
+            // 
+            // CounterColor
+            // 
+            this.CounterColor.HeaderText = "Color";
+            this.CounterColor.Name = "CounterColor";
+            this.CounterColor.Width = 50;
             // 
             // WildcardWithTotal
             // 
@@ -300,7 +309,8 @@
             this.ExpressionName,
             this.Expression,
             this.Display,
-            this.Highlight});
+            this.Highlight,
+            this.ExpressionColor});
             this.dgdExpressions.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdExpressions.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnKeystroke;
             this.dgdExpressions.GridColor = System.Drawing.SystemColors.Window;
@@ -328,33 +338,6 @@
             this.dgdExpressions.DragEnter += new System.Windows.Forms.DragEventHandler(this.dgdExpressions_DragEnter);
             this.dgdExpressions.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dgdExpressions_MouseClick);
             // 
-            // ExpressionName
-            // 
-            this.ExpressionName.HeaderText = "Name";
-            this.ExpressionName.Name = "ExpressionName";
-            // 
-            // Expression
-            // 
-            this.Expression.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Expression.HeaderText = "Expression";
-            this.Expression.Name = "Expression";
-            // 
-            // Display
-            // 
-            this.Display.HeaderText = "Display";
-            this.Display.Name = "Display";
-            this.Display.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Display.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.Display.Width = 50;
-            // 
-            // Highlight
-            // 
-            this.Highlight.HeaderText = "Highlight";
-            this.Highlight.Name = "Highlight";
-            this.Highlight.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Highlight.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.Highlight.Width = 50;
-            // 
             // pnlRuleDetails
             // 
             this.pnlRuleDetails.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -381,7 +364,7 @@
             this.pnlRuleDetails.Size = new System.Drawing.Size(637, 207);
             this.pnlRuleDetails.TabIndex = 0;
             // 
-            // cmbCheckAboveOrBelow
+            // cmbFailIfValueAboveBelow
             // 
             this.cmbFailIfValueAboveBelow.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbFailIfValueAboveBelow.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
@@ -390,7 +373,7 @@
             "Values fail when below thresholds",
             "Values fail when above thresholds"});
             this.cmbFailIfValueAboveBelow.Location = new System.Drawing.Point(229, 5);
-            this.cmbFailIfValueAboveBelow.Name = "cmbCheckAboveOrBelow";
+            this.cmbFailIfValueAboveBelow.Name = "cmbFailIfValueAboveBelow";
             this.cmbFailIfValueAboveBelow.Size = new System.Drawing.Size(169, 20);
             this.cmbFailIfValueAboveBelow.TabIndex = 6;
             this.cmbFailIfValueAboveBelow.SelectedIndexChanged += new System.EventHandler(this.cmbCheckAboveOrBelow_SelectedIndexChanged);
@@ -919,6 +902,39 @@
             this.errorProvider1.BlinkStyle = System.Windows.Forms.ErrorBlinkStyle.NeverBlink;
             this.errorProvider1.ContainerControl = this;
             // 
+            // ExpressionName
+            // 
+            this.ExpressionName.HeaderText = "Name";
+            this.ExpressionName.Name = "ExpressionName";
+            // 
+            // Expression
+            // 
+            this.Expression.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Expression.HeaderText = "Expression";
+            this.Expression.Name = "Expression";
+            // 
+            // Display
+            // 
+            this.Display.HeaderText = "Display";
+            this.Display.Name = "Display";
+            this.Display.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.Display.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.Display.Width = 50;
+            // 
+            // Highlight
+            // 
+            this.Highlight.HeaderText = "Highlight";
+            this.Highlight.Name = "Highlight";
+            this.Highlight.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.Highlight.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.Highlight.Width = 50;
+            // 
+            // ExpressionColor
+            // 
+            this.ExpressionColor.HeaderText = "Color";
+            this.ExpressionColor.Name = "ExpressionColor";
+            this.ExpressionColor.Width = 50;
+            // 
             // frmAddPerfMonRule
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -977,10 +993,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ToolTip tt;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Counter;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn ShowInChart;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn HighlightInChart;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn WildcardWithTotal;
         private System.Windows.Forms.SplitContainer splitExpressionsAndRule;
         private System.Windows.Forms.SplitContainer splitExpressions;
         private System.Windows.Forms.Label label3;
@@ -1010,10 +1022,6 @@
         private System.Windows.Forms.Button btnSaveRule;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ExpressionName;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Expression;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn Display;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn Highlight;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.ErrorProvider errorProvider1;
         private System.Windows.Forms.Label label13;
@@ -1035,5 +1043,15 @@
         private System.Windows.Forms.TextBox txtHighRegion;
         private System.Windows.Forms.TextBox txtDescription;
         private System.Windows.Forms.TextBox txtCategory;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Counter;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn ShowInChart;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn HighlightInChart;
+        private System.Windows.Forms.DataGridViewComboBoxColumn CounterColor;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn WildcardWithTotal;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ExpressionName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Expression;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn Display;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn Highlight;
+        private System.Windows.Forms.DataGridViewComboBoxColumn ExpressionColor;
     }
 }

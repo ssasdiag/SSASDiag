@@ -630,6 +630,16 @@ namespace SSASDiag
                 }
                 key.Close();
             }
+
+            Dictionary<string, Color> cols = new Dictionary<string, Color>();
+            cols.Add("Red", Color.Red);
+            cols.Add("Blue", Color.Blue);
+            cols.Add("Green", Color.Green);
+            BindingSource colsource = new BindingSource(cols, null);
+            CounterColor.DataSource = colsource;
+            CounterColor.DisplayMember = "Key";
+
+
             ValidateChildren();
             txtName.Focus();
         }
