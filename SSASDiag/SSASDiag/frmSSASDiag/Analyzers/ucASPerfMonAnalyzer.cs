@@ -235,7 +235,6 @@ namespace SSASDiag
                 if (ctrs.Count == 0)
                 {
                     NewRule.RuleResult = RuleResultEnum.CountersUnavailable;
-                    return;
                 }
                 NewRule.Counters.AddRange(ctrs);
                 ctr.Close();
@@ -1870,19 +1869,23 @@ namespace SSASDiag
             {
                 Rules.Clear();
                 LoadRulesFromRegistry();
-            }
-            
-                
+            }             
         }
 
         private void dgdRules_SelectionChanged(object sender, EventArgs e)
         {
-            btnEditRule.Enabled = dgdRules.SelectedRows.Count == 1;
+            btnDeleteRule.Enabled = btnEditRule.Enabled = dgdRules.SelectedRows.Count == 1;
         }
 
         private void btnDeleteRule_Click(object sender, EventArgs e)
         {
-
+            if (MessageBox.Show(this, "Delete rule '" + dgdRules.CurrentRow.Cells[1].Value as string + "'?", "Delete Rule", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                RegistryKey k = Registry.LocalMachine.OpenSubKey("SOFTWARE\\SSASDiag\\PerfMonRules\\", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                k.DeleteSubKeyTree(dgdRules.CurrentRow.Cells[1].Value as string);
+                Rules.Clear();
+                LoadRulesFromRegistry();
+            }
         }
 
         public class RuleExpression

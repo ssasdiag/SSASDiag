@@ -28,12 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitLogList = new System.Windows.Forms.SplitContainer();
             this.splitLogDetails = new System.Windows.Forms.SplitContainer();
             this.dgdLogList = new System.Windows.Forms.DataGridView();
@@ -72,11 +72,11 @@
             this.ResultDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pnAnalyses = new System.Windows.Forms.Panel();
             this.pnlRuleButtons = new System.Windows.Forms.Panel();
+            this.btnDeleteRule = new System.Windows.Forms.Button();
+            this.btnEditRule = new System.Windows.Forms.Button();
             this.btnRunAllRules = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.lblRules = new System.Windows.Forms.Label();
-            this.btnEditRule = new System.Windows.Forms.Button();
-            this.btnDeleteRule = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitLogList)).BeginInit();
             this.splitLogList.Panel1.SuspendLayout();
             this.splitLogList.Panel2.SuspendLayout();
@@ -160,14 +160,14 @@
             this.dgdLogList.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgdLogList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdLogList.ColumnHeadersVisible = false;
-            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle9.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle9.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle9.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle9.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle9.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle9.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdLogList.DefaultCellStyle = dataGridViewCellStyle1;
             this.dgdLogList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdLogList.Location = new System.Drawing.Point(0, 0);
             this.dgdLogList.Margin = new System.Windows.Forms.Padding(0);
@@ -322,14 +322,14 @@
             // 
             this.dgdGrouping.AllowUserToOrderColumns = true;
             this.dgdGrouping.AllowUserToResizeColumns = false;
-            dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle10.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle10.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle10.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle10.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle10.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle10.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdGrouping.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdGrouping.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dgdGrouping.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdGrouping.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Counter,
@@ -483,73 +483,73 @@
             // 
             this.chartPerfMon.BorderlineWidth = 0;
             this.chartPerfMon.BorderSkin.BorderWidth = 0;
-            chartArea3.Area3DStyle.LightStyle = System.Windows.Forms.DataVisualization.Charting.LightStyle.Realistic;
-            chartArea3.AxisX.IsLabelAutoFit = false;
-            chartArea3.AxisX.IsMarginVisible = false;
-            chartArea3.AxisX.LabelAutoFitMaxFontSize = 7;
-            chartArea3.AxisX.LabelAutoFitStyle = ((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles)(((((((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.IncreaseFont | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.DecreaseFont) 
+            chartArea1.Area3DStyle.LightStyle = System.Windows.Forms.DataVisualization.Charting.LightStyle.Realistic;
+            chartArea1.AxisX.IsLabelAutoFit = false;
+            chartArea1.AxisX.IsMarginVisible = false;
+            chartArea1.AxisX.LabelAutoFitMaxFontSize = 7;
+            chartArea1.AxisX.LabelAutoFitStyle = ((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles)(((((((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.IncreaseFont | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.DecreaseFont) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.StaggeredLabels) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep30) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep45) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep90) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.WordWrap)));
-            chartArea3.AxisX.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
-            chartArea3.AxisX.LabelStyle.Format = "yyyy-MM-dd\nHH:mm:ss";
-            chartArea3.AxisX.LabelStyle.Interval = 0D;
-            chartArea3.AxisX.LabelStyle.IntervalOffset = 0D;
-            chartArea3.AxisX.LabelStyle.IntervalOffsetType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
-            chartArea3.AxisX.LabelStyle.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
-            chartArea3.AxisX.MajorGrid.Enabled = false;
-            chartArea3.AxisX.MajorGrid.LineWidth = 0;
-            chartArea3.AxisX.MajorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
-            chartArea3.AxisX.MaximumAutoSize = 100F;
-            chartArea3.AxisX.MinorTickMark.Enabled = true;
-            chartArea3.AxisX.MinorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
-            chartArea3.AxisX.Title = "Date/Time (UTC)";
-            chartArea3.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            chartArea3.AxisX2.IsMarginVisible = false;
-            chartArea3.AxisX2.LabelStyle.Enabled = false;
-            chartArea3.AxisX2.MaximumAutoSize = 100F;
-            chartArea3.AxisY.LabelAutoFitMaxFontSize = 8;
-            chartArea3.AxisY.LabelAutoFitStyle = ((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles)(((((((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.IncreaseFont | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.DecreaseFont) 
+            chartArea1.AxisX.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+            chartArea1.AxisX.LabelStyle.Format = "yyyy-MM-dd\nHH:mm:ss";
+            chartArea1.AxisX.LabelStyle.Interval = 0D;
+            chartArea1.AxisX.LabelStyle.IntervalOffset = 0D;
+            chartArea1.AxisX.LabelStyle.IntervalOffsetType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisX.LabelStyle.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisX.MajorGrid.Enabled = false;
+            chartArea1.AxisX.MajorGrid.LineWidth = 0;
+            chartArea1.AxisX.MajorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisX.MaximumAutoSize = 100F;
+            chartArea1.AxisX.MinorTickMark.Enabled = true;
+            chartArea1.AxisX.MinorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisX.Title = "Date/Time (UTC)";
+            chartArea1.AxisX.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            chartArea1.AxisX2.IsMarginVisible = false;
+            chartArea1.AxisX2.LabelStyle.Enabled = false;
+            chartArea1.AxisX2.MaximumAutoSize = 100F;
+            chartArea1.AxisY.LabelAutoFitMaxFontSize = 8;
+            chartArea1.AxisY.LabelAutoFitStyle = ((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles)(((((((System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.IncreaseFont | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.DecreaseFont) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.StaggeredLabels) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep30) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep45) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.LabelsAngleStep90) 
             | System.Windows.Forms.DataVisualization.Charting.LabelAutoFitStyles.WordWrap)));
-            chartArea3.AxisY.LabelStyle.Enabled = false;
-            chartArea3.AxisY.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
-            chartArea3.AxisY.LabelStyle.Interval = 0D;
-            chartArea3.AxisY.LabelStyle.IntervalOffset = 0D;
-            chartArea3.AxisY.LabelStyle.IntervalOffsetType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
-            chartArea3.AxisY.LabelStyle.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
-            chartArea3.AxisY.MajorGrid.Enabled = false;
-            chartArea3.AxisY.MajorGrid.LineWidth = 0;
-            chartArea3.AxisY.MajorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
-            chartArea3.AxisY.MaximumAutoSize = 100F;
-            chartArea3.AxisY.MinorGrid.LineWidth = 0;
-            chartArea3.AxisY.MinorTickMark.Enabled = true;
-            chartArea3.AxisY.MinorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
-            chartArea3.AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 3.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            chartArea3.AxisY2.IsMarginVisible = false;
-            chartArea3.AxisY2.LabelStyle.Enabled = false;
-            chartArea3.AxisY2.MaximumAutoSize = 100F;
-            chartArea3.BorderWidth = 0;
-            chartArea3.IsSameFontSizeForAllAxes = true;
-            chartArea3.Name = "ChartArea1";
-            chartArea3.Position.Auto = false;
-            chartArea3.Position.Height = 100F;
-            chartArea3.Position.Width = 100F;
-            this.chartPerfMon.ChartAreas.Add(chartArea3);
+            chartArea1.AxisY.LabelStyle.Enabled = false;
+            chartArea1.AxisY.LabelStyle.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+            chartArea1.AxisY.LabelStyle.Interval = 0D;
+            chartArea1.AxisY.LabelStyle.IntervalOffset = 0D;
+            chartArea1.AxisY.LabelStyle.IntervalOffsetType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisY.LabelStyle.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Auto;
+            chartArea1.AxisY.MajorGrid.Enabled = false;
+            chartArea1.AxisY.MajorGrid.LineWidth = 0;
+            chartArea1.AxisY.MajorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisY.MaximumAutoSize = 100F;
+            chartArea1.AxisY.MinorGrid.LineWidth = 0;
+            chartArea1.AxisY.MinorTickMark.Enabled = true;
+            chartArea1.AxisY.MinorTickMark.TickMarkStyle = System.Windows.Forms.DataVisualization.Charting.TickMarkStyle.InsideArea;
+            chartArea1.AxisY.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 3.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            chartArea1.AxisY2.IsMarginVisible = false;
+            chartArea1.AxisY2.LabelStyle.Enabled = false;
+            chartArea1.AxisY2.MaximumAutoSize = 100F;
+            chartArea1.BorderWidth = 0;
+            chartArea1.IsSameFontSizeForAllAxes = true;
+            chartArea1.Name = "ChartArea1";
+            chartArea1.Position.Auto = false;
+            chartArea1.Position.Height = 100F;
+            chartArea1.Position.Width = 100F;
+            this.chartPerfMon.ChartAreas.Add(chartArea1);
             this.chartPerfMon.Dock = System.Windows.Forms.DockStyle.Top;
-            legend3.AutoFitMinFontSize = 6;
-            legend3.BackColor = System.Drawing.SystemColors.ControlLight;
-            legend3.BorderColor = System.Drawing.SystemColors.ActiveBorder;
-            legend3.Enabled = false;
-            legend3.Name = "Legend";
-            legend3.TableStyle = System.Windows.Forms.DataVisualization.Charting.LegendTableStyle.Wide;
-            legend3.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
-            this.chartPerfMon.Legends.Add(legend3);
+            legend1.AutoFitMinFontSize = 6;
+            legend1.BackColor = System.Drawing.SystemColors.ControlLight;
+            legend1.BorderColor = System.Drawing.SystemColors.ActiveBorder;
+            legend1.Enabled = false;
+            legend1.Name = "Legend";
+            legend1.TableStyle = System.Windows.Forms.DataVisualization.Charting.LegendTableStyle.Wide;
+            legend1.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 6.25F, System.Drawing.FontStyle.Bold);
+            this.chartPerfMon.Legends.Add(legend1);
             this.chartPerfMon.Location = new System.Drawing.Point(0, 0);
             this.chartPerfMon.Margin = new System.Windows.Forms.Padding(0);
             this.chartPerfMon.Name = "chartPerfMon";
@@ -631,14 +631,14 @@
             this.dgdRules.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdRules.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dgdRules.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle11.BackColor = System.Drawing.SystemColors.ButtonFace;
-            dataGridViewCellStyle11.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle11.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle11.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle11.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle11.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdRules.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle11;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.ButtonFace;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdRules.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgdRules.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdRules.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Category,
@@ -646,14 +646,14 @@
             this.Description,
             this.Result,
             this.ResultDescription});
-            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle12.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle12.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle12.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle12.SelectionBackColor = System.Drawing.SystemColors.GradientActiveCaption;
-            dataGridViewCellStyle12.SelectionForeColor = System.Drawing.SystemColors.Desktop;
-            dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdRules.DefaultCellStyle = dataGridViewCellStyle12;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.Desktop;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdRules.DefaultCellStyle = dataGridViewCellStyle4;
             this.dgdRules.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdRules.Location = new System.Drawing.Point(0, 19);
             this.dgdRules.Margin = new System.Windows.Forms.Padding(0);
@@ -744,6 +744,44 @@
             this.pnlRuleButtons.Size = new System.Drawing.Size(521, 19);
             this.pnlRuleButtons.TabIndex = 5;
             // 
+            // btnDeleteRule
+            // 
+            this.btnDeleteRule.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.btnDeleteRule.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
+            this.btnDeleteRule.FlatAppearance.BorderSize = 0;
+            this.btnDeleteRule.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
+            this.btnDeleteRule.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            this.btnDeleteRule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnDeleteRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDeleteRule.Location = new System.Drawing.Point(425, 0);
+            this.btnDeleteRule.Margin = new System.Windows.Forms.Padding(0);
+            this.btnDeleteRule.Name = "btnDeleteRule";
+            this.btnDeleteRule.Size = new System.Drawing.Size(96, 19);
+            this.btnDeleteRule.TabIndex = 5;
+            this.btnDeleteRule.Text = "Delete Rule";
+            this.btnDeleteRule.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.btnDeleteRule.UseVisualStyleBackColor = false;
+            this.btnDeleteRule.Click += new System.EventHandler(this.btnDeleteRule_Click);
+            // 
+            // btnEditRule
+            // 
+            this.btnEditRule.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.btnEditRule.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
+            this.btnEditRule.FlatAppearance.BorderSize = 0;
+            this.btnEditRule.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
+            this.btnEditRule.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
+            this.btnEditRule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnEditRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnEditRule.Location = new System.Drawing.Point(328, 0);
+            this.btnEditRule.Margin = new System.Windows.Forms.Padding(0);
+            this.btnEditRule.Name = "btnEditRule";
+            this.btnEditRule.Size = new System.Drawing.Size(96, 19);
+            this.btnEditRule.TabIndex = 4;
+            this.btnEditRule.Text = "Edit Rule";
+            this.btnEditRule.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.btnEditRule.UseVisualStyleBackColor = false;
+            this.btnEditRule.Click += new System.EventHandler(this.btnEditRule_Click);
+            // 
             // btnRunAllRules
             // 
             this.btnRunAllRules.BackColor = System.Drawing.SystemColors.ControlDark;
@@ -792,44 +830,6 @@
             this.lblRules.TabIndex = 4;
             this.lblRules.Text = "Select a rule to see relevant counter details and annotations:";
             this.lblRules.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // btnEditRule
-            // 
-            this.btnEditRule.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.btnEditRule.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
-            this.btnEditRule.FlatAppearance.BorderSize = 0;
-            this.btnEditRule.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
-            this.btnEditRule.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
-            this.btnEditRule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnEditRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnEditRule.Location = new System.Drawing.Point(328, 0);
-            this.btnEditRule.Margin = new System.Windows.Forms.Padding(0);
-            this.btnEditRule.Name = "btnEditRule";
-            this.btnEditRule.Size = new System.Drawing.Size(96, 19);
-            this.btnEditRule.TabIndex = 4;
-            this.btnEditRule.Text = "Edit Rule";
-            this.btnEditRule.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.btnEditRule.UseVisualStyleBackColor = false;
-            this.btnEditRule.Click += new System.EventHandler(this.btnEditRule_Click);
-            // 
-            // btnDeleteRule
-            // 
-            this.btnDeleteRule.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.btnDeleteRule.FlatAppearance.BorderColor = System.Drawing.SystemColors.AppWorkspace;
-            this.btnDeleteRule.FlatAppearance.BorderSize = 0;
-            this.btnDeleteRule.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.Highlight;
-            this.btnDeleteRule.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.GradientActiveCaption;
-            this.btnDeleteRule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnDeleteRule.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnDeleteRule.Location = new System.Drawing.Point(425, 0);
-            this.btnDeleteRule.Margin = new System.Windows.Forms.Padding(0);
-            this.btnDeleteRule.Name = "btnDeleteRule";
-            this.btnDeleteRule.Size = new System.Drawing.Size(96, 19);
-            this.btnDeleteRule.TabIndex = 5;
-            this.btnDeleteRule.Text = "Delete Rule";
-            this.btnDeleteRule.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.btnDeleteRule.UseVisualStyleBackColor = false;
-            this.btnDeleteRule.Click += new System.EventHandler(this.btnDeleteRule_Click);
             // 
             // ucASPerfMonAnalyzer
             // 
