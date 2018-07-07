@@ -261,6 +261,19 @@ namespace SSASDiag
                         re.Value = d;
                     else
                         re.Value = BreakdownExpression(re.Expression, NewRule, NewRuleExpressions);
+                    if (re.Display)
+                    {
+                        StripLine sl = new StripLine();
+                        Random rand = new Random((int)DateTime.Now.Ticks);
+                        int color = rand.Next((int)indexcolors.Length - 1);
+                        ColorConverter c = new ColorConverter();
+                        sl.BackColor = sl.BorderColor = (c.ConvertFromString(indexcolors[color]) as Color?).Value;
+                        sl.ForeColor = Color.Transparent;
+                        sl.IntervalOffset = re.Value;
+                        sl.BorderWidth = re.Highlight ? 3 : 1;
+                        sl.Text = re.Name;
+                        NewRule.CustomStripLines.Add(sl);
+                    }
                 }
                 string ValOrSeriesToCheck = r.GetValue("ValueOrSeriesToCheck") as string;
                 if (NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Count() > 0)
@@ -976,7 +989,7 @@ namespace SSASDiag
                     i--;
                     chartPerfMon.Series.Remove(s);
                     chartPerfMon.Series.Add(s);
-                    s.BorderWidth = 4;
+                    s.BorderWidth = 3;
                     
                     while (nSeriesNode.Parent != null)
                     {
@@ -1021,7 +1034,7 @@ namespace SSASDiag
                     if (CurrentRuleCustomSeries.Where(s=>s == CurrentSeriesUnderMouse).Count() > 0)
                     {
                         if (sr.BorderWidth == 1)
-                            sr.BorderWidth = 4;
+                            sr.BorderWidth = 3;
                         else
                             sr.BorderWidth = 1;
                     }
@@ -1358,7 +1371,7 @@ namespace SSASDiag
 
                                 TreeNode node = tvCounters.FindNodeByPath(s.Name);
                                 if (node != null && tvCounters.SelectedNodes.Contains(node))
-                                    s.BorderWidth = 4;
+                                    s.BorderWidth = 3;
                                 Color counterColor;
                                 IEnumerable<RuleCounter> MatchingCountersInRuleWithColor = rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name));
                                 if (rule == null || (MatchingCountersInRuleWithColor.Count() == 0 || (MatchingCountersInRuleWithColor.Count() > 0 && MatchingCountersInRuleWithColor.First().CounterColor == null)))
@@ -1370,7 +1383,8 @@ namespace SSASDiag
                                 }
                                 else
                                     counterColor = rule.Counters.Where(c => c.Path == s.Name || c.Path == FullPathAlternateHierarchy(s.Name)).First().CounterColor.Value;
-
+                                if (rule != null && rule.Counters.Where(ctr => ctr.Path == s.Name).Count() > 0 && rule.Counters.Where(ctr => ctr.Path == s.Name).First().HighlightInChart)
+                                    s.BorderWidth = 3;
                                 s.Color = s.BorderColor = counterColor;
                                     
                                 Pen pen = new Pen(s.BorderColor);
@@ -1771,7 +1785,7 @@ namespace SSASDiag
                                 ScaleSeries(rc.ChartSeries);
                                 TreeNode node = tvCounters.FindNodeByPath(rc.Path);
                                 if (tvCounters.SelectedNodes.Contains(node))
-                                    rc.ChartSeries.BorderWidth = 4;
+                                    rc.ChartSeries.BorderWidth = 3;
                                 else
                                     rc.ChartSeries.BorderWidth = 1;
                                 chartPerfMon.Series.Add(rc.ChartSeries);
