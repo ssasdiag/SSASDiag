@@ -65,74 +65,6 @@ namespace SSASDiag
             ErrorColor = Color.FromArgb(255, Color.Pink);
             PassColor = Color.FromArgb(255, Color.LightGreen);
             cmbFailIfValueAboveBelow.SelectedIndex = 0;
-
-            if (originRule != null)
-            {
-                DataGridViewRow row = null;
-                txtName.Text = originRule.Name;
-                txtCategory.Text = originRule.Category;
-                txtDescription.Text = originRule.Description;
-                foreach (string ctr in originRule.Counters.Select(c => c.WildcardPath).Distinct())
-                {
-                    dgdSelectedCounters.Rows.Add();
-                    row = dgdSelectedCounters.Rows[dgdSelectedCounters.Rows.Count - 1];                    
-                    row.Cells[0].Value = ctr;
-                    ucASPerfMonAnalyzer.RuleCounter rc = originRule.Counters.Where(c => c.WildcardPath == ctr).First();
-                    row.Cells[1].Value = rc.ShowInChart;
-                    row.Cells[2].Value = rc.HighlightInChart;
-                    row.Cells[3].Value = rc.Include_TotalSeriesInWildcard;
-                }
-                RegistryKey key = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules\\" + originRule.Name + "\\Expressions", RegistryKeyPermissionCheck.ReadSubTree);
-                List<ucASPerfMonAnalyzer.RuleExpression> exprs = new List<ucASPerfMonAnalyzer.RuleExpression>();
-                foreach (string sk in key.GetSubKeyNames())
-                {
-                    RegistryKey subkey = key.OpenSubKey(sk);
-                    exprs.Add(new ucASPerfMonAnalyzer.RuleExpression(sk, subkey.GetValue("Expression") as string, (int)subkey.GetValue("Index"), Convert.ToBoolean(subkey.GetValue("Display")), Convert.ToBoolean(subkey.GetValue("Highlight"))));
-                }
-                foreach (ucASPerfMonAnalyzer.RuleExpression ex in exprs.OrderBy(expr => expr.Index))
-                {   
-                    row = dgdExpressions.Rows[0].Clone() as DataGridViewRow;
-                    row.Cells[0].Value = ex.Name;
-                    row.Cells[1].Value = ex.Expression;
-                    row.Cells[2].Value = ex.Display;
-                    row.Cells[3].Value = ex.Highlight;
-                    dgdExpressions.Rows.Add(row);
-                }
-                
-                UpdateExpressionsAndCountersCombo();
-                key.Close();
-                key = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules\\" + originRule.Name, RegistryKeyPermissionCheck.ReadSubTree);
-                cmbValueToCheck.SelectedIndex = cmbValueToCheck.FindStringExact(key.GetValue("ValueOrSeriesToCheck") as string);
-                cmbSeriesFunction.SelectedIndex = cmbSeriesFunction.FindStringExact(key.GetValue("SeriesFunction") as string);
-                udPctMatchCheck.Value = (int)key.GetValue("PctRequiredToMatchWarnError", 15);
-                bool bFailIfValuesBelowWarnError = Convert.ToBoolean(key.GetValue("FailIfBelowWarnError"));
-                string WarnExpr = key.GetValue("WarnExpr", "") as string;
-                if (WarnExpr != "")
-                {
-                    cmbWarnExpr.SelectedIndex = cmbWarnExpr.FindStringExact(WarnExpr);
-                    txtWarnRegion.Text = key.GetValue("WarnRegionLabel") as string;
-                    txtWarnResult.Text = key.GetValue("WarningText") as string;
-                }
-                if (bFailIfValuesBelowWarnError)
-                {
-                    cmbFailIfValueAboveBelow.SelectedIndex = 1;
-                    cmbValHigh.SelectedIndex = cmbValLow.FindStringExact(key.GetValue("ErrorExpr") as string);
-                    txtHighRegion.Text = key.GetValue("ErrorRegionLabel") as string;
-                    txtHighResult.Text = key.GetValue("ErrorText") as string;
-                    txtLowRegion.Text = key.GetValue("PassRegionLabel") as string;
-                    txtLowResult.Text = key.GetValue("PassText") as string;
-                }
-                else
-                {
-                    cmbFailIfValueAboveBelow.SelectedIndex = 0;
-                    cmbValLow.SelectedIndex = cmbValLow.FindStringExact(key.GetValue("ErrorExpr") as string);
-                    txtLowRegion.Text = key.GetValue("ErrorRegionLabel") as string;
-                    txtLowResult.Text = key.GetValue("ErrorText") as string;
-                    txtHighRegion.Text = key.GetValue("PassRegionLabel") as string;
-                    txtHighResult.Text = key.GetValue("PassText") as string;
-                }
-                key.Close();
-            }
         }
 
         private void splitExpressions_SplitterMoving(object sender, SplitterCancelEventArgs e)
@@ -640,6 +572,73 @@ namespace SSASDiag
 
         private void frmAddPerfMonRule_Shown(object sender, EventArgs e)
         {
+            if (originRule != null)
+            {
+                DataGridViewRow row = null;
+                txtName.Text = originRule.Name;
+                txtCategory.Text = originRule.Category;
+                txtDescription.Text = originRule.Description;
+                foreach (string ctr in originRule.Counters.Select(c => c.WildcardPath).Distinct())
+                {
+                    dgdSelectedCounters.Rows.Add();
+                    row = dgdSelectedCounters.Rows[dgdSelectedCounters.Rows.Count - 1];
+                    row.Cells[0].Value = ctr;
+                    ucASPerfMonAnalyzer.RuleCounter rc = originRule.Counters.Where(c => c.WildcardPath == ctr).First();
+                    row.Cells[1].Value = rc.ShowInChart;
+                    row.Cells[2].Value = rc.HighlightInChart;
+                    row.Cells[3].Value = rc.Include_TotalSeriesInWildcard;
+                }
+                RegistryKey key = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules\\" + originRule.Name + "\\Expressions", RegistryKeyPermissionCheck.ReadSubTree);
+                List<ucASPerfMonAnalyzer.RuleExpression> exprs = new List<ucASPerfMonAnalyzer.RuleExpression>();
+                foreach (string sk in key.GetSubKeyNames())
+                {
+                    RegistryKey subkey = key.OpenSubKey(sk);
+                    exprs.Add(new ucASPerfMonAnalyzer.RuleExpression(sk, subkey.GetValue("Expression") as string, (int)subkey.GetValue("Index"), Convert.ToBoolean(subkey.GetValue("Display")), Convert.ToBoolean(subkey.GetValue("Highlight"))));
+                }
+                foreach (ucASPerfMonAnalyzer.RuleExpression ex in exprs.OrderBy(expr => expr.Index))
+                {
+                    row = dgdExpressions.Rows[0].Clone() as DataGridViewRow;
+                    row.Cells[0].Value = ex.Name;
+                    row.Cells[1].Value = ex.Expression;
+                    row.Cells[2].Value = ex.Display;
+                    row.Cells[3].Value = ex.Highlight;
+                    dgdExpressions.Rows.Add(row);
+                }
+
+                UpdateExpressionsAndCountersCombo();
+                key.Close();
+                key = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules\\" + originRule.Name, RegistryKeyPermissionCheck.ReadSubTree);
+                cmbValueToCheck.SelectedIndex = cmbValueToCheck.FindStringExact(key.GetValue("ValueOrSeriesToCheck") as string);
+                cmbSeriesFunction.SelectedIndex = cmbSeriesFunction.FindStringExact(key.GetValue("SeriesFunction") as string);
+                udPctMatchCheck.Value = (int)key.GetValue("PctRequiredToMatchWarnError", 15);
+                bool bFailIfValuesBelowWarnError = Convert.ToBoolean(key.GetValue("FailIfBelowWarnError"));
+                string WarnExpr = key.GetValue("WarnExpr", "") as string;
+                if (WarnExpr != "")
+                {
+                    cmbWarnExpr.SelectedIndex = cmbWarnExpr.FindStringExact(WarnExpr);
+                    txtWarnRegion.Text = key.GetValue("WarnRegionLabel") as string;
+                    txtWarnResult.Text = key.GetValue("WarningText") as string;
+                }
+                if (bFailIfValuesBelowWarnError)
+                {
+                    cmbFailIfValueAboveBelow.SelectedIndex = 1;
+                    cmbValHigh.SelectedIndex = cmbValLow.FindStringExact(key.GetValue("ErrorExpr") as string);
+                    txtHighRegion.Text = key.GetValue("ErrorRegionLabel") as string;
+                    txtHighResult.Text = key.GetValue("ErrorText") as string;
+                    txtLowRegion.Text = key.GetValue("PassRegionLabel") as string;
+                    txtLowResult.Text = key.GetValue("PassText") as string;
+                }
+                else
+                {
+                    cmbFailIfValueAboveBelow.SelectedIndex = 0;
+                    cmbValLow.SelectedIndex = cmbValLow.FindStringExact(key.GetValue("ErrorExpr") as string);
+                    txtLowRegion.Text = key.GetValue("ErrorRegionLabel") as string;
+                    txtLowResult.Text = key.GetValue("ErrorText") as string;
+                    txtHighRegion.Text = key.GetValue("PassRegionLabel") as string;
+                    txtHighResult.Text = key.GetValue("PassText") as string;
+                }
+                key.Close();
+            }
             ValidateChildren();
             txtName.Focus();
         }
