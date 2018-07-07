@@ -561,11 +561,10 @@ namespace SSASDiag
 
         private void txtName_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if ((!char.IsLetterOrDigit(e.KeyChar) && e.KeyChar != '-' && e.KeyChar!= '_' && e.KeyChar != ' ') ||
-                (txtName.Text == "" && char.IsNumber(e.KeyChar)))
+            if (!char.IsLetter(txtName.Text[0]))
             {
                 e.Handled = true;
-                tt.Show("Rules must start with a letter and use only letter, number, space, dash, or underscore.", txtName, 0, 0, 2000);
+                tt.Show("Rule names must start with a letter.", txtName, 0, -20, 1000);
             }
             btnSaveRule.Enabled = IsRuleComplete();
         }
