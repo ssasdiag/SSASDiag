@@ -236,9 +236,10 @@ namespace SSASDiag
                 get { return ruleFunction; } set { ruleFunction = value; }
             }
 
-            public double MaxValueForRule()
+            public double MaxValueForRule(double startMax = double.MinValue)
             {
-                double max = double.MinValue;
+                double max = startMax;
+
                 foreach (RuleCounter rc in Counters)
                     if (rc.ChartSeries.Tag != null)
                     {
@@ -313,7 +314,7 @@ namespace SSASDiag
                 {
                     if (ErrorLineText != "")
                     {
-                        PassRegion = AddStripLine(PassLineText, (WarnY > 0 ? WarnY : ErrorY), MaxValueForRule() * 1.05, PassColor);
+                        PassRegion = AddStripLine(PassLineText, (WarnY > 0 ? WarnY : ErrorY), MaxValueForRule((WarnY > 0 ? WarnY : ErrorY) * 1.05) * 1.05, PassColor);
                         if (WarningLineText != "")
                             WarnRegion = AddStripLine(WarningLineText, WarnY > 0 ? WarnY : 0, ErrorY, WarnColor);
                         ErrorRegion = AddStripLine(ErrorLineText, 0, ErrorY, ErrorColor);
@@ -323,7 +324,7 @@ namespace SSASDiag
                 {
                     if (ErrorLineText != "")
                     {
-                        ErrorRegion = AddStripLine(ErrorLineText, MaxValueForRule() * 1.05, ErrorY, ErrorColor);
+                        ErrorRegion = AddStripLine(ErrorLineText, MaxValueForRule(ErrorY) * 1.05, ErrorY, ErrorColor);
                         if (WarningLineText != "")
                             WarnRegion = AddStripLine(WarningLineText, WarnY, ErrorY, WarnColor);
                         PassRegion = AddStripLine(PassLineText, 0, WarnY > 0 ? WarnY : ErrorY, PassColor);
