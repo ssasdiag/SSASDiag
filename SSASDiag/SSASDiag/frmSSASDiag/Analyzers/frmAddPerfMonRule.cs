@@ -67,16 +67,6 @@ namespace SSASDiag
             cmbFailIfValueAboveBelow.SelectedIndex = 0;
         }
 
-        private void splitExpressions_SplitterMoving(object sender, SplitterCancelEventArgs e)
-        {
-            splitCounters.SplitterDistance = e.SplitX;
-        }
-
-        private void splitCounters_SplitterMoving(object sender, SplitterCancelEventArgs e)
-        {
-            splitExpressions.SplitterDistance = e.SplitX;
-        }
-
         /* Drag & Drop */
         #region
         private Rectangle dragBoxFromMouseDown;
@@ -621,21 +611,22 @@ namespace SSASDiag
                 }
                 if (bFailIfValuesBelowWarnError)
                 {
-                    cmbFailIfValueAboveBelow.SelectedIndex = 1;
-                    cmbValHigh.SelectedIndex = cmbValLow.FindStringExact(key.GetValue("ErrorExpr") as string);
-                    txtHighRegion.Text = key.GetValue("ErrorRegionLabel") as string;
-                    txtHighResult.Text = key.GetValue("ErrorText") as string;
-                    txtLowRegion.Text = key.GetValue("PassRegionLabel") as string;
-                    txtLowResult.Text = key.GetValue("PassText") as string;
-                }
-                else
-                {
                     cmbFailIfValueAboveBelow.SelectedIndex = 0;
                     cmbValLow.SelectedIndex = cmbValLow.FindStringExact(key.GetValue("ErrorExpr") as string);
                     txtLowRegion.Text = key.GetValue("ErrorRegionLabel") as string;
                     txtLowResult.Text = key.GetValue("ErrorText") as string;
                     txtHighRegion.Text = key.GetValue("PassRegionLabel") as string;
                     txtHighResult.Text = key.GetValue("PassText") as string;
+                }
+                else
+
+                {
+                    cmbFailIfValueAboveBelow.SelectedIndex = 1;
+                    cmbValHigh.SelectedIndex = cmbValLow.FindStringExact(key.GetValue("ErrorExpr") as string);
+                    txtHighRegion.Text = key.GetValue("ErrorRegionLabel") as string;
+                    txtHighResult.Text = key.GetValue("ErrorText") as string;
+                    txtLowRegion.Text = key.GetValue("PassRegionLabel") as string;
+                    txtLowResult.Text = key.GetValue("PassText") as string;
                 }
                 key.Close();
             }
@@ -702,7 +693,7 @@ namespace SSASDiag
                 if (udPctMatchCheck.Visible)
                     rule.SetValue("PctRequiredToMatchWarnError", (int)udPctMatchCheck.Value);
             }
-            rule.SetValue("FailIfBelowWarnError", cmbFailIfValueAboveBelow.SelectedIndex);
+            rule.SetValue("FailIfBelowWarnError", Math.Abs(cmbFailIfValueAboveBelow.SelectedIndex - 1));
             if (cmbFailIfValueAboveBelow.SelectedIndex == 1)
             {
                 rule.SetValue("ErrorExpr", cmbValHigh.SelectedItem as string);
@@ -752,6 +743,16 @@ namespace SSASDiag
         {
             lblPctMatchCheck.Visible = udPctMatchCheck.Visible = cmbSeriesFunction.SelectedIndex == (cmbSeriesFunction.Items.Count - 1);
             btnSaveRule.Enabled = IsRuleComplete();
+        }
+
+        private void splitExpressions_SplitterMoving(object sender, SplitterCancelEventArgs e)
+        {
+            splitCounters.SplitterDistance = e.SplitX;
+        }
+
+        private void splitCounters_SplitterMoving(object sender, SplitterCancelEventArgs e)
+        {
+            splitExpressions.SplitterDistance = e.SplitX;
         }
     }
 
