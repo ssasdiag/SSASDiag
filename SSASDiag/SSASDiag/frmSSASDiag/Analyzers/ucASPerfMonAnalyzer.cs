@@ -313,8 +313,12 @@ namespace SSASDiag
             Invoke(new Action(() =>
             {
                 b.DataSource = Rules;
+                cmbRuleFilter.Items.Clear();
+                cmbRuleFilter.Items.Add("<Show all rules>");
+                cmbRuleFilter.Items.AddRange(Rules.OrderBy(r=>r.Category).Select(r => r.Category).Distinct().ToArray());
+                cmbRuleFilter.SelectedIndex = 0;
                 dgdRules.DataSource = b;
-                dgdRules.ClearSelection();
+                dgdRules.Focus();
             }));
         }
 
