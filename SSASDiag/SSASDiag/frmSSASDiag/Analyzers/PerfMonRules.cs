@@ -314,10 +314,9 @@ namespace SSASDiag
                     if (ErrorLineText != "")
                     {
                         PassRegion = AddStripLine(PassLineText, (WarnY > 0 ? WarnY : ErrorY), MaxValueForRule() * 1.05, PassColor);
-                        CustomStripLines.Add(PassRegion);
-                        ErrorRegion = AddStripLine(ErrorLineText, 0, ErrorY, ErrorColor);
                         if (WarningLineText != "")
                             WarnRegion = AddStripLine(WarningLineText, WarnY > 0 ? WarnY : 0, ErrorY, WarnColor);
+                        ErrorRegion = AddStripLine(ErrorLineText, 0, ErrorY, ErrorColor);
                     }
                 }
                 else
@@ -325,10 +324,10 @@ namespace SSASDiag
                     if (ErrorLineText != "")
                     {
                         ErrorRegion = AddStripLine(ErrorLineText, MaxValueForRule() * 1.05, ErrorY, ErrorColor);
+                        if (WarningLineText != "")
+                            WarnRegion = AddStripLine(WarningLineText, WarnY, ErrorY, WarnColor);
                         PassRegion = AddStripLine(PassLineText, 0, WarnY > 0 ? WarnY : ErrorY, PassColor);
                     }
-                    if (WarningLineText != "")
-                        WarnRegion = AddStripLine(WarningLineText, WarnY, ErrorY, WarnColor);
                 }
 
                 foreach (Series s in series)
