@@ -340,7 +340,7 @@ namespace SSASDiag
                             dCount = s.Points.Where(p => p.YValues[0] <= ErrorY).Count();
                         else
                             dCount = s.Points.Where(p => p.YValues[0] >= ErrorY).Count();
-                        if ((double)dCount / (double)s.Points.Count * 100.0> PctValuesToTriggerWarnFail / 100.0)
+                        if ((double)dCount / (double)s.Points.Count * 100.0> PctValuesToTriggerWarnFail)
                         {
                             RuleResult = RuleResultEnum.Fail;
                             return;
@@ -349,7 +349,7 @@ namespace SSASDiag
                             dCount = s.Points.Where(p => p.YValues[0] <= WarnY).Count();
                         else
                             dCount = s.Points.Where(p => p.YValues[0] >= WarnY).Count();
-                        if ((double)dCount / (double)s.Points.Count * 100.0 > PctValuesToTriggerWarnFail / 100.0)
+                        if ((double)dCount / (double)s.Points.Count * 100.0 > PctValuesToTriggerWarnFail)
                         {
                             RuleResult = RuleResultEnum.Warn;
                             return;

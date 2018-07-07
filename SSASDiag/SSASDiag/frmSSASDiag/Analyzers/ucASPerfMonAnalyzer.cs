@@ -150,7 +150,7 @@ namespace SSASDiag
                     if (breakchar == '(')
                         while (breakchar != ')')
                             breakchar = expr.Substring(iCurPos++, 1)[0];
-                    List<Series> series = rule.Counters.Where(cc => cc.WildcardPath == c.Value.Replace("[", "").Replace("]", "") && !cc.WildcardPath.Contains("*") && (cc.Include_TotalSeriesInWildcard ? true : !cc.Path.Contains("_Total"))).Select(rc=>rc.ChartSeries).ToList();
+                    List<Series> series = rule.Counters.Where(cc => cc.WildcardPath == c.Value.Replace("[", "").Replace("]", "") && (cc.Include_TotalSeriesInWildcard ? true : !cc.Path.Contains("_Total"))).Select(rc=>rc.ChartSeries).ToList();
                     string function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").ToLower().Replace(" ", "");
                     double val = 0;
                     switch (function)
