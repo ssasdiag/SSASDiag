@@ -1907,6 +1907,56 @@ namespace SSASDiag
             }
         }
 
+        private static int KEY_READ = 131097;
+        private static UIntPtr HKEY_LOCAL_MACHINE = new UIntPtr(0x80000002u);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        private static extern int RegCloseKey(UIntPtr hKey);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        private static extern int RegOpenKeyEx(UIntPtr hKey, string subKey, int ulOptions, int samDesired, out UIntPtr hkResult);
+
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern uint RegSaveKey(UIntPtr hKey, string lpFile, IntPtr lpSecurityAttributes);
+
+        private void btnExport_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = "Choose a folder to export rules. A new top level folder is create with subfolders for each category.";
+            fbd.RootFolder = Environment.SpecialFolder.Desktop;
+            fbd.SelectedPath = Program.MainForm.txtSaveLocation.Text;
+            if (fbd.ShowDialog(this) == DialogResult.OK)
+            {
+                Directory.CreateDirectory(fbd.SelectedPath + "\\PerfMonRules");
+                UIntPtr res;
+                if (cmbRuleFilter.SelectedIndex == 0)
+                    foreach(string cat in Rules.Select(rl=>rl.Category).Distinct())
+                        Directory.CreateDirectory(fbd.SelectedPath + "\\PerfMonRules\\" + cat);
+                else
+                    Directory.CreateDirectory(fbd.SelectedPath + "\\PerfMonRules\\" + cmbRuleFilter.SelectedItem);
+                foreach (DataGridViewRow row in dgdRules.Rows)
+                {
+                    if (row.Visible)
+                    {
+                        Rule r = row.DataBoundItem as Rule;
+                        RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\SSASDiag\\PerfMonRules\\" + r.Name, 0, KEY_READ, out res);
+                        RegSaveKey(res, fbd.SelectedPath + "\\PerfMonRules\\" + r.Category + "\\" + r.Name + ".reg", IntPtr.Zero);
+                        RegCloseKey(res);
+                    }
+                }
+            }
+        }
+
+        private void btnImport_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dgdRules_MouseClick(object sender, MouseEventArgs e)
+        {
+
+        }
+
         public class RuleExpression
         {
             public RuleExpression(string Name, string Expression, int Index, bool Display = false, bool Highlight = false, bool Include_TotalSeriesInWildcard = true)
