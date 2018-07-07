@@ -1666,7 +1666,7 @@ namespace SSASDiag
             {
                 List<DataGridViewRow> RulesToRun = new List<DataGridViewRow>();
                 foreach (DataGridViewRow row in dgdRules.Rows)
-                    if (row.Selected || (sender as Button).Text == "Run All")
+                    if (row.Visible)
                         if ((row.DataBoundItem as Rule).RuleResult != RuleResultEnum.CountersUnavailable && 
                             (row.DataBoundItem as Rule).Counters[0].ChartSeries == null)
                             RulesToRun.Add(row);
@@ -1889,6 +1889,21 @@ namespace SSASDiag
                 k.DeleteSubKeyTree(dgdRules.CurrentRow.Cells[1].Value as string);
                 Rules.Clear();
                 LoadRulesFromRegistry();
+            }
+        }
+
+        private void cmbRuleFilter_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (dgdRules.DataSource != null)
+            {
+                CurrencyManager cm = (CurrencyManager)BindingContext[dgdRules.DataSource];
+                cm.SuspendBinding();
+                foreach (DataGridViewRow r in dgdRules.Rows)
+                    if (cmbRuleFilter.SelectedIndex == 0)
+                        r.Visible = true;
+                    else
+                        r.Visible = r.Cells["Category"].Value as string == cmbRuleFilter.SelectedItem as string;
+                cm.ResumeBinding();
             }
         }
 
