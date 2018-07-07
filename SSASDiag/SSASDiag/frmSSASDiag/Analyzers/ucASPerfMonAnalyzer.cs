@@ -300,6 +300,23 @@ namespace SSASDiag
             foreach (string r in rules.GetSubKeyNames())
                 LoadRuleFromRegistry(r);
             rules.Close();
+            SqlDataReader dr = new SqlCommand("select * from RuleResults", connDB).ExecuteReader();
+            while (dr.Read())
+            {
+                Rule r = Rules.Where(rr => rr.Name == dr["RuleName"] as string).First();
+                r.RuleResult = (RuleResultEnum)dr["Result"];
+                if (dr["ResultDescription"] != null)
+                    r.ResultDescription = dr["ResultDescription"] as string;
+            }
+            dr.Close();
+
+            BindingSource b = new BindingSource();
+            Invoke(new Action(() =>
+            {
+                b.DataSource = Rules;
+                dgdRules.DataSource = b;
+                dgdRules.ClearSelection();
+            }));
         }
 
         private void UcASPerfMonAnalyzer_Shown(object sender, EventArgs e)
@@ -914,23 +931,7 @@ namespace SSASDiag
                     //DefineRules();
                     LoadRulesFromRegistry();
 
-                    SqlDataReader dr = new SqlCommand("select * from RuleResults", connDB).ExecuteReader();
-                    while (dr.Read())
-                    {
-                        Rule r = Rules.Where(rr => rr.Name == dr["RuleName"] as string).First();
-                        r.RuleResult = (RuleResultEnum)dr["Result"];
-                        if (dr["ResultDescription"] != null)
-                            r.ResultDescription = dr["ResultDescription"] as string;
-                    }
-                    dr.Close();
-
-                    BindingSource b = new BindingSource();
-                    Invoke(new Action(() =>
-                    {
-                        b.DataSource = Rules;
-                        dgdRules.DataSource = b;
-                        dgdRules.ClearSelection();
-                    }));
+                    
                     
                 })).Start();
             }
@@ -1858,7 +1859,33 @@ namespace SSASDiag
             public bool Analyzed { get; set; }
         }
 
-        private class RuleExpression
+        private void btnEditRule_Click(object sender, EventArgs e)
+        {
+            Rule r = dgdRules.SelectedRows[0].DataBoundItem as Rule;
+            frmAddPerfMonRule f = new frmAddPerfMonRule(r);
+            DialogResult res = f.ShowDialog();
+            if (res == DialogResult.OK)
+                LoadRuleFromRegistry(f.txtName.Text);
+            if (res == DialogResult.Ignore)
+            {
+                Rules.Clear();
+                LoadRulesFromRegistry();
+            }
+            
+                
+        }
+
+        private void dgdRules_SelectionChanged(object sender, EventArgs e)
+        {
+            btnEditRule.Enabled = dgdRules.SelectedRows.Count == 1;
+        }
+
+        private void btnDeleteRule_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        public class RuleExpression
         {
             public RuleExpression(string Name, string Expression, int Index, bool Display = false, bool Highlight = false, bool Include_TotalSeriesInWildcard = true)
             {

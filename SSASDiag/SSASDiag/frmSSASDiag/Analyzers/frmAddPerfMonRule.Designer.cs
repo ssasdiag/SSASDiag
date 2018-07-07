@@ -50,7 +50,7 @@
             this.Display = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.Highlight = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.pnlRuleDetails = new System.Windows.Forms.Panel();
-            this.cmbCheckAboveOrBelow = new System.Windows.Forms.ComboBox();
+            this.cmbFailIfValueAboveBelow = new System.Windows.Forms.ComboBox();
             this.pnlMed = new System.Windows.Forms.Panel();
             this.lblWarnVal = new System.Windows.Forms.Label();
             this.txtWarnResult = new System.Windows.Forms.TextBox();
@@ -358,7 +358,7 @@
             // pnlRuleDetails
             // 
             this.pnlRuleDetails.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlRuleDetails.Controls.Add(this.cmbCheckAboveOrBelow);
+            this.pnlRuleDetails.Controls.Add(this.cmbFailIfValueAboveBelow);
             this.pnlRuleDetails.Controls.Add(this.pnlMed);
             this.pnlRuleDetails.Controls.Add(this.pnlLow);
             this.pnlRuleDetails.Controls.Add(this.pnlHigh);
@@ -383,18 +383,18 @@
             // 
             // cmbCheckAboveOrBelow
             // 
-            this.cmbCheckAboveOrBelow.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbCheckAboveOrBelow.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.cmbCheckAboveOrBelow.FormattingEnabled = true;
-            this.cmbCheckAboveOrBelow.Items.AddRange(new object[] {
+            this.cmbFailIfValueAboveBelow.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbFailIfValueAboveBelow.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.cmbFailIfValueAboveBelow.FormattingEnabled = true;
+            this.cmbFailIfValueAboveBelow.Items.AddRange(new object[] {
             "Values fail when below thresholds",
             "Values fail when above thresholds"});
-            this.cmbCheckAboveOrBelow.Location = new System.Drawing.Point(229, 5);
-            this.cmbCheckAboveOrBelow.Name = "cmbCheckAboveOrBelow";
-            this.cmbCheckAboveOrBelow.Size = new System.Drawing.Size(169, 20);
-            this.cmbCheckAboveOrBelow.TabIndex = 6;
-            this.cmbCheckAboveOrBelow.SelectedIndexChanged += new System.EventHandler(this.cmbCheckAboveOrBelow_SelectedIndexChanged);
-            this.cmbCheckAboveOrBelow.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
+            this.cmbFailIfValueAboveBelow.Location = new System.Drawing.Point(229, 5);
+            this.cmbFailIfValueAboveBelow.Name = "cmbCheckAboveOrBelow";
+            this.cmbFailIfValueAboveBelow.Size = new System.Drawing.Size(169, 20);
+            this.cmbFailIfValueAboveBelow.TabIndex = 6;
+            this.cmbFailIfValueAboveBelow.SelectedIndexChanged += new System.EventHandler(this.cmbCheckAboveOrBelow_SelectedIndexChanged);
+            this.cmbFailIfValueAboveBelow.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
             // pnlMed
             // 
@@ -977,7 +977,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ToolTip tt;
-        private System.Windows.Forms.DataGridView dgdSelectedCounters;
         private System.Windows.Forms.DataGridViewTextBoxColumn Counter;
         private System.Windows.Forms.DataGridViewCheckBoxColumn ShowInChart;
         private System.Windows.Forms.DataGridViewCheckBoxColumn HighlightInChart;
@@ -985,21 +984,13 @@
         private System.Windows.Forms.SplitContainer splitExpressionsAndRule;
         private System.Windows.Forms.SplitContainer splitExpressions;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.DataGridView dgdExpressions;
         private System.Windows.Forms.Panel pnlRuleDetails;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.ComboBox cmbValueToCheck;
         private System.Windows.Forms.Label lblSeriesFunction;
-        private System.Windows.Forms.ComboBox cmbSeriesFunction;
-        private System.Windows.Forms.NumericUpDown udPctMatchCheck;
         private System.Windows.Forms.Label lblPctMatchCheck;
         private System.Windows.Forms.Panel pnlMed;
         private System.Windows.Forms.Panel pnlLow;
         private System.Windows.Forms.Panel pnlHigh;
-        private System.Windows.Forms.ComboBox cmbCheckAboveOrBelow;
-        private System.Windows.Forms.ComboBox cmbWarnExpr;
-        private System.Windows.Forms.ComboBox cmbValLow;
-        private System.Windows.Forms.ComboBox cmbValHigh;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
@@ -1009,21 +1000,14 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label lblMedRegion;
         private System.Windows.Forms.Label lblWarnVal;
-        private System.Windows.Forms.TextBox txtWarnResult;
-        private System.Windows.Forms.TextBox txtWarnRegion;
         private System.Windows.Forms.Label lblMedResultText;
         private System.Windows.Forms.Label lblLowRegion;
         private System.Windows.Forms.Label lblLowVal;
-        private System.Windows.Forms.TextBox txtLowResult;
-        private System.Windows.Forms.TextBox txtLowRegion;
         private System.Windows.Forms.Label lblLowResultText;
         private System.Windows.Forms.Label lblHighRegion;
         private System.Windows.Forms.Label lblHighVal;
-        private System.Windows.Forms.TextBox txtHighResult;
-        private System.Windows.Forms.TextBox txtHighRegion;
         private System.Windows.Forms.Label lblHighResult;
         private System.Windows.Forms.Button btnSaveRule;
-        private System.Windows.Forms.TextBox txtDescription;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.DataGridViewTextBoxColumn ExpressionName;
@@ -1032,8 +1016,24 @@
         private System.Windows.Forms.DataGridViewCheckBoxColumn Highlight;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.ErrorProvider errorProvider1;
-        private System.Windows.Forms.TextBox txtCategory;
         private System.Windows.Forms.Label label13;
         public System.Windows.Forms.TextBox txtName;
+        private System.Windows.Forms.DataGridView dgdSelectedCounters;
+        private System.Windows.Forms.DataGridView dgdExpressions;
+        private System.Windows.Forms.ComboBox cmbValueToCheck;
+        private System.Windows.Forms.ComboBox cmbSeriesFunction;
+        private System.Windows.Forms.NumericUpDown udPctMatchCheck;
+        private System.Windows.Forms.ComboBox cmbFailIfValueAboveBelow;
+        private System.Windows.Forms.ComboBox cmbWarnExpr;
+        private System.Windows.Forms.ComboBox cmbValLow;
+        private System.Windows.Forms.ComboBox cmbValHigh;
+        private System.Windows.Forms.TextBox txtWarnResult;
+        private System.Windows.Forms.TextBox txtWarnRegion;
+        private System.Windows.Forms.TextBox txtLowResult;
+        private System.Windows.Forms.TextBox txtLowRegion;
+        private System.Windows.Forms.TextBox txtHighResult;
+        private System.Windows.Forms.TextBox txtHighRegion;
+        private System.Windows.Forms.TextBox txtDescription;
+        private System.Windows.Forms.TextBox txtCategory;
     }
 }

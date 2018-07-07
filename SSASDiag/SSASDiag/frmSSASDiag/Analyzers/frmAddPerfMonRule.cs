@@ -28,10 +28,14 @@ namespace SSASDiag
     public partial class frmAddPerfMonRule : Form
     {
         TreeView tvCounters;
+        ucASPerfMonAnalyzer.Rule originRule = null;
         ucASPerfMonAnalyzer HostControl = ((Program.MainForm.tcCollectionAnalysisTabs.TabPages[1].Controls["tcAnalysis"] as TabControl).TabPages["Performance Logs"].Controls[0] as ucASPerfMonAnalyzer);
         Color WarnColor, ErrorColor, PassColor = Color.Empty;
-        public frmAddPerfMonRule()
+
+        public frmAddPerfMonRule(ucASPerfMonAnalyzer.Rule r = null)
         {
+            originRule = r;
+
             InitializeComponent();
 
             // 
@@ -60,7 +64,75 @@ namespace SSASDiag
             WarnColor = Color.FromArgb(255, Color.Khaki);
             ErrorColor = Color.FromArgb(255, Color.Pink);
             PassColor = Color.FromArgb(255, Color.LightGreen);
-            cmbCheckAboveOrBelow.SelectedIndex = 0;
+            cmbFailIfValueAboveBelow.SelectedIndex = 0;
+
+            if (originRule != null)
+            {
+                DataGridViewRow row = null;
+                txtName.Text = originRule.Name;
+                txtCategory.Text = originRule.Category;
+                txtDescription.Text = originRule.Description;
+                foreach (string ctr in originRule.Counters.Select(c => c.WildcardPath).Distinct())
+                {
+                    dgdSelectedCounters.Rows.Add();
+                    row = dgdSelectedCounters.Rows[dgdSelectedCounters.Rows.Count - 1];                    
+                    row.Cells[0].Value = ctr;
+                    ucASPerfMonAnalyzer.RuleCounter rc = originRule.Counters.Where(c => c.WildcardPath == ctr).First();
+                    row.Cells[1].Value = rc.ShowInChart;
+                    row.Cells[2].Value = rc.HighlightInChart;
+                    row.Cells[3].Value = rc.Include_TotalSeriesInWildcard;
+                }
+                RegistryKey key = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules\\" + originRule.Name + "\\Expressions", RegistryKeyPermissionCheck.ReadSubTree);
+                List<ucASPerfMonAnalyzer.RuleExpression> exprs = new List<ucASPerfMonAnalyzer.RuleExpression>();
+                foreach (string sk in key.GetSubKeyNames())
+                {
+                    RegistryKey subkey = key.OpenSubKey(sk);
+                    exprs.Add(new ucASPerfMonAnalyzer.RuleExpression(sk, subkey.GetValue("Expression") as string, (int)subkey.GetValue("Index"), Convert.ToBoolean(subkey.GetValue("Display")), Convert.ToBoolean(subkey.GetValue("Highlight"))));
+                }
+                foreach (ucASPerfMonAnalyzer.RuleExpression ex in exprs.OrderBy(expr => expr.Index))
+                {   
+                    row = dgdExpressions.Rows[0].Clone() as DataGridViewRow;
+                    row.Cells[0].Value = ex.Name;
+                    row.Cells[1].Value = ex.Expression;
+                    row.Cells[2].Value = ex.Display;
+                    row.Cells[3].Value = ex.Highlight;
+                    dgdExpressions.Rows.Add(row);
+                }
+                
+                UpdateExpressionsAndCountersCombo();
+                key.Close();
+                key = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules\\" + originRule.Name, RegistryKeyPermissionCheck.ReadSubTree);
+                cmbValueToCheck.SelectedIndex = cmbValueToCheck.FindStringExact(key.GetValue("ValueOrSeriesToCheck") as string);
+                cmbSeriesFunction.SelectedIndex = cmbSeriesFunction.FindStringExact(key.GetValue("SeriesFunction") as string);
+                udPctMatchCheck.Value = (int)key.GetValue("PctRequiredToMatchWarnError", 15);
+                bool bFailIfValuesBelowWarnError = Convert.ToBoolean(key.GetValue("FailIfBelowWarnError"));
+                string WarnExpr = key.GetValue("WarnExpr", "") as string;
+                if (WarnExpr != "")
+                {
+                    cmbWarnExpr.SelectedIndex = cmbWarnExpr.FindStringExact(WarnExpr);
+                    txtWarnRegion.Text = key.GetValue("WarnRegionLabel") as string;
+                    txtWarnResult.Text = key.GetValue("WarningText") as string;
+                }
+                if (bFailIfValuesBelowWarnError)
+                {
+                    cmbFailIfValueAboveBelow.SelectedIndex = 1;
+                    cmbValHigh.SelectedIndex = cmbValLow.FindStringExact(key.GetValue("ErrorExpr") as string);
+                    txtHighRegion.Text = key.GetValue("ErrorRegionLabel") as string;
+                    txtHighResult.Text = key.GetValue("ErrorText") as string;
+                    txtLowRegion.Text = key.GetValue("PassRegionLabel") as string;
+                    txtLowResult.Text = key.GetValue("PassText") as string;
+                }
+                else
+                {
+                    cmbFailIfValueAboveBelow.SelectedIndex = 0;
+                    cmbValLow.SelectedIndex = cmbValLow.FindStringExact(key.GetValue("ErrorExpr") as string);
+                    txtLowRegion.Text = key.GetValue("ErrorRegionLabel") as string;
+                    txtLowResult.Text = key.GetValue("ErrorText") as string;
+                    txtHighRegion.Text = key.GetValue("PassRegionLabel") as string;
+                    txtHighResult.Text = key.GetValue("PassText") as string;
+                }
+                key.Close();
+            }
         }
 
         private void splitExpressions_SplitterMoving(object sender, SplitterCancelEventArgs e)
@@ -86,17 +158,14 @@ namespace SSASDiag
         private void TvCounters_DragDrop(object sender, DragEventArgs e)
         {
             DataGridViewRow r = (DataGridViewRow)e.Data.GetData("System.Windows.Forms.DataGridViewRow");
-            if (r != null)
-            {
-                AddCountersBackToTreeViewFromGrid(r);
-                dgdSelectedCounters.Rows.Remove(r);
-                UpdateExpressionsAndCountersCombo();
-            }
+            AddCountersBackToTreeViewFromGrid(r);
+            dgdSelectedCounters.Rows.Remove(r);
+            UpdateExpressionsAndCountersCombo();
         }
 
         private void AddCountersBackToTreeViewFromGrid(DataGridViewRow r)
         {
-            if (r != null)
+            if (r.Tag != null)
             {
                 TreeNode node = r.Tag as TreeNode;
                 string[] parts = (r.Cells[0].Value as string).Split('\\');
@@ -278,8 +347,8 @@ namespace SSASDiag
                 dgdSelectedCounters.Rows.Count == 0 || dgdExpressions.Rows.Count == 0 ||
                 cmbValueToCheck.SelectedIndex == -1 ||
                 (cmbSeriesFunction.Visible && cmbSeriesFunction.SelectedIndex == -1) ||
-                (cmbCheckAboveOrBelow.SelectedIndex == 1 && cmbValHigh.SelectedIndex == -1)  ||
-                (cmbCheckAboveOrBelow.SelectedIndex == 0 && cmbValLow.SelectedIndex == -1) ||
+                (cmbFailIfValueAboveBelow.SelectedIndex == 1 && cmbValHigh.SelectedIndex == -1)  ||
+                (cmbFailIfValueAboveBelow.SelectedIndex == 0 && cmbValLow.SelectedIndex == -1) ||
                 (cmbWarnExpr.SelectedIndex >= 0 && (txtWarnRegion.Text.Trim() == "" || txtWarnResult.Text.Trim() == "")))
                 return false;
             foreach (DataGridViewRow r in dgdExpressions.Rows)
@@ -292,12 +361,18 @@ namespace SSASDiag
         {
             List<TreeNode> nodes = new List<TreeNode>();
             foreach (TreeNode subnode in tv.Nodes)
-                nodes.AddRange(ListNodes(subnode));
+            {
+                if (subnode.Nodes.Count > 0)
+                    nodes.AddRange(ListNodes(subnode));
+                else
+                    nodes.Add(subnode);
+            }
             return nodes;
         }
         List<TreeNode> ListNodes(TreeNode node)
         {
             List<TreeNode> nodes = new List<TreeNode>();
+            if (node.Nodes.Count == 0) nodes.Add(node);
             foreach (TreeNode subnode in node.Nodes)
                 nodes.AddRange(ListNodes(subnode));
             return nodes;
@@ -453,7 +528,7 @@ namespace SSASDiag
 
         private void cmbCheckAboveOrBelow_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (cmbCheckAboveOrBelow.SelectedIndex == 0)
+            if (cmbFailIfValueAboveBelow.SelectedIndex == 0)
             {
                 pnlHigh.BackColor = PassColor;
                 pnlMed.BackColor = WarnColor;
@@ -577,13 +652,17 @@ namespace SSASDiag
 
         private void btnSaveRule_Click(object sender, EventArgs e)
         {
+            bool bExistingRule = false;
             RegistryKey rules = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules", RegistryKeyPermissionCheck.ReadWriteSubTree);
             foreach (string ruleName in rules.GetSubKeyNames())
                 if (ruleName.ToLower() == txtName.Text.ToLower().Trim())
                 {
-                    MessageBox.Show(this, "A rule with this name already exists!", "Rule exists", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    errorProvider1.SetError(txtName, "A rule with this name already exists!");
-                    return;
+                    if (MessageBox.Show(this, "A rule with this name already exists!\nReplace existing rule?", "Existing rule", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.No)
+                    {
+                        errorProvider1.SetError(txtName, "A rule with this name already exists!");
+                        return;
+                    }
+                    bExistingRule = true;
                 }
             RegistryKey rule = rules.CreateSubKey(txtName.Text.Trim(), RegistryKeyPermissionCheck.ReadWriteSubTree);
             rule.DeleteSubKeyTree("Counters", false);
@@ -624,8 +703,8 @@ namespace SSASDiag
                 if (udPctMatchCheck.Visible)
                     rule.SetValue("PctRequiredToMatchWarnError", (int)udPctMatchCheck.Value);
             }
-            rule.SetValue("FailIfBelowWarnError", cmbCheckAboveOrBelow.SelectedIndex);
-            if (cmbCheckAboveOrBelow.SelectedIndex == 1)
+            rule.SetValue("FailIfBelowWarnError", cmbFailIfValueAboveBelow.SelectedIndex);
+            if (cmbFailIfValueAboveBelow.SelectedIndex == 1)
             {
                 rule.SetValue("ErrorExpr", cmbValHigh.SelectedItem as string);
                 rule.SetValue("ErrorRegionLabel", txtHighRegion.Text.Trim());
@@ -648,7 +727,10 @@ namespace SSASDiag
                 rule.SetValue("WarningText", txtWarnResult.Text.Trim());
             }
             rule.Close();
-            DialogResult = DialogResult.OK;
+            if (bExistingRule)
+                DialogResult = DialogResult.Ignore;
+            else
+                DialogResult = DialogResult.OK;
             Close();
         }
 

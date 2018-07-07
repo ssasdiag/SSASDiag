@@ -90,12 +90,12 @@ namespace SSASDiag
             Rules.Add(r3);
         }
 
-        private enum RuleResultEnum
+        public enum RuleResultEnum
         {
             NotRun, Fail, Warn, Pass, CountersUnavailable, Other
         }
 
-        private class RuleCounter
+        public class RuleCounter
         {
             public string Path;
             public string WildcardPath;
@@ -170,7 +170,7 @@ namespace SSASDiag
             }
         }
 
-        private class Rule : INotifyPropertyChanged
+        public class Rule : INotifyPropertyChanged
         {
             public Rule(string Name, string Category, string Description)
             {
