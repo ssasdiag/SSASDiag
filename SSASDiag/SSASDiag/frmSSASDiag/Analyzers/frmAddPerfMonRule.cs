@@ -396,11 +396,12 @@ namespace SSASDiag
                             breakchar = expr.Substring(iCurPos++, 1)[0];
 
                         function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").Replace(" ", "").Replace("(", "").Replace(")", "");
-                        if (!function.ToLower().In(new string[] { "first", "last", "max", "min", "avg", "avgincludenull", "avgexcludezero", "count" }))
+                        if (!function.ToLower().In(new string[] { "first", "last", "sum", "max", "min", "avg", "avgincludenull", "avgexcludezero", "count" }))
                             return "Invalid counter function at: ." + function;
                     }
                     else
-                        dgdExpressions.Rows[CurrentRowIndex].Tag = "Series";
+                        return "Invalid counter expression.  Counters must use a function in an expression.";
+                        //dgdExpressions.Rows[CurrentRowIndex].Tag = "Series";
                     string RestOfExpression = "";
                     if (expr.Length > expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1)
                         RestOfExpression = expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1);
@@ -835,6 +836,11 @@ namespace SSASDiag
         private void cmbSeriesFunction_SelectedIndexChanged(object sender, EventArgs e)
         {
             lblPctMatchCheck.Visible = udPctMatchCheck.Visible = cmbSeriesFunction.SelectedIndex == (cmbSeriesFunction.Items.Count - 1);
+            btnSaveRule.Enabled = IsRuleComplete();
+        }
+
+        private void txtCategory_TextChanged(object sender, EventArgs e)
+        {
             btnSaveRule.Enabled = IsRuleComplete();
         }
 

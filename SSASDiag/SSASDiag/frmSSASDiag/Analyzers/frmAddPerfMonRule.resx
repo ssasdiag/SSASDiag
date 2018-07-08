@@ -136,6 +136,7 @@ Counters support the following functions:
 
 First: first value in series, Last: last value in series
 Max: highest value in series, Min: lowest value in series
+Sum: sum of values in series
 Avg: average excluding null values
 AvgExcludeZero: average excluding zero and null values
 AvgIncludeNull: average including null values
@@ -155,9 +156,6 @@ PctCPU = SSASMax / MaxCPU
   </metadata>
   <metadata name="Highlight.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
-  </metadata>
-  <metadata name="tt.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 17</value>
   </metadata>
   <metadata name="tt.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>

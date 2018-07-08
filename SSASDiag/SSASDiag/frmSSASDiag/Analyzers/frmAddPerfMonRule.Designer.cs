@@ -29,11 +29,11 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmAddPerfMonRule));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitCountersAndRule = new System.Windows.Forms.SplitContainer();
             this.splitCounters = new System.Windows.Forms.SplitContainer();
             this.dgdSelectedCounters = new System.Windows.Forms.DataGridView();
@@ -45,6 +45,10 @@
             this.splitExpressions = new System.Windows.Forms.SplitContainer();
             this.label3 = new System.Windows.Forms.Label();
             this.dgdExpressions = new System.Windows.Forms.DataGridView();
+            this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Display = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.Highlight = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.pnlRuleDetails = new System.Windows.Forms.Panel();
             this.cmbFailIfValueAboveBelow = new System.Windows.Forms.ComboBox();
             this.pnlMed = new System.Windows.Forms.Panel();
@@ -93,10 +97,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.tt = new System.Windows.Forms.ToolTip(this.components);
             this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
-            this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Display = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.Highlight = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.splitCountersAndRule)).BeginInit();
             this.splitCountersAndRule.Panel1.SuspendLayout();
             this.splitCountersAndRule.Panel2.SuspendLayout();
@@ -166,28 +166,28 @@
             this.dgdSelectedCounters.BackgroundColor = System.Drawing.SystemColors.Window;
             this.dgdSelectedCounters.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdSelectedCounters.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdSelectedCounters.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdSelectedCounters.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dgdSelectedCounters.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdSelectedCounters.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Counter,
             this.ShowInChart,
             this.HighlightInChart,
             this.WildcardWithTotal});
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdSelectedCounters.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdSelectedCounters.DefaultCellStyle = dataGridViewCellStyle2;
             this.dgdSelectedCounters.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgdSelectedCounters.Location = new System.Drawing.Point(0, 0);
             this.dgdSelectedCounters.Margin = new System.Windows.Forms.Padding(0);
@@ -273,9 +273,9 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.label3.Location = new System.Drawing.Point(9, 21);
+            this.label3.Location = new System.Drawing.Point(6, 13);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(240, 180);
+            this.label3.Size = new System.Drawing.Size(240, 192);
             this.label3.TabIndex = 2;
             this.label3.Text = resources.GetString("label3.Text");
             // 
@@ -287,14 +287,14 @@
             this.dgdExpressions.BackgroundColor = System.Drawing.SystemColors.Window;
             this.dgdExpressions.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdExpressions.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle7.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle7.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle7.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdExpressions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdExpressions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgdExpressions.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgdExpressions.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ExpressionName,
@@ -309,12 +309,12 @@
             this.dgdExpressions.MultiSelect = false;
             this.dgdExpressions.Name = "dgdExpressions";
             this.dgdExpressions.RowHeadersWidth = 24;
-            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            dataGridViewCellStyle8.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdExpressions.RowsDefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdExpressions.RowsDefaultCellStyle = dataGridViewCellStyle4;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.ControlText;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
@@ -327,6 +327,33 @@
             this.dgdExpressions.DragDrop += new System.Windows.Forms.DragEventHandler(this.dgdExpressions_DragDrop);
             this.dgdExpressions.DragEnter += new System.Windows.Forms.DragEventHandler(this.dgdExpressions_DragEnter);
             this.dgdExpressions.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dgdExpressions_MouseClick);
+            // 
+            // ExpressionName
+            // 
+            this.ExpressionName.HeaderText = "Name";
+            this.ExpressionName.Name = "ExpressionName";
+            this.ExpressionName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
+            // Expression
+            // 
+            this.Expression.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.Expression.HeaderText = "Expression";
+            this.Expression.Name = "Expression";
+            this.Expression.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
+            // Display
+            // 
+            this.Display.HeaderText = "Display";
+            this.Display.Name = "Display";
+            this.Display.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.Display.Width = 50;
+            // 
+            // Highlight
+            // 
+            this.Highlight.HeaderText = "Highlight";
+            this.Highlight.Name = "Highlight";
+            this.Highlight.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.Highlight.Width = 50;
             // 
             // pnlRuleDetails
             // 
@@ -803,6 +830,7 @@
             this.txtCategory.Name = "txtCategory";
             this.txtCategory.Size = new System.Drawing.Size(157, 17);
             this.txtCategory.TabIndex = 1;
+            this.txtCategory.TextChanged += new System.EventHandler(this.txtCategory_TextChanged);
             this.txtCategory.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
             // label13
@@ -833,6 +861,7 @@
             this.txtDescription.Name = "txtDescription";
             this.txtDescription.Size = new System.Drawing.Size(378, 17);
             this.txtDescription.TabIndex = 2;
+            this.txtDescription.TextChanged += new System.EventHandler(this.txtCategory_TextChanged);
             this.txtDescription.Validating += new System.ComponentModel.CancelEventHandler(this.RequireRuleElements_Validating);
             // 
             // label12
@@ -892,33 +921,6 @@
             // 
             this.errorProvider1.BlinkStyle = System.Windows.Forms.ErrorBlinkStyle.NeverBlink;
             this.errorProvider1.ContainerControl = this;
-            // 
-            // ExpressionName
-            // 
-            this.ExpressionName.HeaderText = "Name";
-            this.ExpressionName.Name = "ExpressionName";
-            this.ExpressionName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            // 
-            // Expression
-            // 
-            this.Expression.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.Expression.HeaderText = "Expression";
-            this.Expression.Name = "Expression";
-            this.Expression.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            // 
-            // Display
-            // 
-            this.Display.HeaderText = "Display";
-            this.Display.Name = "Display";
-            this.Display.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Display.Width = 50;
-            // 
-            // Highlight
-            // 
-            this.Highlight.HeaderText = "Highlight";
-            this.Highlight.Name = "Highlight";
-            this.Highlight.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Highlight.Width = 50;
             // 
             // frmAddPerfMonRule
             // 

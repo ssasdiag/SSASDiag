@@ -161,6 +161,9 @@ namespace SSASDiag
                         case "last":
                             val = series.Last().Points.Last().YValues[0];
                             break;
+                        case "sum":
+                            val = series.Sum(sr => sr.Points.Sum(pt => pt.YValues[0]));
+                            break;
                         case "max":
                             val = series.Max(sr=>sr.Points.FindMaxByValue().YValues[0]);
                             break;
