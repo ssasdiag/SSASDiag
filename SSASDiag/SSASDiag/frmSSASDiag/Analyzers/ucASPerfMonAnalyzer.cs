@@ -262,16 +262,28 @@ namespace SSASDiag
                         re.Value = BreakdownExpression(re.Expression, NewRule, NewRuleExpressions);
                     if (re.Display)
                     {
-                        StripLine sl = new StripLine();
+                        Series sr = new Series();
+                        sr.ChartType = SeriesChartType.Line;
+                        sr.Name = re.Name;
+                        sr.XValueType = ChartValueType.DateTime;
+                        sr.LegendText = re.Name;
+
+                        sr.EmptyPointStyle.BorderWidth = 0;
                         Random rand = new Random((int)DateTime.Now.Ticks);
                         int color = rand.Next((int)indexcolors.Length - 1);
                         ColorConverter c = new ColorConverter();
-                        sl.BackColor = sl.BorderColor = (c.ConvertFromString(indexcolors[color]) as Color?).Value;
-                        sl.ForeColor = Color.Transparent;
-                        sl.IntervalOffset = re.Value;
-                        sl.BorderWidth = re.Highlight ? 3 : 1;
-                        sl.Text = re.Name;
-                        NewRule.CustomStripLines.Add(sl);
+                        sr.Color = sr.BorderColor = (c.ConvertFromString(indexcolors[color]) as Color?).Value;
+                        sr.Tag = re.Value;
+                        foreach (DataPoint p in NewRule.Counters[0].ChartSeries.Points)
+                        {
+                            DataPoint np = new DataPoint(p.XValue, re.Value);
+                            np.Tag = re.Value;
+                            sr.Points.Add(np);
+                        }
+                        sr.BorderWidth = re.Highlight ? 3 : 1;
+                        sr.Name = re.Name;
+                        //AddCustomSeries(sr);
+                        NewRule.CustomSeries.Add(sr);                        
                     }
                 }
                 string ValOrSeriesToCheck = r.GetValue("ValueOrSeriesToCheck") as string;
