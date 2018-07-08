@@ -838,11 +838,6 @@ namespace SSASDiag
             btnSaveRule.Enabled = IsRuleComplete();
         }
 
-        private void txtRuleDetailsChanged(object sender, EventArgs e)
-        {
-            btnSaveRule.Enabled = IsRuleComplete();
-        }
-
         private void splitExpressions_SplitterMoving(object sender, SplitterCancelEventArgs e)
         {
             splitCounters.SplitterDistance = e.SplitX;
