@@ -134,94 +134,112 @@ namespace SSASDiag
             splitAnalysis.SplitterMoved += SplitAnalysis_SplitterMoved;
         }
 
-        double BreakdownExpression(string expr, Rule rule, List<RuleExpression> ruleExpressions)
+        string BreakdownExpression(string expr, Rule rule, List<RuleExpression> ruleExpressions)
         {
-            int iCurPos = 0;
-            MatchCollection Counters = Regex.Matches(expr, "(\\[[^\\[]*?\\])\\.");
-            foreach(Match c in Counters)
+            string paredDownExpr = expr;
+            MatchCollection scalarCounterExpressions = Regex.Matches(expr, "(\\[[^\\[]*?\\])\\.\\w+");
+            foreach (Match m in scalarCounterExpressions)
+                paredDownExpr = paredDownExpr.Replace(m.Value, "!!!"); // just replace expressions with a series of invalid chars, we are only using this to eliminate terms
+            MatchCollection seriesExprs = Regex.Matches(paredDownExpr, "(\\[.*?\\])");
+            foreach (Match m in seriesExprs)
+                paredDownExpr = paredDownExpr.Replace(m.Value, "###");
+            MatchCollection subExprs = Regex.Matches(paredDownExpr, "[a-zA-Z]+[a-zA-Z0-9]*");
+            foreach (Match m in subExprs)
             {
-                iCurPos = expr.IndexOf(c.Value);
-                while (iCurPos != -1)
-                {
-                    iCurPos += c.Value.Length;
-                    char breakchar = '\0';
-                    while (breakchar != ' ' && breakchar != '(' && iCurPos < expr.Length)
-                        breakchar = expr.Substring(iCurPos++, 1)[0];
-                    if (breakchar == '(')
-                        while (breakchar != ')')
-                            breakchar = expr.Substring(iCurPos++, 1)[0];
-                    List<Series> series = rule.Counters.Where(cc => cc.WildcardPath == c.Value.TrimEnd('.').Replace("[", "").Replace("]", "") && (cc.Include_TotalSeriesInWildcard ? true : !cc.Path.Contains("_Total"))).Select(rc=>rc.ChartSeries).ToList();
-                    string function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").ToLower().Replace(" ", "").Replace(")", "").Replace(c.Value.ToLower().Replace(" ", ""), "");
-                    double val = 0;
-                    switch (function)
-                    {
-                        case "first":
-                            val = series.First().Points[0].YValues[0];
-                            break;
-                        case "last":
-                            val = series.Last().Points.Last().YValues[0];
-                            break;
-                        case "sum":
-                            val = series.Sum(sr => sr.Points.Sum(pt => pt.YValues[0]));
-                            break;
-                        case "max":
-                            val = series.Max(sr=>sr.Points.FindMaxByValue().YValues[0]);
-                            break;
-                        case "min":
-                            val = series.Min(sr=>sr.Points.FindMinByValue().YValues[0]);
-                            break;
-                        case "avg":
-                            val = series.Average(sr=>sr.Points.AverageValue());
-                            break;
-                        case "avgexcludezero":
-                            val = series.Average(sr=>sr.Points.AverageValue(false, false));
-                            break;
-                        case "avgincludenull":
-                            val = series.Average(sr=>sr.Points.AverageValue(true));
-                            break;
-                        case "count":
-                            val = series.Count();
-                            break;
-                    }
-                    expr = expr.Substring(0, expr.IndexOf(c.Value)) + val + expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length);
-                    iCurPos = expr.IndexOf(c.Value);
-                }
+                expr = expr.Replace(m.Value, "(" + BreakdownExpression(ruleExpressions.Where(re => re.Name == m.Value).Select(re => re.Expression).First(), rule, ruleExpressions) + ")");
             }
-            iCurPos = 0;
-            int iWordStart = -1;
-            while (iCurPos < expr.Length)
-            {
-                if (char.IsLetter(expr[iCurPos]))
-                {
-                    if (iWordStart == -1)
-                        iWordStart = iCurPos;
-                    iCurPos++;
-                }
-                else
-                {
-                    if (char.IsLetterOrDigit(expr[iCurPos]) || expr[iCurPos] == '-' || expr[iCurPos] == '_')
-                        iCurPos++;
-                    else
-                    {
-                        if (iWordStart != -1)
-                        {
-                            string subExpr = expr.Substring(iWordStart, iCurPos - iWordStart);
-                            double d;
-                            if (double.TryParse(subExpr, out d))
-                                return d;
-                            d = ruleExpressions.Where(re => re.Name == subExpr).First().Value;
-                            expr = expr.Replace(subExpr, d.ToString());
-                            if (Regex.Matches(expr, @"[a-zA-Z]").Count == 0)
-                                return Convert.ToDouble(new DataTable().Compute(expr, ""));
-                            iCurPos = -1;
-                            iWordStart = -1;
-                        }
-                        iCurPos++;
-                    }
-                }
-            }
-            return Convert.ToDouble(new DataTable().Compute(expr, ""));
+
+            return expr;
         }
+
+        //double BreakdownExpression(string expr, Rule rule, List<RuleExpression> ruleExpressions)
+        //{
+        //    int iCurPos = 0;
+        //    MatchCollection Counters = Regex.Matches(expr, "(\\[[^\\[]*?\\])\\.");
+        //    foreach(Match c in Counters)
+        //    {
+        //        iCurPos = expr.IndexOf(c.Value);
+        //        while (iCurPos != -1)
+        //        {
+        //            iCurPos += c.Value.Length;
+        //            char breakchar = '\0';
+        //            while (breakchar != ' ' && breakchar != '(' && iCurPos < expr.Length)
+        //                breakchar = expr.Substring(iCurPos++, 1)[0];
+        //            if (breakchar == '(')
+        //                while (breakchar != ')')
+        //                    breakchar = expr.Substring(iCurPos++, 1)[0];
+        //            List<Series> series = rule.Counters.Where(cc => cc.WildcardPath == c.Value.TrimEnd('.').Replace("[", "").Replace("]", "") && (cc.Include_TotalSeriesInWildcard ? true : !cc.Path.Contains("_Total"))).Select(rc=>rc.ChartSeries).ToList();
+        //            string function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").ToLower().Replace(" ", "").Replace(")", "").Replace(c.Value.ToLower().Replace(" ", ""), "");
+        //            double val = 0;
+        //            switch (function)
+        //            {
+        //                case "first":
+        //                    val = series.First().Points[0].YValues[0];
+        //                    break;
+        //                case "last":
+        //                    val = series.Last().Points.Last().YValues[0];
+        //                    break;
+        //                case "sum":
+        //                    val = series.Sum(sr => sr.Points.Sum(pt => pt.YValues[0]));
+        //                    break;
+        //                case "max":
+        //                    val = series.Max(sr=>sr.Points.FindMaxByValue().YValues[0]);
+        //                    break;
+        //                case "min":
+        //                    val = series.Min(sr=>sr.Points.FindMinByValue().YValues[0]);
+        //                    break;
+        //                case "avg":
+        //                    val = series.Average(sr=>sr.Points.AverageValue());
+        //                    break;
+        //                case "avgexcludezero":
+        //                    val = series.Average(sr=>sr.Points.AverageValue(false, false));
+        //                    break;
+        //                case "avgincludenull":
+        //                    val = series.Average(sr=>sr.Points.AverageValue(true));
+        //                    break;
+        //                case "count":
+        //                    val = series.Count();
+        //                    break;
+        //            }
+        //            expr = expr.Substring(0, expr.IndexOf(c.Value)) + val + expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length);
+        //            iCurPos = expr.IndexOf(c.Value);
+        //        }
+        //    }
+        //    iCurPos = 0;
+        //    int iWordStart = -1;
+        //    while (iCurPos < expr.Length)
+        //    {
+        //        if (char.IsLetter(expr[iCurPos]))
+        //        {
+        //            if (iWordStart == -1)
+        //                iWordStart = iCurPos;
+        //            iCurPos++;
+        //        }
+        //        else
+        //        {
+        //            if (char.IsLetterOrDigit(expr[iCurPos]) || expr[iCurPos] == '-' || expr[iCurPos] == '_')
+        //                iCurPos++;
+        //            else
+        //            {
+        //                if (iWordStart != -1)
+        //                {
+        //                    string subExpr = expr.Substring(iWordStart, iCurPos - iWordStart);
+        //                    double d;
+        //                    if (double.TryParse(subExpr, out d))
+        //                        return d;
+        //                    d = ruleExpressions.Where(re => re.Name == subExpr).First().Value;
+        //                    expr = expr.Replace(subExpr, d.ToString());
+        //                    if (Regex.Matches(expr, @"[a-zA-Z]").Count == 0)
+        //                        return Convert.ToDouble(new DataTable().Compute(expr, ""));
+        //                    iCurPos = -1;
+        //                    iWordStart = -1;
+        //                }
+        //                iCurPos++;
+        //            }
+        //        }
+        //    }
+        //    return Convert.ToDouble(new DataTable().Compute(expr, ""));
+        //}
 
         private void LoadRuleFromRegistry(string rule)
         {
@@ -258,11 +276,9 @@ namespace SSASDiag
                 r = rules.OpenSubKey(rule, false);
                 foreach (RuleExpression re in NewRuleExpressions.OrderBy(x => x.Index))
                 {
-                    double d;
-                    if (Double.TryParse(re.Expression, out d))
-                        re.Value = d;
-                    else
-                        re.Value = BreakdownExpression(re.Expression, NewRule, NewRuleExpressions);
+                    string exprBreakdown = "";
+                    exprBreakdown = BreakdownExpression(re.Expression, NewRule, NewRuleExpressions);
+
                     if (re.Display)
                     {
                         Series sr = new Series();
