@@ -137,7 +137,7 @@ namespace SSASDiag
         double BreakdownExpression(string expr, Rule rule, List<RuleExpression> ruleExpressions)
         {
             int iCurPos = 0;
-            MatchCollection Counters = Regex.Matches(expr, "(\\[.*?\\])");
+            MatchCollection Counters = Regex.Matches(expr, "(\\[[^\\[]*?\\])\\.");
             foreach(Match c in Counters)
             {
                 iCurPos = expr.IndexOf(c.Value);
@@ -150,8 +150,8 @@ namespace SSASDiag
                     if (breakchar == '(')
                         while (breakchar != ')')
                             breakchar = expr.Substring(iCurPos++, 1)[0];
-                    List<Series> series = rule.Counters.Where(cc => cc.WildcardPath == c.Value.Replace("[", "").Replace("]", "") && (cc.Include_TotalSeriesInWildcard ? true : !cc.Path.Contains("_Total"))).Select(rc=>rc.ChartSeries).ToList();
-                    string function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").ToLower().Replace(" ", "").Replace(")", "");
+                    List<Series> series = rule.Counters.Where(cc => cc.WildcardPath == c.Value.TrimEnd('.').Replace("[", "").Replace("]", "") && (cc.Include_TotalSeriesInWildcard ? true : !cc.Path.Contains("_Total"))).Select(rc=>rc.ChartSeries).ToList();
+                    string function = expr.Substring(expr.IndexOf(c.Value), iCurPos - expr.IndexOf(c.Value)).Replace(c.Value + ".", "").ToLower().Replace(" ", "").Replace(")", "").Replace(c.Value.ToLower().Replace(" ", ""), "");
                     double val = 0;
                     switch (function)
                     {
@@ -183,7 +183,7 @@ namespace SSASDiag
                             val = series.Count();
                             break;
                     }
-                    expr = expr.Substring(0, expr.IndexOf(c.Value)) + val + expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1);
+                    expr = expr.Substring(0, expr.IndexOf(c.Value)) + val + expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length);
                     iCurPos = expr.IndexOf(c.Value);
                 }
             }
