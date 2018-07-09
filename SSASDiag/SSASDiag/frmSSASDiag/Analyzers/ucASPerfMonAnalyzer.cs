@@ -139,7 +139,10 @@ namespace SSASDiag
             string paredDownExpr = expr;
             MatchCollection scalarCounterExpressions = Regex.Matches(expr, "(\\[[^\\[]*?\\])\\.\\w+");
             foreach (Match m in scalarCounterExpressions)
-                paredDownExpr = paredDownExpr.Replace(m.Value, "!!!"); // just replace expressions with a series of invalid chars, we are only using this to eliminate terms
+                if (!m.Value.Contains("*"))
+                    paredDownExpr = paredDownExpr.Replace(m.Value, EvaluateSeriesFunction(rule.Counters.Where(c=>c.Path == m.Value.Substring(0, m.Value.LastIndexOf('.'))).First().ChartSeries, m.Value.Substring(m.Value.LastIndexOf('.') + 1)).ToString()); // just replace expressions with a series of invalid chars, we are only using this to eliminate terms;
+                else
+                    paredDownExpr = paredDownExpr.Replace(m.Value, "!!!"); // just replace expressions with a series of invalid chars, we are only using this to eliminate terms
             MatchCollection seriesExprs = Regex.Matches(paredDownExpr, "(\\[.*?\\])");
             foreach (Match m in seriesExprs)
                 paredDownExpr = paredDownExpr.Replace(m.Value, "###");
@@ -241,6 +244,43 @@ namespace SSASDiag
         //    return Convert.ToDouble(new DataTable().Compute(expr, ""));
         //}
 
+
+        private double EvaluateSeriesFunction(Series s, string function)
+        {
+            double val;
+            switch (function.ToLower().TrimStart().TrimEnd())
+            {
+                case "first":
+                    val = s.Points[0].YValues[0];
+                    break;
+                case "last":
+                    val = s.Points.Last().YValues[0];
+                    break;
+                case "sum":
+                    val = s.Points.Sum(pt => pt.YValues[0]);
+                    break;
+                case "max":
+                    val = s.Points.FindMaxByValue().YValues[0];
+                    break;
+                case "min":
+                    val = s.Points.FindMinByValue().YValues[0];
+                    break;
+                case "avg":
+                    val = s.Points.AverageValue();
+                    break;
+                case "avgexcludezero":
+                    val = s.Points.AverageValue(false, false);
+                    break;
+                case "avgincludenull":
+                    val = s.Points.AverageValue(true);
+                    break;
+                default:
+                    val = 0;
+                    break;
+            }
+            return val;
+        }
+
         private void LoadRuleFromRegistry(string rule)
         {
             RegistryKey rules = Registry.LocalMachine.CreateSubKey("SOFTWARE\\SSASDiag\\PerfMonRules", RegistryKeyPermissionCheck.ReadSubTree);
@@ -279,8 +319,70 @@ namespace SSASDiag
                     string exprBreakdown = "";
                     exprBreakdown = BreakdownExpression(re.Expression, NewRule, NewRuleExpressions);
 
-                    MatchCollection seriesExprs = Regex.Matches(exprBreakdown, "(\\[.*?\\])");
+                    bool bHasSeries = false;
+                    int iCardinalityOfSeriesExpression = 1;
+                    MatchCollection seriesExprs = Regex.Matches(exprBreakdown, "(\\[[^\\[]*?\\])(\\.\\w+)*");
                     foreach (Match m in seriesExprs)
+                    {
+                        bHasSeries = true;
+                        if (m.Value.Contains("*"))
+                        {
+                            iCardinalityOfSeriesExpression = NewRule.Counters.Where(c => c.WildcardPath == m.Value.Substring(1, m.Value.LastIndexOf(']') - 1)).Count();
+                            break;
+                        }
+                    }
+
+                    if (bHasSeries)
+                    {
+                        List<Series> expressionSeries = new List<Series>();
+                        for (int i = 0; i < iCardinalityOfSeriesExpression; i++)
+                            expressionSeries.Add(new Series());
+
+                        List<List<double>> AllWildcardSeriesFunctions = new List<List<double>>();
+                        
+                        foreach (Match m in seriesExprs)
+                        {
+                            if (m.Value.Last() != ']')
+                            {
+                                List<double> WildcardSeriesFunctions = new List<double>();
+                                if (m.Value.Substring(m.Value.LastIndexOf(".") + 1).ToLower() == "count") // special - this is a true scalar even when used on wildcard function - so we remove here.
+                                    exprBreakdown = exprBreakdown.Replace(m.Value, iCardinalityOfSeriesExpression.ToString());
+                                else
+                                {
+                                    for (int i = 0; i < iCardinalityOfSeriesExpression; i++)
+                                        WildcardSeriesFunctions.Add(EvaluateSeriesFunction(NewRule.Counters.Where(c => c.WildcardPath == m.Value.Substring(1, m.Value.LastIndexOf(']') - 1)).ToList()[i].ChartSeries, m.Value.Substring(m.Value.LastIndexOf(".") + 1)));
+                                    AllWildcardSeriesFunctions.Add(WildcardSeriesFunctions);
+                                }
+                            }
+                        }
+
+                            for (int j = 0; j < NewRule.Counters[0].ChartSeries.Points.Count; j++)
+                        {
+                            for (int i = 0; i < iCardinalityOfSeriesExpression; i++)
+                            {
+                                string pointExpression = exprBreakdown;
+                                int iSeriesFunctions = 0;
+                                foreach (Match m in seriesExprs)
+                                {
+                                    if (m.Value.Last() == ']') // if a straight series expression, just plug in the point.
+                                        pointExpression = pointExpression.Replace(m.Value, NewRule.Counters.Where(c => c.WildcardPath == m.Value.TrimStart('[').TrimEnd(']')).ToList()[i].ChartSeries.Points[j].YValues.ToString());
+                                    else
+                                        pointExpression = pointExpression.Replace(m.Value, AllWildcardSeriesFunctions[iSeriesFunctions++][i].ToString());
+                                }
+                                DataPoint p = new DataPoint();
+                                p.XValue = NewRule.Counters[0].ChartSeries.Points[j].XValue;
+                                p.YValues[0] = (double)new DataTable().Compute(pointExpression, "");
+                                expressionSeries[i].Points.Add(p);
+                            }
+                        }
+                        re.ExpressionSeries = expressionSeries;
+                    }
+                    else
+                        re.Value = (double)new DataTable().Compute(exprBreakdown, "");
+
+
+                    MatchCollection scalarCounterExpressions = Regex.Matches(exprBreakdown, "(\\[[^\\[]*?\\])\\.\\w+");
+                    foreach (Match m in scalarCounterExpressions)
                         ;
 
                     if (re.Display)
@@ -2018,6 +2120,7 @@ namespace SSASDiag
             public bool Display;
             public bool Highlight;
             public double Value;
+            public List<Series> ExpressionSeries;
             public int Index;
             public bool Include_TotalSeriesInWildcard;
         }
