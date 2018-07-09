@@ -279,6 +279,10 @@ namespace SSASDiag
                     string exprBreakdown = "";
                     exprBreakdown = BreakdownExpression(re.Expression, NewRule, NewRuleExpressions);
 
+                    MatchCollection seriesExprs = Regex.Matches(exprBreakdown, "(\\[.*?\\])");
+                    foreach (Match m in seriesExprs)
+                        ;
+
                     if (re.Display)
                     {
                         Series sr = new Series();
