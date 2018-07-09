@@ -285,7 +285,6 @@ namespace SSASDiag
                         }
                         sr.BorderWidth = re.Highlight ? 3 : 1;
                         sr.Name = re.Name;
-                        //AddCustomSeries(sr);
                         NewRule.CustomSeries.Add(sr);                        
                     }
                 }

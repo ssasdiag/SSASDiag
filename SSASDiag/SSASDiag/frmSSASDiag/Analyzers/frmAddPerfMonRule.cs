@@ -196,30 +196,33 @@ namespace SSASDiag
                     cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
             foreach (DataGridViewRow r in dgdExpressions.Rows)
             {
-                if (r.Cells[0].Value != null && r.Cells[0].ErrorText == "" && r.Cells[1].ErrorText == "" && !cmbValueToCheck.Items.Contains(r.Cells[0].Value as string))
+                if (r.Index != dgdExpressions.Rows.Count - 1)
                 {
-                    cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
-                    cmbValueToCheck.Enabled = true;
-                }
-                if (r.Tag as string == "Scalar")
-                {
-                    if (!cmbValLow.Items.Contains(r.Cells[0].Value as string))
+                    if (r.Cells[0].Value != null && r.Cells[0].ErrorText == "" && r.Cells[1].ErrorText == "" && !cmbValueToCheck.Items.Contains(r.Cells[0].Value as string))
                     {
-                        cmbValLow.Items.Add(r.Cells[0].Value as string);
-                        cmbValHigh.Items.Add(r.Cells[0].Value as string);
-                        cmbWarnExpr.Items.Add(r.Cells[0].Value as string);
+                        cmbValueToCheck.Items.Add(r.Cells[0].Value as string);
+                        cmbValueToCheck.Enabled = true;
                     }
-                    cmbValLow.Enabled = cmbWarnExpr.Enabled = cmbValHigh.Enabled = true;
-                }
-                else if (r.Tag as string == "Series")
-                {
-                    if (cmbValLow.Items.Contains(r.Cells[0].Value as string))
+                    if (r.Tag == null || r.Tag as string == "Scalar")
                     {
-                        cmbValLow.Items.Remove(r.Cells[0].Value as string);
-                        cmbValHigh.Items.Remove(r.Cells[0].Value as string);
-                        cmbWarnExpr.Items.Remove(r.Cells[0].Value as string);
+                        if (!cmbValLow.Items.Contains(r.Cells[0].Value as string))
+                        {
+                            cmbValLow.Items.Add(r.Cells[0].Value as string);
+                            cmbValHigh.Items.Add(r.Cells[0].Value as string);
+                            cmbWarnExpr.Items.Add(r.Cells[0].Value as string);
+                        }
+                        cmbValLow.Enabled = cmbWarnExpr.Enabled = cmbValHigh.Enabled = true;
                     }
-                    cmbValLow.Enabled = cmbWarnExpr.Enabled = cmbValHigh.Enabled = false;
+                    else
+                    {
+                        if (cmbValLow.Items.Contains(r.Cells[0].Value as string))
+                        {
+                            cmbValLow.Items.Remove(r.Cells[0].Value as string);
+                            cmbValHigh.Items.Remove(r.Cells[0].Value as string);
+                            cmbWarnExpr.Items.Remove(r.Cells[0].Value as string);
+                        }
+                        cmbValLow.Enabled = cmbWarnExpr.Enabled = cmbValHigh.Enabled = false;
+                    }
                 }
             }
 
@@ -377,6 +380,18 @@ namespace SSASDiag
 
         string BreakdownExpression(string expr, int CurrentRowIndex)
         {
+            // This function could be simplified and improved, but what it does is check to confirm the expression is valid.  It validates the following:
+            // 1) All counter expressions between [] are valid and included in the list of counters for the rule.
+            // 2) All expressions result in either a scalar value using number and counter with function, or...
+            // 3) Evaluate to a consistent series.  Series addition has rules.  
+            //      a) Series having wildcard can only be combined with other wildcard series of like "root", meaning the counter comes from the same place in the counter tree, and has the same number of descendant nodes then.
+            //      b) Series without wildcard are singular and can be combined with each of wildcardseries, so are allowed to be mixed.
+            //      c) Scalard can be combined with wildcard or non-wildcard series.
+            // 4) All expressions must only refer to expressions above them in the list, which is evaluated top/down.
+            // 
+            // Any violation of these rules should result in validation failure and the cell will be highlighted with text describing the reason for failure.
+            // It would be better to parse expressions and counters both with regex in the future, and breakdown subfunctions to handle each, to keep things as simple as possible, and alias a lot of the LINQ queries that got hypercomplex as conditions were added...  They do work now though so I'm not going to rework it unless some issue comes up...
+
             int iCurPos = 0;
             dgdExpressions.Rows[CurrentRowIndex].Tag = "Scalar";
             MatchCollection Counters = Regex.Matches(expr, "(\\[.*?\\])");
@@ -400,8 +415,7 @@ namespace SSASDiag
                             return "Invalid counter function at: ." + function;
                     }
                     else
-                        return "Invalid counter expression.  Counters must use a function in an expression.";
-                        //dgdExpressions.Rows[CurrentRowIndex].Tag = "Series";
+                        dgdExpressions.Rows[CurrentRowIndex].Tag = c.Value;
                     string RestOfExpression = "";
                     if (expr.Length > expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1)
                         RestOfExpression = expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1);
@@ -409,6 +423,11 @@ namespace SSASDiag
                     iCurPos = expr.IndexOf(c.Value);
                 }
             }
+
+            string CurrentExpressionSeriesRoot = dgdExpressions.Rows[CurrentRowIndex].Tag as string;
+            CurrentExpressionSeriesRoot = CurrentExpressionSeriesRoot.Replace("\\*", "");
+            if (CurrentExpressionSeriesRoot.LastIndexOf("\\") > -1)
+                CurrentExpressionSeriesRoot = CurrentExpressionSeriesRoot.Substring(CurrentExpressionSeriesRoot.LastIndexOf("\\"));
 
             iCurPos = 0;
             int iWordStart = -1;
@@ -435,12 +454,37 @@ namespace SSASDiag
                                 iCurPos++;
                                 break;
                             }
-                            if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower() && r.Index < CurrentRowIndex && r.Cells[1].ErrorText == "").Count() > 0)
+                            string RootOfSeriesExpression = "";
+                            if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower()).Count() > 0)
+                            { 
+                                if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower()).First().Tag as string != "Scalar")
+                                {
+                                    RootOfSeriesExpression = dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower()).First().Tag as string;
+                                    RootOfSeriesExpression = RootOfSeriesExpression.Replace("\\*", "");
+                                    if (RootOfSeriesExpression.LastIndexOf("\\") > -1)
+                                        RootOfSeriesExpression = RootOfSeriesExpression.Substring(RootOfSeriesExpression.LastIndexOf("\\"));
+                                }
+                                if (CurrentExpressionSeriesRoot == "Scalar")
+                                {
+                                    dgdExpressions.Rows[CurrentRowIndex].Tag = dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower()).First().Tag as string;
+                                    CurrentExpressionSeriesRoot = RootOfSeriesExpression;
+                                }
+                            }
+
+                            if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null 
+                                                                                    && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower() 
+                                                                                    && r.Index < CurrentRowIndex && r.Cells[1].ErrorText == "" 
+                                                                                    && (r.Tag as string == "Scalar" 
+                                                                                        || RootOfSeriesExpression == CurrentExpressionSeriesRoot 
+                                                                                        || CurrentExpressionSeriesRoot == ""
+                                                                                        || !(r.Tag as string).Contains("\\*"))).Count() > 0)
                                 expr = expr.Replace(subExpr, (12345.67890 + iCurPos).ToString());
                             else
                             {
-                                if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower() && r.Cells[1].ErrorText == "").Count() > 0)
+                                if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower() && r.Cells[1].ErrorText == "" && (r.Tag as string == "Scalar" || !(r.Tag as string).Contains("*"))).Count() > 0)
                                     return "Expression '" + subExpr.TrimStart().TrimEnd() + "' invalid.\nExpressions may only refer to prior expressions in the list.";
+                                else    if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower() && r.Cells[1].ErrorText == "" && (RootOfSeriesExpression != CurrentExpressionSeriesRoot && (r.Tag as string).Contains("*"))).Count() > 0)
+                                    return "Expression '" + subExpr.TrimStart().TrimEnd() + "' refers to a wildcard series " + dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower() && r.Cells[1].ErrorText == "" && (RootOfSeriesExpression != CurrentExpressionSeriesRoot && (r.Tag as string).Contains("*"))).First().Tag as string + ", which can't be combined with " + dgdExpressions.Rows[CurrentRowIndex].Tag as string + ", referenced previously in this expression.";
                                 else if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == subExpr.ToLower()).Count() > 0)
                                     return "Expression '" + subExpr.TrimStart().TrimEnd() + "' is invalid.";
                                 else
@@ -463,16 +507,57 @@ namespace SSASDiag
                 double d;
                 if (!double.TryParse(exp, out d))
                 {
-                    if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp && r.Index < CurrentRowIndex).Count() > 0)
+                    string RootOfSeriesExpression = "";
+                    if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp.ToLower()).Count() > 0)
+                    {
+                        if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp.ToLower()).First().Tag as string != "Scalar")
+                        {
+                            RootOfSeriesExpression = dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp.ToLower()).First().Tag as string;
+                            RootOfSeriesExpression = RootOfSeriesExpression.Replace("\\*", "");
+                            if (RootOfSeriesExpression.LastIndexOf("\\") > -1)
+                                RootOfSeriesExpression = RootOfSeriesExpression.Substring(RootOfSeriesExpression.LastIndexOf("\\"));
+                        }
+                    }
+
+                    if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null
+                                                                            && (r.Cells[0].Value as string).ToLower() == exp.ToLower()
+                                                                            && r.Index < CurrentRowIndex && r.Cells[1].ErrorText == ""
+                                                                            && (r.Tag as string == "Scalar"
+                                                                                || RootOfSeriesExpression == CurrentExpressionSeriesRoot
+                                                                                || CurrentExpressionSeriesRoot == ""
+                                                                                || !(r.Tag as string).Contains("\\*"))).Count() > 0)
                         expr = expr.Replace(exp, (12345.67890 + iCurPos).ToString());
                     else
                     {
-                        if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp).Count() > 0)
+                        if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp.ToLower() && r.Cells[1].ErrorText == "" && (r.Tag as string == "Scalar" || !(r.Tag as string).Contains("*"))).Count() > 0)
                             return "Expression '" + exp.TrimStart().TrimEnd() + "' invalid.\nExpressions may only refer to prior expressions in the list.";
+                        else if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp.ToLower() && r.Cells[1].ErrorText == "" && (RootOfSeriesExpression != CurrentExpressionSeriesRoot && (r.Tag as string).Contains("*"))).Count() > 0)
+                            return "Expression '" + exp.TrimStart().TrimEnd() + "' refers to a wildcard series " + dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp.ToLower() && r.Cells[1].ErrorText == "" && (RootOfSeriesExpression != CurrentExpressionSeriesRoot && (r.Tag as string).Contains("*"))).First().Tag as string + ", which can't be combined with " + dgdExpressions.Rows[CurrentRowIndex].Tag as string + ", referenced previously in this expression.";
+                        else if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp.ToLower()).Count() > 0)
+                            return "Expression '" + exp.TrimStart().TrimEnd() + "' is invalid.";
                         else
                             return "Invalid token at: '" + exp + "'.";
                     }
+
+                    if (Regex.Matches(expr, @"[a-zA-Z]").Count == 0)
+                        try { new DataTable().Compute(expr, ""); }
+                        catch { return "Invalid token at end of expression."; }
                 }
+
+
+
+                //if (!double.TryParse(exp, out d))
+                //{
+                //    if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp && r.Index < CurrentRowIndex).Count() > 0)
+                //        expr = expr.Replace(exp, (12345.67890 + iCurPos).ToString());
+                //    else
+                //    {
+                //        if (dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp).Count() > 0)
+                //            return "Expression '" + exp.TrimStart().TrimEnd() + "' invalid.\nExpressions may only refer to prior expressions in the list.";
+                //        else
+                //            return "Invalid token at: '" + exp + "'.";
+                //    }
+                //}
             }
             if (Regex.Matches(expr, @"[a-zA-Z]").Count == 0)
                 try { new DataTable().Compute(expr, ""); }
@@ -681,10 +766,19 @@ namespace SSASDiag
                 foreach (ucASPerfMonAnalyzer.RuleExpression ex in exprs.OrderBy(expr => expr.Index))
                 {
                     row = dgdExpressions.Rows[0].Clone() as DataGridViewRow;
+                    MatchCollection matches = Regex.Matches(ex.Expression, "(\\[.*?\\])");
+                    if (matches.Count == 0)
+                        row.Tag = "Scalar";
+                    else
+                        row.Tag = "Series";
+                    foreach (Match m in matches)
+                        if (m.Value.Contains("*"))
+                            row.Tag = m.Value as string;
                     row.Cells[0].Value = ex.Name;
                     row.Cells[1].Value = ex.Expression;
                     row.Cells[2].Value = ex.Display;
                     row.Cells[3].Value = ex.Highlight;
+                    
                     dgdExpressions.Rows.Add(row);
                 }
 
