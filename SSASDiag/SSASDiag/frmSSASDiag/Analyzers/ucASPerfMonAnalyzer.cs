@@ -364,7 +364,7 @@ namespace SSASDiag
                                 int iSeriesFunctions = 0;
                                 foreach (Match m in seriesExprs)
                                 {
-                                    if (m.Value.Last() == ']') // if a straight series expression, just plug in the point.
+                                    if (m.Value.Last() == ']') 
                                         pointExpression = pointExpression.Replace(m.Value, NewRule.Counters.Where(c => c.WildcardPath == m.Value.TrimStart('[').TrimEnd(']')).ToList()[i].ChartSeries.Points[j].YValues.ToString());
                                     else
                                         pointExpression = pointExpression.Replace(m.Value, AllWildcardSeriesFunctions[iSeriesFunctions++][i].ToString());

@@ -414,7 +414,10 @@ namespace SSASDiag
                         if (!function.ToLower().In(new string[] { "first", "last", "sum", "max", "min", "avg", "avgincludenull", "avgexcludezero", "count" }))
                             return "Invalid counter function at: ." + function;
                     }
-                    dgdExpressions.Rows[CurrentRowIndex].Tag = c.Value;
+                    if (function.ToLower() == "count")
+                        dgdExpressions.Rows[CurrentRowIndex].Tag = "Scalar";
+                    else
+                        dgdExpressions.Rows[CurrentRowIndex].Tag = c.Value;
                     string RestOfExpression = "";
                     if (expr.Length > expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1)
                         RestOfExpression = expr.Substring(expr.IndexOf(c.Value) + c.Value.Length + function.Length + 1);
