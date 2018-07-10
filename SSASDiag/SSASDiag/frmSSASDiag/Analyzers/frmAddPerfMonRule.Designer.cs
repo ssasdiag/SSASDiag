@@ -44,6 +44,7 @@
             this.splitExpressionsAndRule = new System.Windows.Forms.SplitContainer();
             this.splitExpressions = new System.Windows.Forms.SplitContainer();
             this.label3 = new System.Windows.Forms.Label();
+            this.linkExpressionDoc = new System.Windows.Forms.LinkLabel();
             this.dgdExpressions = new System.Windows.Forms.DataGridView();
             this.ExpressionName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Expression = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -97,7 +98,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.tt = new System.Windows.Forms.ToolTip(this.components);
             this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
-            this.linkExpressionDoc = new System.Windows.Forms.LinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.splitCountersAndRule)).BeginInit();
             this.splitCountersAndRule.Panel1.SuspendLayout();
             this.splitCountersAndRule.Panel2.SuspendLayout();
@@ -281,6 +281,18 @@
             this.label3.TabIndex = 2;
             this.label3.Text = resources.GetString("label3.Text");
             // 
+            // linkExpressionDoc
+            // 
+            this.linkExpressionDoc.AutoSize = true;
+            this.linkExpressionDoc.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.linkExpressionDoc.Location = new System.Drawing.Point(6, 198);
+            this.linkExpressionDoc.Name = "linkExpressionDoc";
+            this.linkExpressionDoc.Size = new System.Drawing.Size(254, 12);
+            this.linkExpressionDoc.TabIndex = 3;
+            this.linkExpressionDoc.TabStop = true;
+            this.linkExpressionDoc.Text = "Full expression documentation for more details and examples";
+            this.linkExpressionDoc.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkExpressionDoc_LinkClicked);
+            // 
             // dgdExpressions
             // 
             this.dgdExpressions.AllowDrop = true;
@@ -321,13 +333,14 @@
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             this.dgdExpressions.RowTemplate.Height = 20;
-            this.dgdExpressions.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgdExpressions.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
             this.dgdExpressions.Size = new System.Drawing.Size(373, 215);
             this.dgdExpressions.TabIndex = 5;
             this.dgdExpressions.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdExpressions_CellEndEdit);
             this.dgdExpressions.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.dgdExpressions_RowsRemoved);
             this.dgdExpressions.DragDrop += new System.Windows.Forms.DragEventHandler(this.dgdExpressions_DragDrop);
             this.dgdExpressions.DragEnter += new System.Windows.Forms.DragEventHandler(this.dgdExpressions_DragEnter);
+            this.dgdExpressions.KeyDown += new System.Windows.Forms.KeyEventHandler(this.dgdExpressions_KeyDown);
             this.dgdExpressions.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dgdExpressions_MouseClick);
             // 
             // ExpressionName
@@ -923,18 +936,6 @@
             // 
             this.errorProvider1.BlinkStyle = System.Windows.Forms.ErrorBlinkStyle.NeverBlink;
             this.errorProvider1.ContainerControl = this;
-            // 
-            // linkExpressionDoc
-            // 
-            this.linkExpressionDoc.AutoSize = true;
-            this.linkExpressionDoc.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
-            this.linkExpressionDoc.Location = new System.Drawing.Point(6, 198);
-            this.linkExpressionDoc.Name = "linkExpressionDoc";
-            this.linkExpressionDoc.Size = new System.Drawing.Size(254, 12);
-            this.linkExpressionDoc.TabIndex = 3;
-            this.linkExpressionDoc.TabStop = true;
-            this.linkExpressionDoc.Text = "Full expression documentation for more details and examples";
-            this.linkExpressionDoc.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkExpressionDoc_LinkClicked);
             // 
             // frmAddPerfMonRule
             // 

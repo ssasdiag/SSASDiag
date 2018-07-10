@@ -949,6 +949,12 @@ namespace SSASDiag
             Process.Start("https://github.com/ssasdiag/SSASDiag/wiki/SSAS-Diagnostics-Performance-Monitor-Analysis-Rule-Expressions");
         }
 
+        private void dgdExpressions_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+                dgdExpressions.CancelEdit();
+        }
+
         private void splitExpressions_SplitterMoving(object sender, SplitterCancelEventArgs e)
         {
             splitCounters.SplitterDistance = e.SplitX;
