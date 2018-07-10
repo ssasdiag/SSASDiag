@@ -130,23 +130,21 @@
     <value>True</value>
   </metadata>
   <data name="label3.Text" xml:space="preserve">
-    <value>Define expressions required to check the rule.
-
-Counters support the following functions:
-
-First: first value in series, Last: last value in series
-Max: highest value in series, Min: lowest value in series
-Sum: sum of values in series
-Avg: average excluding null values
-AvgExcludeZero: average excluding zero and null values
-AvgIncludeNull: average including null values
-Count: count of counters matching a wildcard series
-
-Example expressions:
-MaxCPU = ([Processor\% C1 Time\*].Count * 100)
-SSASMax = [Process\msmdsrv\% Processor Time].Max
-PctCPU = SSASMax / MaxCPU
-</value>
+    <value>Define expressions here required to check the rule.
+Combine any counters/expressions with matching cardinality
+     Matching cardinality -&gt; Matching path before counter
+Counters also support the following functions:
+   First: first value in series, Last: last value in series
+   Max: highest value in series, Min: lowest value in series
+   Sum: sum of values in series
+   Avg: average excluding null values
+   AvgExcludeZero: average excluding zero and null values
+   AvgIncludeNull: average including null values
+   Count: count of counters matching a wildcard series
+Functions retain series cardinality but Count is scalar.
+Expressions keep cardinality of their wildcard series.
+Combine expressions of matching cardinality.
+Combine scalars or single series with anything.</value>
   </data>
   <metadata name="Expression.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>

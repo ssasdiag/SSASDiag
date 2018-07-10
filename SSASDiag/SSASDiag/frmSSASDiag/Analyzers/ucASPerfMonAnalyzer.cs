@@ -381,10 +381,6 @@ namespace SSASDiag
                         re.Value = (double)new DataTable().Compute(exprBreakdown, "");
 
 
-                    MatchCollection scalarCounterExpressions = Regex.Matches(exprBreakdown, "(\\[[^\\[]*?\\])\\.\\w+");
-                    foreach (Match m in scalarCounterExpressions)
-                        ;
-
                     if (re.Display)
                     {
                         Series sr = new Series();

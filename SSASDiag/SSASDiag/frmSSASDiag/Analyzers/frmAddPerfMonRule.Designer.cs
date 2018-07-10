@@ -97,6 +97,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.tt = new System.Windows.Forms.ToolTip(this.components);
             this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
+            this.linkExpressionDoc = new System.Windows.Forms.LinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.splitCountersAndRule)).BeginInit();
             this.splitCountersAndRule.Panel1.SuspendLayout();
             this.splitCountersAndRule.Panel2.SuspendLayout();
@@ -259,6 +260,7 @@
             // splitExpressions.Panel1
             // 
             this.splitExpressions.Panel1.Controls.Add(this.label3);
+            this.splitExpressions.Panel1.Controls.Add(this.linkExpressionDoc);
             this.splitExpressions.Panel1MinSize = 260;
             // 
             // splitExpressions.Panel2
@@ -275,7 +277,7 @@
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             this.label3.Location = new System.Drawing.Point(6, 13);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(240, 192);
+            this.label3.Size = new System.Drawing.Size(254, 180);
             this.label3.TabIndex = 2;
             this.label3.Text = resources.GetString("label3.Text");
             // 
@@ -922,6 +924,18 @@
             this.errorProvider1.BlinkStyle = System.Windows.Forms.ErrorBlinkStyle.NeverBlink;
             this.errorProvider1.ContainerControl = this;
             // 
+            // linkExpressionDoc
+            // 
+            this.linkExpressionDoc.AutoSize = true;
+            this.linkExpressionDoc.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
+            this.linkExpressionDoc.Location = new System.Drawing.Point(6, 198);
+            this.linkExpressionDoc.Name = "linkExpressionDoc";
+            this.linkExpressionDoc.Size = new System.Drawing.Size(254, 12);
+            this.linkExpressionDoc.TabIndex = 3;
+            this.linkExpressionDoc.TabStop = true;
+            this.linkExpressionDoc.Text = "Full expression documentation for more details and examples";
+            this.linkExpressionDoc.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkExpressionDoc_LinkClicked);
+            // 
             // frmAddPerfMonRule
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1040,5 +1054,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Expression;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Display;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Highlight;
+        private System.Windows.Forms.LinkLabel linkExpressionDoc;
     }
 }

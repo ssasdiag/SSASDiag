@@ -386,7 +386,8 @@ namespace SSASDiag
             // 3) Evaluate to a consistent series.  Series addition has rules.  
             //      a) Series having wildcard can only be combined with other wildcard series of like "root", meaning the counter comes from the same place in the counter tree, and has the same number of descendant nodes then.
             //      b) Series without wildcard are singular and can be combined with each of wildcardseries, so are allowed to be mixed.
-            //      c) Scalard can be combined with wildcard or non-wildcard series.
+            //      c) Scalars can be combined with wildcard or non-wildcard series.
+            //      d) Count is a special series function, always scalar even for wildcard series.
             // 4) All expressions must only refer to expressions above them in the list, which is evaluated top/down.
             // 
             // Any violation of these rules should result in validation failure and the cell will be highlighted with text describing the reason for failure.
@@ -941,6 +942,11 @@ namespace SSASDiag
         private void txtCategory_TextChanged(object sender, EventArgs e)
         {
             btnSaveRule.Enabled = IsRuleComplete();
+        }
+
+        private void linkExpressionDoc_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Process.Start("https://github.com/ssasdiag/SSASDiag/wiki/SSAS-Diagnostics-Performance-Monitor-Analysis-Rule-Expressions");
         }
 
         private void splitExpressions_SplitterMoving(object sender, SplitterCancelEventArgs e)
