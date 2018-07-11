@@ -430,7 +430,7 @@ namespace SSASDiag
             string CurrentExpressionSeriesRoot = dgdExpressions.Rows[CurrentRowIndex].Tag as string;
             CurrentExpressionSeriesRoot = CurrentExpressionSeriesRoot.Replace("\\*", "");
             if (CurrentExpressionSeriesRoot.LastIndexOf("\\") > -1)
-                CurrentExpressionSeriesRoot = CurrentExpressionSeriesRoot.Substring(CurrentExpressionSeriesRoot.LastIndexOf("\\"));
+                CurrentExpressionSeriesRoot = CurrentExpressionSeriesRoot.Substring(0, CurrentExpressionSeriesRoot.LastIndexOf("\\"));
 
             iCurPos = 0;
             int iWordStart = -1;
@@ -506,7 +506,7 @@ namespace SSASDiag
             }
             if (iWordStart != -1)
             {
-                string exp = expr.Substring(iWordStart, iCurPos - iWordStart).ToLower();
+                string exp = expr.Substring(iWordStart, iCurPos - iWordStart);
                 double d;
                 if (!double.TryParse(exp, out d))
                 {
@@ -518,7 +518,7 @@ namespace SSASDiag
                             RootOfSeriesExpression = dgdExpressions.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[0].Value != null && (r.Cells[0].Value as string).ToLower() == exp.ToLower()).First().Tag as string;
                             RootOfSeriesExpression = RootOfSeriesExpression.Replace("\\*", "");
                             if (RootOfSeriesExpression.LastIndexOf("\\") > -1)
-                                RootOfSeriesExpression = RootOfSeriesExpression.Substring(RootOfSeriesExpression.LastIndexOf("\\"));
+                                RootOfSeriesExpression = RootOfSeriesExpression.Substring(0, RootOfSeriesExpression.LastIndexOf("\\"));
                         }
                     }
 

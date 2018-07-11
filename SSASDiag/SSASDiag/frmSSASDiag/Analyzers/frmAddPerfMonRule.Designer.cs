@@ -323,6 +323,7 @@
             this.dgdExpressions.MultiSelect = false;
             this.dgdExpressions.Name = "dgdExpressions";
             this.dgdExpressions.RowHeadersWidth = 24;
+            this.dgdExpressions.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.5F);
             dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
             dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
@@ -333,7 +334,6 @@
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             this.dgdExpressions.RowTemplate.DefaultCellStyle.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             this.dgdExpressions.RowTemplate.Height = 20;
-            this.dgdExpressions.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
             this.dgdExpressions.Size = new System.Drawing.Size(373, 215);
             this.dgdExpressions.TabIndex = 5;
             this.dgdExpressions.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgdExpressions_CellEndEdit);
@@ -1047,14 +1047,14 @@
         private System.Windows.Forms.TextBox txtHighRegion;
         private System.Windows.Forms.TextBox txtDescription;
         private System.Windows.Forms.TextBox txtCategory;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Counter;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn ShowInChart;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn HighlightInChart;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn WildcardWithTotal;
         private System.Windows.Forms.DataGridViewTextBoxColumn ExpressionName;
         private System.Windows.Forms.DataGridViewTextBoxColumn Expression;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Display;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Highlight;
         private System.Windows.Forms.LinkLabel linkExpressionDoc;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Counter;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn ShowInChart;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn HighlightInChart;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn WildcardWithTotal;
     }
 }

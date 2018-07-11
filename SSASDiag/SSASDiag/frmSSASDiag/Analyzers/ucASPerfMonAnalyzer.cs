@@ -140,7 +140,7 @@ namespace SSASDiag
             MatchCollection scalarCounterExpressions = Regex.Matches(expr, "(\\[[^\\[]*?\\])\\.\\w+");
             foreach (Match m in scalarCounterExpressions)
                 if (!m.Value.Contains("*"))
-                    paredDownExpr = paredDownExpr.Replace(m.Value, EvaluateSeriesFunction(rule.Counters.Where(c=>c.Path == m.Value.Substring(0, m.Value.LastIndexOf('.'))).First().ChartSeries, m.Value.Substring(m.Value.LastIndexOf('.') + 1)).ToString()); // just replace expressions with a series of invalid chars, we are only using this to eliminate terms;
+                    paredDownExpr = paredDownExpr.Replace(m.Value, EvaluateSeriesFunction(rule.Counters.Where(c=>"[" + c.Path + "]" == m.Value.Substring(0, m.Value.LastIndexOf('.'))).First().ChartSeries, m.Value.Substring(m.Value.LastIndexOf('.') + 1)).ToString()); // just replace expressions with a series of invalid chars, we are only using this to eliminate terms;
                 else
                     paredDownExpr = paredDownExpr.Replace(m.Value, "!!!"); // just replace expressions with a series of invalid chars, we are only using this to eliminate terms
             MatchCollection seriesExprs = Regex.Matches(paredDownExpr, "(\\[.*?\\])");
@@ -148,10 +148,7 @@ namespace SSASDiag
                 paredDownExpr = paredDownExpr.Replace(m.Value, "###");
             MatchCollection subExprs = Regex.Matches(paredDownExpr, "[a-zA-Z]+[a-zA-Z0-9]*");
             foreach (Match m in subExprs)
-            {
                 expr = expr.Replace(m.Value, "(" + BreakdownExpression(ruleExpressions.Where(re => re.Name == m.Value).Select(re => re.Expression).First(), rule, ruleExpressions) + ")");
-            }
-
             return expr;
         }
 
@@ -324,11 +321,19 @@ namespace SSASDiag
                     MatchCollection seriesExprs = Regex.Matches(exprBreakdown, "(\\[[^\\[]*?\\])(\\.\\w+)*");
                     foreach (Match m in seriesExprs)
                     {
-                        bHasSeries = true;
-                        if (m.Value.Contains("*"))
+                        if (!m.Value.ToLower().EndsWith("].count"))
                         {
-                            iCardinalityOfSeriesExpression = NewRule.Counters.Where(c => c.WildcardPath == m.Value.Substring(1, m.Value.LastIndexOf(']') - 1)).Count();
-                            break;
+                            bHasSeries = true;
+                            if (m.Value.Contains("*"))
+                            {
+                                iCardinalityOfSeriesExpression = NewRule.Counters.Where(c => c.WildcardPath == m.Value.Substring(1, m.Value.LastIndexOf(']') - 1)).Count();
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            re.Value = NewRule.Counters.Where(c => c.WildcardPath == m.Value.Substring(1, m.Value.LastIndexOf(']') - 1)).Count();
+                            exprBreakdown = exprBreakdown.Replace(m.Value, re.Value.ToString());
                         }
                     }
 
@@ -336,7 +341,21 @@ namespace SSASDiag
                     {
                         List<Series> expressionSeries = new List<Series>();
                         for (int i = 0; i < iCardinalityOfSeriesExpression; i++)
-                            expressionSeries.Add(new Series());
+                        {
+                            Series sr = new Series();
+                            sr.ChartType = SeriesChartType.Line;
+                            sr.Name = re.Name;
+                            sr.XValueType = ChartValueType.DateTime;
+                            sr.LegendText = re.Name;
+                            sr.EmptyPointStyle.BorderWidth = 0;
+                            sr.BorderWidth = re.Highlight ? 3 : 1;
+                            sr.Name = re.Name;
+                            Random rand = new Random((int)DateTime.Now.Ticks);
+                            int color = rand.Next((int)indexcolors.Length - 1);
+                            ColorConverter c = new ColorConverter();
+                            sr.Color = sr.BorderColor = (c.ConvertFromString(indexcolors[color]) as Color?).Value;
+                            expressionSeries.Add(sr);
+                        }
 
                         List<List<double>> AllWildcardSeriesFunctions = new List<List<double>>();
                         
@@ -356,56 +375,73 @@ namespace SSASDiag
                             }
                         }
 
-                            for (int j = 0; j < NewRule.Counters[0].ChartSeries.Points.Count; j++)
+                        for (int j = 0; j < NewRule.Counters[0].ChartSeries.Points.Count; j++)
                         {
                             for (int i = 0; i < iCardinalityOfSeriesExpression; i++)
                             {
                                 string pointExpression = exprBreakdown;
                                 int iSeriesFunctions = 0;
-                                foreach (Match m in seriesExprs)
+                                foreach (Match m in seriesExprs.Cast<Match>().Where(m => !m.Value.EndsWith("]")))
+                                {
+                                    if (m.Value.Last() == ']')
+                                        pointExpression = pointExpression.Replace(m.Value, NewRule.Counters.Where(c => c.WildcardPath == m.Value.TrimStart('[').TrimEnd(']')).ToList()[i].ChartSeries.Points[j].YValues[0].ToString());
+                                    else
+                                        pointExpression = pointExpression.Replace(m.Value, AllWildcardSeriesFunctions[iSeriesFunctions++][i].ToString());
+                                }
+                                foreach (Match m in seriesExprs.Cast<Match>().Where(m=>m.Value.EndsWith("]")))
                                 {
                                     if (m.Value.Last() == ']') 
-                                        pointExpression = pointExpression.Replace(m.Value, NewRule.Counters.Where(c => c.WildcardPath == m.Value.TrimStart('[').TrimEnd(']')).ToList()[i].ChartSeries.Points[j].YValues.ToString());
+                                        pointExpression = pointExpression.Replace(m.Value, NewRule.Counters.Where(c => c.WildcardPath == m.Value.TrimStart('[').TrimEnd(']')).ToList()[i].ChartSeries.Points[j].YValues[0].ToString());
                                     else
                                         pointExpression = pointExpression.Replace(m.Value, AllWildcardSeriesFunctions[iSeriesFunctions++][i].ToString());
                                 }
                                 DataPoint p = new DataPoint();
-                                p.XValue = NewRule.Counters[0].ChartSeries.Points[j].XValue;
-                                p.YValues[0] = (double)new DataTable().Compute(pointExpression, "");
+                                p.Tag = p.XValue = NewRule.Counters[0].ChartSeries.Points[j].XValue;
+                                p.YValues[0] = Convert.ToDouble(new DataTable().Compute(pointExpression, ""));
+                                re.Value = p.YValues[0];
                                 expressionSeries[i].Points.Add(p);
                             }
                         }
+                        if (expressionSeries != null)
+                            foreach (Series sr in expressionSeries)
+                                sr.Tag = sr.Points.FindMaxByValue().YValues[0];
                         re.ExpressionSeries = expressionSeries;
                     }
                     else
-                        re.Value = (double)new DataTable().Compute(exprBreakdown, "");
+                        re.Value = Convert.ToDouble(new DataTable().Compute(exprBreakdown, ""));
 
 
                     if (re.Display)
                     {
-                        Series sr = new Series();
-                        sr.ChartType = SeriesChartType.Line;
-                        sr.Name = re.Name;
-                        sr.XValueType = ChartValueType.DateTime;
-                        sr.LegendText = re.Name;
-
-                        sr.EmptyPointStyle.BorderWidth = 0;
-                        Random rand = new Random((int)DateTime.Now.Ticks);
-                        int color = rand.Next((int)indexcolors.Length - 1);
-                        ColorConverter c = new ColorConverter();
-                        sr.Color = sr.BorderColor = (c.ConvertFromString(indexcolors[color]) as Color?).Value;
-                        sr.Tag = re.Value;
-                        foreach (DataPoint p in NewRule.Counters[0].ChartSeries.Points)
+                        
+                        if (re.ExpressionSeries == null)
                         {
-                            DataPoint np = new DataPoint(p.XValue, re.Value);
-                            np.Tag = re.Value;
-                            sr.Points.Add(np);
+                            Series sr = new Series();
+                            sr.ChartType = SeriesChartType.Line;
+                            sr.Name = re.Name;
+                            sr.XValueType = ChartValueType.DateTime;
+                            sr.LegendText = re.Name;
+                            sr.EmptyPointStyle.BorderWidth = 0;
+                            sr.BorderWidth = re.Highlight ? 3 : 1;
+                            sr.Name = re.Name;
+                            Random rand = new Random((int)DateTime.Now.Ticks);
+                            int color = rand.Next((int)indexcolors.Length - 1);
+                            ColorConverter c = new ColorConverter();
+                            sr.Color = sr.BorderColor = (c.ConvertFromString(indexcolors[color]) as Color?).Value;
+                            sr.Tag = re.Value;
+                            foreach (DataPoint p in NewRule.Counters[0].ChartSeries.Points)
+                            {
+                                DataPoint np = new DataPoint(p.XValue, re.Value);
+                                np.Tag = re.Value;
+                                sr.Points.Add(np);
+                            }
+                            NewRule.CustomSeries.Add(sr);
                         }
-                        sr.BorderWidth = re.Highlight ? 3 : 1;
-                        sr.Name = re.Name;
-                        NewRule.CustomSeries.Add(sr);                        
+                        else
+                            NewRule.CustomSeries.AddRange(re.ExpressionSeries);                         
                     }
                 }
+
                 string ValOrSeriesToCheck = r.GetValue("ValueOrSeriesToCheck") as string;
                 if (NewRule.Counters.Where(c => c.WildcardPath == ValOrSeriesToCheck).Count() > 0 || NewRuleExpressions.Where(e=>e.Name == ValOrSeriesToCheck).Count() > 0)
                 {
@@ -1110,7 +1146,7 @@ namespace SSASDiag
                     var prop = result.Object as DataPoint;
                     if (prop != null)
                     {
-                        tooltip.Show(prop.LegendText + "\n" + DateTime.FromOADate(prop.XValue) + "\nValue: " + ((double)prop.Tag).ToString("#,###.############"), this.chartPerfMon, pos.X + 10, pos.Y);
+                        tooltip.Show(prop.LegendText + "\n" + DateTime.FromOADate(prop.XValue) + "\nValue: " + prop.YValues[0].ToString("#,###.############"), this.chartPerfMon, pos.X + 10, pos.Y);
                         CurrentSeriesUnderMouse = prop.LegendText;
                     }
                 }
@@ -1718,13 +1754,19 @@ namespace SSASDiag
             dgdLogList.ResumeLayout();
         }
 
+        int iCurrentRule = -1;
         private void RunRule(Rule rule, bool ShouldUIUpdate = true)
         {
             List<KeyValuePair<string, string>> HiddenCountersToLookup = new List<KeyValuePair<string, string>>();
-
             Invoke(new Action(() =>
             {
-                StatusFloater.lblSubStatus.Text = rule.Name;
+                if (iCurrentRule > -1)
+                {
+                    iCurrentRule++;
+                    StatusFloater.lblSubStatus.Text = iCurrentRule + ") " + rule.Name;
+                }
+                else
+                    StatusFloater.lblSubStatus.Text = rule.Name;
                 StatusFloater.Invalidate();
                 Application.DoEvents();
             }));
@@ -1830,6 +1872,7 @@ namespace SSASDiag
                 if (RulesToRun.Count > 0)
                 {
                     Form f = Program.MainForm;
+                    iCurrentRule = RulesToRun.Count == 1 ? -1 : 0;
                     Invoke(new Action(() =>
                     {
                         chkAutoScale.Checked = false;
@@ -1902,6 +1945,7 @@ namespace SSASDiag
                             StatusFloater.AutoUpdateDuration = true;
                             StatusFloater.Show(f);
                         }));
+                        iCurrentRule = -1;
                         RunRule(rule);
                     }
                     else
