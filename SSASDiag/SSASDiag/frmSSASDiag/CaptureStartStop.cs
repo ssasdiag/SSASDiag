@@ -15,6 +15,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Data.SqlClient;
 using System.Configuration;
+using System.Diagnostics;
 
 namespace SSASDiag
 {
@@ -93,6 +94,7 @@ namespace SSASDiag
             }
             if (bExitAfterStop)
                 Invoke(new System.Action(() => Close()));
+            Program.SetupDebugTrace();
             LogFeatureUse("Collection " + (Environment.UserInteractive ? "stopped and delivered to client." : "service stopped."));
         }
         #endregion CaptureStartAndStop

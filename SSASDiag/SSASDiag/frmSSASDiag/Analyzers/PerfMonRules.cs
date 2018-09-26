@@ -397,7 +397,7 @@ namespace SSASDiag
             double sumY = 0, count = 0;
             foreach (var pt in points)
             {
-                if ((pt.YValues[0] != null || !IncludeNull) && (pt.YValues[0] != 0 || !IncludeZero))
+                if ((pt.YValues[0] != 0 || !IncludeZero))
                 {
                     sumY += pt.YValues[0];
                     count++;

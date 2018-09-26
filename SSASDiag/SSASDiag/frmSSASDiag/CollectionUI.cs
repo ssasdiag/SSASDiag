@@ -157,6 +157,8 @@ namespace SSASDiag
                                 p.WindowStyle = ProcessWindowStyle.Hidden;
                                 p.Verb = "runas"; // ensures elevation of priv
                                 p.CreateNoWindow = true;
+                                System.Diagnostics.Trace.Listeners["debuglistener"].Close();
+                                System.Diagnostics.Trace.Listeners.Remove("debuglistener");
                                 Process.Start(p).WaitForExit();
                                 txtStatus.Invoke(new System.Action(()=> txtStatus.AppendText("\r\nCollection service SSASDiag_" + cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "") + " is running.\r\nCollection initializing...")));
                             })).Start();
@@ -623,12 +625,14 @@ namespace SSASDiag
                         if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
 
                         string ConfigPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + s.ServiceName, false).GetValue("ImagePath") as string;
-                        System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Found AS instance: " + ConfigPath);
+                        if (Environment.UserInteractive)
+                            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Found AS instance: " + ConfigPath);
                         ConfigPath = ConfigPath.Substring(ConfigPath.IndexOf("-s \"") + "-s \"".Length).TrimEnd('\"');
                         string InstanceID = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "");
                         InstanceID = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\OLAP", false).GetValue(InstanceID, "") as string;
                         if (InstanceID == "") InstanceID = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\OLAP", false).GetValue("MSSQLSERVER") as string;
-                        System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": InstanceID: " + InstanceID);
+                        if (Environment.UserInteractive)
+                            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": InstanceID: " + InstanceID);
                         string SQLProgramDir = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Setup", false).GetValue("SQLProgramDir") as string;
                         string ClusterName = "";
                         RegistryKey clusterKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Cluster", false);

@@ -134,7 +134,6 @@ namespace SSASDiag
             Properties.Settings.Default.Save();
             enableDiagnosticLoggingToolStripMenuItem.CheckedChanged += enableDiagnosticLoggingToolStripMenuItem_CheckedChanged;
 
-            SetupDebugTrace();
             InitializeArgs();
             if (Args.ContainsKey("noui"))
             {
@@ -146,6 +145,7 @@ namespace SSASDiag
         }
         private void frmSSASDiag_Load(object sender, EventArgs e)
         {
+            Program.SetupDebugTrace();
             if (Args.ContainsKey("filename") && !Args.ContainsKey("start"))
             {
                 tcCollectionAnalysisTabs.SelectedIndex = 1;
@@ -377,8 +377,8 @@ namespace SSASDiag
 
         private void enableDiagnosticLoggingToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
-            if (enableDiagnosticLoggingToolStripMenuItem.Checked)
-                SetupDebugTrace();
+            if (!enableDiagnosticLoggingToolStripMenuItem.Checked)
+                Program.SetupDebugTrace();
             else
             {
                 Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Stopping debug trace.");
@@ -393,22 +393,6 @@ namespace SSASDiag
             }
             Properties.Settings.Default.LoggingEnabled = enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked;
             Properties.Settings.Default.Save();
-        }
-
-        private void SetupDebugTrace()
-        {
-            bool DebugListener = false;
-            foreach (TraceListener l in Trace.Listeners)
-                if (l.Name == "debuglistener") DebugListener = true;
-            if (!DebugListener)
-            {
-                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Properties.Settings.Default.LoggingEnabled)
-                    Trace.Listeners.Add(new TextWriterTraceListener(AppDomain.CurrentDomain.GetData("originalbinlocation") + "\\SSASDiagDebugTrace.log", "debuglistener"));
-                Trace.AutoFlush = true;
-                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Started debug trace.");
-                if (!Environment.UserInteractive)
-                    Debug.WriteLine("Running as a service.");
-            }
         }
         
         public static void LogFeatureUse(string FeatureName, string FeatureDetail = "")

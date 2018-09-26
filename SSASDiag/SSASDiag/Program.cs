@@ -24,12 +24,32 @@ namespace SSASDiag
         public static string TempPath = "";
         public static string LaunchingUser = "";
 
+
+        public static void SetupDebugTrace()
+        {
+            bool DebugListener = false;
+            foreach (TraceListener l in Trace.Listeners)
+                if (l.Name == "debuglistener") DebugListener = true;
+            if (!DebugListener)
+            {
+                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Properties.Settings.Default.LoggingEnabled)
+                {
+                    string binlocation = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
+                    if (binlocation == null) binlocation = Environment.CurrentDirectory;
+                    Trace.Listeners.Add(new TextWriterTraceListener(binlocation + "\\SSASDiagDebugTrace.log", "debuglistener"));
+                }
+                Trace.AutoFlush = true;
+            }
+        }
+        
         /// <summary> /// 
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
         public static void Main()
         {
+            SetupDebugTrace();
+
             if (!Environment.UserInteractive)
             {
                 // In service mode we wipe out command line of startup config after we complete.
@@ -38,6 +58,7 @@ namespace SSASDiag
                 // UI is intended mechanism to shutdown too, but if user shuts down service, we trigger stop of collection properly too.
                 if (Environment.GetCommandLineArgs().Length == 3)
                 {
+                    Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Started service mode.");
                     if (Environment.GetCommandLineArgs()[1] == "/instance")
                     {
                         ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 1500 > nul & net stop SSASDiag_" + Environment.GetCommandLineArgs()[2]);
@@ -45,6 +66,8 @@ namespace SSASDiag
                         p.UseShellExecute = true;
                         p.Verb = "runas";
                         p.CreateNoWindow = true;
+                        Trace.Listeners["debuglistener"].Close();
+                        Trace.Listeners.Remove("debuglistener");
                         Process.Start(p);
                         return;
                     }
@@ -72,6 +95,7 @@ namespace SSASDiag
             // Setup custom app domain to launch real assembly from temp location, and act as singleton also...
             if (AppDomain.CurrentDomain.BaseDirectory != TempPath)
             {
+                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Initializing temp location at " + TempPath);
                 int ret = 0;
 
                 // Extract all embedded file type (byte[]) resource assemblies and copy self into temp location
@@ -186,6 +210,9 @@ namespace SSASDiag
                         CheckForUpdates(tempDomain);
                     
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
+                    Trace.Flush();
+                    Trace.Listeners["debuglistener"].Close();
+                    Trace.Listeners.Remove("debuglistener");
                     // Execute the domain.
                     ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName);
                 }
@@ -233,6 +260,7 @@ namespace SSASDiag
             {
                 MainForm = new frmSSASDiag();
                 Application.ApplicationExit += Application_ApplicationExit;
+                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Starting frmSSASDiag for RunID " + RunID);
                 Application.Run(MainForm);  
             }
             catch (Exception ex)
