@@ -222,7 +222,7 @@ namespace SSASDiag
             }
         }
 
-        private uint GetProcessIDByServiceName(string serviceName)
+        public static uint GetProcessIDByServiceName(string serviceName)
         {
             uint processId = 0;
             string qry = "SELECT PROCESSID FROM WIN32_SERVICE WHERE NAME = '" + serviceName + "'";

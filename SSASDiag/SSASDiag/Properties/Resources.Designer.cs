@@ -518,15 +518,6 @@ namespace SSASDiag.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WITH MEMBER [Project].[Funding IDs].[XL_PT0] AS &apos;strtomember(&quot;[Project].[Funding IDs].[Funding ID].&amp;[54565]&quot;).UniqueName&apos; MEMBER [Project].[Funding IDs].[XL_PT1] AS &apos;strtomember(&quot;[Project].[Funding IDs].[Funding ID].&amp;[55173]&quot;).UniqueName&apos; MEMBER [Project].[Funding IDs].[XL_PT2] AS &apos;strtomember(&quot;[Project].[Funding IDs].[Funding ID].&amp;[55175]&quot;).UniqueName&apos; MEMBER [Project].[Funding IDs].[XL_PT3] AS &apos;strtomember(&quot;[Project].[Funding IDs].[Funding ID].&amp;[55379]&quot;).UniqueName&apos; MEMBER [Project].[Funding IDs].[XL_PT4] [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string SampleMDX {
-            get {
-                return ResourceManager.GetString("SampleMDX", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap Settings {

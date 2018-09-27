@@ -649,6 +649,7 @@
             this.chkHangDumps.TabIndex = 8;
             this.chkHangDumps.Text = "Enable hang dump capture";
             this.chkHangDumps.UseVisualStyleBackColor = true;
+            this.chkHangDumps.CheckedChanged += new System.EventHandler(this.chkHangDumps_CheckedChanged);
             // 
             // chkGetProfiler
             // 

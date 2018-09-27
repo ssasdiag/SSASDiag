@@ -446,7 +446,7 @@ namespace SSASDiag
             // Only act if we are already fully initialized
             if (cbInstances.DisplayMember != "" && tcCollectionAnalysisTabs.SelectedIndex == 0)
             {
-                btnCapture.Enabled = false;
+                btnCapture.Enabled = btnHangDumps.Enabled = false;
 
                 BackgroundWorker bgPopulateInstanceDetails = new BackgroundWorker();
                 bgPopulateInstanceDetails.DoWork += BgPopulateInstanceDetails_DoWork;
@@ -580,7 +580,7 @@ namespace SSASDiag
                             LogException(ex);
                         }
                     }
-                    btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = true));
+                    btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = btnHangDumps.Enabled = true));
                 }
             }
             catch (Exception ex)

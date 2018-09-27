@@ -510,7 +510,75 @@ namespace SSASDiag
 
         private void btnHangDumps_Click(object sender, EventArgs e)
         {
-            npClient.PushMessage("Dumping");
+            if (npClient == null)
+            {
+                btnCapture.Enabled = dtStopTime.Enabled = dtStartTime.Enabled = udRollover.Enabled = btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+                txtStatus.Cursor = Cursors.WaitCursor;
+
+                ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
+                string TracePrefix = (cbsdi.Cluster ? cbsdi.Text.Replace(" (Clustered Instance)", "") : Environment.MachineName + (cbsdi == null ? "" : "_"
+                        + (cbInstances.SelectedIndex == 0 ? "" : cbsdi.Text + "_")));
+                string TraceID = TracePrefix
+                    + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC"
+                    + "_SSASDiag";
+                txtStatus.Text = "Capturing three hang dumps on-demand, spaced 30s apart, at the following location:\r\n" + txtSaveLocation.Text + "\\" + TraceID;
+                btnSettings.Focus();
+                System.Windows.Forms.Timer t = new System.Windows.Forms.Timer();
+                t.Interval = 1500;
+                t.Tick += new EventHandler((p1, p2) => Invoke(new System.Action(() =>
+                {
+                    txtStatus.AppendText(".");
+                    btnSettings.Focus();
+                })));
+                t.Start();
+                new Thread(new ThreadStart(() =>
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Invoke(new System.Action(() => txtStatus.AppendText("\r\nInitiating manual memory dump collection for hang analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".")));
+                        try
+                        {
+                            if (!Directory.Exists(txtSaveLocation.Text + "\\" + TraceID + "\\HangDumps")) Directory.CreateDirectory(txtSaveLocation.Text + "\\" + TraceID + "\\HangDumps");
+                            string args = CDiagnosticsCollector.GetProcessIDByServiceName(cbsdi.ServiceName) + " 0 0x34";
+                            Process p = new Process();
+                            p.StartInfo.CreateNoWindow = true;
+                            p.StartInfo.RedirectStandardOutput = true;
+                            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                            p.StartInfo.UseShellExecute = false;
+                            p.StartInfo.FileName = cbsdi.SQLProgramDir + "\\" + m_instanceVersion.Substring(0, 2) + "0\\Shared\\SQLDumper.exe";
+                            p.StartInfo.WorkingDirectory = Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps";
+                            p.StartInfo.Arguments = args;
+                            p.Start();
+                            p.WaitForExit();
+                        }
+                        catch (Exception ex)
+                        {
+                            Invoke(new System.Action(() => txtStatus.AppendText("\r\nEXCEPTION DUMPING: " + ex.Message)));
+                        }
+                        Invoke(new System.Action(() => txtStatus.AppendText("\r\nHang dump collection finished at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".")));
+                        if (i < 2)
+                        {
+                            Invoke(new System.Action(() =>
+                            {
+                                txtStatus.AppendText("\r\nWaiting 30s before capturing dump " + (i + 2) + ".");
+                                btnSettings.Focus();
+                            }));
+                            Thread.Sleep(30000);
+                        }
+                        Invoke(new System.Action(() =>
+                        {
+                            btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+                            udRollover.Enabled = chkRollover.Checked;
+                            dtStartTime.Enabled = chkStartTime.Checked;
+                            dtStopTime.Enabled = chkStopTime.Checked;
+                            btnCapture.Enabled = true;
+                            txtStatus.Cursor = Cursors.Default;
+                        }));
+                    }
+                })).Start();   
+            }
+            else
+                npClient.PushMessage("Dumping");
         }
 
         private void tcSimpleAdvanced_SelectedIndexChanged(object sender, EventArgs e)

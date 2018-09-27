@@ -193,6 +193,10 @@ namespace SSASDiag
                 chkBAK.Checked = false;
             UpdateUIIfOnlyNetworkingEnabled();
         }
+        private void chkHangDumps_CheckedChanged(object sender, EventArgs e)
+        {
+            btnHangDumps.Visible = chkHangDumps.Checked;
+        }
         private void chkABF_CheckedChanged(object sender, EventArgs e)
         {
             if (chkABF.Checked)
