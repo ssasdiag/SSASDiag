@@ -951,13 +951,22 @@ namespace SSASDiag
                             if (bGetXMLA)
                             {
                                 SendMessageToClients("Extracting database definition XMLA script for " + db + ".");
-                                MajorObject[] mo = { s.Databases.FindByName(db) };
-
-                                XmlWriter output = XmlWriter.Create(Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
-                                Microsoft.AnalysisServices.Scripter sc = new Microsoft.AnalysisServices.Scripter();
-                                sc.ScriptCreate(mo, output, true);
-                                output.Flush();
-                                output.Close();
+                                Database DB = s.Databases.FindByName(db);
+                                if (s.ServerMode == ServerMode.Multidimensional || DB.CompatibilityLevel < 1200)
+                                {
+                                    MajorObject[] mo = { DB };
+                                    XmlWriter output = XmlWriter.Create(Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
+                                    Microsoft.AnalysisServices.Scripter sc = new Microsoft.AnalysisServices.Scripter();
+                                    sc.ScriptCreate(mo, output, true);
+                                    output.Flush();
+                                    output.Close();
+                                }
+                                else
+                                {
+                                    StreamWriter sw = File.CreateText(Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + db + ".json");
+                                    sw.WriteLine(Microsoft.AnalysisServices.Tabular.JsonScripter.ScriptCreate(DB));
+                                    sw.Close();
+                                }
                                 if (bGetBAK)
                                     GetBAK(db, s);
                             }
