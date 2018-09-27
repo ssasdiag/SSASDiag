@@ -868,4 +868,37 @@ order by duration desc</value>
   <data name="RuleCountersUnavailable" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\RuleCountersUnavailable.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Config" xml:space="preserve">
+    <value>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;configuration&gt;
+&lt;configSections&gt;
+    &lt;sectionGroup name="userSettings" type="System.Configuration.UserSettingsGroup, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &gt;
+        &lt;section name="SSASDiag.Properties.Settings" type="System.Configuration.ClientSettingsSection, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" allowExeDefinition="MachineToLocalUser" requirePermission="false" /&gt;
+    &lt;/sectionGroup&gt;
+&lt;/configSections&gt;
+&lt;startup&gt;&lt;supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.5"/&gt;&lt;/startup&gt;
+    &lt;userSettings&gt;
+        &lt;SSASDiag.Properties.Settings&gt;
+            &lt;setting name="SqlForProfilerTraceAnalysis" serializeAs="String"&gt;
+                &lt;value&gt;.&lt;/value&gt;
+            &lt;/setting&gt;
+            &lt;setting name="SaveLocation" serializeAs="String"&gt;
+                &lt;value/&gt;
+            &lt;/setting&gt;
+            &lt;setting name="AutoUpdate" serializeAs="String"&gt;
+                &lt;value/&gt;
+            &lt;/setting&gt;
+            &lt;setting name="AllowUsageStats" serializeAs="String"&gt;
+                &lt;value/&gt;
+            &lt;/setting&gt;
+            &lt;setting name="OpenWithEnabled" serializeAs="String"&gt;
+                &lt;value&gt;True&lt;/value&gt;
+            &lt;/setting&gt;
+            &lt;setting name="LoggingEnabled" serializeAs="String"&gt;
+                &lt;value&gt;False&lt;/value&gt;
+            &lt;/setting&gt;
+        &lt;/SSASDiag.Properties.Settings&gt;
+    &lt;/userSettings&gt;
+&lt;/configuration&gt;</value>
+  </data>
 </root>

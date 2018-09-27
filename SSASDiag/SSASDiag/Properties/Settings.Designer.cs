@@ -25,7 +25,6 @@ namespace SSASDiag.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(".")]
         public string SqlForProfilerTraceAnalysis {
             get {
                 return ((string)(this["SqlForProfilerTraceAnalysis"]));
@@ -37,7 +36,6 @@ namespace SSASDiag.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string SaveLocation {
             get {
                 return ((string)(this["SaveLocation"]));
@@ -49,7 +47,6 @@ namespace SSASDiag.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string AutoUpdate {
             get {
                 return ((string)(this["AutoUpdate"]));
@@ -61,7 +58,6 @@ namespace SSASDiag.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string AllowUsageStats {
             get {
                 return ((string)(this["AllowUsageStats"]));
@@ -73,7 +69,6 @@ namespace SSASDiag.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool OpenWithEnabled {
             get {
                 return ((bool)(this["OpenWithEnabled"]));
@@ -85,7 +80,6 @@ namespace SSASDiag.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool LoggingEnabled {
             get {
                 return ((bool)(this["LoggingEnabled"]));

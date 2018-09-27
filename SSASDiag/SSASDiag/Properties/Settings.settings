@@ -2,22 +2,22 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SSASDiag.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="SqlForProfilerTraceAnalysis" Type="System.String" Scope="User">
+    <Setting Name="SqlForProfilerTraceAnalysis" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
       <Value Profile="(Default)">.</Value>
     </Setting>
-    <Setting Name="SaveLocation" Type="System.String" Scope="User">
+    <Setting Name="SaveLocation" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="AutoUpdate" Type="System.String" Scope="User">
+    <Setting Name="AutoUpdate" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="AllowUsageStats" Type="System.String" Scope="User">
+    <Setting Name="AllowUsageStats" GenerateDefaultValueInCode="false" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="OpenWithEnabled" Type="System.Boolean" Scope="User">
+    <Setting Name="OpenWithEnabled" GenerateDefaultValueInCode="false" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="LoggingEnabled" Type="System.Boolean" Scope="User">
+    <Setting Name="LoggingEnabled" GenerateDefaultValueInCode="false" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>

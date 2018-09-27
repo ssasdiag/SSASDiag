@@ -46,6 +46,13 @@ namespace SSASDiag
             dumpkey.SetValue("DumpType", 2, RegistryValueKind.DWord);
             dumpkey.Close();
         }
+
+        private static void WriteConfig()
+        {
+            StreamWriter sw = File.CreateText("SSASDiag.exe.config");
+            sw.Write(Properties.Resources.Config);
+            sw.Close();
+        }
         
         /// <summary> /// 
         /// The main entry point for the application.
@@ -53,6 +60,7 @@ namespace SSASDiag
         [STAThread]
         public static void Main()
         {
+            WriteConfig();
             SetupDebugTraceAndDumps();
 
             if (!Environment.UserInteractive)
