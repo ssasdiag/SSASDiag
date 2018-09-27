@@ -83,11 +83,13 @@
     </Reference>
     <Reference Include="Microsoft.AnalysisServices.Core, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\Program Files\Microsoft SQL Server\150\SDK\Assemblies\Microsoft.AnalysisServices.Core.DLL</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files\Microsoft SQL Server\140\Setup Bootstrap\SQL2017\x64\Microsoft.AnalysisServices.Core.DLL</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.AnalysisServices.Tabular, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\Program Files\Microsoft SQL Server\150\SDK\Assemblies\Microsoft.AnalysisServices.Tabular.DLL</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files\Microsoft SQL Server\140\Setup Bootstrap\SQL2017\x64\Microsoft.AnalysisServices.Tabular.DLL</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.SqlServer.ConnectionInfo, Version=14.100.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -252,7 +254,6 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="app.config" />
     <None Include="app.manifest" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
