@@ -24,6 +24,29 @@ namespace SSASDiag
         public static string TempPath = "";
         public static string LaunchingUser = "";
 
+
+        public static void SetupDebugTraceAndDumps()
+        {
+            string binlocation = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
+            if (binlocation == null) binlocation = Environment.CurrentDirectory;
+
+            bool DebugListener = false;
+            foreach (TraceListener l in Trace.Listeners)
+                if (l.Name == "debuglistener") DebugListener = true;
+            if (!DebugListener)
+            {
+                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Properties.Settings.Default.LoggingEnabled)
+                    Trace.Listeners.Add(new TextWriterTraceListener(binlocation + "\\SSASDiagDebugTrace.log", "debuglistener"));
+                Trace.AutoFlush = true;
+            }
+
+            RegistryKey dumpkey = Registry.LocalMachine.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\SSASDiag.exe");
+            dumpkey.SetValue("DumpFolder", binlocation, RegistryValueKind.String);
+            dumpkey.SetValue("DumpCount", 3, RegistryValueKind.DWord);
+            dumpkey.SetValue("DumpType", 2, RegistryValueKind.DWord);
+            dumpkey.Close();
+        }
+        
         /// <summary> /// 
         /// The main entry point for the application.
         /// </summary>
@@ -48,7 +71,7 @@ namespace SSASDiag
                         p.UseShellExecute = true;
                         p.Verb = "runas";
                         p.CreateNoWindow = true;
-                        if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
+                        Trace.Listeners["debuglistener"].Close();
                         Trace.Listeners.Remove("debuglistener");
                         Process.Start(p);
                         return;
@@ -193,10 +216,9 @@ namespace SSASDiag
                     }
                 try
                 {
-                    Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Preparing to launch executable from temp domain.");
-
                     // Initialize the new app domain from temp location...
                     var currentAssembly = Assembly.GetExecutingAssembly();
+                    
 
                     AppDomainSetup ads = new AppDomainSetup();
                     ads.ApplicationBase = TempPath;
@@ -207,9 +229,9 @@ namespace SSASDiag
                         CheckForUpdates(tempDomain);
                     
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
-                    Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Launching app in temp domain.");
+                    Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Preparing to launch executable from temp domain.");
                     Trace.Flush();
-                    if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
+                    Trace.Listeners["debuglistener"].Close();
                     Trace.Listeners.Remove("debuglistener");
                     // Execute the domain.
                     ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName);
@@ -270,29 +292,6 @@ namespace SSASDiag
             System.Diagnostics.Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exiting SSASDiag.");
         }
 
-        public static void SetupDebugTraceAndDumps()
-        {
-            string binlocation = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
-            if (binlocation == null) binlocation = Environment.CurrentDirectory;
-
-            bool DebugListener = false;
-            foreach (TraceListener l in Trace.Listeners)
-                if (l.Name == "debuglistener") DebugListener = true;
-            if (!DebugListener)
-            {
-                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Properties.Settings.Default.LoggingEnabled)
-                    Trace.Listeners.Add(new TextWriterTraceListener(binlocation + "\\SSASDiagDebugTrace.log", "debuglistener"));
-                Trace.AutoFlush = true;
-            }
-
-            RegistryKey dumpkey = Registry.LocalMachine.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\SSASDiag.exe");
-            dumpkey.SetValue("DumpFolder", binlocation, RegistryValueKind.String);
-            dumpkey.SetValue("DumpCount", 3, RegistryValueKind.DWord);
-            dumpkey.SetValue("DumpType", 2, RegistryValueKind.DWord);
-            dumpkey.Close();
-        }
-
-
         private static void Application_ApplicationExit(object sender, EventArgs e)
         {
             if (!Environment.UserInteractive)
@@ -346,7 +345,7 @@ namespace SSASDiag
                         if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
                         {
                             Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Applying new version and restarting.");
-                            if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
+                            Trace.Listeners["debuglistener"].Close();
                             Trace.Listeners.Remove("debuglistener");
                             Process p = new Process();
                             p.StartInfo.UseShellExecute = true;

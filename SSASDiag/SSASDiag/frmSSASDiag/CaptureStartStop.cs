@@ -15,6 +15,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Data.SqlClient;
 using System.Configuration;
+using System.Diagnostics;
 
 namespace SSASDiag
 {
