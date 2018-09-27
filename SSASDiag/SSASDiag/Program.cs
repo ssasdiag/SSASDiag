@@ -71,7 +71,7 @@ namespace SSASDiag
                         p.UseShellExecute = true;
                         p.Verb = "runas";
                         p.CreateNoWindow = true;
-                        Trace.Listeners["debuglistener"].Close();
+                        if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
                         Trace.Listeners.Remove("debuglistener");
                         Process.Start(p);
                         return;
@@ -231,7 +231,7 @@ namespace SSASDiag
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
                     Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Preparing to launch executable from temp domain.");
                     Trace.Flush();
-                    Trace.Listeners["debuglistener"].Close();
+                    if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
                     Trace.Listeners.Remove("debuglistener");
                     // Execute the domain.
                     ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName);
@@ -345,7 +345,7 @@ namespace SSASDiag
                         if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
                         {
                             Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Applying new version and restarting.");
-                            Trace.Listeners["debuglistener"].Close();
+                            if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
                             Trace.Listeners.Remove("debuglistener");
                             Process p = new Process();
                             p.StartInfo.UseShellExecute = true;
