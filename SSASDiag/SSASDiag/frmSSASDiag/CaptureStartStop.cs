@@ -94,7 +94,7 @@ namespace SSASDiag
             }
             if (bExitAfterStop)
                 Invoke(new System.Action(() => Close()));
-            Program.SetupDebugTrace();
+            Program.SetupDebugTraceAndDumps();
             LogFeatureUse("Collection " + (Environment.UserInteractive ? "stopped and delivered to client." : "service stopped."));
         }
         #endregion CaptureStartAndStop

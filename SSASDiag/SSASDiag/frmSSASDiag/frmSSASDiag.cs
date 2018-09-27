@@ -145,7 +145,7 @@ namespace SSASDiag
         }
         private void frmSSASDiag_Load(object sender, EventArgs e)
         {
-            Program.SetupDebugTrace();
+            Program.SetupDebugTraceAndDumps();
             if (Args.ContainsKey("filename") && !Args.ContainsKey("start"))
             {
                 tcCollectionAnalysisTabs.SelectedIndex = 1;
@@ -378,7 +378,7 @@ namespace SSASDiag
         private void enableDiagnosticLoggingToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
             if (!enableDiagnosticLoggingToolStripMenuItem.Checked)
-                Program.SetupDebugTrace();
+                Program.SetupDebugTraceAndDumps();
             else
             {
                 Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Stopping debug trace.");

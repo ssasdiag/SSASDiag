@@ -25,21 +25,26 @@ namespace SSASDiag
         public static string LaunchingUser = "";
 
 
-        public static void SetupDebugTrace()
+        public static void SetupDebugTraceAndDumps()
         {
+            string binlocation = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
+            if (binlocation == null) binlocation = Environment.CurrentDirectory;
+
             bool DebugListener = false;
             foreach (TraceListener l in Trace.Listeners)
                 if (l.Name == "debuglistener") DebugListener = true;
             if (!DebugListener)
             {
                 if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Properties.Settings.Default.LoggingEnabled)
-                {
-                    string binlocation = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
-                    if (binlocation == null) binlocation = Environment.CurrentDirectory;
                     Trace.Listeners.Add(new TextWriterTraceListener(binlocation + "\\SSASDiagDebugTrace.log", "debuglistener"));
-                }
                 Trace.AutoFlush = true;
             }
+
+            RegistryKey dumpkey = Registry.LocalMachine.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\SSASDiag.exe");
+            dumpkey.SetValue("DumpFolder", binlocation, RegistryValueKind.String);
+            dumpkey.SetValue("DumpCount", 3, RegistryValueKind.DWord);
+            dumpkey.SetValue("DumpType", 2, RegistryValueKind.DWord);
+            dumpkey.Close();
         }
         
         /// <summary> /// 
@@ -48,7 +53,7 @@ namespace SSASDiag
         [STAThread]
         public static void Main()
         {
-            SetupDebugTrace();
+            SetupDebugTraceAndDumps();
 
             if (!Environment.UserInteractive)
             {
@@ -81,6 +86,7 @@ namespace SSASDiag
             object ReleaseVer = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, "").OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full").GetValue("Release");
             if (ReleaseVer == null || Convert.ToInt32(ReleaseVer) <= 378389)
             {
+                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ":  .NET 4.5 was missing, process stopping.");
                 if (Environment.UserInteractive && MessageBox.Show("SSASDiag requires .NET 4.5 or later and will exit now.\r\nInstall the latest .NET release now?", ".NET Update Required", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
                     Process.Start("https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/NDP462-KB3151800-x86-x64-AllOS-ENU.exe");
                 return;
@@ -115,6 +121,7 @@ namespace SSASDiag
                                          new FileInfo(TempPath + "Resources.zip").Length != b.Length) 
                                     )
                                     File.WriteAllBytes(TempPath + "Resources.zip", b);
+                                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extracted resources zip.");
                                 break;
                             }
                         } catch { } // may fail if file is in use, fine...
@@ -124,9 +131,12 @@ namespace SSASDiag
                 new Thread(new ThreadStart(() =>
                 {
                     while (de.MoveNext() == true)
-                        if (!File.Exists(TempPath + de.Key.ToString().Replace('_', '.') + ".exe") 
+                        if (!File.Exists(TempPath + de.Key.ToString().Replace('_', '.') + ".exe")
                             && de.Entry.Value is byte[] && de.Key.ToString() != "ResourcesZip")
-                                File.WriteAllBytes(TempPath + de.Key.ToString().Replace('_', '.') + ".exe", de.Entry.Value as byte[]);
+                        {
+                            File.WriteAllBytes(TempPath + de.Key.ToString().Replace('_', '.') + ".exe", de.Entry.Value as byte[]);
+                            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extracted temp file " + de.Key.ToString().Replace('_', '.') + ".exe");
+                        }
                 })).Start();
 
                 // Symbolic debugger binaries required for dump parsing. 
@@ -143,12 +153,15 @@ namespace SSASDiag
                             || (File.Exists(TempPath + "SSASDiag.exe") && !File.ReadAllBytes(TempPath + "SSASDiag.exe").SequenceEqual(File.ReadAllBytes(Application.ExecutablePath)))
                             || Debugger.IsAttached
                             || !Environment.UserInteractive)
+                        {
                             File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true);
+                            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Copied SSASDiag.exe to temp location.");
+                        }
                         break;
                     }
                     catch (Exception e)
                     {
-                        Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception copying binary to temp cache: " + e.Message);
+                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception copying binary to temp cache: " + e.Message);
                         Thread.Sleep(100);
                         iCopyTries++;
                     } 
@@ -164,11 +177,14 @@ namespace SSASDiag
                         {
                             // Extract any dependencies required for initial form display on main thread...
                             ZipArchive za = ZipFile.OpenRead(f);
-                            if (!File.Exists(TempPath + za.GetEntry("FastColoredTextBox.dll").Name) || 
-                                   (File.Exists(TempPath + za.GetEntry("FastColoredTextBox.dll").Name) && 
+                            if (!File.Exists(TempPath + za.GetEntry("FastColoredTextBox.dll").Name) ||
+                                   (File.Exists(TempPath + za.GetEntry("FastColoredTextBox.dll").Name) &&
                                     new FileInfo(TempPath + za.GetEntry("FastColoredTextBox.dll").Name).Length != za.GetEntry("FastColoredTextBox.dll").Length)
                                 )
+                            {
                                 za.GetEntry("FastColoredTextBox.dll").ExtractToFile(TempPath + "FastColoredTextBox.dll", true);
+                                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extracted FastColoredTextBox.dll to temp path.");
+                            }
 
                             // Extract remainig non-immediate depencies off main thread to improve startup time...
                             new Thread(new ThreadStart(() =>
@@ -177,14 +193,17 @@ namespace SSASDiag
                                 {
                                     try
                                     {
-                                        if (!File.Exists(TempPath + ze.Name) || 
+                                        if (!File.Exists(TempPath + ze.Name) ||
                                                 (File.Exists(TempPath + ze.Name) && new FileInfo(TempPath + ze.Name).Length != ze.Length)
                                             )
+                                        {
                                             ze.ExtractToFile(TempPath + ze.Name, true);
+                                            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extracted " + ze.Name + " to temp path.");
+                                        }
                                     }
                                     catch (Exception ex2)
                                     {
-                                        Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extraction Exception: " + ex2.Message);
+                                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extraction Exception: " + ex2.Message);
                                     }
                                 }
                             }
@@ -192,7 +211,7 @@ namespace SSASDiag
                         }
                         catch (Exception ex)
                         {
-                            Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extraction Exception: " + ex.Message);
+                            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extraction Exception: " + ex.Message);
                         }
                     }
                 try
@@ -210,6 +229,7 @@ namespace SSASDiag
                         CheckForUpdates(tempDomain);
                     
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
+                    Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Preparing to launch executable from temp domain.");
                     Trace.Flush();
                     Trace.Listeners["debuglistener"].Close();
                     Trace.Listeners.Remove("debuglistener");
@@ -260,16 +280,16 @@ namespace SSASDiag
             {
                 MainForm = new frmSSASDiag();
                 Application.ApplicationExit += Application_ApplicationExit;
-                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Starting frmSSASDiag for RunID " + RunID);
+                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Starting SSASDiag UI for RunID " + RunID);
                 Application.Run(MainForm);  
             }
             catch (Exception ex)
             {
-                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                 if (Environment.UserInteractive)
                     MessageBox.Show("SSASDiag encountered an unexpected exception:\n\t" + ex.Message + "\n\tat\n" + ex.StackTrace, "SSASDiag Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exiting SSASDiag.");
+            System.Diagnostics.Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exiting SSASDiag.");
         }
 
         private static void Application_ApplicationExit(object sender, EventArgs e)
@@ -295,6 +315,7 @@ namespace SSASDiag
 
         public static void CheckForUpdates(AppDomain tempDomain)
         {
+            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Starting update check.");
             string sNewBin = Program.TempPath + "newbin_tmp";
 
             // Check for new version but just spawn a new thread to do it without blocking...
@@ -306,6 +327,7 @@ namespace SSASDiag
                     WebRequest req = HttpWebRequest.Create(Uri.EscapeUriString("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx"));
                     req.Method = "GET";
                     WebResponse wr = req.GetResponse();
+                    Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Response obtained from SSASDiag server.");
                     string[] versionInfo = new StreamReader(req.GetResponse().GetResponseStream()).ReadToEnd().Split('\n');
                     string version = "";
                     foreach (string v in versionInfo)
@@ -318,9 +340,13 @@ namespace SSASDiag
                         req.Method = "GET";
                         Stream newBin = File.OpenWrite(sNewBin);
                         req.GetResponse().GetResponseStream().CopyTo(newBin);
+                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Downloaded new bin version and prompting user to apply it.");
                         newBin.Close();
                         if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
                         {
+                            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Applying new version and restarting.");
+                            Trace.Listeners["debuglistener"].Close();
+                            Trace.Listeners.Remove("debuglistener");
                             Process p = new Process();
                             p.StartInfo.UseShellExecute = true;
                             p.StartInfo.CreateNoWindow = true;
@@ -337,12 +363,13 @@ namespace SSASDiag
                         }
                     }
                 }
-                catch (Exception ex) { Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
+                catch (Exception ex) { Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
             })).Start();
         }
 
         static private void InstallCDB()
         {
+            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Installing CDB in the background for debugger analysis.");
             new Thread(new ThreadStart(() =>
             {
                 if (!File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "\\CDB\\cdb.exe"))
@@ -353,11 +380,13 @@ namespace SSASDiag
                         req.Method = "GET";
                         Stream newBin = File.OpenWrite(TempPath + "\\cdb.zip");
                         req.GetResponse().GetResponseStream().CopyTo(newBin);
+                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": CDB zip downloaded.");
                     }
                     if (File.Exists(TempPath + "\\cdb.zip"))
                     {
                         ZipArchive zf = ZipFile.OpenRead(TempPath + "\\cdb.zip");
                         zf.ExtractToDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "\\CDB");
+                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": CDB extracted and installed.");
                     }
                 }
             }
