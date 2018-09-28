@@ -560,21 +560,23 @@ namespace SSASDiag
                         {
                             Invoke(new System.Action(() =>
                             {
-                                txtStatus.AppendText("\r\nWaiting 30s before capturing dump " + (i + 2) + ".");
+                                txtStatus.AppendText("\r\nWaiting 30s before capturing the next dump.");
                                 btnSettings.Focus();
                             }));
                             Thread.Sleep(30000);
                         }
-                        Invoke(new System.Action(() =>
-                        {
-                            btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
-                            udRollover.Enabled = chkRollover.Checked;
-                            dtStartTime.Enabled = chkStartTime.Checked;
-                            dtStopTime.Enabled = chkStopTime.Checked;
-                            btnCapture.Enabled = true;
-                            txtStatus.Cursor = Cursors.Default;
-                        }));
                     }
+                    Invoke(new System.Action(() =>
+                    {
+                        t.Stop();
+                        txtStatus.AppendText("\r\nHang dump capture completed.");
+                        btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+                        udRollover.Enabled = chkRollover.Checked;
+                        dtStartTime.Enabled = chkStartTime.Checked;
+                        dtStopTime.Enabled = chkStopTime.Checked;
+                        btnCapture.Enabled = true;
+                        txtStatus.Cursor = Cursors.Default;
+                    }));
                 })).Start();   
             }
             else
