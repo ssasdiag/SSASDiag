@@ -469,6 +469,7 @@ namespace SSASDiag
             if (txtStatus.Text != "")
             {
                 int lineHeight = TextRenderer.MeasureText(txtStatus.CreateGraphics(), txtStatus.Lines.Last(), txtStatus.Font).Height;
+                if (lineHeight == 0) return;
                 int heightDiscrepancy = ((txtStatus.Height - 5) % lineHeight);
                 if (heightDiscrepancy > 0)
                 {

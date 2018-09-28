@@ -500,25 +500,21 @@ namespace SSASDiag
 
             return ret;
         }
+        Process pNetworkCapture;
         private void bgGetNetworkWorker(object sender, DoWorkEventArgs e)
         {
             SendMessageToClients("Starting network trace.");
-            Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            p.StartInfo.FileName = "netsh";
-            p.StartInfo.Arguments = "trace stop";
-            p.Start();
-            p.WaitForExit(500);
-            string sOut = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
-            p.StartInfo.Arguments = "trace start fileMode=" + (bRollover ? "circular" : "single") + " capture=yes tracefile=\"" + Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + ".etl\" maxSize=" + (bRollover ? iRollover.ToString() : "0");
-            p.Start();
-            sOut = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
-            SendMessageToClients("Network tracing started to file: " + TraceID + ".etl.");
+            pNetworkCapture = new Process();
+            pNetworkCapture.StartInfo.UseShellExecute = false;
+            pNetworkCapture.StartInfo.CreateNoWindow = true;
+            pNetworkCapture.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            // elevate priv
+            pNetworkCapture.StartInfo.Verb = "runas";
+            pNetworkCapture.StartInfo.FileName = "nmcap";
+            pNetworkCapture.StartInfo.Arguments = "/network * /capture not(Frame.Ethernet.IPv4.TCP.Port==3389)  /MaxFrameLength 512 /file \"" + Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + (bRollover ? ".chn\":" + iRollover + "MB " : ".cap\"") + " /RecordConfig /CaptureProcesses";
+            SendMessageToClients(pNetworkCapture.StartInfo.Arguments);
+            pNetworkCapture.Start();
+            SendMessageToClients("Network tracing started to file: " + TraceID + ".cap.");
         }
         private void bgGetNetworkCompletion(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -881,21 +877,59 @@ namespace SSASDiag
         }
         private void bgStopNewtworkWorker(object sender, DoWorkEventArgs e)
         {
-            SendMessageToClients("Stopping network trace.  This may take a while...");
-            Process p = new Process();
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.FileName = "netsh";
-            p.StartInfo.Arguments = "trace stop";
-            p.Start();
-            string sOut = p.StandardOutput.ReadToEnd();
-            if (sOut == "There is no trace session currently in progress.")
-                SendMessageToClients("Network trace failed to capture for unknown reason.  Manual collection may be necessary.");
-            p.WaitForExit();
+            SendMessageToClients("Stopping network trace.");
+            StopProgram(pNetworkCapture);
+            pNetworkCapture.WaitForExit();
             SendMessageToClients("Network trace stopped and collected.");
         }
+        #region Send Ctrl-C to console app
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool AttachConsole(uint dwProcessId);
+
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern bool FreeConsole();
+
+        // Enumerated type for the control messages sent to the handler routine
+        enum CtrlTypes : uint
+        {
+            CTRL_C_EVENT = 0,
+            CTRL_BREAK_EVENT,
+            CTRL_CLOSE_EVENT,
+            CTRL_LOGOFF_EVENT = 5,
+            CTRL_SHUTDOWN_EVENT
+        }
+
+        [DllImport("kernel32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GenerateConsoleCtrlEvent(CtrlTypes dwCtrlEvent, uint dwProcessGroupId);
+
+        public void StopProgram(Process proc)
+        {
+            //This does not require the console window to be visible.
+            if (AttachConsole((uint)proc.Id))
+            {
+                // Disable Ctrl-C handling for our program
+                SetConsoleCtrlHandler(null, true);
+                GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0);
+
+                // Must wait here. If we don't and re-enable Ctrl-C
+                // handling below too fast, we might terminate ourselves.
+                proc.WaitForExit(2000);
+
+                FreeConsole();
+
+                //Re-enable Ctrl-C handling or any subsequently started
+                //programs will inherit the disabled state.
+                SetConsoleCtrlHandler(null, false);
+            }
+        }
+
+        [DllImport("kernel32.dll")]
+        static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate HandlerRoutine, bool Add);
+
+        // Delegate type to be used as the Handler Routine for SCCH
+        delegate Boolean ConsoleCtrlDelegate(CtrlTypes CtrlType);
+        #endregion 
         private void bgStopNetworkComplete(object sender, RunWorkerCompletedEventArgs e)
         {
             BackgroundWorker bgFinalSteps = new BackgroundWorker();
@@ -903,6 +937,7 @@ namespace SSASDiag
             bgFinalSteps.RunWorkerCompleted += bgFinalProfilerAndZipSteps_Completion;
             bgFinalSteps.RunWorkerAsync();
         }
+
         private void bgFinalProfilerAndZipSteps(object sender, DoWorkEventArgs e)
         {
             if (bGetProfiler)
