@@ -257,6 +257,21 @@ namespace SSASDiag
             if (chkGetNetwork.Checked && Environment.UserInteractive && bFullyInitialized && tcSimpleAdvanced.SelectedIndex == 1)
                 MessageBox.Show("Please note that including network traces may significantly increase size of data collected and time required to stop collection.",
                     "Network Trace Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            if (chkGetNetwork.Checked)
+            {
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                p.StartInfo.FileName = "nmcap";
+                try { p.Start(); }
+                catch
+                {
+                    if (MessageBox.Show("Network Monitor is required to capture network traffic.  Please install it first before enabling network capture.\r\nWould you like to download Network Monitor now?", "Network Monitor Required", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
+                        Process.Start("https://www.microsoft.com/en-US/download/details.aspx?id=4865");
+                    chkGetNetwork.Checked = false;
+                }
+            }
             UpdateUIIfOnlyNetworkingEnabled();
             EnsureSomethingToCapture();
         }
