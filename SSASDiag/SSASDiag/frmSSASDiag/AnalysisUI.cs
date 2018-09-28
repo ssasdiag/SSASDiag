@@ -193,8 +193,8 @@ namespace SSASDiag
                             break;
                         }
             }
-            if ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".blg")) || dirhasblgs  ||
-                (Directory.Exists(m_analysisPath + "\\Analysis") && Directory.GetFiles(m_analysisPath + "\\Analysis", "SSASDiag_PerfMon_Analysis_*.mdf", SearchOption.TopDirectoryOnly).Count() > 0))
+            if (Args.ContainsKey("perfmon") && ((File.Exists(m_analysisPath) && m_analysisPath.EndsWith(".blg")) || dirhasblgs  ||
+                (Directory.Exists(m_analysisPath + "\\Analysis") && Directory.GetFiles(m_analysisPath + "\\Analysis", "SSASDiag_PerfMon_Analysis_*.mdf", SearchOption.TopDirectoryOnly).Count() > 0)))
             {
                 if (ValidateProfilerTraceDBConnectionStatus())
                 {
