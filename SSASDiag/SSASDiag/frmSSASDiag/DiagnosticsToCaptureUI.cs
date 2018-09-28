@@ -265,11 +265,14 @@ namespace SSASDiag
                 p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 p.StartInfo.FileName = "nmcap";
                 try { p.Start(); }
-                catch
+                catch (Exception ex)
                 {
-                    if (MessageBox.Show("Network Monitor is required to capture network traffic.  Please install it first before enabling network capture.\r\nWould you like to download Network Monitor now?", "Network Monitor Required", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
-                        Process.Start("https://www.microsoft.com/en-US/download/details.aspx?id=4865");
-                    chkGetNetwork.Checked = false;
+                    if (ex.Message == "The system cannot find the file specified")
+                    {
+                        if (MessageBox.Show("Network Monitor is required to capture network traffic.  Please install it first before enabling network capture.\r\nWould you like to download Network Monitor now?", "Network Monitor Required", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
+                            Process.Start("https://www.microsoft.com/en-US/download/details.aspx?id=4865");
+                        chkGetNetwork.Checked = false;
+                    }
                 }
             }
             UpdateUIIfOnlyNetworkingEnabled();
