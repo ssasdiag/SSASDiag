@@ -950,10 +950,11 @@ namespace SSASDiag
 
                             if (bGetXMLA)
                             {
-                                SendMessageToClients("Extracting database definition XMLA script for " + db + ".");
+                                
                                 Database DB = s.Databases.FindByName(db);
                                 if (s.ServerMode == ServerMode.Multidimensional || DB.CompatibilityLevel < 1200)
                                 {
+                                    SendMessageToClients("Extracting database definition XMLA script for " + db + ".");
                                     MajorObject[] mo = { DB };
                                     XmlWriter output = XmlWriter.Create(Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + db + ".xmla", new XmlWriterSettings() { OmitXmlDeclaration = true });
                                     Microsoft.AnalysisServices.Scripter sc = new Microsoft.AnalysisServices.Scripter();
@@ -963,6 +964,7 @@ namespace SSASDiag
                                 }
                                 else
                                 {
+                                    SendMessageToClients("Extracting database definition JSON script for " + db + ".");
                                     StreamWriter sw = File.CreateText(Environment.CurrentDirectory + "\\" + TraceID + "\\Databases\\" + db + ".json");
                                     sw.WriteLine(Microsoft.AnalysisServices.Tabular.JsonScripter.ScriptCreate(DB));
                                     sw.Close();

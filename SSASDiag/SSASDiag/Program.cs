@@ -24,7 +24,6 @@ namespace SSASDiag
         public static string TempPath = "";
         public static string LaunchingUser = "";
 
-
         public static void SetupDebugTraceAndDumps()
         {
             string binlocation = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
