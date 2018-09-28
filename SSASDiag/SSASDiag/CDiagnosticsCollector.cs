@@ -512,7 +512,6 @@ namespace SSASDiag
             pNetworkCapture.StartInfo.Verb = "runas";
             pNetworkCapture.StartInfo.FileName = "nmcap";
             pNetworkCapture.StartInfo.Arguments = "/network * /capture not(Frame.Ethernet.IPv4.TCP.Port==3389)  /MaxFrameLength 512 /file \"" + Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + (bRollover ? ".chn\":" + iRollover + "MB " : ".cap\"") + " /RecordConfig /CaptureProcesses";
-            SendMessageToClients(pNetworkCapture.StartInfo.Arguments);
             pNetworkCapture.Start();
             SendMessageToClients("Network tracing started to file: " + TraceID + ".cap.");
         }
