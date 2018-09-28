@@ -195,7 +195,7 @@ namespace SSASDiag
 
         private void InitializeCaptureUI()
         {
-            if (chkHangDumps.Checked) btnHangDumps.Visible = true;
+            btnHangDumps.Visible = true;
             btnCapture.Image = imgPlayHalfLit;
             btnCapture.Click -= btnCapture_Click;
             tbAnalysis.ForeColor = SystemColors.ControlDark;

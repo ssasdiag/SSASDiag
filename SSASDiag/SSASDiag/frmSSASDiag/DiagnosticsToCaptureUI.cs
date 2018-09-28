@@ -30,7 +30,7 @@ namespace SSASDiag
         {
             bool bUpdatingSimpleToMatchChangedAdvanced = new StackTrace().GetFrames().Where(f => f.GetMethod().Name.Contains("UpdateSimpleUIAfterAdvancedChanged")).Count() > 0;
             if (!bUpdatingSimpleToMatchChangedAdvanced)
-                chkHangDumps.Checked = chkGetConfigDetails.Checked = chkGetNetwork.Checked = chkGetPerfMon.Checked = chkGetProfiler.Checked = chkProfilerPerfDetails.Checked = false;
+                chkGetConfigDetails.Checked = chkGetNetwork.Checked = chkGetPerfMon.Checked = chkGetProfiler.Checked = chkProfilerPerfDetails.Checked = false;
 
             switch (cmbProblemType.SelectedItem as string)
             {
@@ -48,7 +48,7 @@ namespace SSASDiag
                                            + "Including AS backups can allow further investigation to review data structures, rerun problematic queries, or test changes to calculations.\r\n\r\n"
                                            + "Including SQL data source backups can further allow experimental changes and full reprocessing of data structures.\r\n\r\n"
                                            + "Enables a button allowing on-demand collection of hang dumps anytime after diagnostic collection is active.";
-                    chkGetPerfMon.Checked = chkGetProfiler.Checked = chkGetConfigDetails.Checked = chkHangDumps.Checked = true;
+                    chkGetPerfMon.Checked = chkGetProfiler.Checked = chkGetConfigDetails.Checked =  true;
                     chkXMLA.Checked = tbLevelOfData.Value == 0;
                     chkABF.Checked = tbLevelOfData.Value == 1;
                     chkBAK.Checked = tbLevelOfData.Value == 2;
@@ -193,10 +193,6 @@ namespace SSASDiag
                 chkBAK.Checked = false;
             UpdateUIIfOnlyNetworkingEnabled();
         }
-        private void chkHangDumps_CheckedChanged(object sender, EventArgs e)
-        {
-            btnHangDumps.Visible = chkHangDumps.Checked;
-        }
         private void chkABF_CheckedChanged(object sender, EventArgs e)
         {
             if (chkABF.Checked)
@@ -322,7 +318,7 @@ namespace SSASDiag
             bool bSomeFormOfDBData = (chkXMLA.Checked || chkABF.Checked || chkBAK.Checked);
             if (chkProfilerPerfDetails.Checked && chkGetProfiler.Checked && chkGetPerfMon.Checked && bSomeFormOfDBData && chkGetConfigDetails.Checked)
                 cmbProblemType.SelectedIndex = 1;
-            else if (chkGetPerfMon.Checked && chkGetProfiler.Checked && chkGetConfigDetails.Checked && bSomeFormOfDBData && chkHangDumps.Checked)
+            else if (chkGetPerfMon.Checked && chkGetProfiler.Checked && chkGetConfigDetails.Checked && bSomeFormOfDBData)
                 cmbProblemType.SelectedIndex = 2;
             else if (!bSomeFormOfDBData && chkGetNetwork.Checked)
                 cmbProblemType.SelectedIndex = 5;

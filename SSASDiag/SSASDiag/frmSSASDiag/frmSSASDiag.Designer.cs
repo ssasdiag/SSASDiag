@@ -68,7 +68,6 @@
             this.tbLevelOfData = new System.Windows.Forms.TrackBar();
             this.tabAdvanced = new System.Windows.Forms.TabPage();
             this.pnlDiagnosticsToCollect = new System.Windows.Forms.Panel();
-            this.chkHangDumps = new System.Windows.Forms.CheckBox();
             this.chkGetProfiler = new System.Windows.Forms.CheckBox();
             this.chkGetPerfMon = new System.Windows.Forms.CheckBox();
             this.dtStopTime = new System.Windows.Forms.DateTimePicker();
@@ -308,6 +307,7 @@
             // btnHangDumps
             // 
             this.btnHangDumps.BackColor = System.Drawing.SystemColors.ButtonShadow;
+            this.btnHangDumps.Enabled = false;
             this.btnHangDumps.FlatAppearance.BorderColor = System.Drawing.SystemColors.ScrollBar;
             this.btnHangDumps.FlatAppearance.BorderSize = 2;
             this.btnHangDumps.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.HotTrack;
@@ -320,13 +320,12 @@
             this.btnHangDumps.Location = new System.Drawing.Point(271, 168);
             this.btnHangDumps.Margin = new System.Windows.Forms.Padding(0);
             this.btnHangDumps.Name = "btnHangDumps";
-            this.btnHangDumps.Size = new System.Drawing.Size(66, 50);
+            this.btnHangDumps.Size = new System.Drawing.Size(70, 50);
             this.btnHangDumps.TabIndex = 67;
-            this.btnHangDumps.Text = "Capture Dumps Now";
+            this.btnHangDumps.Text = "Capture  Hang Dumps";
             this.btnHangDumps.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.ttStatus.SetToolTip(this.btnHangDumps, "Captures 3 consecutive hang dumps from the service on-demand when clicked.");
             this.btnHangDumps.UseVisualStyleBackColor = false;
-            this.btnHangDumps.Visible = false;
             this.btnHangDumps.Click += new System.EventHandler(this.btnHangDumps_Click);
             // 
             // lkHelp
@@ -624,7 +623,6 @@
             // 
             this.pnlDiagnosticsToCollect.AutoScroll = true;
             this.pnlDiagnosticsToCollect.BackColor = System.Drawing.SystemColors.Control;
-            this.pnlDiagnosticsToCollect.Controls.Add(this.chkHangDumps);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkBAK);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetConfigDetails);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkABF);
@@ -639,17 +637,6 @@
             this.pnlDiagnosticsToCollect.Name = "pnlDiagnosticsToCollect";
             this.pnlDiagnosticsToCollect.Size = new System.Drawing.Size(231, 132);
             this.pnlDiagnosticsToCollect.TabIndex = 38;
-            // 
-            // chkHangDumps
-            // 
-            this.chkHangDumps.AutoSize = true;
-            this.chkHangDumps.Location = new System.Drawing.Point(3, 186);
-            this.chkHangDumps.Name = "chkHangDumps";
-            this.chkHangDumps.Size = new System.Drawing.Size(154, 17);
-            this.chkHangDumps.TabIndex = 8;
-            this.chkHangDumps.Text = "Enable hang dump capture";
-            this.chkHangDumps.UseVisualStyleBackColor = true;
-            this.chkHangDumps.CheckedChanged += new System.EventHandler(this.chkHangDumps_CheckedChanged);
             // 
             // chkGetProfiler
             // 
@@ -1417,7 +1404,6 @@
         public System.Windows.Forms.Button btnCapture;
         public System.Windows.Forms.ComboBox cbInstances;
         private System.Windows.Forms.Button btnHangDumps;
-        private System.Windows.Forms.CheckBox chkHangDumps;
         private System.Windows.Forms.Button btnSettings;
         private System.Windows.Forms.ContextMenuStrip ctxSettings;
         private System.Windows.Forms.ToolStripMenuItem automaticallyCheckForUpdatesToolStripMenuItem;

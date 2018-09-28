@@ -36,7 +36,7 @@ namespace SSASDiag
         #endregion StatusHandlingDuringCapture
         private void callback_StartDiagnosticsComplete()
         {
-            if (chkHangDumps.Checked) btnHangDumps.Enabled = btnHangDumps.Visible = true;
+            btnHangDumps.Enabled = btnHangDumps.Visible = true;
             btnCapture.Image = imgStop;
             btnCapture.Click += btnCapture_Click;
             if (dc != null)
@@ -44,8 +44,7 @@ namespace SSASDiag
         }
         private void callback_StopAndFinalizeAllDiagnosticsComplete()
         {
-            btnHangDumps.Visible = btnHangDumps.Enabled = false;
-            txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
+            btnHangDumps.Visible = btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;
             udRollover.Enabled = chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Checked;
