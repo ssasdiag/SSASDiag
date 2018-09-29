@@ -46,7 +46,10 @@ namespace SSASDiag
                     ComboBoxServiceDetailsItem cbsdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
                     string TracePrefix = (cbsdi.Cluster ? cbsdi.Text.Replace(" (Clustered Instance)", "") : Environment.MachineName + (cbsdi == null ? "" : "_"
                         + (cbInstances.SelectedIndex == 0 ? "" : cbsdi.Text + "_")));
-                    
+
+                    if (cbsdi.ServiceName == "PowerBIReportServer")
+                        LogFeatureUse("PBIRS Collection");
+
                     // Unhook the status text area from selection while we are actively using it.
                     // I do allow selection after but it was problematic to scroll correctly while allowing user selection during active collection.
                     // This is functionally good, allows them to copy paths or file names after completion but also gives nice behavior during collection.
