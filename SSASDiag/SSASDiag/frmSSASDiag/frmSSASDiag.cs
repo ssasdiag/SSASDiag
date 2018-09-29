@@ -378,14 +378,7 @@ namespace SSASDiag
             else
             {
                 Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Stopping debug trace.");
-                Trace.Flush();
-                for (int i = 0; i < Trace.Listeners.Count; i++)
-                    if (Trace.Listeners[i].Name == "debuglistener")
-                    {
-                        Trace.Listeners[i].Flush();
-                        Trace.Listeners[i].Close();
-                        Trace.Listeners.RemoveAt(i);
-                    }
+                Program.ShutdownDebugTrace();
             }
             Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", enableDiagnosticLoggingToolStripMenuItem.Checked);
         }

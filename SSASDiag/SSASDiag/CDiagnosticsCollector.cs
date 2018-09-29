@@ -888,6 +888,8 @@ namespace SSASDiag
             SendMessageToClients("Stopping network trace.");
             StopProgram(pNetworkCapture);
             pNetworkCapture.WaitForExit();
+            pNetworkCapture.Close();
+            pNetworkCapture = null;
             SendMessageToClients("Network trace stopped and collected.");
         }
         #region Send Ctrl-C to console app
@@ -1032,6 +1034,7 @@ namespace SSASDiag
                     }
                 }
             }
+            Debug.WriteLine("Stoppped SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
 
             // Just before zip, write out last line of this capture log and save that file...
             // The last line captured in text file here:
@@ -1082,6 +1085,7 @@ namespace SSASDiag
                         + "\tIt was created in the same location where you ran this utility.");
                 } 
             }
+            Debug.WriteLine("Finalized collection.");
         }
 
         private List<string> ExtractDBNamesFromDBNamesTrace(string DBNamesTrace)
@@ -1131,6 +1135,7 @@ namespace SSASDiag
         {
             SendMessageToClients("SSASDiag completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             SendMessageToClients("Stop");
+            Debug.WriteLine("SSASDiag collection completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             PerfMonAndUIPumpTimer.Stop();
             bScheduledStartPending = false;
             CompletionCallback();

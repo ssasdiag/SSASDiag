@@ -23,37 +23,7 @@ namespace SSASDiag
         public static frmSSASDiag MainForm;
         public static string TempPath = "";
         public static string LaunchingUser = "";
-
-        public static void SetupDebugTraceAndDumps()
-        {
-            string binlocation = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
-            if (binlocation == null) binlocation = Environment.CurrentDirectory;
-
-            bool DebugListener = false;
-            foreach (TraceListener l in Trace.Listeners)
-                if (l.Name == "debuglistener") DebugListener = true;
-            if (!DebugListener)
-            {
-                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "True") as string == "True")
-                    Trace.Listeners.Add(new TextWriterTraceListener(binlocation + "\\SSASDiagDebugTrace.log", "debuglistener"));
-                Trace.AutoFlush = true;
-                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Trace Started");
-            }
-
-            RegistryKey dumpkey = Registry.LocalMachine.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\SSASDiag.exe");
-            dumpkey.SetValue("DumpFolder", binlocation, RegistryValueKind.String);
-            dumpkey.SetValue("DumpCount", 3, RegistryValueKind.DWord);
-            dumpkey.SetValue("DumpType", 2, RegistryValueKind.DWord);
-            dumpkey.Close();
-        }
-
-        private static void WriteConfig()
-        {
-            StreamWriter sw = File.CreateText("SSASDiag.exe.config");
-            sw.Write(Properties.Resources.Config);
-            sw.Close();
-        }
-        
+       
         /// <summary> /// 
         /// The main entry point for the application.
         /// </summary>
@@ -79,8 +49,7 @@ namespace SSASDiag
                         p.UseShellExecute = true;
                         p.Verb = "runas";
                         p.CreateNoWindow = true;
-                        if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
-                        Trace.Listeners.Remove("debuglistener");
+                        ShutdownDebugTrace();
                         Process.Start(p);
                         return;
                     }
@@ -238,16 +207,14 @@ namespace SSASDiag
                     
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
                     Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Preparing to launch executable from temp domain.");
-                    Trace.Flush();
-                    if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
-                    Trace.Listeners.Remove("debuglistener");
+                    ShutdownDebugTrace();
                     // Execute the domain.
                     ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName);
                 }
                 catch (AppDomainUnloadedException ex)
                 {
                     /* This happens normally if we terminate due to update process... */
-                    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": AppDomainUnloaded Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                 }
                 catch (Exception ex)
                 {
@@ -255,7 +222,7 @@ namespace SSASDiag
                     // which catches any previously uncaught exceptions originating from the tempDomain.
                     // This should avoid any crashes of the app in theory, instead providing graceful error messaging.
                     //
-                    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": AppDomain Initialization Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                     string msg = "There was an unexpected error in the SSAS Diagnostics Collector and the application will close.  " 
                                     + "Details of the error are provided for debugging purposes, and copied on the clipboard.\r\n\r\n"
                                     + "An email will also be generated to the tool's author after you click OK.  Please paste the details there to report the issue.\r\n\r\n" 
@@ -271,9 +238,6 @@ namespace SSASDiag
                                         + (ex.InnerException == null ? "" :
                                             "\n\n=====================\nInner Exception: " + ex.InnerException.Message + " at " + ex.InnerException.TargetSite + "\n"
                                             + ex.InnerException.StackTrace));
-
-                    if (Environment.UserInteractive)
-                        Process.Start("mailto:jon.burchel@mcirosoft.com?subject=" + WebUtility.UrlEncode("SSASDiag error at " + ex.TargetSite));
                 }
 
                 // After the inner app domain exits
@@ -287,39 +251,53 @@ namespace SSASDiag
             try
             {
                 MainForm = new frmSSASDiag();
-                Application.ApplicationExit += Application_ApplicationExit;
                 Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Starting SSASDiag UI for RunID " + RunID);
                 Application.Run(MainForm);  
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
+                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": General Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
                 if (Environment.UserInteractive)
                     MessageBox.Show("SSASDiag encountered an unexpected exception:\n\t" + ex.Message + "\n\tat\n" + ex.StackTrace, "SSASDiag Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            System.Diagnostics.Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exiting SSASDiag.");
+            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exiting SSASDiag.");
             File.Delete("SSASDiag.exe.config");
         }
 
-        private static void Application_ApplicationExit(object sender, EventArgs e)
+        public static void SetupDebugTraceAndDumps()
         {
-            if (!Environment.UserInteractive)
+            string binlocation = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
+            if (binlocation == null) binlocation = Environment.CurrentDirectory;
+
+            bool DebugListener = false;
+            foreach (TraceListener l in Trace.Listeners)
+                if (l.Name == "debuglistener") DebugListener = true;
+            if (!DebugListener)
             {
-                if (MainForm != null && MainForm.btnCapture.Image.Tag as string == "Stop")
-                {
-                    MainForm.btnCapture.PerformClick();
-                    while (MainForm.btnCapture.Image.Tag as string != "Start")
-                        Thread.Sleep(5000);
-                }
-                // Reinitialize service config to start with only option to specify instance, which will trigger stop of service hereafter in service mode then, until UI configures new settings, should someone try to start manually.
-                string svcIniPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\services\\SSASDiag_" + (MainForm.cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : MainForm.cbInstances.Text)).GetValue("ImagePath") as string;
-                svcIniPath = svcIniPath.Substring(0, svcIniPath.IndexOf(".exe")) + ".ini";
-                List<string> svcConfig = new List<string>();
-                if (File.Exists(svcIniPath))
-                    svcConfig = new List<string>(File.ReadAllLines(svcIniPath));
-                svcConfig[svcConfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe /instance " + (MainForm.cbInstances.SelectedIndex == 0 ? "MSSQLSERVER" : MainForm.cbInstances.Text);
-                File.WriteAllLines(svcIniPath, svcConfig.ToArray());
+                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "True") as string == "True")
+                    Trace.Listeners.Add(new TextWriterTraceListener(binlocation + (Environment.UserInteractive ? "\\SSASDiagDebugTrace.log" : "\\SSASDiagServiceDebugTrace.log"), "debuglistener"));
+                Trace.AutoFlush = true;
+                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Trace Started");
             }
+
+            RegistryKey dumpkey = Registry.LocalMachine.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\SSASDiag.exe");
+            dumpkey.SetValue("DumpFolder", binlocation, RegistryValueKind.String);
+            dumpkey.SetValue("DumpCount", 3, RegistryValueKind.DWord);
+            dumpkey.SetValue("DumpType", 2, RegistryValueKind.DWord);
+            dumpkey.Close();
+        }
+
+        public static void ShutdownDebugTrace()
+        {
+            if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
+            Trace.Listeners.Remove("debuglistener");
+        }
+
+        private static void WriteConfig()
+        {
+            StreamWriter sw = File.CreateText("SSASDiag.exe.config");
+            sw.Write(Properties.Resources.Config);
+            sw.Close();
         }
 
         public static void CheckForUpdates(AppDomain tempDomain)
@@ -354,8 +332,7 @@ namespace SSASDiag
                         if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
                         {
                             Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Applying new version and restarting.");
-                            if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
-                            Trace.Listeners.Remove("debuglistener");
+                            ShutdownDebugTrace();
                             Process p = new Process();
                             p.StartInfo.UseShellExecute = true;
                             p.StartInfo.CreateNoWindow = true;
@@ -372,7 +349,7 @@ namespace SSASDiag
                         }
                     }
                 }
-                catch (Exception ex) { Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
+                catch (Exception ex) { Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception checking for updates:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
             })).Start();
         }
 

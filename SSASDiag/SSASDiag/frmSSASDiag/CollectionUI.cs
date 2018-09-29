@@ -156,8 +156,7 @@ namespace SSASDiag
                                 p.WindowStyle = ProcessWindowStyle.Hidden;
                                 p.Verb = "runas"; // ensures elevation of priv
                                 p.CreateNoWindow = true;
-                                if (System.Diagnostics.Trace.Listeners["debuglistener"] != null) System.Diagnostics.Trace.Listeners["debuglistener"].Close();
-                                System.Diagnostics.Trace.Listeners.Remove("debuglistener");
+                                Program.ShutdownDebugTrace();
                                 Process.Start(p).WaitForExit();
                                 txtStatus.Invoke(new System.Action(()=> txtStatus.AppendText("\r\nCollection service SSASDiag_" + cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "") + " is running.\r\nCollection initializing...")));
                             })).Start();
