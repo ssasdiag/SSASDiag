@@ -34,9 +34,10 @@ namespace SSASDiag
                 if (l.Name == "debuglistener") DebugListener = true;
             if (!DebugListener)
             {
-                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "True") as string == "True")
+                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "True") as string == "True")
                     Trace.Listeners.Add(new TextWriterTraceListener(binlocation + "\\SSASDiagDebugTrace.log", "debuglistener"));
                 Trace.AutoFlush = true;
+                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Trace Started");
             }
 
             RegistryKey dumpkey = Registry.LocalMachine.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\SSASDiag.exe");
@@ -232,7 +233,7 @@ namespace SSASDiag
                     AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
                     tempDomain.SetData("tempbinlocation", TempPath);
 
-                    if (Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", "True") as string == "True" && Environment.UserInteractive)
+                    if (Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", "True") as string == "True" && Environment.UserInteractive)
                         CheckForUpdates(tempDomain);
                     
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));

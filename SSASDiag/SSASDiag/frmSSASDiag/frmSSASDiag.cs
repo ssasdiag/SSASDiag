@@ -122,16 +122,16 @@ namespace SSASDiag
 
         protected override void OnLoad(EventArgs e)
         {
-            if (Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "False") as string == "True" || Args.ContainsKey("debug"))
+            if (Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "False") as string == "True" || Args.ContainsKey("debug"))
             {
                 enableDiagnosticLoggingToolStripMenuItem.Checked = true;
-                Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", true);
+                Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", true);
                 if (!Args.ContainsKey("debug")) Args.Add("debug", "");
             }
             else
             {
                 enableDiagnosticLoggingToolStripMenuItem.Checked = false;
-                Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", false);
+                Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", false);
             }
             enableDiagnosticLoggingToolStripMenuItem.CheckedChanged += enableDiagnosticLoggingToolStripMenuItem_CheckedChanged;
 
@@ -170,7 +170,7 @@ namespace SSASDiag
                 MessageBox.Show("The tool cannot run from its own temp directory, used internally.  Please run from another location.", "App cannot run from its own temp location - by design", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Application.Exit();
             }
-            string outputDir = Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("SaveLocation", this.svcOutputPath) as string;
+            string outputDir = Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("SaveLocation", this.svcOutputPath) as string;
             if (Args.ContainsKey("outputdir"))
                 outputDir = Args["outputdir"];
             if (outputDir != Environment.CurrentDirectory && outputDir != "")
@@ -238,7 +238,7 @@ namespace SSASDiag
 
         private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
         {
-            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AutoUpdate", automaticallyCheckForUpdatesToolStripMenuItem.Checked);
+            Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("AutoUpdate", automaticallyCheckForUpdatesToolStripMenuItem.Checked);
             if (automaticallyCheckForUpdatesToolStripMenuItem.Checked)
                 Program.CheckForUpdates(AppDomain.CurrentDomain);
         }
@@ -249,11 +249,11 @@ namespace SSASDiag
             RegistryKey OpenMethod;
             RegistryKey Shell;
 
-            BaseKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + Extension, RegistryKeyPermissionCheck.ReadWriteSubTree);
+            BaseKey = Registry.LocalMachine.CreateSubKey("Software\\Classes\\" + Extension, RegistryKeyPermissionCheck.ReadWriteSubTree);
             if (!Unset)
             {
                 BaseKey.CreateSubKey("OpenWithProgids").SetValue(KeyName, "");
-                OpenMethod = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + KeyName);
+                OpenMethod = Registry.LocalMachine.CreateSubKey("Software\\Classes\\" + KeyName);
                 OpenMethod.SetValue("", FileDescription);
                 Shell = OpenMethod.CreateSubKey("Shell");
                 Shell.CreateSubKey("open").CreateSubKey("command").SetValue("", "\"" + OpenWith + "\"" + " \"%1\"");
@@ -265,12 +265,12 @@ namespace SSASDiag
                 RegistryKey ProgIds = BaseKey.CreateSubKey("OpenWithProgids", RegistryKeyPermissionCheck.ReadWriteSubTree, RegistryOptions.None);
                 if (ProgIds != null)
                      ProgIds.DeleteValue(KeyName, false);
-                Registry.CurrentUser.OpenSubKey("Software\\Classes\\", true).DeleteSubKeyTree(KeyName, false);
+                Registry.LocalMachine.OpenSubKey("Software\\Classes\\", true).DeleteSubKeyTree(KeyName, false);
                 ProgIds.Close();
             }
             BaseKey.Close();
             // Move the SSASDiag MRU selection to the lowest priority in the OpenWith list.  We don't want to be disruptive.  We just want to be there when the user wants us!
-            BaseKey = Registry.CurrentUser.CreateSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\" + Extension + "\\OpenWithList", RegistryKeyPermissionCheck.Default);
+            BaseKey = Registry.LocalMachine.CreateSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\" + Extension + "\\OpenWithList", RegistryKeyPermissionCheck.Default);
             foreach (string val in BaseKey.GetValueNames())
                 if (BaseKey.GetValue(val) as string == "SSASDiag.exe")
                     BaseKey.SetValue("MRUList", (BaseKey.GetValue("MRUList") as string).Replace(val, "") + val, RegistryValueKind.String);
@@ -293,9 +293,9 @@ namespace SSASDiag
             }
 
             bool bUsageStatsAlreadySet = true;
-            string s = Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AllowUsageStats", "True") as string;
+            string s = Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("AllowUsageStats", "True") as string;
 
-            if (Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("OpenWithEnabled", "True") as string == "True")
+            if (Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("OpenWithEnabled", "True") as string == "True")
                 enableOpenWithToolStripItem.Checked = true;
             else
                 enableOpenWithToolStripItem.Checked = false;
@@ -306,32 +306,32 @@ namespace SSASDiag
                 enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked = true;
             else
             {
-                if (Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AllowUsageStats", null) == null)
+                if (Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("AllowUsageStats", null) == null)
                 {
                     bUsageStatsAlreadySet = false;
                     if (Environment.UserInteractive)
                     {
                         if (MessageBox.Show("Please help improve SSASDiag by allowing anonymous collection of usage statistics.\r\n\r\nWill you support improvements to the utility to enable now?", "Enable Collection of Anonymous Usage Statistics", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AllowUsageStats", true);
+                            Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("AllowUsageStats", true);
                         else
-                            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AllowUsageStats", false);
+                            Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("AllowUsageStats", false);
                     }
                 }
-                enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked = Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AllowUsageStats", "True") as string == "True";
+                enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked = Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("AllowUsageStats", "True") as string == "True";
             }
 
             if (bUsageStatsAlreadySet)
             {
-                if (Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", null) == null && Environment.UserInteractive)
+                if (Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", null) == null && Environment.UserInteractive)
                 {
                     if (MessageBox.Show("Would you like to enable automatic update checks on startup?", "Enable Update Checking", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                        Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AutoUpdate", true);
+                        Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("AutoUpdate", true);
                     else
-                        Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AutoUpdate", false);
+                        Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("AutoUpdate", false);
                 }
             }
 
-            if (Environment.UserInteractive && Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", true) as string == "False")
+            if (Environment.UserInteractive && Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", true) as string == "False")
                 automaticallyCheckForUpdatesToolStripMenuItem.Checked = false;
             else
                 automaticallyCheckForUpdatesToolStripMenuItem.Checked = true;
@@ -373,7 +373,7 @@ namespace SSASDiag
 
         private void enableDiagnosticLoggingToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
-            if (!enableDiagnosticLoggingToolStripMenuItem.Checked)
+            if (enableDiagnosticLoggingToolStripMenuItem.Checked)
                 Program.SetupDebugTraceAndDumps();
             else
             {
@@ -387,7 +387,7 @@ namespace SSASDiag
                         Trace.Listeners.RemoveAt(i);
                     }
             }
-            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked);
+            Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", enableDiagnosticLoggingToolStripMenuItem.Checked);
         }
         
         public static void LogFeatureUse(string FeatureName, string FeatureDetail = "")
@@ -592,7 +592,7 @@ namespace SSASDiag
 
         private void enableOpenWithToolStripItem_CheckedChanged(object sender, EventArgs e)
         {
-            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("OpenWithEnabled", enableOpenWithToolStripItem.Checked);
+            Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("OpenWithEnabled", enableOpenWithToolStripItem.Checked);
             SetWeakFileAssociation(".trc", "SSASDiag Profiler Trace Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
             SetWeakFileAssociation(".etl", "SSASDiag Network Trace .etl Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
             SetWeakFileAssociation(".cap", "SSASDiag Network Trace .cap Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
@@ -608,7 +608,7 @@ namespace SSASDiag
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
         {
-            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AllowUsageStats", enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked);
+            Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("AllowUsageStats", enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked);
         }
 
         bool bExitAfterStop = false;
