@@ -293,7 +293,6 @@ namespace SSASDiag
                     SendMessageToClients("The msmdsrv.ini configuration for the instance at " + sConfigDir + ".");
                 }
 
-                SendMessageToClients("Current dir: " + Environment.CurrentDirectory);
                 if (!Directory.Exists(TraceID))
                     Directory.CreateDirectory(TraceID);
                 else
@@ -426,6 +425,7 @@ namespace SSASDiag
                     .Replace("<StopTime/>", bUseEnd ? "<StopTime>" + dtEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") + "</StopTime>" : "")
                     .Replace("<ID/>", "<ID>" + TraceID + "</ID>")
                     .Replace("<Name/>", "<Name>" + TraceID + "</Name>");
+                Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": XMLABatch to start trace: \r\n" + XMLABatch);
 
                 string ret = ServerExecute(XMLABatch);
 
@@ -1155,7 +1155,7 @@ namespace SSASDiag
             try
             {
                 Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
-                s.Connect("Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : (sInstanceName == "PBIRS" ? ":" + sInstanceID : "\\" + sInstanceName))) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
+                s.Connect("Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : (sInstanceName == "Power BI Report Server" ? ":" + sInstanceID : "\\" + sInstanceName))) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
                 try
                 {
                     XmlaResultCollection results = s.Execute(command);

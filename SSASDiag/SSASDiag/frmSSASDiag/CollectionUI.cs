@@ -441,8 +441,13 @@ namespace SSASDiag
         }
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // Reset text if we actually did change selected instances.  Check that by comparing the current global ConfigDir location kept for the active instance
+            // with that config location stored in the ComboBoxServiceDetailsItem associated with the instance in the combobox SelectedItem member.
+            ComboBoxServiceDetailsItem cdi = (cbInstances.SelectedItem as ComboBoxServiceDetailsItem);
+            if (cdi != null && cdi.ConfigPath != m_ConfigDir)
+                txtStatus.ResetText();
+
             // Only act if we are already fully initialized
-            txtStatus.ResetText();
             if (cbInstances.DisplayMember != "" && tcCollectionAnalysisTabs.SelectedIndex == 0)
             {
                 btnCapture.Enabled = btnHangDumps.Enabled = false;
