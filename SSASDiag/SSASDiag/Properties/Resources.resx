@@ -878,8 +878,7 @@ order by duration desc</value>
 &lt;/configSections&gt;
 &lt;startup&gt;&lt;supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.5"/&gt;&lt;/startup&gt;
     &lt;userSettings&gt;
-        &lt;SSASDiag.Properties.Settings&gt;
-        &lt;/SSASDiag.Properties.Settings&gt;
+        &lt;SSASDiag.Properties.Settings/&gt;
     &lt;/userSettings&gt;
 &lt;/configuration&gt;</value>
   </data>
