@@ -61,7 +61,7 @@ namespace SSASDiag
                         svcOutputPath = Program.TempPath + "SSASDiagService_" + InstanceName + ".output.log";
                         if (File.Exists(svcOutputPath))
                             File.Delete(svcOutputPath);
-                        dc = new CDiagnosticsCollector(TracePrefix, (cbsdi == null ? "" : (InstanceName.ToUpper() == "MSSQLSERVER" ? "" : InstanceName)), cbsdi.ServiceName, cbsdi.InstanceID, cbsdi.SQLProgramDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
+                        dc = new CDiagnosticsCollector(TracePrefix, (cbsdi == null ? "" : (InstanceName.ToUpper() == "MSSQLSERVER" ? "" : InstanceName)), cbsdi.ServiceName, (InstanceName == "Power BI Report Server" ? PBIRSPort : cbsdi.InstanceID), cbsdi.SQLProgramDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
                             txtStatus,
                             (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
                             chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked, cbsdi.Cluster, svcOutputPath);
@@ -93,7 +93,6 @@ namespace SSASDiag
 
                         new Thread(new ThreadStart(() =>
                         {
-
                             // Install the service for this instance
 
                             File.Copy(Program.TempPath + "SSASDiagService.exe", sInstanceServiceConfig, true);
@@ -118,7 +117,7 @@ namespace SSASDiag
                                 "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe" +
                                 " /workingdir \"" + txtSaveLocation.Text + "\"" +
                                 (chkZip.Checked ? " /zip" : "") +
-                                " /instance " + (InstanceName == "" ? "MSSQLServer" : InstanceName) +
+                                " /instance \"" + (InstanceName == "" ? "MSSQLServer" : InstanceName) + "\"" +
                                 (chkDeleteRaw.Checked ? " /deleteraw" : "") +
                                 (chkRollover.Checked ? " /rollover " + udRollover.Value : "") +
                                 (chkStartTime.Checked ? " /starttime \"" + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
@@ -153,7 +152,7 @@ namespace SSASDiag
                             string svcName = "SSASDiag_" + InstanceName;
                             new Thread(new ThreadStart(() =>
                             {
-                                p = new ProcessStartInfo("cmd.exe", "/c net start " + svcName);
+                                p = new ProcessStartInfo("cmd.exe", "/c net start \"" + svcName + "\"");
                                 p.WindowStyle = ProcessWindowStyle.Hidden;
                                 p.Verb = "runas"; // ensures elevation of priv
                                 p.CreateNoWindow = true;
@@ -319,7 +318,7 @@ namespace SSASDiag
                         string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
                         svcName = "SSASDiag_" + InstanceName;
                         // Stop the service via command line.
-                        p = new ProcessStartInfo("cmd.exe", "/c net stop " + svcName);
+                        p = new ProcessStartInfo("cmd.exe", "/c net stop \"" + svcName + "\"");
                         p.WindowStyle = ProcessWindowStyle.Hidden;
                         p.UseShellExecute = true;
                         p.Verb = "runas";
@@ -328,7 +327,7 @@ namespace SSASDiag
                         if (Environment.UserInteractive)
                         {
                             // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
-                            p = new ProcessStartInfo("reg.exe", @"query HKLM\System\CurrentControlSet\Services\" + svcName + " /v ImagePath");
+                            p = new ProcessStartInfo("reg.exe", @"query ""HKLM\System\CurrentControlSet\Services\" + svcName + @""" /v ImagePath");
                             p.UseShellExecute = false;
                             p.CreateNoWindow = true;
                             p.WindowStyle = ProcessWindowStyle.Hidden;
@@ -347,7 +346,7 @@ namespace SSASDiag
                             }
 
                             //string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
-                            p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & " + SvcPath + " -u");
+                            p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & \"" + SvcPath + "\" -u");
                             p.WindowStyle = ProcessWindowStyle.Hidden;
                             p.Verb = "runas";
                             p.UseShellExecute = true;
@@ -464,13 +463,13 @@ namespace SSASDiag
                 ComboBoxServiceDetailsItem SelItem = cbInstances.Invoke(new Func<ComboBoxServiceDetailsItem>(() => { return (cbInstances.SelectedItem as ComboBoxServiceDetailsItem); })) as ComboBoxServiceDetailsItem;
                 if (SelItem != null)
                 {
-                    srv.Connect("Data source=" + (SelItem.Cluster ? SelItem.Text.Replace(" (Clustered Instance)", "") : Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : "\\" + SelItem.Text)) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
+                    srv.Connect("Data source=" + (SelItem.Cluster ? SelItem.Text.Replace(" (Clustered Instance)", "") : Environment.MachineName + (SelItem.Text == "Default instance (MSSQLServer)" ? "" : (SelItem.Text == "Power BI Report Server" ? ":" + PBIRSPort : "\\" + SelItem.Text))) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
                     System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Connected to server with connection string: " + srv.ConnectionString);
                     lblInstanceDetails.Invoke(new System.Action(() => lblInstanceDetails.Text = "Instance Details:\r\n" + srv.Version + " (" + srv.ProductLevel + "), " + srv.ServerMode + ", " + srv.Edition));
                     m_instanceType = srv.ServerMode.ToString();
                     m_instanceVersion = srv.Version + " - " + srv.ProductLevel;
                     m_instanceEdition = srv.Edition.ToString();
-                    m_LogDir = srv.ServerProperties["LogDir"].Value;
+                    m_LogDir = srv.ServerProperties["LogDir"].Value.TrimEnd('\\');
                     m_ConfigDir = SelItem.ConfigPath;
                     srv.Disconnect();
 
@@ -485,7 +484,7 @@ namespace SSASDiag
                             cbInstances.Invoke(new System.Action(() => svcName = "SSASDiag_" + InstanceName));
                             InstanceCollectionService = new ServiceController(svcName);
                             RegistryKey svcKey = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName);
-                            if (InstanceCollectionService != null &&  svcKey != null)
+                            if (InstanceCollectionService != null && svcKey != null)
                             {
                                 string svcPath = svcKey.GetValue("ImagePath") as string;
                                 svcOutputPath = Environment.GetFolderPath(Environment.SpecialFolder.Windows) + "\\TEMP\\SSASDiag\\SSASDiagService_" + InstanceName + ".output.log";
@@ -539,7 +538,7 @@ namespace SSASDiag
                                         npClient.ServerMessage -= NpClient_ServerMessage;
                                         npClient = null;
                                     }
-                                    cbInstances.Invoke(new System.Action(()=>npClient = new NamedPipeClient<string>(svcName)));
+                                    cbInstances.Invoke(new System.Action(() => npClient = new NamedPipeClient<string>(svcName)));
                                     npClient.ServerMessage += NpClient_ServerMessage;
                                     npClient.Start();
                                     npClient.WaitForConnection();
@@ -609,12 +608,15 @@ namespace SSASDiag
             bg.RunWorkerCompleted += bgPopulateInstanceDropdownComplete;
             bg.RunWorkerAsync();
         }
+
+        string PBIRSPort = "";
         private void bgPopulateInstanceDropdown(object sender, DoWorkEventArgs e)
         {
             try
             {
                 ServiceController[] services = ServiceController.GetServices();
                 foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
+                {
                     if (s.DisplayName.StartsWith("SQL Server Analysis Services") && !s.DisplayName.Contains("SQL Server Analysis Services CEIP (") && !s.DisplayName.Contains("Diagnostic Collection Service"))
                     {
                         SelectQuery sQuery = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"" + s.ServiceName + "\"");
@@ -646,6 +648,21 @@ namespace SSASDiag
                         else
                             LocalInstances.Add(new ComboBoxServiceDetailsItem() { Text = (ClusterName == "" ? s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "") : ClusterName + " (Clustered Instance)"), ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName, Cluster = (ClusterName == "" ? false : true), SQLSharedDir = SQLSharedDir });
                     }
+                }
+                SelectQuery sQuery2 = new SelectQuery("select name, startname, pathname from Win32_Service where name = \"PowerBIReportServer\"");
+                ManagementObjectSearcher mgmtSearcher2 = new ManagementObjectSearcher(sQuery2);
+                string PBIRSconfigPath = "";
+                foreach (ManagementObject svc in mgmtSearcher2.Get())
+                    PBIRSconfigPath = svc["pathname"] as string;
+                if (PBIRSconfigPath != "")
+                {
+                    PBIRSconfigPath = PBIRSconfigPath.Replace("RSHostingService.exe\"", "config.json").TrimStart('\"');
+                    PBIRSPort = File.ReadAllText(PBIRSconfigPath);
+                    PBIRSPort = PBIRSPort.Substring(PBIRSPort.IndexOf("\"ASPort\": \"") + "\"ASPort\": \"".Length);
+                    PBIRSPort = PBIRSPort.Substring(0, PBIRSPort.IndexOf("\""));
+                    string ASDir = PBIRSconfigPath.Replace("RSHostingService\\config.json", "ASEngine");
+                    LocalInstances.Add(new ComboBoxServiceDetailsItem() { Text = "Power BI Report Server", Cluster = false, ServiceName = "PowerBIReportServer", ServiceAccount = "PowerBIReportServer", SQLProgramDir = ASDir, SQLSharedDir = ASDir, ConfigPath = ASDir, InstanceID = PBIRSPort});
+                }
             }
             catch (Exception ex)
             {

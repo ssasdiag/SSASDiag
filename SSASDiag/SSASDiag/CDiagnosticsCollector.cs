@@ -285,7 +285,7 @@ namespace SSASDiag
                 SendMessageToClients("Collecting on computer " + Environment.MachineName + ".");
                 if (sInstanceVersion != "")  // This occurs when we aren't really capturing instance details with Network only capture.
                 {
-                    SendMessageToClients("Collecting for instance " + (sInstanceName == "" ? "Default instance (MSSQLServer)" : sInstanceName + (bCluster ? " (Clustered Instance)" : "")) + ".");
+                    SendMessageToClients("Collecting for instance " + (sInstanceName == "" ? "Default instance (MSSQLServer)" : (sInstanceName == "Power BI Report Server" ? ":" + sInstanceID : sInstanceName)) + (bCluster ? " (Clustered Instance)" : "") + ".");
                     SendMessageToClients("The version of the instance is " + sInstanceVersion + ".");
                     SendMessageToClients("The edition of the instance is " + sInstanceEdition + ".");
                     SendMessageToClients("The instance mode is " + sInstanceMode + ".");
@@ -327,9 +327,9 @@ namespace SSASDiag
                 if (bGetConfigDetails)
                 {
                     // Collect SSAS LOG dir, config and save log of this diagnostic capture
-                    if (!Directory.Exists(TraceID + "\\Log")) Directory.CreateDirectory(TraceID + "\\Log");
+                    if (!Directory.Exists(sLogDir)) Directory.CreateDirectory(sLogDir);
                     foreach (string f in Directory.GetFiles(sLogDir))
-                        File.Copy(f, TraceID + "\\Log\\" + f.Substring(f.LastIndexOf("\\") + 1));
+                        File.Copy(f, sLogDir + f.Substring(f.LastIndexOf("\\") + 1));
                     File.Copy(sConfigDir + "\\msmdsrv.ini", TraceID + "\\msmdsrv.ini");
                     SendMessageToClients("Captured OLAP\\Log contents and msmdsrv.ini config for the instance.");
 
@@ -975,7 +975,7 @@ namespace SSASDiag
                             Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
                             // Previously we connected before iterating through each db to be processed, but found if some misbehaving Cx databases were running, this leads to connection hangs!
                             // Now we connect directly to each database we need to capture, so other issues on the server may not impact then with locking conflicts to enumerate metadata on dbs not under consideration.
-                            string sConn = "Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : "\\" + sInstanceName)) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;Initial Catalog=" + db + ";";
+                            string sConn = "Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : (sInstanceName == "Power BI Report Server" ? ":" + sInstanceID : "\\" + sInstanceName))) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;Initial Catalog=" + db + ";";
                             try { s.Connect(sConn); }
                             catch (Exception ex)
                             {
@@ -1148,7 +1148,7 @@ namespace SSASDiag
             try
             {
                 Microsoft.AnalysisServices.Server s = new Microsoft.AnalysisServices.Server();
-                s.Connect("Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : "\\" + sInstanceName)) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
+                s.Connect("Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : (sInstanceName == "PBIRS" ? ":" + sInstanceID : "\\" + sInstanceName))) + ";Timeout=0;Integrated Security=SSPI;SSPI=NTLM;", true);
                 try
                 {
                     XmlaResultCollection results = s.Execute(command);
