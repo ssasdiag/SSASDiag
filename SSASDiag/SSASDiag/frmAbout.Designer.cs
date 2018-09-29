@@ -28,42 +28,45 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
+            this.lblDesignTest = new System.Windows.Forms.Label();
             this.lblVersion = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
-            // label1
+            // lblDesignTest
             // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.label1.Location = new System.Drawing.Point(95, 72);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(237, 375);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Anne Zorner\r\nVan To\r\nGangadhara Sadashivappa\r\nBeatrice Popa\r\nSamarendra Panda\r\nGe" +
-    "rt Christen\r\n\r\n\r\nMalcolm Stewart\r\nSrini Gajella\r\nJon Burchel\r\n\r\n\r\nYinn Wong\r\nMel" +
-    "issa Street";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lblDesignTest.AutoSize = true;
+            this.lblDesignTest.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblDesignTest.ForeColor = System.Drawing.Color.LightSkyBlue;
+            this.lblDesignTest.Location = new System.Drawing.Point(27, 45);
+            this.lblDesignTest.Name = "lblDesignTest";
+            this.lblDesignTest.Size = new System.Drawing.Size(373, 300);
+            this.lblDesignTest.TabIndex = 0;
+            this.lblDesignTest.Text = "Anne Zorner     Van To\r\nGangadhara Sadashivappa     Gert Christen\r\nBeatrice Popa " +
+    "    Samarendra Panda\r\nMark Hughes\r\n\r\n\r\nMalcolm Stewart     Srini Gajella\r\nJon Bu" +
+    "rchel\r\n\r\n\r\nYinn Wong\r\nMelissa Street";
+            this.lblDesignTest.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // lblVersion
             // 
             this.lblVersion.AutoSize = true;
-            this.lblVersion.Location = new System.Drawing.Point(184, 16);
+            this.lblVersion.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblVersion.ForeColor = System.Drawing.Color.AliceBlue;
+            this.lblVersion.Location = new System.Drawing.Point(164, 345);
             this.lblVersion.Name = "lblVersion";
-            this.lblVersion.Size = new System.Drawing.Size(58, 13);
+            this.lblVersion.Size = new System.Drawing.Size(99, 57);
             this.lblVersion.TabIndex = 2;
-            this.lblVersion.Text = "v1.1.1.132";
+            this.lblVersion.Text = "_______________\r\n\r\nv1.1.1.132";
+            this.lblVersion.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.ForeColor = System.Drawing.Color.AliceBlue;
-            this.label2.Location = new System.Drawing.Point(138, 35);
+            this.label2.Location = new System.Drawing.Point(138, 8);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(150, 32);
             this.label2.TabIndex = 3;
@@ -74,7 +77,7 @@
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label3.ForeColor = System.Drawing.Color.AliceBlue;
-            this.label3.Location = new System.Drawing.Point(129, 233);
+            this.label3.Location = new System.Drawing.Point(129, 156);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(168, 32);
             this.label3.TabIndex = 4;
@@ -85,7 +88,7 @@
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.AliceBlue;
-            this.label4.Location = new System.Drawing.Point(130, 362);
+            this.label4.Location = new System.Drawing.Point(130, 254);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(167, 32);
             this.label4.TabIndex = 5;
@@ -96,12 +99,12 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.ClientSize = new System.Drawing.Size(427, 462);
+            this.ClientSize = new System.Drawing.Size(427, 424);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.lblVersion);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.lblDesignTest);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "frmAbout";
             this.Opacity = 0D;
@@ -117,7 +120,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label lblDesignTest;
         private System.Windows.Forms.Label lblVersion;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
