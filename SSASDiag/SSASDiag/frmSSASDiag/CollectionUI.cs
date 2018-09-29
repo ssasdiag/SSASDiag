@@ -438,6 +438,7 @@ namespace SSASDiag
             public string InstanceID { get; set; }
             public string ServiceName { get; set; }
             public string SQLProgramDir { get; set; }
+            public string SQLSharedDir { get; set; }
             public string ServiceAccount { get; set; }
             public bool Cluster { get; set; }
         }
@@ -634,14 +635,16 @@ namespace SSASDiag
                         if (Environment.UserInteractive)
                             System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": InstanceID: " + InstanceID);
                         string SQLProgramDir = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Setup", false).GetValue("SQLProgramDir") as string;
+                        string Ver = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Setup", false).GetValue("Version") as string;
+                        string SQLSharedDir = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + Ver.Substring(0, 2) + "0", false).GetValue("SharedCode") as string;
                         string ClusterName = "";
                         RegistryKey clusterKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Cluster", false);
                         if (clusterKey != null)
                             ClusterName = clusterKey.GetValue("ClusterName") as string;
                         if (s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "").ToUpper() == "MSSQLSERVER")
-                            LocalInstances.Insert(0, new ComboBoxServiceDetailsItem() { Text = "Default instance (MSSQLServer)", ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName, Cluster = false });
+                            LocalInstances.Insert(0, new ComboBoxServiceDetailsItem() { Text = "Default instance (MSSQLServer)", ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName, Cluster = false, SQLSharedDir = SQLSharedDir });
                         else
-                            LocalInstances.Add(new ComboBoxServiceDetailsItem() { Text = (ClusterName == "" ? s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "") : ClusterName + " (Clustered Instance)"), ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName, Cluster = (ClusterName == "" ? false : true) });
+                            LocalInstances.Add(new ComboBoxServiceDetailsItem() { Text = (ClusterName == "" ? s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "") : ClusterName + " (Clustered Instance)"), ConfigPath = ConfigPath, ServiceAccount = sSvcUser, InstanceID = InstanceID, SQLProgramDir = SQLProgramDir, ServiceName = s.ServiceName, Cluster = (ClusterName == "" ? false : true), SQLSharedDir = SQLSharedDir });
                     }
             }
             catch (Exception ex)

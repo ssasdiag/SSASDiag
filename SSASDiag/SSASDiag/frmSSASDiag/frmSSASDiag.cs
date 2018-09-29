@@ -546,8 +546,8 @@ namespace SSASDiag
                             p.StartInfo.RedirectStandardOutput = true;
                             p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                             p.StartInfo.UseShellExecute = false;
-                            p.StartInfo.FileName = cbsdi.SQLProgramDir + "\\" + m_instanceVersion.Substring(0, 2) + "0\\Shared\\SQLDumper.exe";
-                            p.StartInfo.WorkingDirectory = Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps";
+                            p.StartInfo.FileName = cbsdi.SQLSharedDir + "SQLDumper.exe";
+                            p.StartInfo.WorkingDirectory = txtSaveLocation.Text + "\\" + TraceID + "\\HangDumps";
                             p.StartInfo.Arguments = args;
                             p.Start();
                             p.WaitForExit();
