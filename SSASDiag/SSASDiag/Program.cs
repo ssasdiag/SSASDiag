@@ -34,7 +34,7 @@ namespace SSASDiag
                 if (l.Name == "debuglistener") DebugListener = true;
             if (!DebugListener)
             {
-                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Properties.Settings.Default.LoggingEnabled)
+                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "True") as string == "True")
                     Trace.Listeners.Add(new TextWriterTraceListener(binlocation + "\\SSASDiagDebugTrace.log", "debuglistener"));
                 Trace.AutoFlush = true;
             }
@@ -232,7 +232,7 @@ namespace SSASDiag
                     AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
                     tempDomain.SetData("tempbinlocation", TempPath);
 
-                    if (Properties.Settings.Default.AutoUpdate == "true" && Environment.UserInteractive)
+                    if (Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", "True") as string == "True" && Environment.UserInteractive)
                         CheckForUpdates(tempDomain);
                     
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
@@ -297,6 +297,7 @@ namespace SSASDiag
                     MessageBox.Show("SSASDiag encountered an unexpected exception:\n\t" + ex.Message + "\n\tat\n" + ex.StackTrace, "SSASDiag Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             System.Diagnostics.Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exiting SSASDiag.");
+            File.Delete("SSASDiag.exe.config");
         }
 
         private static void Application_ApplicationExit(object sender, EventArgs e)

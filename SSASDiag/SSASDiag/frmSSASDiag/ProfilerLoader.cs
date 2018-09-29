@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Win32;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
@@ -271,7 +272,7 @@ namespace SSASDiag
         {
             if (connSqlDb.State != ConnectionState.Open)
             {
-                string sqlForTraces = Properties.Settings.Default["SqlForProfilerTraceAnalysis"] as string;
+                string sqlForTraces = Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("SqlForProfilerTraceAnalysis") as string;
                 string exMsg = "";
                 if (sqlForTraces != "")
                 {
@@ -300,13 +301,13 @@ namespace SSASDiag
                         r = sqlprompt.ShowDialog(this);
                         if (r == DialogResult.OK)
                         {
-                            Properties.Settings.Default["SqlForProfilerTraceAnalysis"] = sqlForTraces = sqlprompt.cmbServer.Text;
-                            Properties.Settings.Default.Save();
+                            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("SqlForProfilerTraceAnalysis", sqlprompt.cmbServer.Text);
+                            sqlForTraces = sqlprompt.cmbServer.Text;
                         }
                     }));
                     if (r == DialogResult.OK)
                     {
-                        connSqlDb = new SqlConnection("Data Source=" + Properties.Settings.Default["SqlForProfilerTraceAnalysis"] + ";Integrated Security=true;Persist Security Info=false;");
+                        connSqlDb = new SqlConnection("Data Source=" + Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("SqlForProfilerTraceAnalysis") as string + ";Integrated Security=true;Persist Security Info=false;");
                         try { connSqlDb.Open(); }
                         catch (Exception ex) { LogException(ex); }
                     }
@@ -442,8 +443,7 @@ namespace SSASDiag
                         {
                             if (sqlprompt.ShowDialog(this) == DialogResult.OK)
                             {
-                                Properties.Settings.Default["SqlForProfilerTraceAnalysis"] = sqlprompt.cmbServer.Text;
-                                Properties.Settings.Default.Save();
+                                Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("SqlForProfilerTraceAnalysis", sqlprompt.cmbServer.Text);
                                 connSqlDb = new SqlConnection("Data Source=" + sqlprompt.cmbServer.Text + ";Integrated Security=true;Persist Security Info=false;");
                                 connSqlDb.Open();
                                 cmd.Connection = connSqlDb;

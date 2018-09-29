@@ -247,12 +247,6 @@ namespace SSASDiag
         private void chkGetNetwork_CheckedChanged(object sender, EventArgs e)
         {
             SetRolloverAndStartStopEnabledStates();
-            if (chkGetNetwork.Checked && chkRollover.Checked && tcSimpleAdvanced.SelectedIndex == 1)
-                ttStatus.Show("NOTE: Network traces rollover circularly,\n"
-                            + "always deleting older data automatically.", chkGetNetwork, 2000);
-            if (chkGetNetwork.Checked && Environment.UserInteractive && bFullyInitialized && tcSimpleAdvanced.SelectedIndex == 1)
-                MessageBox.Show("Please note that including network traces may significantly increase size of data collected and time required to stop collection.",
-                    "Network Trace Collection Notice", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             if (chkGetNetwork.Checked)
             {
                 Process p = new Process();

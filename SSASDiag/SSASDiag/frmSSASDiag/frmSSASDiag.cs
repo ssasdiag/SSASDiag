@@ -122,16 +122,17 @@ namespace SSASDiag
 
         protected override void OnLoad(EventArgs e)
         {
-            if (Properties.Settings.Default.LoggingEnabled || Args.ContainsKey("debug"))
+            if (Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "False") as string == "True" || Args.ContainsKey("debug"))
             {
-                enableDiagnosticLoggingToolStripMenuItem.Checked = Properties.Settings.Default.LoggingEnabled = true;
+                enableDiagnosticLoggingToolStripMenuItem.Checked = true;
+                Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", true);
                 if (!Args.ContainsKey("debug")) Args.Add("debug", "");
             }
             else
             {
-                enableDiagnosticLoggingToolStripMenuItem.Checked = Properties.Settings.Default.LoggingEnabled = false;
+                enableDiagnosticLoggingToolStripMenuItem.Checked = false;
+                Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", false);
             }
-            Properties.Settings.Default.Save();
             enableDiagnosticLoggingToolStripMenuItem.CheckedChanged += enableDiagnosticLoggingToolStripMenuItem_CheckedChanged;
 
             InitializeArgs();
@@ -169,7 +170,7 @@ namespace SSASDiag
                 MessageBox.Show("The tool cannot run from its own temp directory, used internally.  Please run from another location.", "App cannot run from its own temp location - by design", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Application.Exit();
             }
-            string outputDir = Properties.Settings.Default["SaveLocation"] as string;
+            string outputDir = Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("SaveLocation", this.svcOutputPath) as string;
             if (Args.ContainsKey("outputdir"))
                 outputDir = Args["outputdir"];
             if (outputDir != Environment.CurrentDirectory && outputDir != "")
@@ -237,8 +238,7 @@ namespace SSASDiag
 
         private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.AutoUpdate = Convert.ToString(automaticallyCheckForUpdatesToolStripMenuItem.Checked);
-            Properties.Settings.Default.Save();
+            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AutoUpdate", automaticallyCheckForUpdatesToolStripMenuItem.Checked);
             if (automaticallyCheckForUpdatesToolStripMenuItem.Checked)
                 Program.CheckForUpdates(AppDomain.CurrentDomain);
         }
@@ -293,11 +293,9 @@ namespace SSASDiag
             }
 
             bool bUsageStatsAlreadySet = true;
-            string s = Properties.Settings.Default.AllowUsageStats;
+            string s = Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AllowUsageStats", "True") as string;
 
-            
-
-            if (Properties.Settings.Default.OpenWithEnabled)
+            if (Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("OpenWithEnabled", "True") as string == "True")
                 enableOpenWithToolStripItem.Checked = true;
             else
                 enableOpenWithToolStripItem.Checked = false;
@@ -308,34 +306,32 @@ namespace SSASDiag
                 enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked = true;
             else
             {
-                if (Properties.Settings.Default.AllowUsageStats == "")
+                if (Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AllowUsageStats", null) == null)
                 {
                     bUsageStatsAlreadySet = false;
                     if (Environment.UserInteractive)
                     {
                         if (MessageBox.Show("Please help improve SSASDiag by allowing anonymous collection of usage statistics.\r\n\r\nWill you support improvements to the utility to enable now?", "Enable Collection of Anonymous Usage Statistics", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                            Properties.Settings.Default.AllowUsageStats = "True";
+                            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AllowUsageStats", true);
                         else
-                            Properties.Settings.Default.AllowUsageStats = "False";
-                        Properties.Settings.Default.Save();
+                            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AllowUsageStats", false);
                     }
                 }
-                enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked = Convert.ToBoolean(Properties.Settings.Default.AllowUsageStats);
+                enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked = Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AllowUsageStats", "True") as string == "True";
             }
 
             if (bUsageStatsAlreadySet)
             {
-                if (Properties.Settings.Default.AutoUpdate == "" && Environment.UserInteractive)
+                if (Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", null) == null && Environment.UserInteractive)
                 {
                     if (MessageBox.Show("Would you like to enable automatic update checks on startup?", "Enable Update Checking", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                        Properties.Settings.Default.AutoUpdate = "True";
+                        Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AutoUpdate", true);
                     else
-                        Properties.Settings.Default.AutoUpdate = "False";
-                    Properties.Settings.Default.Save();
+                        Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AutoUpdate", false);
                 }
             }
 
-            if (Environment.UserInteractive && Properties.Settings.Default.AutoUpdate!= "True")
+            if (Environment.UserInteractive && Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", true) as string == "False")
                 automaticallyCheckForUpdatesToolStripMenuItem.Checked = false;
             else
                 automaticallyCheckForUpdatesToolStripMenuItem.Checked = true;
@@ -391,8 +387,7 @@ namespace SSASDiag
                         Trace.Listeners.RemoveAt(i);
                     }
             }
-            Properties.Settings.Default.LoggingEnabled = enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked;
-            Properties.Settings.Default.Save();
+            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked);
         }
         
         public static void LogFeatureUse(string FeatureName, string FeatureDetail = "")
@@ -597,8 +592,7 @@ namespace SSASDiag
 
         private void enableOpenWithToolStripItem_CheckedChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.OpenWithEnabled = enableOpenWithToolStripItem.Checked;
-            Properties.Settings.Default.Save();
+            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("OpenWithEnabled", enableOpenWithToolStripItem.Checked);
             SetWeakFileAssociation(".trc", "SSASDiag Profiler Trace Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
             SetWeakFileAssociation(".etl", "SSASDiag Network Trace .etl Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
             SetWeakFileAssociation(".cap", "SSASDiag Network Trace .cap Analyzer", AppDomain.CurrentDomain.GetData("originalbinlocation") as string + "\\SSASDiag.exe", "SSAS Diagnostics Tool", !enableOpenWithToolStripItem.Checked);
@@ -614,8 +608,7 @@ namespace SSASDiag
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.AllowUsageStats = Convert.ToString(enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked);
-            if (Environment.UserInteractive) Properties.Settings.Default.Save();
+            Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("AllowUsageStats", enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked);
         }
 
         bool bExitAfterStop = false;

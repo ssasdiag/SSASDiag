@@ -879,24 +879,6 @@ order by duration desc</value>
 &lt;startup&gt;&lt;supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.5"/&gt;&lt;/startup&gt;
     &lt;userSettings&gt;
         &lt;SSASDiag.Properties.Settings&gt;
-            &lt;setting name="SqlForProfilerTraceAnalysis" serializeAs="String"&gt;
-                &lt;value&gt;.&lt;/value&gt;
-            &lt;/setting&gt;
-            &lt;setting name="SaveLocation" serializeAs="String"&gt;
-                &lt;value/&gt;
-            &lt;/setting&gt;
-            &lt;setting name="AutoUpdate" serializeAs="String"&gt;
-                &lt;value/&gt;
-            &lt;/setting&gt;
-            &lt;setting name="AllowUsageStats" serializeAs="String"&gt;
-                &lt;value/&gt;
-            &lt;/setting&gt;
-            &lt;setting name="OpenWithEnabled" serializeAs="String"&gt;
-                &lt;value&gt;True&lt;/value&gt;
-            &lt;/setting&gt;
-            &lt;setting name="LoggingEnabled" serializeAs="String"&gt;
-                &lt;value&gt;False&lt;/value&gt;
-            &lt;/setting&gt;
         &lt;/SSASDiag.Properties.Settings&gt;
     &lt;/userSettings&gt;
 &lt;/configuration&gt;</value>

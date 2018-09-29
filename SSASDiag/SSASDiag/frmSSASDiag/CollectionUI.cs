@@ -690,8 +690,8 @@ namespace SSASDiag
             fbd.SelectedPath = txtSaveLocation.Text;
             if (fbd.ShowDialog(this) == DialogResult.OK)
             {
-                Properties.Settings.Default["SaveLocation"] = Environment.CurrentDirectory = txtSaveLocation.Text = fbd.SelectedPath;
-                Properties.Settings.Default.Save();
+                Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").SetValue("SaveLocation", fbd.SelectedPath);
+                Environment.CurrentDirectory = txtSaveLocation.Text = fbd.SelectedPath;
             }
         }
         private void txtStatus_MouseDown(object sender, MouseEventArgs e)
@@ -755,9 +755,6 @@ namespace SSASDiag
         private void chkRollover_CheckedChanged(object sender, EventArgs e)
         {
             if (chkRollover.Checked) udRollover.Enabled = true; else udRollover.Enabled = false;
-            if (chkGetNetwork.Checked && chkRollover.Checked)
-                ttStatus.Show("NOTE: Network traces rollover circularly,\n"
-                            + "always deleting older data automatically.", chkRollover, 3500);
         }
         private void chkStopTime_CheckedChanged(object sender, EventArgs e)
         {

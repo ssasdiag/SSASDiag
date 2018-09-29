@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Win32;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -229,7 +230,7 @@ namespace SSASDiag
                 else
                 {
                     btnImportProfilerTrace.Visible = true;
-                    string sqlForTraces = Properties.Settings.Default["SqlForProfilerTraceAnalysis"] as string;
+                    string sqlForTraces = Registry.CurrentUser.CreateSubKey(@"Software\SSASDiag").GetValue("SqlForProfilerTraceAnalysis", "") as string;
                     if (m_analysisPath.EndsWith(".trc"))
                         mdfPath = m_analysisPath.Substring(0, m_analysisPath.LastIndexOf("\\") + 1) + "Analysis" + m_analysisPath.Substring(m_analysisPath.LastIndexOf("\\")).Replace(".trc", "").TrimEnd(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) + ".mdf";
                     else
