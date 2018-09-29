@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SSASDiag
 {
-    public partial class frmAbout : ShadowedForm  // Use Form instead if you need to open in designer, then revert to Shadowed for the cool effect in use...  :)
+    public partial class frmAbout : Form//ShadowedForm  // Use Form instead if you need to open in designer, then revert to Shadowed for the cool effect in use...  :)
     {
         Timer t = new Timer();
         bool bOpening = true, bDecelerating = false;
@@ -22,7 +22,8 @@ namespace SSASDiag
 
         private void frmAbout_Shown(object sender, EventArgs e)
         {
-            lblVersion.Text = "v" + Application.ProductVersion;
+            lblVersion.Text = "_______________________\r\n\r\nSSAS Diagnostics Tool v" + Application.ProductVersion;
+            lblVersion.Left = Width / 2 - lblVersion.Width / 2;
             t.Interval = 20;
             t.Tick += T_Tick;
             t.Start();

@@ -52,13 +52,13 @@
             // lblVersion
             // 
             this.lblVersion.AutoSize = true;
-            this.lblVersion.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblVersion.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblVersion.ForeColor = System.Drawing.Color.AliceBlue;
-            this.lblVersion.Location = new System.Drawing.Point(164, 345);
+            this.lblVersion.Location = new System.Drawing.Point(108, 348);
             this.lblVersion.Name = "lblVersion";
-            this.lblVersion.Size = new System.Drawing.Size(99, 57);
+            this.lblVersion.Size = new System.Drawing.Size(228, 57);
             this.lblVersion.TabIndex = 2;
-            this.lblVersion.Text = "_______________\r\n\r\nv1.1.1.132";
+            this.lblVersion.Text = "_______________\r\n\r\nSSAS Diagnostics Tool v1.1.1.132";
             this.lblVersion.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
@@ -100,10 +100,10 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.ClientSize = new System.Drawing.Size(427, 424);
+            this.Controls.Add(this.lblVersion);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.lblVersion);
             this.Controls.Add(this.lblDesignTest);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "frmAbout";
