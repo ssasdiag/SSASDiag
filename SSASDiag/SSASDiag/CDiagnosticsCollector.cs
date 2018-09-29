@@ -289,7 +289,7 @@ namespace SSASDiag
                     SendMessageToClients("The version of the instance is " + sInstanceVersion + ".");
                     SendMessageToClients("The edition of the instance is " + sInstanceEdition + ".");
                     SendMessageToClients("The instance mode is " + sInstanceMode + ".");
-                    SendMessageToClients("The OLAP\\LOG folder for the instance is " + sLogDir + ".");
+                    SendMessageToClients("The log folder for the instance is " + sLogDir + ".");
                     SendMessageToClients("The msmdsrv.ini configuration for the instance at " + sConfigDir + ".");
                 }
 
@@ -327,16 +327,20 @@ namespace SSASDiag
                 if (bGetConfigDetails)
                 {
                     // Collect SSAS LOG dir, config and save log of this diagnostic capture
-                    if (!Directory.Exists(sLogDir)) Directory.CreateDirectory(sLogDir);
+                    if (!Directory.Exists(TraceID + "\\Log")) Directory.CreateDirectory(TraceID + "\\Log");
                     foreach (string f in Directory.GetFiles(sLogDir))
-                        File.Copy(f, sLogDir + f.Substring(f.LastIndexOf("\\") + 1));
+                        File.Copy(f, TraceID + "\\Log" + f.Substring(f.LastIndexOf("\\")));
                     File.Copy(sConfigDir + "\\msmdsrv.ini", TraceID + "\\msmdsrv.ini");
                     SendMessageToClients("Captured OLAP\\Log contents and msmdsrv.ini config for the instance.");
 
-                    BackgroundWorker bg = new BackgroundWorker();
-                    bg.DoWork += bgGetSPNs;
-                    bg.RunWorkerCompleted += bgGetSPNsCompleted;
-                    bg.RunWorkerAsync();
+                    if (sInstanceName != "Power BI Report Server")
+                    {
+                        BackgroundWorker bg = new BackgroundWorker();
+                        bg.DoWork += bgGetSPNs;
+                        bg.RunWorkerCompleted += bgGetSPNsCompleted;
+                        bg.RunWorkerAsync();
+                    }
+                    else bgGetSPNsCompleted(null, null);
                 }
                 else
                     bgGetSPNsCompleted(null, null);
@@ -468,25 +472,28 @@ namespace SSASDiag
             s.Add("\\LogicalDisk(*)\\*");
             s.Add("\\Network Interface(*)\\*");
 
-            // The SSAS counter path varies depending on instance and version so set it accordingly.
-            string PerfMonInstanceID = "";
-            if (sInstanceName == "")
-                PerfMonInstanceID = "\\MSAS" + sInstanceVersion.Substring(0, 2);
-            else
-                PerfMonInstanceID = "\\MSOLAP$" + sInstanceName;
-            // Now add the SSAS counters using correct instance prefix...
-            s.Add(PerfMonInstanceID + ":Cache\\*");
-            s.Add(PerfMonInstanceID + ":Connection\\*");
-            s.Add(PerfMonInstanceID + ":Data Mining Model Processing\\*");
-            s.Add(PerfMonInstanceID + ":Data Mining Prediction\\*");
-            s.Add(PerfMonInstanceID + ":Locks\\*");
-            s.Add(PerfMonInstanceID + ":MDX\\*");
-            s.Add(PerfMonInstanceID + ":Memory\\*");
-            s.Add(PerfMonInstanceID + ":Proactive Caching\\*");
-            s.Add(PerfMonInstanceID + ":Proc Aggregations\\*");
-            s.Add(PerfMonInstanceID + ":Proc Indexes\\*");
-            s.Add(PerfMonInstanceID + ":Storage Engine Query\\*");
-            s.Add(PerfMonInstanceID + ":Threads\\*");
+            if (sInstanceName != "Power BI Report Server") // PBIRS doesn't include AS perf counters unfortunately.
+            {
+                // The SSAS counter path varies depending on instance and version so set it accordingly.
+                string PerfMonInstanceID = "";
+                if (sInstanceName == "")
+                    PerfMonInstanceID = "\\MSAS" + sInstanceVersion.Substring(0, 2);
+                else
+                    PerfMonInstanceID = "\\MSOLAP$" + sInstanceName;
+                // Now add the SSAS counters using correct instance prefix...
+                s.Add(PerfMonInstanceID + ":Cache\\*");
+                s.Add(PerfMonInstanceID + ":Connection\\*");
+                s.Add(PerfMonInstanceID + ":Data Mining Model Processing\\*");
+                s.Add(PerfMonInstanceID + ":Data Mining Prediction\\*");
+                s.Add(PerfMonInstanceID + ":Locks\\*");
+                s.Add(PerfMonInstanceID + ":MDX\\*");
+                s.Add(PerfMonInstanceID + ":Memory\\*");
+                s.Add(PerfMonInstanceID + ":Proactive Caching\\*");
+                s.Add(PerfMonInstanceID + ":Proc Aggregations\\*");
+                s.Add(PerfMonInstanceID + ":Proc Indexes\\*");
+                s.Add(PerfMonInstanceID + ":Storage Engine Query\\*");
+                s.Add(PerfMonInstanceID + ":Threads\\*");
+            }
 
             // Add all the counters now to the query...
             m_PdhHelperInstance.AddCounters(ref s, false);

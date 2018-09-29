@@ -344,8 +344,6 @@ namespace SSASDiag
                             {
                                 SvcPath = SvcPath.Replace("\r\nHKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Services\\" + svcName + "\r\n    ImagePath    REG_EXPAND_SZ    ", "").Replace("\r\n", "");
                             }
-
-                            //string SvcPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + svcName, false).GetValue("ImagePath") as string;
                             p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & \"" + SvcPath + "\" -u");
                             p.WindowStyle = ProcessWindowStyle.Hidden;
                             p.Verb = "runas";
@@ -444,6 +442,7 @@ namespace SSASDiag
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
             // Only act if we are already fully initialized
+            txtStatus.ResetText();
             if (cbInstances.DisplayMember != "" && tcCollectionAnalysisTabs.SelectedIndex == 0)
             {
                 btnCapture.Enabled = btnHangDumps.Enabled = false;
