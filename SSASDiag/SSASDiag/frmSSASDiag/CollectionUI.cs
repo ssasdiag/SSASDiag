@@ -61,7 +61,7 @@ namespace SSASDiag
                         svcOutputPath = Program.TempPath + "SSASDiagService_" + InstanceName + ".output.log";
                         if (File.Exists(svcOutputPath))
                             File.Delete(svcOutputPath);
-                        dc = new CDiagnosticsCollector(TracePrefix, (cbsdi == null ? "" : (InstanceName.ToUpper() == "MSSQLSERVER" ? "" : InstanceName)), cbsdi.ServiceName, (InstanceName == "Power BI Report Server" ? PBIRSPort : cbsdi.InstanceID), cbsdi.SQLProgramDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
+                        dc = new CDiagnosticsCollector(TracePrefix, (cbsdi == null ? "" : (InstanceName.ToUpper() == "MSSQLSERVER" ? "" : InstanceName)), cbsdi.ServiceName, (InstanceName == "Power BI Report Server" ? PBIRSPort : cbsdi.InstanceID), cbsdi.SQLProgramDir, cbsdi.SQLSharedDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
                             txtStatus,
                             (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
                             chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked, cbsdi.Cluster, svcOutputPath);
@@ -352,6 +352,8 @@ namespace SSASDiag
                             Process.Start(p);
                             if (Args.ContainsKey("noui"))
                                 Invoke(new System.Action(() => Close()));
+                            npClient.ServerMessage -= NpClient_ServerMessage;
+                            npClient = null;
                         }
                     }
                     catch (Exception e)
@@ -632,14 +634,10 @@ namespace SSASDiag
                         if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
 
                         string ConfigPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + s.ServiceName, false).GetValue("ImagePath") as string;
-                        if (Environment.UserInteractive)
-                            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Found AS instance: " + ConfigPath);
                         ConfigPath = ConfigPath.Substring(ConfigPath.IndexOf("-s \"") + "-s \"".Length).TrimEnd('\"');
                         string InstanceID = s.DisplayName.Replace("SQL Server Analysis Services (", "").Replace(")", "");
                         InstanceID = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\OLAP", false).GetValue(InstanceID, "") as string;
                         if (InstanceID == "") InstanceID = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\OLAP", false).GetValue("MSSQLSERVER") as string;
-                        if (Environment.UserInteractive)
-                            System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": InstanceID: " + InstanceID);
                         string SQLProgramDir = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Setup", false).GetValue("SQLProgramDir") as string;
                         string Ver = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + InstanceID + @"\Setup", false).GetValue("Version") as string;
                         string SQLSharedDir = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\" + Ver.Substring(0, 2) + "0", false).GetValue("SharedCode") as string;

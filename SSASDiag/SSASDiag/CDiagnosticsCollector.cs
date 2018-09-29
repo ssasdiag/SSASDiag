@@ -43,7 +43,7 @@ namespace SSASDiag
         System.Timers.Timer PerfMonAndUIPumpTimer = new System.Timers.Timer();
         RichTextBox txtStatus;
         DateTime m_StartTime = DateTime.Now;
-        string sTracePrefix = "", sInstanceName, sInstanceID, sASServiceName, sInstanceVersion, sInstanceMode, sInstanceEdition, sLogDir, sConfigDir, sServiceAccount, sRemoteAdminUser, sRemoteAdminDomain, sSQLProgramDir;
+        string sTracePrefix = "", sInstanceName, sInstanceID, sASServiceName, sInstanceVersion, sInstanceMode, sInstanceEdition, sLogDir, sConfigDir, sServiceAccount, sRemoteAdminUser, sRemoteAdminDomain, sSQLProgramDir, sSQLSharedDir;
         SecureString sRemoteAdminPassword;
         int iInterval = 0, iRollover = 0, iCurrentTimerTicksSinceLastInterval = 0;
         bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetBAK, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true;
@@ -87,7 +87,7 @@ namespace SSASDiag
         #endregion Win32
 
         public CDiagnosticsCollector(
-                string TraceFilesPrefix, string InstanceName, string ASServiceName, string InstanceID, string SQLProgramDir, string InstanceVersion, string InstanceMode, string InstanceEdition, string ConfigDir, string LogDir, string ServiceAccount,
+                string TraceFilesPrefix, string InstanceName, string ASServiceName, string InstanceID, string SQLProgramDir, string SQLSharedDir, string InstanceVersion, string InstanceMode, string InstanceEdition, string ConfigDir, string LogDir, string ServiceAccount,
                 RichTextBox StatusTextBox,
                 int Interval, 
                 bool AutoRestart, bool Compress, bool DeleteRaw, bool IncludePerfEventsInProfiler, bool IncludeXMLA, bool IncludeABF, bool IncludeBAK,
@@ -98,7 +98,7 @@ namespace SSASDiag
         {
             PerfMonAndUIPumpTimer.Interval = 1000;
             PerfMonAndUIPumpTimer.Elapsed += CollectorPumpTick;
-            sTracePrefix = TraceFilesPrefix; sInstanceName = InstanceName; sInstanceVersion = InstanceVersion; sInstanceMode = InstanceMode; sInstanceEdition = InstanceEdition; sConfigDir = ConfigDir; sLogDir = LogDir; sServiceAccount = ServiceAccount; sSQLProgramDir = SQLProgramDir; sInstanceID = InstanceID; sASServiceName = ASServiceName;
+            sTracePrefix = TraceFilesPrefix; sInstanceName = InstanceName; sInstanceVersion = InstanceVersion; sInstanceMode = InstanceMode; sInstanceEdition = InstanceEdition; sConfigDir = ConfigDir; sLogDir = LogDir; sServiceAccount = ServiceAccount; sSQLProgramDir = SQLProgramDir; sSQLSharedDir = SQLSharedDir; sInstanceID = InstanceID; sASServiceName = ASServiceName;
             txtStatus = StatusTextBox;
             bGetXMLA = IncludeXMLA; bGetABF = IncludeABF; bGetBAK = IncludeBAK;
             iInterval = Interval;
@@ -199,9 +199,10 @@ namespace SSASDiag
                             p.StartInfo.RedirectStandardOutput = true;
                             p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                             p.StartInfo.UseShellExecute = false;
-                            p.StartInfo.FileName = sSQLProgramDir + "\\" + sInstanceVersion.Substring(0, 2) + "0\\Shared\\SQLDumper.exe";
+                            p.StartInfo.FileName = Path.Combine(sSQLSharedDir, "SQLDumper.exe");
                             p.StartInfo.WorkingDirectory = Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps";
                             p.StartInfo.Arguments = args;
+                            Debug.WriteLine(args);
                             p.Start();
                             p.WaitForExit();
                         }
@@ -213,7 +214,8 @@ namespace SSASDiag
                         if (i < 2)
                         {
                             SendMessageToClients("Waiting 30s before capturing dump " + (i + 2) + ".");
-                            Thread.Sleep(30000);
+                            if (Environment.GetCommandLineArgs().Where(a => a.Contains("nowaitonstop")).Count() == 0)
+                                Thread.Sleep(30000);
                         }
                     }
                     bCollectionFullyInitialized = true;

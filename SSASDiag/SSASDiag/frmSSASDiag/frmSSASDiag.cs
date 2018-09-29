@@ -541,7 +541,7 @@ namespace SSASDiag
                             p.StartInfo.RedirectStandardOutput = true;
                             p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                             p.StartInfo.UseShellExecute = false;
-                            p.StartInfo.FileName = cbsdi.SQLSharedDir + "SQLDumper.exe";
+                            p.StartInfo.FileName = Path.Combine(cbsdi.SQLSharedDir, "SQLDumper.exe");
                             p.StartInfo.WorkingDirectory = txtSaveLocation.Text + "\\" + TraceID + "\\HangDumps";
                             p.StartInfo.Arguments = args;
                             p.Start();
@@ -559,7 +559,8 @@ namespace SSASDiag
                                 txtStatus.AppendText("\r\nWaiting 30s before capturing the next dump.");
                                 btnSettings.Focus();
                             }));
-                            Thread.Sleep(30000);
+                            if (Environment.GetCommandLineArgs().Where(a => a.Contains("nowaitonstop")).Count() == 0)
+                                Thread.Sleep(30000);
                         }
                     }
                     Invoke(new System.Action(() =>
