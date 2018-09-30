@@ -24,7 +24,7 @@ namespace SSASDiag
         Process ASProfilerTraceImporterProcess;       
         bool bProfilerEventClassSublcassViewPresent = false, 
              bProfilerTraceDbAttached = false;
-        SqlConnection connSqlDb = new SqlConnection();
+        SqlConnection connSqlDb = null;
 
         #endregion ProfilerAnalysisLocals
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using System.Data.SqlClient;
 using System.DirectoryServices;
 using System.Text;
 using System.Security.Principal;
@@ -179,6 +180,8 @@ namespace SSASDiag
                     Directory.CreateDirectory(outputDir);
                 Environment.CurrentDirectory = outputDir;
             }
+
+            connSqlDb = new SqlConnection();
 
             PopulateInstanceDropdown();
 
@@ -374,7 +377,7 @@ namespace SSASDiag
         private void enableDiagnosticLoggingToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
             if (enableDiagnosticLoggingToolStripMenuItem.Checked)
-                Program.SetupDebugTraceAndDumps();
+                Program.SetupDebugTraceAndDumps(true);
             else
             {
                 Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Stopping debug trace.");

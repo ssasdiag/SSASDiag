@@ -264,20 +264,24 @@ namespace SSASDiag
             File.Delete("SSASDiag.exe.config");
         }
 
-        public static void SetupDebugTraceAndDumps()
+        public static void SetupDebugTraceAndDumps(bool Force = false)
         {
             string binlocation = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
             if (binlocation == null) binlocation = Environment.CurrentDirectory;
 
-            bool DebugListener = false;
-            foreach (TraceListener l in Trace.Listeners)
-                if (l.Name == "debuglistener") DebugListener = true;
-            if (!DebugListener)
+            if (Force || Environment.GetCommandLineArgs().Select(s=>s.ToLower()).Contains("/debug") || Registry.LocalMachine.CreateSubKey(@"SOFTWARE\SSASDiag").GetValue("LoggingEnabled", "False") as string == "True")
             {
-                if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "True") as string == "True")
-                    Trace.Listeners.Add(new TextWriterTraceListener(binlocation + (Environment.UserInteractive ? "\\SSASDiagDebugTrace.log" : "\\SSASDiagServiceDebugTrace.log"), "debuglistener"));
-                Trace.AutoFlush = true;
-                Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Trace Started");
+                bool DebugListener = false;
+                foreach (TraceListener l in Trace.Listeners)
+                    if (l.Name == "debuglistener") DebugListener = true;
+                if (!DebugListener)
+                {
+                    if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "True") as string == "True")
+                        Trace.Listeners.Add(new TextWriterTraceListener(binlocation + (Environment.UserInteractive ? "\\SSASDiagDebugTrace.log" : "\\SSASDiagServiceDebugTrace.log"), "debuglistener"));
+                    Trace.AutoFlush = true;
+                    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Trace Started");
+                    Trace.Flush();
+                }
             }
 
             RegistryKey dumpkey = Registry.LocalMachine.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\SSASDiag.exe");
@@ -295,9 +299,14 @@ namespace SSASDiag
 
         private static void WriteConfig()
         {
-            StreamWriter sw = File.CreateText("SSASDiag.exe.config");
-            sw.Write(Properties.Resources.Config);
-            sw.Close();
+            try
+            {
+                StreamWriter sw = File.CreateText("SSASDiag.exe.config");
+                sw.Write(Properties.Resources.Config);
+                sw.Close();
+                File.SetAttributes("SSASDiag.exe.config", FileAttributes.Hidden);
+            }
+            catch { }
         }
 
         public static void CheckForUpdates(AppDomain tempDomain)

@@ -15,7 +15,7 @@ namespace SSASDiag
 {
     public partial class frmSimpleSQLServerPrompt : Form
     {
-        public SqlConnection conn = new SqlConnection();
+        public SqlConnection conn = null;
 
         public frmSimpleSQLServerPrompt()
         {
@@ -43,6 +43,7 @@ namespace SSASDiag
 
         private void frmSimpleSQLServerPrompt_Load(object sender, EventArgs e)
         {
+            conn = new SqlConnection();
             cmbServer.Items.Clear();
             ServiceController[] services = ServiceController.GetServices();
             foreach (ServiceController s in services.OrderBy(ob => ob.DisplayName))
