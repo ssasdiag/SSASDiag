@@ -370,9 +370,13 @@ namespace SSASDiag
                     }
                     if (File.Exists(TempPath + "\\cdb.zip"))
                     {
-                        ZipArchive zf = ZipFile.OpenRead(TempPath + "\\cdb.zip");
-                        zf.ExtractToDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "\\CDB");
-                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": CDB extracted and installed.");
+                        try
+                        {
+                            ZipArchive zf = ZipFile.OpenRead(TempPath + "\\cdb.zip");
+                            zf.ExtractToDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "\\CDB");
+                            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": CDB extracted and installed.");
+                        }
+                        catch { }  // low priority action.  ignore all failures.
                     }
                 }
             }
