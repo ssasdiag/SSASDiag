@@ -369,14 +369,15 @@ namespace SSASDiag
 
         private void enableDiagnosticLoggingToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
+            Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", enableDiagnosticLoggingToolStripMenuItem.Checked);
             if (enableDiagnosticLoggingToolStripMenuItem.Checked)
-                Program.SetupDebugTraceAndDumps(true);
+                Program.SetupDebugTraceAndDumps();
             else
             {
                 Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Stopping debug trace.");
                 Program.ShutdownDebugTrace();
             }
-            Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("LoggingEnabled", enableDiagnosticLoggingToolStripMenuItem.Checked);
+            
         }
         
         public static void LogFeatureUse(string FeatureName, string FeatureDetail = "")

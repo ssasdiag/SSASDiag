@@ -264,12 +264,12 @@ namespace SSASDiag
             File.Delete("SSASDiag.exe.config");
         }
 
-        public static void SetupDebugTraceAndDumps(bool Force = false)
+        public static void SetupDebugTraceAndDumps()
         {
             string binlocation = AppDomain.CurrentDomain.GetData("originalbinlocation") as string;
             if (binlocation == null) binlocation = Environment.CurrentDirectory;
 
-            if (Force || Environment.GetCommandLineArgs().Select(s=>s.ToLower()).Contains("/debug") || Registry.LocalMachine.CreateSubKey(@"SOFTWARE\SSASDiag").GetValue("LoggingEnabled", "False") as string == "True")
+            if (Environment.GetCommandLineArgs().Select(s=>s.ToLower()).Contains("/debug") || Registry.LocalMachine.CreateSubKey(@"SOFTWARE\SSASDiag").GetValue("LoggingEnabled", "False") as string == "True")
             {
                 bool DebugListener = false;
                 foreach (TraceListener l in Trace.Listeners)
