@@ -154,13 +154,6 @@ namespace SSASDiag
                 txtFolderZipForAnalysis.Text = m_analysisPath = Args["filename"];
             }
 
-            if (!(Environment.OSVersion.Version.Major >= 7 || (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)) && Environment.UserInteractive)
-            {
-                if (Environment.UserInteractive && bFullyInitialized)
-                    MessageBox.Show("Network trace collection requires\nWindows 7 or Server 2008 R2 or greater.\nPlease upgrade your OS to use that feature.", "SSAS Diagnotics Network Trace Incompatibility Warning", MessageBoxButtons.OK, MessageBoxIcon.Hand);
-                chkGetNetwork.Enabled = false;
-            }
-
             imgPlay.Tag = "Play"; imgPlayLit.Tag = "Play Lit"; imgPlayHalfLit.Tag = "Play Half Lit"; imgStop.Tag = "Stop"; imgStopLit.Tag = "Stop Lit"; imgStopHalfLit.Tag = "Stop Half Lit";
             btnCapture.Image = imgPlay;
             if (AppDomain.CurrentDomain.GetData("originalbinlocation") as string != null)
