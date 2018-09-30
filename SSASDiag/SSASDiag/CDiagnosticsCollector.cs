@@ -541,23 +541,30 @@ namespace SSASDiag
 
         private void SendMessageToClients(string s)
         {
-            if (s.Length > 1) s = "\r\n" + s;
-            npServer.PushMessage(s);
-            if (s.StartsWith("\r\nTime remaining until collection starts: ") || s.StartsWith("\r\nDiagnostics captured for "))
+            try
             {
-                string[] lines = new string[0];
-                if (File.Exists(svcOutputPath))
-                    File.ReadAllLines(svcOutputPath);
-                if (lines.Length > 0 && lines[lines.Length - 1].StartsWith(s.Substring(2, 14)))
+                if (s.Length > 1) s = "\r\n" + s;
+                npServer.PushMessage(s);
+                if (s.StartsWith("\r\nTime remaining until collection starts: ") || s.StartsWith("\r\nDiagnostics captured for "))
                 {
-                    lines[lines.Length - 1] = s.Trim(new char[] { '\r', '\n' }) ;
-                    File.WriteAllText(svcOutputPath, String.Join("\r\n", lines).TrimEnd(new char[] { '\r', '\n' }));
+                    string[] lines = new string[0];
+                    if (File.Exists(svcOutputPath))
+                        File.ReadAllLines(svcOutputPath);
+                    if (lines.Length > 0 && lines[lines.Length - 1].StartsWith(s.Substring(2, 14)))
+                    {
+                        lines[lines.Length - 1] = s.Trim(new char[] { '\r', '\n' });
+                        File.WriteAllText(svcOutputPath, String.Join("\r\n", lines).TrimEnd(new char[] { '\r', '\n' }));
+                    }
+                    else
+                        File.AppendAllText(svcOutputPath, s);
                 }
                 else
                     File.AppendAllText(svcOutputPath, s);
             }
-            else
-                File.AppendAllText(svcOutputPath, s);
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Exception sending message from service to client(s):\r\n" + ex.Message);
+            }
         }
 
         private void CollectorPumpTick(object sender, EventArgs e)
