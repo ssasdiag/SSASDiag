@@ -97,7 +97,7 @@ namespace SSASDiag
             {
                 try
                 {
-                    if (argArray[i].StartsWith("/") || argArray[i].StartsWith("-"))
+                    if ((argArray[i].StartsWith("/") || argArray[i].StartsWith("-")) && !Args.ContainsKey(argArray[i].TrimStart(new char[] { '-', '/' }).ToLower()))
                         Args.Add(argArray[i].TrimStart(new char[] { '-', '/' }).ToLower(),
                             (argArray.Length > i + 1
                              && !(argArray[i + 1].StartsWith("/") || argArray[i + 1].StartsWith("-"))

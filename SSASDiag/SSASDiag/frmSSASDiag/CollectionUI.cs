@@ -207,192 +207,207 @@ namespace SSASDiag
         string svcName = "";
         private void NpClient_ServerMessage(NamedPipeConnection<string, string> connection, string message)
         {
-            if (tPumpUIUpdatesPreServiceStart != null && tPumpUIUpdatesPreServiceStart.Enabled == true)
+            try
             {
-                tPumpUIUpdatesPreServiceStart.Stop();
-                tPumpUIUpdatesPreServiceStart.Tick -= TPumpUIUpdatesPreServiceStart_Tick;
-            }
-
-            if (message == "Initialize pipe")
-            {
-                connection.PushMessage("Initialize pipe");
-                return;
-            }
-
-            if (message.StartsWith("\r\nInitialized service for trace with ID: "))
-            {
-                Invoke(new System.Action(() =>
+                if (tPumpUIUpdatesPreServiceStart != null && tPumpUIUpdatesPreServiceStart.Enabled == true)
                 {
-                    string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
-                    txtStatus.Text = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n"
-                                    + "Collection service SSASDiag_" + InstanceName + " started.";
-                    InitializeCaptureUI();
-                    if (Args.ContainsKey("noui"))
-                    {
-                        Invoke(new System.Action(() => Close()));
-                    }
-                }));
-            }
-
-            if (message.StartsWith("\r\nCreated temporary folder "))
-            {
-                txtFolderZipForAnalysis.Invoke(new System.Action(() =>
-                    txtFolderZipForAnalysis.Text = m_analysisPath = Environment.CurrentDirectory + "\\" + message.Replace("\r\nCreated temporary folder ", "").Replace(" to collect diagnostic files.", "") + (chkZip.Checked && chkDeleteRaw.Checked ? ".zip" : "")
-                    ));
-            }
-
-            if (message.StartsWith("\r\nDiagnostics captured for ") || // && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
-                    message.StartsWith("\r\nTime remaining until collection starts: ")) //&& LastStatusLine.StartsWith("Time remaining until collection starts: ")))
-            {
-                string LastStatusLine = "";
-                txtStatus.Invoke(new System.Action(() =>
-                                                        {
-                                                            if (txtStatus.Text.Length > 0)
-                                                                LastStatusLine = txtStatus.Lines.Last();
-                                                        }));
-                if (LastStatusLine != "" && LastStatusLine.StartsWith(message.Substring(2, 20)))
-                    txtStatus.Invoke(new System.Action(() =>
-                    {
-                        txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""));
-                        txtStatus.SelectionStart = txtStatus.TextLength;
-                        txtStatus.ScrollToCaret();
-                    }
-                    ));
-                else
-                {
-                    Invoke(new System.Action(() =>
-                    {
-                        if (btnCapture.Image.Tag as string == "Play Half Lit")
-                        {
-                            btnHangDumps.Enabled = true;
-                            btnCapture.Image = imgStop;
-                            btnCapture.Click += btnCapture_Click;
-                        }
-                    }));
-                    txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(message)));
+                    tPumpUIUpdatesPreServiceStart.Stop();
+                    tPumpUIUpdatesPreServiceStart.Tick -= TPumpUIUpdatesPreServiceStart_Tick;
                 }
-            }
-            else if (message.StartsWith("\r\nWaiting for client interaction:\r\n"))
-            {
-                string uiMsg = message.Replace("\r\nWaiting for client interaction:\r\n", "");
-                if (uiMsg.StartsWith("Windows Administrator required for remote server:") && pp != null)
+
+                if (message == "Initialize pipe")
                 {
-                    if (uiMsg.EndsWith("TryingAgain"))
-                    {
-                        uiMsg = uiMsg.Replace("TryingAgain", "");
-                        pp.lblUserPasswordError.Visible = true;
-                    }
-                    pp.UserMessage = uiMsg;
-                    Invoke(new System.Action(() =>
-                    {
-                        pp.Top = Top + Height / 2 - pp.Height / 2;
-                        pp.Left = Left + Width / 2 - pp.Width / 2;
-                    }));
-                    Invoke(new System.Action(() =>
-                    {
-                        if (!pp.IsDisposed)
-                            pp.Show();
-                        Enabled = false;
-                    }
-                    ));
+                    connection.PushMessage("Initialize pipe");
+                    return;
                 }
-            }
-            else if (message == "Dumping")
-            {
-                btnCapture.Image = imgStopHalfLit;
-                btnCapture.Click -= btnCapture_Click;
-                btnHangDumps.Invoke(new System.Action(() => { btnHangDumps.Enabled = false; }));
-            }
-            else if (message == "DumpingOver")
-            {
-                btnCapture.Image = imgStop;
-                btnCapture.Click += btnCapture_Click;
-                btnHangDumps.Invoke(new System.Action(() => { btnHangDumps.Enabled = true; }));
-            }
-            else if (message == "\r\nStop")
-            {
-                Invoke(new System.Action(() =>
+
+                if (message.StartsWith("\r\nInitialized service for trace with ID: "))
                 {
-                    callback_StopAndFinalizeAllDiagnosticsComplete();
-                    ProcessStartInfo p = null;
-                    try
+                    Invoke(new System.Action(() =>
                     {
                         string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
-                        svcName = "SSASDiag_" + InstanceName;
-                        // Stop the service via command line.
-                        p = new ProcessStartInfo("cmd.exe", "/c net stop \"" + svcName + "\"");
-                        p.WindowStyle = ProcessWindowStyle.Hidden;
-                        p.UseShellExecute = true;
-                        p.Verb = "runas";
-                        p.CreateNoWindow = true;
-                        Process.Start(p);
-                        if (Environment.UserInteractive)
+                        txtStatus.Text = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n"
+                                        + "Collection service SSASDiag_" + InstanceName + " started.";
+                        InitializeCaptureUI();
+                        if (Args.ContainsKey("noui"))
                         {
-                            // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
-                            p = new ProcessStartInfo("reg.exe", @"query ""HKLM\System\CurrentControlSet\Services\" + svcName + @""" /v ImagePath");
-                            p.UseShellExecute = false;
-                            p.CreateNoWindow = true;
-                            p.WindowStyle = ProcessWindowStyle.Hidden;
-                            p.RedirectStandardOutput = true;
-                            p.RedirectStandardError = true;
-                            Process proc = Process.Start(p);
-                            string SvcPath = proc.StandardOutput.ReadToEnd();
-                            if (SvcPath == "")
-                            {
-                                string err = proc.StandardError.ReadToEnd();
-                                throw new Exception("Exception getting service path: " + err);
-                            }
-                            else
-                            {
-                                SvcPath = SvcPath.Replace("\r\nHKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Services\\" + svcName + "\r\n    ImagePath    REG_EXPAND_SZ    ", "").Replace("\r\n", "");
-                            }
-                            p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & \"" + SvcPath + "\" -u");
-                            p.WindowStyle = ProcessWindowStyle.Hidden;
-                            p.Verb = "runas";
-                            p.UseShellExecute = true;
-                            p.CreateNoWindow = true;
-                            Process.Start(p);
-                            if (Args.ContainsKey("noui"))
-                                Invoke(new System.Action(() => Close()));
-                            npClient.ServerMessage -= NpClient_ServerMessage;
-                            npClient = null;
+                            Invoke(new System.Action(() => Close()));
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        LogException(e);
-                    }
-                }));
-            }
-            else if (message.Contains("Cancelled by client"))
-            {
-                if (pp != null && pp.Visible)
-                {
-                    pp.DialogResult = DialogResult.Abort;
-                    Invoke(new System.Action(() => pp.Close()));
+                    }));
                 }
-            }
-            else
-                txtStatus.Invoke(new System.Action(() =>
+
+                if (message.StartsWith("\r\nCreated temporary folder "))
                 {
-                    txtStatus.AppendText(message);
-                    txtStatus.SelectionStart = txtStatus.TextLength;
-                    txtStatus.ScrollToCaret();
-                }));
+                    txtFolderZipForAnalysis.Invoke(new System.Action(() =>
+                        txtFolderZipForAnalysis.Text = m_analysisPath = Environment.CurrentDirectory + "\\" + message.Replace("\r\nCreated temporary folder ", "").Replace(" to collect diagnostic files.", "") + (chkZip.Checked && chkDeleteRaw.Checked ? ".zip" : "")
+                        ));
+                }
 
-            if (pp != null && pp.InvokeRequired)
-            {
-                if (message.StartsWith("\r\nWindows authentication for remote SQL data source "))
-                    Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "Incorrect user name or password"));
-                if (message.StartsWith("\r\nAuthenticated user "))
-                    Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "User unauthorized to database "));
-                if (message.StartsWith("\r\nRemote file share access failed for user "))
-                    Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "User unauthorized to remote share"));
-                Invoke(new System.Action(() => pp.lblUserPasswordError.Left = pp.Width / 2 - pp.lblUserPasswordError.Width / 2));
+                if (message.StartsWith("\r\nDiagnostics captured for ") || // && LastStatusLine.StartsWith("Diagnostics captured for ")) ||
+                        message.StartsWith("\r\nTime remaining until collection starts: ")) //&& LastStatusLine.StartsWith("Time remaining until collection starts: ")))
+                {
+                    string LastStatusLine = "";
+                    txtStatus.Invoke(new System.Action(() =>
+                                                            {
+                                                                if (txtStatus.Text.Length > 0)
+                                                                    LastStatusLine = txtStatus.Lines.Last();
+                                                            }));
+                    if (LastStatusLine != "" && LastStatusLine.StartsWith(message.Substring(2, 20)))
+                        txtStatus.Invoke(new System.Action(() =>
+                        {
+                            txtStatus.Text = txtStatus.Text.Replace(LastStatusLine, message.Replace("\r\n", ""));
+                            txtStatus.SelectionStart = txtStatus.TextLength;
+                            txtStatus.ScrollToCaret();
+                        }
+                        ));
+                    else
+                    {
+                        Invoke(new System.Action(() =>
+                        {
+                            if (btnCapture.Image.Tag as string == "Play Half Lit")
+                            {
+                                btnHangDumps.Enabled = true;
+                                btnCapture.Image = imgStop;
+                                btnCapture.Click += btnCapture_Click;
+                            }
+                        }));
+                        txtStatus.Invoke(new System.Action(() => txtStatus.AppendText(message)));
+                    }
+                }
+                else if (message.StartsWith("\r\nWaiting for client interaction:\r\n"))
+                {
+                    string uiMsg = message.Replace("\r\nWaiting for client interaction:\r\n", "");
+                    if (uiMsg.StartsWith("Windows Administrator required for remote server:") && pp != null)
+                    {
+                        if (uiMsg.EndsWith("TryingAgain"))
+                        {
+                            uiMsg = uiMsg.Replace("TryingAgain", "");
+                            pp.lblUserPasswordError.Visible = true;
+                        }
+                        pp.UserMessage = uiMsg;
+                        Invoke(new System.Action(() =>
+                        {
+                            pp.Top = Top + Height / 2 - pp.Height / 2;
+                            pp.Left = Left + Width / 2 - pp.Width / 2;
+                        }));
+                        Invoke(new System.Action(() =>
+                        {
+                            if (!pp.IsDisposed)
+                                pp.Show();
+                            Enabled = false;
+                        }
+                        ));
+                    }
+                }
+                else if (message == "Dumping")
+                {
+                    btnCapture.Image = imgStopHalfLit;
+                    btnCapture.Click -= btnCapture_Click;
+                    btnHangDumps.Invoke(new System.Action(() => { btnHangDumps.Enabled = false; }));
+                }
+                else if (message == "DumpingOver")
+                {
+                    btnCapture.Image = imgStop;
+                    btnCapture.Click += btnCapture_Click;
+                    btnHangDumps.Invoke(new System.Action(() => { btnHangDumps.Enabled = true; }));
+                }
+                else if (message == "\r\nStop")
+                {
+                    Invoke(new System.Action(() =>
+                    {
+
+                        callback_StopAndFinalizeAllDiagnosticsComplete();
+
+                        ProcessStartInfo p = null;
+                        try
+                        {
+                            string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
+                            svcName = "SSASDiag_" + InstanceName;
+                            // Stop the service via command line.
+                            p = new ProcessStartInfo("cmd.exe", "/c net stop \"" + svcName + "\"");
+                            p.WindowStyle = ProcessWindowStyle.Hidden;
+                            p.UseShellExecute = true;
+                            p.Verb = "runas";
+                            p.CreateNoWindow = true;
+                            
+                            Process.Start(p);
+                            if (Environment.UserInteractive)
+                            {
+                                // Uninstall service.  We already got the Stop message indicating we're done closing, so the net stop command will finish very quickly.  But give it a second.  Better than blocking and not worth implementing a callback on this...
+                                p = new ProcessStartInfo("reg.exe", @"query ""HKLM\System\CurrentControlSet\Services\" + svcName + @""" /v ImagePath");
+                                p.UseShellExecute = false;
+                                p.CreateNoWindow = true;
+                                p.WindowStyle = ProcessWindowStyle.Hidden;
+                                p.RedirectStandardOutput = true;
+                                p.RedirectStandardError = true;
+                                Process proc = Process.Start(p);
+                                string SvcPath = proc.StandardOutput.ReadToEnd();
+
+                                if (SvcPath == "")
+                                {
+                                    string err = proc.StandardError.ReadToEnd();
+                                    throw new Exception("Exception getting service path: " + err);
+                                }
+                                else
+                                {
+                                    SvcPath = SvcPath.Replace("\r\nHKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Services\\" + svcName + "\r\n    ImagePath    REG_EXPAND_SZ    ", "").Replace("\r\n", "");
+                                }
+                                
+                                p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & \"" + SvcPath + "\" -u");
+                                p.WindowStyle = ProcessWindowStyle.Hidden;
+                                p.Verb = "runas";
+                                p.UseShellExecute = true;
+                                p.CreateNoWindow = true;
+                                Process.Start(p);
+                                if (Args.ContainsKey("noui"))
+                                    Invoke(new System.Action(() => Close()));
+
+                                if (npClient != null)
+                                    npClient.ServerMessage -= NpClient_ServerMessage;
+                                npClient = null;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            LogException(e);
+                        }
+                    }));
+                }
+                else if (message.Contains("Cancelled by client"))
+                {
+                    if (pp != null && pp.Visible)
+                    {
+                        pp.DialogResult = DialogResult.Abort;
+                        Invoke(new System.Action(() => pp.Close()));
+                    }
+                }
+                else
+                    txtStatus.Invoke(new System.Action(() =>
+                    {
+                        txtStatus.AppendText(message);
+                        txtStatus.SelectionStart = txtStatus.TextLength;
+                        txtStatus.ScrollToCaret();
+                    }));
+
+                if (pp != null && pp.InvokeRequired)
+                {
+                    if (message.StartsWith("\r\nWindows authentication for remote SQL data source "))
+                        Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "Incorrect user name or password"));
+                    if (message.StartsWith("\r\nAuthenticated user "))
+                        Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "User unauthorized to database "));
+                    if (message.StartsWith("\r\nRemote file share access failed for user "))
+                        Invoke(new System.Action(() => pp.lblUserPasswordError.Text = "User unauthorized to remote share"));
+                    Invoke(new System.Action(() => pp.lblUserPasswordError.Left = pp.Width / 2 - pp.lblUserPasswordError.Width / 2));
+                }
+
+                if (message.StartsWith("\r\nStopping collection at "))
+                    btnCapture.Image = imgStopHalfLit;
             }
-
-            if (message.StartsWith("\r\nStopping collection at "))
-                btnCapture.Image = imgStopHalfLit;
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Exception in NPClient_ServerMessage");
+                LogException(ex);
+            }
         }
 
         private void Pp_FormClosed(object sender, FormClosedEventArgs e)
@@ -443,20 +458,20 @@ namespace SSASDiag
             public string ServiceAccount { get; set; }
             public bool Cluster { get; set; }
         }
+        BackgroundWorker bgPopulateInstanceDetails;
         private void cbInstances_SelectedIndexChanged(object sender, EventArgs e)
         {
             // Reset text if we actually did change selected instances.  Check that by comparing the current global ConfigDir location kept for the active instance
             // with that config location stored in the ComboBoxServiceDetailsItem associated with the instance in the combobox SelectedItem member.
-            ComboBoxServiceDetailsItem cdi = (cbInstances.SelectedItem as ComboBoxServiceDetailsItem);
+            ComboBoxServiceDetailsItem cdi = cbInstances.SelectedItem as ComboBoxServiceDetailsItem;
             if (cdi != null && cdi.ConfigPath != m_ConfigDir)
                 txtStatus.ResetText();
-
+            
             // Only act if we are already fully initialized
             if (cbInstances.DisplayMember != "" && tcCollectionAnalysisTabs.SelectedIndex == 0)
             {
                 btnCapture.Enabled = btnHangDumps.Enabled = false;
-
-                BackgroundWorker bgPopulateInstanceDetails = new BackgroundWorker();
+                bgPopulateInstanceDetails = new BackgroundWorker();
                 bgPopulateInstanceDetails.DoWork += BgPopulateInstanceDetails_DoWork;
                 bgPopulateInstanceDetails.RunWorkerCompleted += BgPopulateInstanceDetails_RunWorkerCompleted;
                 bgPopulateInstanceDetails.RunWorkerAsync();
@@ -590,6 +605,8 @@ namespace SSASDiag
                     }
                     btnCapture.Invoke(new System.Action(() => btnCapture.Enabled = btnHangDumps.Enabled = true));
                 }
+                else
+                    Debug.WriteLine("Selected item had no service details in BgPopulateInstanceDetails_DoWork!!!");
             }
             catch (Exception ex)
             {
@@ -695,6 +712,7 @@ namespace SSASDiag
                         cbInstances.SelectedIndex = i;
                 }
             }
+
             cbInstances.SelectedIndexChanged += cbInstances_SelectedIndexChanged;
             cbInstances_SelectedIndexChanged(null, null);
         }

@@ -1223,11 +1223,13 @@
             this.ctxSettings.Name = "contextMenuStrip1";
             this.ctxSettings.ShowCheckMargin = true;
             this.ctxSettings.ShowImageMargin = false;
-            this.ctxSettings.Size = new System.Drawing.Size(313, 92);
+            this.ctxSettings.Size = new System.Drawing.Size(313, 114);
             // 
             // automaticallyCheckForUpdatesToolStripMenuItem
             // 
+            this.automaticallyCheckForUpdatesToolStripMenuItem.Checked = true;
             this.automaticallyCheckForUpdatesToolStripMenuItem.CheckOnClick = true;
+            this.automaticallyCheckForUpdatesToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.automaticallyCheckForUpdatesToolStripMenuItem.Name = "automaticallyCheckForUpdatesToolStripMenuItem";
             this.automaticallyCheckForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(312, 22);
             this.automaticallyCheckForUpdatesToolStripMenuItem.Text = "Automatically check for updates";
@@ -1235,7 +1237,9 @@
             // 
             // enableAnonymousUsageStatisticCollectionToolStripMenuItem
             // 
+            this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked = true;
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.CheckOnClick = true;
+            this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Name = "enableAnonymousUsageStatisticCollectionToolStripMenuItem";
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Size = new System.Drawing.Size(312, 22);
             this.enableAnonymousUsageStatisticCollectionToolStripMenuItem.Text = "Enable anonymous usage statistic collection";

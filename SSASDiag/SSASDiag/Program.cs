@@ -23,7 +23,9 @@ namespace SSASDiag
         public static frmSSASDiag MainForm;
         public static string TempPath = "";
         public static string LaunchingUser = "";
+        public static bool InitializationComplete = false;
        
+
         /// <summary> /// 
         /// The main entry point for the application.
         /// </summary>
@@ -103,18 +105,14 @@ namespace SSASDiag
                             }
                         } catch { } // may fail if file is in use, fine...
 
-                // Do non-immediately-essential out-of-proc exe resource extractions off thread to speed startup...
                 de.Reset();
-                new Thread(new ThreadStart(() =>
-                {
-                    while (de.MoveNext() == true)
-                        if (!File.Exists(TempPath + de.Key.ToString().Replace('_', '.') + ".exe")
-                            && de.Entry.Value is byte[] && de.Key.ToString() != "ResourcesZip")
-                        {
-                            File.WriteAllBytes(TempPath + de.Key.ToString().Replace('_', '.') + ".exe", de.Entry.Value as byte[]);
-                            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extracted temp file " + de.Key.ToString().Replace('_', '.') + ".exe");
-                        }
-                })).Start();
+                while (de.MoveNext() == true)
+                    if (!File.Exists(TempPath + de.Key.ToString().Replace('_', '.') + ".exe")
+                        && de.Entry.Value is byte[] && de.Key.ToString() != "ResourcesZip")
+                    {
+                        File.WriteAllBytes(TempPath + de.Key.ToString().Replace('_', '.') + ".exe", de.Entry.Value as byte[]);
+                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extracted temp file " + de.Key.ToString().Replace('_', '.') + ".exe");
+                    }
 
                 // Symbolic debugger binaries required for dump parsing. 
                 // Silent, 'impactless' (completely asynchronously off main thread), minimal subset of the standard debugging tools required for cdb.exe.
@@ -163,28 +161,25 @@ namespace SSASDiag
                                 Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extracted FastColoredTextBox.dll to temp path.");
                             }
 
-                            // Extract remainig non-immediate depencies off main thread to improve startup time...
-                            new Thread(new ThreadStart(() =>
+
+                            foreach (ZipArchiveEntry ze in za.Entries)
                             {
-                                foreach (ZipArchiveEntry ze in za.Entries)
+                                try
                                 {
-                                    try
+                                    if (!File.Exists(TempPath + ze.Name) ||
+                                            (File.Exists(TempPath + ze.Name) && new FileInfo(TempPath + ze.Name).Length != ze.Length)
+                                        )
                                     {
-                                        if (!File.Exists(TempPath + ze.Name) ||
-                                                (File.Exists(TempPath + ze.Name) && new FileInfo(TempPath + ze.Name).Length != ze.Length)
-                                            )
-                                        {
-                                            ze.ExtractToFile(TempPath + ze.Name, true);
-                                            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extracted " + ze.Name + " to temp path.");
-                                        }
-                                    }
-                                    catch (Exception ex2)
-                                    {
-                                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extraction Exception: " + ex2.Message);
+                                        ze.ExtractToFile(TempPath + ze.Name, true);
+                                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extracted " + ze.Name + " to temp path.");
                                     }
                                 }
+                                catch (Exception ex2)
+                                {
+                                    Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extraction Exception: " + ex2.Message);
+                                }
                             }
-                            )).Start();
+
                         }
                         catch (Exception ex)
                         {
@@ -279,8 +274,6 @@ namespace SSASDiag
                     if (Environment.GetCommandLineArgs().Select(s => s.ToLower()).Contains("/debug") || Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "True") as string == "True")
                         Trace.Listeners.Add(new TextWriterTraceListener(binlocation + (Environment.UserInteractive ? "\\SSASDiagDebugTrace.log" : "\\SSASDiagServiceDebugTrace.log"), "debuglistener"));
                     Trace.AutoFlush = true;
-                    Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Trace Started");
-                    Trace.Flush();
                 }
             }
 
@@ -359,6 +352,7 @@ namespace SSASDiag
                     }
                 }
                 catch (Exception ex) { Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception checking for updates:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
+                Debug.WriteLine("Update check complete.");
             })).Start();
         }
 

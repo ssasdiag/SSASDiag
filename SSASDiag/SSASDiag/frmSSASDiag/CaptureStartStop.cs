@@ -70,8 +70,11 @@ namespace SSASDiag
                 if (File.Exists(svcIniPath))
                     svcconfig = new List<string>(File.ReadAllLines(svcIniPath));
                 string svcName = svcIniPath.Substring(svcIniPath.LastIndexOf("\\") + 1).Replace(".ini", "");
-                svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe";
-                File.WriteAllLines(svcIniPath, svcconfig.ToArray());
+                if (String.Concat(svcconfig.ToArray()).Trim() != "" && svcconfig.FindIndex(s => s.StartsWith("CommandLine=")) != -1)
+                {
+                    svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))] = "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe";
+                    File.WriteAllLines(svcIniPath, svcconfig.ToArray());
+                }
             }
             else
             {
