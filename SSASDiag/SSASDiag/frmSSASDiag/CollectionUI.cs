@@ -100,6 +100,9 @@ namespace SSASDiag
 
                             File.Copy(Program.TempPath + "SSASDiagService.exe", sInstanceServiceConfig, true);
                             File.Copy(Program.TempPath + "SSASDiagService.ini", sInstanceServiceConfig.Replace(".exe", ".ini"), true);
+                            if (!Directory.Exists(Program.TempPath + "SSASDiagServiceWorker"))
+                                Directory.CreateDirectory(Program.TempPath + "SSASDiagServiceWorker");
+                            File.Copy(Program.TempPath + "SSASDiag.exe", Program.TempPath + "SSASDiagServiceWorker\\SSASDiagServiceWorker.exe", true);
                             List<string> svcconfig = new List<string>(File.ReadAllLines(sInstanceServiceConfig.Replace(".exe", ".ini")));
                             svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceName="))] = "ServiceName=SSASDiag_" + InstanceName;
                             svcconfig[svcconfig.FindIndex(s => s.StartsWith("ServiceLongName="))] = "ServiceLongName=SQL Server Analysis Services Diagnostic Collection Service (" + InstanceName + ")";
@@ -117,7 +120,7 @@ namespace SSASDiag
                             // Setup the service startup parameters according to user selections
                             svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))]
                                 =
-                                "CommandLine=" + (AppDomain.CurrentDomain.GetData("originalbinlocation") as string) + "\\SSASDiag.exe" +
+                                "CommandLine=" + Program.TempPath + "\\SSASDiagServiceWorker\\SSASDiagServiceWorker.exe" +
                                 " /workingdir \"" + txtSaveLocation.Text + "\"" +
                                 (chkZip.Checked ? " /zip" : "") +
                                 " /instance \"" + (InstanceName == "" ? "MSSQLServer" : InstanceName) + "\"" +
