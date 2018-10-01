@@ -20,6 +20,7 @@ namespace SSASDiag
             CreateHandle();
         }
 
+        public EventWaitHandle closeSignal = null;
 
         private bool escapePressed = false;
         private System.Threading.Timer tt = null;
@@ -94,6 +95,18 @@ namespace SSASDiag
         {
             if (e.KeyChar == (char)Keys.Escape)
                 EscapePressed = true;
+        }
+
+        private void frmStatusFloater_Shown(object sender, EventArgs e)
+        {
+            if (closeSignal != null)
+            {
+                new Thread(new ThreadStart(() =>
+                {
+                    closeSignal.WaitOne();
+                    this.Invoke(new System.Action(() => Close()));
+                })).Start();
+            }
         }
     }
 

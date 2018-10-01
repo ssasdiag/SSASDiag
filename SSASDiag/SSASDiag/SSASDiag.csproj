@@ -308,6 +308,7 @@
     <None Include="Resources\RulePass.png" />
     <None Include="Resources\RuleWarn.png" />
     <None Include="Resources\RuleCountersUnavailable.png" />
+    <None Include="Resources\Annotation.png" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -80,6 +80,18 @@ namespace SSASDiag
             // Setup custom app domain to launch real assembly from temp location, and act as singleton also...
             if (AppDomain.CurrentDomain.BaseDirectory != TempPath)
             {
+                frmStatusFloater SplashScreen = new frmStatusFloater();
+                SplashScreen.Left = Screen.PrimaryScreen.Bounds.Width / 2 - SplashScreen.Width / 2;
+                SplashScreen.Top = Screen.PrimaryScreen.Bounds.Height / 2 - SplashScreen.Height / 2;
+                SplashScreen.closeSignal = new EventWaitHandle(false, EventResetMode.ManualReset, "SSASDiagSplashscreenInitializedEvent");
+                SplashScreen.lblStatus.Top -= 4;
+                SplashScreen.lblStatus.Font = new System.Drawing.Font(SplashScreen.lblSubStatus.Font.Name, 16);
+                SplashScreen.lblStatus.Text = "Initializing SSAS Diagnostics Tool";
+                SplashScreen.Show();
+                SplashScreen.imgAnimation.Visible = false;
+                SplashScreen.Refresh();
+
+
                 Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Initializing temp location at " + TempPath);
                 int ret = 0;
 
@@ -88,6 +100,8 @@ namespace SSASDiag
                 ResourceSet rs = rm.GetResourceSet(System.Globalization.CultureInfo.CurrentCulture, true, true);
                 IDictionaryEnumerator de = rs.GetEnumerator();
                 Directory.CreateDirectory(TempPath);
+                SplashScreen.lblSubStatus.Text = "Extracting resources...";
+                SplashScreen.Refresh();
                 while (de.MoveNext() == true)
                     if (de.Entry.Value is byte[])
                         try {
@@ -112,6 +126,7 @@ namespace SSASDiag
                     {
                         File.WriteAllBytes(TempPath + de.Key.ToString().Replace('_', '.') + ".exe", de.Entry.Value as byte[]);
                         Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Extracted temp file " + de.Key.ToString().Replace('_', '.') + ".exe");
+
                     }
 
                 // Symbolic debugger binaries required for dump parsing. 
@@ -129,6 +144,8 @@ namespace SSASDiag
                             || Debugger.IsAttached
                             || !Environment.UserInteractive)
                         {
+                            SplashScreen.lblSubStatus.Text = "Setting up temporary application domain...";
+                            SplashScreen.Refresh();
                             File.Copy(Application.ExecutablePath, Environment.GetEnvironmentVariable("temp") + "\\SSASDiag\\SSASDiag.exe", true);
                             Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Copied SSASDiag.exe to temp location.");
                         }
@@ -150,6 +167,9 @@ namespace SSASDiag
                     {
                         try
                         {
+                            SplashScreen.lblSubStatus.Text = "Extracting dependent binaries...";
+                            SplashScreen.Refresh();
+
                             // Extract any dependencies required for initial form display on main thread...
                             ZipArchive za = ZipFile.OpenRead(f);
                             if (!File.Exists(TempPath + za.GetEntry("FastColoredTextBox.dll").Name) ||
@@ -190,8 +210,10 @@ namespace SSASDiag
                 {
                     // Initialize the new app domain from temp location...
                     var currentAssembly = Assembly.GetExecutingAssembly();
-                    
 
+                    SplashScreen.lblSubStatus.Text = "Starting application...";
+                    SplashScreen.Refresh();
+                    
                     AppDomainSetup ads = new AppDomainSetup();
                     ads.ApplicationBase = TempPath;
                     AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);

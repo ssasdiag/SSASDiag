@@ -278,6 +278,9 @@ namespace SSASDiag
 
         private void frmSSASDiag_Shown(object sender, EventArgs e)
         {
+            EventWaitHandle splashScreenSignal = new EventWaitHandle(false, EventResetMode.ManualReset, "SSASDiagSplashscreenInitializedEvent");
+            splashScreenSignal.Set();
+
             Text = "SSAS Diagnostics Tool v" + Application.ProductVersion;
 
             if (Args.ContainsKey("filename") && !Args.ContainsKey("start"))

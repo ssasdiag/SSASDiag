@@ -28,21 +28,21 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.imgAnimation = new System.Windows.Forms.PictureBox();
             this.lblStatus = new System.Windows.Forms.Label();
             this.lblTime = new System.Windows.Forms.Label();
             this.lblSubStatus = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imgAnimation)).BeginInit();
             this.SuspendLayout();
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::SSASDiag.Properties.Resources.Progress;
-            this.pictureBox1.Location = new System.Drawing.Point(0, 0);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(80, 80);
-            this.pictureBox1.TabIndex = 0;
-            this.pictureBox1.TabStop = false;
+            this.imgAnimation.Image = global::SSASDiag.Properties.Resources.Progress;
+            this.imgAnimation.Location = new System.Drawing.Point(0, 0);
+            this.imgAnimation.Name = "pictureBox1";
+            this.imgAnimation.Size = new System.Drawing.Size(80, 80);
+            this.imgAnimation.TabIndex = 0;
+            this.imgAnimation.TabStop = false;
             // 
             // lblStatus
             // 
@@ -90,16 +90,16 @@
             this.Controls.Add(this.lblSubStatus);
             this.Controls.Add(this.lblStatus);
             this.Controls.Add(this.lblTime);
-            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.imgAnimation);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "frmStatusFloater";
             this.Opacity = 0.9D;
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmStatusFloater";
-            this.VisibleChanged += FrmStatusFloater_VisibleChanged;
+            this.Shown += new System.EventHandler(this.frmStatusFloater_Shown);
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.frmStatusFloater_KeyPress);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imgAnimation)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -107,7 +107,7 @@
 
         #endregion
 
-        private System.Windows.Forms.PictureBox pictureBox1;
+        public System.Windows.Forms.PictureBox imgAnimation;
         public System.Windows.Forms.Label lblStatus;
         public System.Windows.Forms.Label lblTime;
         public System.Windows.Forms.Label lblSubStatus;
