@@ -87,6 +87,8 @@ namespace SSASDiag
                 SplashScreen.lblStatus.Top -= 8;
                 SplashScreen.lblStatus.Font = new System.Drawing.Font(SplashScreen.lblSubStatus.Font.Name, 16);
                 SplashScreen.lblStatus.Text = "Initializing SSAS Diagnostics Tool";
+                SplashScreen.Controls.Add(new Label() { Text = "v" + Application.ProductVersion, Font = new System.Drawing.Font(SplashScreen.lblStatus.Font.Name, 8), Top = SplashScreen.lblStatus.Top + 15, Left = SplashScreen.lblStatus.Left + SplashScreen.lblStatus.Width, ForeColor = SplashScreen.lblStatus.ForeColor });
+
                 SplashScreen.Show();
                 SplashScreen.imgAnimation.Image = Properties.Resources.DatabaseLogo;
                 SplashScreen.imgAnimation.Size = new System.Drawing.Size(52, 52);
