@@ -868,19 +868,6 @@ order by duration desc</value>
   <data name="RuleCountersUnavailable" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\RuleCountersUnavailable.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Config" xml:space="preserve">
-    <value>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
-&lt;configuration&gt;
-    &lt;configSections&gt;
- 	&lt;sectionGroup name="userSettings" type="System.Configuration.UserSettingsGroup, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"&gt;
-	   &lt;section name="SSASDiag.Properties.Settings" type="System.Configuration.ClientSettingsSection, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" allowExeDefinition="MachineToLocalUser" requirePermission="false" /&gt;
-	&lt;/sectionGroup&gt;
-    &lt;/configSections&gt;
-    &lt;userSettings&gt;
-        &lt;SSASDiag.Properties.Settings/&gt;
-    &lt;/userSettings&gt;
-&lt;/configuration&gt;</value>
-  </data>
   <data name="DatabaseLogo" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Annotation.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

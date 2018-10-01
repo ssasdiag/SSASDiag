@@ -174,7 +174,7 @@ namespace SSASDiag
                 Environment.CurrentDirectory = outputDir;
             }
 
-            connSqlDb = new SqlConnection();
+            connSqlDb = new SqlConnection("");
 
             PopulateInstanceDropdown();
 

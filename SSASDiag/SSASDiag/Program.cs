@@ -32,7 +32,6 @@ namespace SSASDiag
         [STAThread]
         public static void Main()
         {
-            WriteConfig();
             SetupDebugTraceAndDumps();
 
             if (!Environment.UserInteractive)
@@ -316,18 +315,6 @@ namespace SSASDiag
         {
             if (Trace.Listeners["debuglistener"] != null) Trace.Listeners["debuglistener"].Close();
             Trace.Listeners.Remove("debuglistener");
-        }
-
-        private static void WriteConfig()
-        {
-            try
-            {
-                StreamWriter sw = File.CreateText("SSASDiag.exe.config");
-                sw.Write(Properties.Resources.Config);
-                sw.Close();
-                File.SetAttributes("SSASDiag.exe.config", FileAttributes.Hidden);
-            }
-            catch { }
         }
 
         public static void CheckForUpdates(AppDomain tempDomain)
