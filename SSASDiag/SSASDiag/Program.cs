@@ -84,12 +84,12 @@ namespace SSASDiag
                 SplashScreen.Left = Screen.PrimaryScreen.Bounds.Width / 2 - SplashScreen.Width / 2;
                 SplashScreen.Top = Screen.PrimaryScreen.Bounds.Height / 2 - SplashScreen.Height / 2;
                 SplashScreen.closeSignal = new EventWaitHandle(false, EventResetMode.ManualReset, "SSASDiagSplashscreenInitializedEvent");
-                SplashScreen.lblStatus.Top -= 4;
+                SplashScreen.lblStatus.Top -= 8;
                 SplashScreen.lblStatus.Font = new System.Drawing.Font(SplashScreen.lblSubStatus.Font.Name, 16);
                 SplashScreen.lblStatus.Text = "Initializing SSAS Diagnostics Tool";
                 SplashScreen.Show();
                 SplashScreen.imgAnimation.Image = Properties.Resources.DatabaseLogo;
-                SplashScreen.imgAnimation.Size = new System.Drawing.Size(48, 48);
+                SplashScreen.imgAnimation.Size = new System.Drawing.Size(52, 52);
                 SplashScreen.imgAnimation.Top = SplashScreen.Height / 2 - SplashScreen.imgAnimation.Height / 2;
                 SplashScreen.imgAnimation.Left = 30;
                 SplashScreen.imgAnimation.SizeMode = PictureBoxSizeMode.StretchImage;
