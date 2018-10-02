@@ -235,25 +235,26 @@ namespace SSASDiag
             controlHost.Padding = controlHost.Margin = RecurrenceDropDown.Margin = RecurrenceDropDown.Padding = new Padding(0);
             RecurrenceDropDown.AutoClose = false;
             RecurrenceDropDown.Items.Add(controlHost);
-            HookupChildControlsToUniversalClickEvent(this);
-            
+            HookupRecurrencePopupChildControlsClick(this);
+            ttStatus.SetToolTip(lblRecurrenceDays, "Configure recurring schedule.");
         }
 
-        private void HookupChildControlsToUniversalClickEvent(Control Parent)
+        private void HookupRecurrencePopupChildControlsClick(Control Parent)
         {
             foreach (Control c in Parent.Controls)
             {
-                if (c != btnSchedule)
+                if (c != pnlRecurrence)
                 {
-                    HookupChildControlsToUniversalClickEvent(c);
-                    c.MouseClick += C_AllControlsMouseClick;
+                    HookupRecurrencePopupChildControlsClick(c);
+                    c.MouseClick += RecurrencePopupClick;
                 }
             }
         }
 
-        private void C_AllControlsMouseClick(object sender, MouseEventArgs e)
+        private void RecurrencePopupClick(object sender, MouseEventArgs e)
         {
-            RecurrenceDropDown.Close();
+            pnlRecurrence.BackColor = SystemColors.Control;
+            CloseRecurrencePopup();
         }
 
         private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
@@ -626,12 +627,79 @@ namespace SSASDiag
 
         ucRecurrenceDialog Recurrence = new ucRecurrenceDialog();
         public ToolStripDropDown RecurrenceDropDown = new ToolStripDropDown();
-        private void btnSchedule_Click(object sender, EventArgs e)
+
+        private void pnlRecurrence_MouseEnter(object sender, EventArgs e)
+        {
+            if (pnlRecurrence.Enabled)
+                pnlRecurrence.BackColor = SystemColors.ControlLight;
+        }
+
+        private void pnlRecurrence_MouseLeave(object sender, EventArgs e)
+        {
+            if (pnlRecurrence.GetChildAtPoint(pnlRecurrence.PointToClient(MousePosition)) == null && !RecurrenceDropDown.Visible)
+                pnlRecurrence.BackColor = SystemColors.Control;
+        }
+
+        private void CloseRecurrencePopup()
+        {
+            RecurrenceDropDown.Close();
+            if (Recurrence.chkRecurringSchedule.Checked)
+                Recurrence.chkRecurringSchedule.Checked = Recurrence.chkSunday.Checked ||
+                                                      Recurrence.chkMonday.Checked ||
+                                                      Recurrence.chkTuesday.Checked ||
+                                                      Recurrence.chkWednesday.Checked ||
+                                                      Recurrence.chkThursday.Checked ||
+                                                      Recurrence.chkFriday.Checked ||
+                                                      Recurrence.chkSaturday.Checked;
+        }
+        private void pnlRecurrence_Click(object sender, EventArgs e)
         {
             if (RecurrenceDropDown.Visible)
-                RecurrenceDropDown.Close();
+            {
+                CloseRecurrencePopup();
+            }
             else
-                RecurrenceDropDown.Show(btnSchedule, 0, btnSchedule.Height);
+                RecurrenceDropDown.Show(pnlRecurrence, 5, pnlRecurrence.Height);
+        }
+
+        private void dtStartTime_ValueChanged(object sender, EventArgs e)
+        {
+            if (dtStartTime.Value < DateTime.Now.AddMinutes(2))
+                dtStartTime.Value = DateTime.Now.AddMinutes(2);
+            if (dtStopTime.Value < dtStopTime.Value.AddMinutes(2))
+                dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
+        }
+
+        private void dtStopTime_ValueChanged(object sender, EventArgs e)
+        {
+            if (dtStopTime.Value < dtStartTime.Value)
+            {
+                if (dtStopTime.Value > DateTime.Now.AddMinutes(4))
+                    dtStartTime.Value = dtStopTime.Value.AddMinutes(-2);
+                else
+                    dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
+            }
+        }
+
+        private void pnlRecurrence_EnabledChanged(object sender, EventArgs e)
+        {
+            if (!pnlRecurrence.Enabled)
+            {
+                pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceButtonDisabled;
+                if (btnCapture.Image.Tag!= imgPlayHalfLit.Tag)
+                    lblRecurrenceDays.Text = "";
+                pnlRecurrence.Width = 37;
+            }
+            else
+            {
+                if (Recurrence.chkRecurringSchedule.Checked)
+                {
+                    pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceEnabled;
+                    Recurrence.UpdateDaysLabel();
+                }
+                else
+                    pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceDisabled;
+            }
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)

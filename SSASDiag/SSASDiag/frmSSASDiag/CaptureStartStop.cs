@@ -48,6 +48,7 @@ namespace SSASDiag
             udRollover.Enabled = chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Checked;
+            pnlRecurrence.Enabled = chkStartTime.Checked && chkStopTime.Checked;
             btnCapture.Image = imgPlay;
             btnCapture.Click += btnCapture_Click;
             txtStatus.Enter -= txtStatus_EnterWhileRunning;

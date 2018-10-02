@@ -52,10 +52,11 @@
             this.lkAbout = new System.Windows.Forms.LinkLabel();
             this.lkBugsIdeas = new System.Windows.Forms.LinkLabel();
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
-            this.btnSchedule = new System.Windows.Forms.Button();
             this.tcCollectionAnalysisTabs = new System.Windows.Forms.TabControl();
             this.tbCollection = new System.Windows.Forms.TabPage();
             this.splitCollectionUI = new System.Windows.Forms.SplitContainer();
+            this.pnlRecurrence = new System.Windows.Forms.Panel();
+            this.lblRecurrenceDays = new System.Windows.Forms.Label();
             this.chkDeleteRaw = new System.Windows.Forms.CheckBox();
             this.chkZip = new System.Windows.Forms.CheckBox();
             this.grpDiagsToCapture = new System.Windows.Forms.GroupBox();
@@ -122,6 +123,7 @@
             this.splitCollectionUI.Panel1.SuspendLayout();
             this.splitCollectionUI.Panel2.SuspendLayout();
             this.splitCollectionUI.SuspendLayout();
+            this.pnlRecurrence.SuspendLayout();
             this.grpDiagsToCapture.SuspendLayout();
             this.tcSimpleAdvanced.SuspendLayout();
             this.tabGuided.SuspendLayout();
@@ -314,14 +316,14 @@
             this.btnHangDumps.FlatAppearance.MouseDownBackColor = System.Drawing.SystemColors.HotTrack;
             this.btnHangDumps.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.btnHangDumps.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnHangDumps.Font = new System.Drawing.Font("Consolas", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnHangDumps.Font = new System.Drawing.Font("Consolas", 6F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnHangDumps.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.btnHangDumps.Image = global::SSASDiag.Properties.Resources.Dump;
             this.btnHangDumps.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.btnHangDumps.Location = new System.Drawing.Point(266, 168);
+            this.btnHangDumps.Location = new System.Drawing.Point(268, 168);
             this.btnHangDumps.Margin = new System.Windows.Forms.Padding(0);
             this.btnHangDumps.Name = "btnHangDumps";
-            this.btnHangDumps.Size = new System.Drawing.Size(78, 50);
+            this.btnHangDumps.Size = new System.Drawing.Size(76, 50);
             this.btnHangDumps.TabIndex = 67;
             this.btnHangDumps.Text = "Capture Hang Dumps Now";
             this.btnHangDumps.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -401,21 +403,6 @@
             this.ttStatus.SetToolTip(this.lkFeedback, "Share the love!");
             this.lkFeedback.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkFeedback_LinkClicked);
             // 
-            // btnSchedule
-            // 
-            this.btnSchedule.Enabled = false;
-            this.btnSchedule.FlatAppearance.BorderSize = 0;
-            this.btnSchedule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSchedule.ForeColor = System.Drawing.SystemColors.Control;
-            this.btnSchedule.Image = global::SSASDiag.Properties.Resources.RecurrenceDisabled;
-            this.btnSchedule.Location = new System.Drawing.Point(220, 140);
-            this.btnSchedule.Name = "btnSchedule";
-            this.btnSchedule.Size = new System.Drawing.Size(33, 32);
-            this.btnSchedule.TabIndex = 68;
-            this.ttStatus.SetToolTip(this.btnSchedule, "Configure recurring schedule");
-            this.btnSchedule.UseVisualStyleBackColor = true;
-            this.btnSchedule.Click += new System.EventHandler(this.btnSchedule_Click);
-            // 
             // tcCollectionAnalysisTabs
             // 
             this.tcCollectionAnalysisTabs.Controls.Add(this.tbCollection);
@@ -451,7 +438,7 @@
             // 
             // splitCollectionUI.Panel1
             // 
-            this.splitCollectionUI.Panel1.Controls.Add(this.btnSchedule);
+            this.splitCollectionUI.Panel1.Controls.Add(this.pnlRecurrence);
             this.splitCollectionUI.Panel1.Controls.Add(this.btnHangDumps);
             this.splitCollectionUI.Panel1.Controls.Add(this.label3);
             this.splitCollectionUI.Panel1.Controls.Add(this.txtSaveLocation);
@@ -485,6 +472,34 @@
             this.splitCollectionUI.SplitterDistance = 220;
             this.splitCollectionUI.SplitterIncrement = 13;
             this.splitCollectionUI.TabIndex = 46;
+            // 
+            // pnlRecurrence
+            // 
+            this.pnlRecurrence.BackColor = System.Drawing.SystemColors.Control;
+            this.pnlRecurrence.BackgroundImage = global::SSASDiag.Properties.Resources.RecurrenceButtonDisabled;
+            this.pnlRecurrence.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.pnlRecurrence.Controls.Add(this.lblRecurrenceDays);
+            this.pnlRecurrence.Enabled = false;
+            this.pnlRecurrence.Location = new System.Drawing.Point(210, 134);
+            this.pnlRecurrence.Name = "pnlRecurrence";
+            this.pnlRecurrence.Size = new System.Drawing.Size(37, 43);
+            this.pnlRecurrence.TabIndex = 69;
+            this.ttStatus.SetToolTip(this.pnlRecurrence, "Configure recurring schedule.");
+            this.pnlRecurrence.EnabledChanged += new System.EventHandler(this.pnlRecurrence_EnabledChanged);
+            this.pnlRecurrence.Click += new System.EventHandler(this.pnlRecurrence_Click);
+            this.pnlRecurrence.MouseEnter += new System.EventHandler(this.pnlRecurrence_MouseEnter);
+            this.pnlRecurrence.MouseLeave += new System.EventHandler(this.pnlRecurrence_MouseLeave);
+            // 
+            // lblRecurrenceDays
+            // 
+            this.lblRecurrenceDays.AutoSize = true;
+            this.lblRecurrenceDays.BackColor = System.Drawing.Color.Transparent;
+            this.lblRecurrenceDays.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblRecurrenceDays.Location = new System.Drawing.Point(3, 21);
+            this.lblRecurrenceDays.Name = "lblRecurrenceDays";
+            this.lblRecurrenceDays.Size = new System.Drawing.Size(0, 9);
+            this.lblRecurrenceDays.TabIndex = 0;
+            this.lblRecurrenceDays.Click += new System.EventHandler(this.pnlRecurrence_Click);
             // 
             // chkDeleteRaw
             // 
@@ -685,13 +700,14 @@
             // 
             // dtStopTime
             // 
-            this.dtStopTime.CustomFormat = "MM/dd/yyyy h:mm tt";
+            this.dtStopTime.CustomFormat = "MM/dd/yyyy h:mm t";
             this.dtStopTime.Enabled = false;
             this.dtStopTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.dtStopTime.Location = new System.Drawing.Point(76, 157);
             this.dtStopTime.Name = "dtStopTime";
-            this.dtStopTime.Size = new System.Drawing.Size(143, 20);
+            this.dtStopTime.Size = new System.Drawing.Size(135, 20);
             this.dtStopTime.TabIndex = 54;
+            this.dtStopTime.ValueChanged += new System.EventHandler(this.dtStopTime_ValueChanged);
             // 
             // chkStopTime
             // 
@@ -706,13 +722,14 @@
             // 
             // dtStartTime
             // 
-            this.dtStartTime.CustomFormat = "MM/dd/yyyy h:mm tt";
+            this.dtStartTime.CustomFormat = "MM/dd/yyyy h:mm t";
             this.dtStartTime.Enabled = false;
             this.dtStartTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.dtStartTime.Location = new System.Drawing.Point(76, 134);
             this.dtStartTime.Name = "dtStartTime";
-            this.dtStartTime.Size = new System.Drawing.Size(143, 20);
+            this.dtStartTime.Size = new System.Drawing.Size(135, 20);
             this.dtStartTime.TabIndex = 52;
+            this.dtStartTime.ValueChanged += new System.EventHandler(this.dtStartTime_ValueChanged);
             // 
             // chkStartTime
             // 
@@ -1323,6 +1340,8 @@
             this.splitCollectionUI.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitCollectionUI)).EndInit();
             this.splitCollectionUI.ResumeLayout(false);
+            this.pnlRecurrence.ResumeLayout(false);
+            this.pnlRecurrence.PerformLayout();
             this.grpDiagsToCapture.ResumeLayout(false);
             this.tcSimpleAdvanced.ResumeLayout(false);
             this.tabGuided.ResumeLayout(false);
@@ -1441,7 +1460,8 @@
         public System.Windows.Forms.TabControl tcCollectionAnalysisTabs;
         public System.Windows.Forms.TabControl tcAnalysis;
         public System.Windows.Forms.TextBox txtSaveLocation;
-        public System.Windows.Forms.Button btnSchedule;
+        public System.Windows.Forms.Panel pnlRecurrence;
+        public System.Windows.Forms.Label lblRecurrenceDays;
     }
 }
 

@@ -204,7 +204,7 @@ namespace SSASDiag
             btnCapture.Click -= btnCapture_Click;
             tbAnalysis.ForeColor = SystemColors.ControlDark;
             tcCollectionAnalysisTabs.Refresh();
-            btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+            pnlRecurrence.Enabled = btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
         }
 
         string svcName = "";
@@ -807,14 +807,19 @@ namespace SSASDiag
                 chkAutoRestart.Checked = false;
             }
             else
-                dtStopTime.Value = DateTime.Now.AddHours(1);
-            btnSchedule.Enabled = dtStartTime.Enabled && dtStopTime.Enabled;
+            {
+                if (dtStartTime.Value < DateTime.Now.AddMinutes(2))
+                    dtStartTime.Value = DateTime.Now.AddMinutes(2);
+                if (dtStopTime.Value < dtStartTime.Value.AddMinutes(2))
+                    dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
+            }
+            pnlRecurrence.Enabled = dtStartTime.Enabled && dtStopTime.Enabled;
         }
         private void chkStartTime_CheckedChanged(object sender, EventArgs e)
         {
             dtStartTime.Enabled = chkStartTime.Checked;
-            if (chkStartTime.Checked) dtStartTime.Value = DateTime.Now.AddHours(0);
-            btnSchedule.Enabled = dtStartTime.Enabled && dtStopTime.Enabled;
+            if (chkStartTime.Checked && dtStartTime.Value < DateTime.Now.AddMinutes(2)) dtStartTime.Value = DateTime.Now.AddMinutes(2);
+            pnlRecurrence.Enabled = dtStartTime.Enabled && dtStopTime.Enabled;
         }
         private void chkAutoRestart_CheckedChanged(object sender, EventArgs e)
         {

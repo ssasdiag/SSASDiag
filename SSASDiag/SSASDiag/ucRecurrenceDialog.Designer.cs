@@ -42,11 +42,11 @@
             // 
             this.chkRecurringSchedule.AutoSize = true;
             this.chkRecurringSchedule.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chkRecurringSchedule.Location = new System.Drawing.Point(5, 3);
+            this.chkRecurringSchedule.Location = new System.Drawing.Point(14, 3);
             this.chkRecurringSchedule.Name = "chkRecurringSchedule";
-            this.chkRecurringSchedule.Size = new System.Drawing.Size(267, 17);
+            this.chkRecurringSchedule.Size = new System.Drawing.Size(231, 17);
             this.chkRecurringSchedule.TabIndex = 1;
-            this.chkRecurringSchedule.Text = "Repeat the schedule starting on the following days:";
+            this.chkRecurringSchedule.Text = "Repeat this schedule on the following days:";
             this.chkRecurringSchedule.UseVisualStyleBackColor = true;
             this.chkRecurringSchedule.CheckedChanged += new System.EventHandler(this.chkRecurringSchedule_CheckedChanged);
             // 
@@ -55,84 +55,91 @@
             this.chkThursday.AutoSize = true;
             this.chkThursday.CheckAlign = System.Drawing.ContentAlignment.TopCenter;
             this.chkThursday.Enabled = false;
-            this.chkThursday.Location = new System.Drawing.Point(155, 26);
+            this.chkThursday.Location = new System.Drawing.Point(150, 26);
             this.chkThursday.Name = "chkThursday";
             this.chkThursday.Size = new System.Drawing.Size(33, 31);
             this.chkThursday.TabIndex = 2;
             this.chkThursday.Text = "Thur";
             this.chkThursday.UseVisualStyleBackColor = true;
+            this.chkThursday.CheckedChanged += new System.EventHandler(this.chkDays_CheckedChanged);
             // 
             // chkSunday
             // 
             this.chkSunday.AutoSize = true;
             this.chkSunday.CheckAlign = System.Drawing.ContentAlignment.TopCenter;
             this.chkSunday.Enabled = false;
-            this.chkSunday.Location = new System.Drawing.Point(14, 26);
+            this.chkSunday.Location = new System.Drawing.Point(9, 26);
             this.chkSunday.Name = "chkSunday";
             this.chkSunday.Size = new System.Drawing.Size(30, 31);
             this.chkSunday.TabIndex = 3;
             this.chkSunday.Text = "Sun";
             this.chkSunday.UseVisualStyleBackColor = true;
+            this.chkSunday.CheckedChanged += new System.EventHandler(this.chkDays_CheckedChanged);
             // 
             // chkWednesday
             // 
             this.chkWednesday.AutoSize = true;
             this.chkWednesday.CheckAlign = System.Drawing.ContentAlignment.TopCenter;
             this.chkWednesday.Enabled = false;
-            this.chkWednesday.Location = new System.Drawing.Point(119, 26);
+            this.chkWednesday.Location = new System.Drawing.Point(114, 26);
             this.chkWednesday.Name = "chkWednesday";
             this.chkWednesday.Size = new System.Drawing.Size(34, 31);
             this.chkWednesday.TabIndex = 4;
             this.chkWednesday.Text = "Wed";
             this.chkWednesday.UseVisualStyleBackColor = true;
+            this.chkWednesday.CheckedChanged += new System.EventHandler(this.chkDays_CheckedChanged);
             // 
             // chkMonday
             // 
             this.chkMonday.AutoSize = true;
             this.chkMonday.CheckAlign = System.Drawing.ContentAlignment.TopCenter;
             this.chkMonday.Enabled = false;
-            this.chkMonday.Location = new System.Drawing.Point(49, 26);
+            this.chkMonday.Location = new System.Drawing.Point(44, 26);
             this.chkMonday.Name = "chkMonday";
             this.chkMonday.Size = new System.Drawing.Size(32, 31);
             this.chkMonday.TabIndex = 5;
             this.chkMonday.Text = "Mon";
             this.chkMonday.UseVisualStyleBackColor = true;
+            this.chkMonday.CheckedChanged += new System.EventHandler(this.chkDays_CheckedChanged);
             // 
             // chkFriday
             // 
             this.chkFriday.AutoSize = true;
             this.chkFriday.CheckAlign = System.Drawing.ContentAlignment.TopCenter;
             this.chkFriday.Enabled = false;
-            this.chkFriday.Location = new System.Drawing.Point(195, 26);
+            this.chkFriday.Location = new System.Drawing.Point(190, 26);
             this.chkFriday.Name = "chkFriday";
             this.chkFriday.Size = new System.Drawing.Size(22, 31);
             this.chkFriday.TabIndex = 6;
             this.chkFriday.Text = "Fri";
             this.chkFriday.UseVisualStyleBackColor = true;
+            this.chkFriday.CheckedChanged += new System.EventHandler(this.chkDays_CheckedChanged);
             // 
             // chkTuesday
             // 
             this.chkTuesday.AutoSize = true;
             this.chkTuesday.CheckAlign = System.Drawing.ContentAlignment.TopCenter;
             this.chkTuesday.Enabled = false;
-            this.chkTuesday.Location = new System.Drawing.Point(84, 26);
+            this.chkTuesday.Location = new System.Drawing.Point(79, 26);
             this.chkTuesday.Name = "chkTuesday";
             this.chkTuesday.Size = new System.Drawing.Size(35, 31);
             this.chkTuesday.TabIndex = 7;
             this.chkTuesday.Text = "Tues";
             this.chkTuesday.UseVisualStyleBackColor = true;
+            this.chkTuesday.CheckedChanged += new System.EventHandler(this.chkDays_CheckedChanged);
             // 
             // chkSaturday
             // 
             this.chkSaturday.AutoSize = true;
             this.chkSaturday.CheckAlign = System.Drawing.ContentAlignment.TopCenter;
             this.chkSaturday.Enabled = false;
-            this.chkSaturday.Location = new System.Drawing.Point(227, 26);
+            this.chkSaturday.Location = new System.Drawing.Point(222, 26);
             this.chkSaturday.Name = "chkSaturday";
             this.chkSaturday.Size = new System.Drawing.Size(27, 31);
             this.chkSaturday.TabIndex = 8;
             this.chkSaturday.Text = "Sat";
             this.chkSaturday.UseVisualStyleBackColor = true;
+            this.chkSaturday.CheckedChanged += new System.EventHandler(this.chkDays_CheckedChanged);
             // 
             // ucRecurrenceDialog
             // 
@@ -149,7 +156,7 @@
             this.Controls.Add(this.chkRecurringSchedule);
             this.Enabled = false;
             this.Name = "ucRecurrenceDialog";
-            this.Size = new System.Drawing.Size(269, 60);
+            this.Size = new System.Drawing.Size(259, 60);
             this.ResumeLayout(false);
             this.PerformLayout();
 

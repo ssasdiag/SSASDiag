@@ -20,7 +20,28 @@ namespace SSASDiag
         private void chkRecurringSchedule_CheckedChanged(object sender, EventArgs e)
         {
             chkSunday.Enabled = chkMonday.Enabled = chkTuesday.Enabled = chkWednesday.Enabled = chkThursday.Enabled = chkFriday.Enabled = chkSaturday.Enabled = chkRecurringSchedule.Checked;
-            Program.MainForm.btnSchedule.Image = chkRecurringSchedule.Checked ? Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceDisabled;
+            Program.MainForm.pnlRecurrence.BackgroundImage = chkRecurringSchedule.Checked ? Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceDisabled;
+            UpdateDaysLabel();
+        }
+
+        public void UpdateDaysLabel()
+        {
+            Program.MainForm.lblRecurrenceDays.Text = chkRecurringSchedule.Checked ?
+                (chkSunday.Checked ? "S" : "") +
+                (chkMonday.Checked ? "M" : "") +
+                (chkTuesday.Checked ? "T" : "") +
+                (chkWednesday.Checked ? "W" : "") +
+                (chkThursday.Checked ? "Th" : "") +
+                (chkFriday.Checked ? "F" : "") +
+                (chkSaturday.Checked ? "Sa" : "")
+                : "";
+            Program.MainForm.pnlRecurrence.Width = Program.MainForm.lblRecurrenceDays.Width < 37 ? 37 : Program.MainForm.lblRecurrenceDays.Width;
+            Program.MainForm.lblRecurrenceDays.Left = Program.MainForm.pnlRecurrence.Width / 2 - Program.MainForm.lblRecurrenceDays.Width / 2 + 1;
+        }
+
+        private void chkDays_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateDaysLabel();
         }
     }
 }
