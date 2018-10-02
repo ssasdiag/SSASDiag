@@ -230,6 +230,30 @@ namespace SSASDiag
                 try { udInterval.Value = Convert.ToInt32(Args["perfmoninterval"]); }
                 catch { }
 
+            ToolStripControlHost controlHost = new ToolStripControlHost(Recurrence);
+            Recurrence.Enabled = true;
+            controlHost.Padding = controlHost.Margin = RecurrenceDropDown.Margin = RecurrenceDropDown.Padding = new Padding(0);
+            RecurrenceDropDown.AutoClose = false;
+            RecurrenceDropDown.Items.Add(controlHost);
+            HookupChildControlsToUniversalClickEvent(this);
+            
+        }
+
+        private void HookupChildControlsToUniversalClickEvent(Control Parent)
+        {
+            foreach (Control c in Parent.Controls)
+            {
+                if (c != btnSchedule)
+                {
+                    HookupChildControlsToUniversalClickEvent(c);
+                    c.MouseClick += C_AllControlsMouseClick;
+                }
+            }
+        }
+
+        private void C_AllControlsMouseClick(object sender, MouseEventArgs e)
+        {
+            RecurrenceDropDown.Close();
         }
 
         private void chkAutoUpdate_CheckedChanged(object sender, EventArgs e)
@@ -598,6 +622,16 @@ namespace SSASDiag
         {
             if (StatusFloater.Visible)
                 StatusFloater.BringToFront();
+        }
+
+        ucRecurrenceDialog Recurrence = new ucRecurrenceDialog();
+        public ToolStripDropDown RecurrenceDropDown = new ToolStripDropDown();
+        private void btnSchedule_Click(object sender, EventArgs e)
+        {
+            if (RecurrenceDropDown.Visible)
+                RecurrenceDropDown.Close();
+            else
+                RecurrenceDropDown.Show(btnSchedule, 0, btnSchedule.Height);
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)

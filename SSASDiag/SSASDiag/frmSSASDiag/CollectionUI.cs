@@ -808,11 +808,13 @@ namespace SSASDiag
             }
             else
                 dtStopTime.Value = DateTime.Now.AddHours(1);
+            btnSchedule.Enabled = dtStartTime.Enabled && dtStopTime.Enabled;
         }
         private void chkStartTime_CheckedChanged(object sender, EventArgs e)
         {
             dtStartTime.Enabled = chkStartTime.Checked;
             if (chkStartTime.Checked) dtStartTime.Value = DateTime.Now.AddHours(0);
+            btnSchedule.Enabled = dtStartTime.Enabled && dtStopTime.Enabled;
         }
         private void chkAutoRestart_CheckedChanged(object sender, EventArgs e)
         {

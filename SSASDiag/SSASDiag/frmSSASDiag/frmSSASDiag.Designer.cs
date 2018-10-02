@@ -52,6 +52,7 @@
             this.lkAbout = new System.Windows.Forms.LinkLabel();
             this.lkBugsIdeas = new System.Windows.Forms.LinkLabel();
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
+            this.btnSchedule = new System.Windows.Forms.Button();
             this.tcCollectionAnalysisTabs = new System.Windows.Forms.TabControl();
             this.tbCollection = new System.Windows.Forms.TabPage();
             this.splitCollectionUI = new System.Windows.Forms.SplitContainer();
@@ -400,6 +401,21 @@
             this.ttStatus.SetToolTip(this.lkFeedback, "Share the love!");
             this.lkFeedback.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lkFeedback_LinkClicked);
             // 
+            // btnSchedule
+            // 
+            this.btnSchedule.Enabled = false;
+            this.btnSchedule.FlatAppearance.BorderSize = 0;
+            this.btnSchedule.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSchedule.ForeColor = System.Drawing.SystemColors.Control;
+            this.btnSchedule.Image = global::SSASDiag.Properties.Resources.RecurrenceDisabled;
+            this.btnSchedule.Location = new System.Drawing.Point(220, 140);
+            this.btnSchedule.Name = "btnSchedule";
+            this.btnSchedule.Size = new System.Drawing.Size(33, 32);
+            this.btnSchedule.TabIndex = 68;
+            this.ttStatus.SetToolTip(this.btnSchedule, "Configure recurring schedule");
+            this.btnSchedule.UseVisualStyleBackColor = true;
+            this.btnSchedule.Click += new System.EventHandler(this.btnSchedule_Click);
+            // 
             // tcCollectionAnalysisTabs
             // 
             this.tcCollectionAnalysisTabs.Controls.Add(this.tbCollection);
@@ -435,6 +451,7 @@
             // 
             // splitCollectionUI.Panel1
             // 
+            this.splitCollectionUI.Panel1.Controls.Add(this.btnSchedule);
             this.splitCollectionUI.Panel1.Controls.Add(this.btnHangDumps);
             this.splitCollectionUI.Panel1.Controls.Add(this.label3);
             this.splitCollectionUI.Panel1.Controls.Add(this.txtSaveLocation);
@@ -668,12 +685,12 @@
             // 
             // dtStopTime
             // 
-            this.dtStopTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
+            this.dtStopTime.CustomFormat = "MM/dd/yyyy h:mm tt";
             this.dtStopTime.Enabled = false;
             this.dtStopTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.dtStopTime.Location = new System.Drawing.Point(76, 157);
             this.dtStopTime.Name = "dtStopTime";
-            this.dtStopTime.Size = new System.Drawing.Size(181, 20);
+            this.dtStopTime.Size = new System.Drawing.Size(143, 20);
             this.dtStopTime.TabIndex = 54;
             // 
             // chkStopTime
@@ -689,12 +706,12 @@
             // 
             // dtStartTime
             // 
-            this.dtStartTime.CustomFormat = "MM/dd/yyyy HH:mm:ss UTC";
+            this.dtStartTime.CustomFormat = "MM/dd/yyyy h:mm tt";
             this.dtStartTime.Enabled = false;
             this.dtStartTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.dtStartTime.Location = new System.Drawing.Point(76, 134);
             this.dtStartTime.Name = "dtStartTime";
-            this.dtStartTime.Size = new System.Drawing.Size(181, 20);
+            this.dtStartTime.Size = new System.Drawing.Size(143, 20);
             this.dtStartTime.TabIndex = 52;
             // 
             // chkStartTime
@@ -1223,7 +1240,7 @@
             this.ctxSettings.Name = "contextMenuStrip1";
             this.ctxSettings.ShowCheckMargin = true;
             this.ctxSettings.ShowImageMargin = false;
-            this.ctxSettings.Size = new System.Drawing.Size(313, 114);
+            this.ctxSettings.Size = new System.Drawing.Size(313, 92);
             // 
             // automaticallyCheckForUpdatesToolStripMenuItem
             // 
@@ -1424,6 +1441,7 @@
         public System.Windows.Forms.TabControl tcCollectionAnalysisTabs;
         public System.Windows.Forms.TabControl tcAnalysis;
         public System.Windows.Forms.TextBox txtSaveLocation;
+        public System.Windows.Forms.Button btnSchedule;
     }
 }
 

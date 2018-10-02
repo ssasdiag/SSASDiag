@@ -224,6 +224,12 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="ucRecurrenceDialog.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ucRecurrenceDialog.Designer.cs">
+      <DependentUpon>ucRecurrenceDialog.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="frmCmdLineUsage.resx">
       <DependentUpon>frmCmdLineUsage.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -257,6 +263,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ucRecurrenceDialog.resx">
+      <DependentUpon>ucRecurrenceDialog.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.manifest" />
     <None Include="packages.config" />
@@ -293,6 +302,11 @@
     <None Include="Resources\play.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\synchronize-icon-2783721.png" />
+    <None Include="Resources\synchronize-icon-278372.png" />
+    <None Include="Resources\th.jpg" />
+    <None Include="Resources\synchronize-icon-278371.png" />
+    <None Include="Resources\synchronize-icon-27837.png" />
     <None Include="Resources\play-lit.png" />
     <None Include="Resources\stop-button-lit.png" />
     <None Include="Resources\play-half-lit.png" />
@@ -309,6 +323,8 @@
     <None Include="Resources\RuleWarn.png" />
     <None Include="Resources\RuleCountersUnavailable.png" />
     <None Include="Resources\Annotation.png" />
+    <None Include="Resources\RecurrenceDisabled.png" />
+    <None Include="Resources\RecurrenceEnabled.png" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
