@@ -101,7 +101,7 @@ namespace SSASDiag
                         Args.Add(argArray[i].TrimStart(new char[] { '-', '/' }).ToLower(),
                             (argArray.Length > i + 1
                              && !(argArray[i + 1].StartsWith("/") || argArray[i + 1].StartsWith("-"))
-                             && new string[] { "/instance", "/starttime", "/stoptime", "/rollover", "/workingdir" }.Contains(argArray[i].ToLower())
+                             && new string[] { "/instance", "/starttime", "/stoptime", "/rollover", "/workingdir", "/recurrence" }.Contains(argArray[i].ToLower())
                              ? argArray[i + 1]
                              : ""));
                     else
@@ -196,7 +196,38 @@ namespace SSASDiag
             {
                 chkStartTime.Checked = true;
                 try { dtStartTime.Value = Convert.ToDateTime(Args["starttime"]); }
-                catch { chkStartTime.Checked = false; }
+                catch(Exception ex){ chkStartTime.Checked = false; }
+            }
+            ToolStripControlHost controlHost = new ToolStripControlHost(Recurrence);
+            Recurrence.Enabled = true;
+            controlHost.Padding = controlHost.Margin = RecurrenceDropDown.Margin = RecurrenceDropDown.Padding = new Padding(0);
+            RecurrenceDropDown.AutoClose = false;
+            RecurrenceDropDown.Items.Add(controlHost);
+            HookupRecurrencePopupChildControlsClick(this);
+            ttStatus.SetToolTip(lblRecurrenceDays, "Configure recurring schedule.");
+            if (Args.ContainsKey("recurrence"))
+            {
+                string sched = Args["recurrence"].ToLower();
+                if (sched.Replace("sa", "").Contains("s"))
+                    Recurrence.chkSunday.Checked = true;
+                if (sched.Contains("m"))
+                    Recurrence.chkMonday.Checked = true;
+                if (sched.Replace("th", "").Contains("t"))
+                    Recurrence.chkTuesday.Checked = true;
+                if (sched.Contains("w"))
+                    Recurrence.chkWednesday.Checked = true;
+                if (sched.Contains("th"))
+                    Recurrence.chkThursday.Checked = true;
+                if (sched.Contains("f"))
+                    Recurrence.chkFriday.Checked = true;
+                if (sched.Contains("sa"))
+                    Recurrence.chkSaturday.Checked = true;
+                if (sched.Contains("s") || sched.Contains("m") || sched.Contains("t") || sched.Contains("f"))
+                    Recurrence.chkRecurringSchedule.Checked = true;
+                else
+                    Recurrence.chkRecurringSchedule.Checked = false;
+                pnlRecurrence.Enabled = Recurrence.chkRecurringSchedule.Checked && chkStartTime.Checked && chkStopTime.Checked;
+                pnlRecurrence_EnabledChanged(null, null);
             }
 
             // UI timer to enable detection of fast/slow scroll to avoid messagebox if fast sliding past middle setting...
@@ -229,14 +260,6 @@ namespace SSASDiag
             if (Args.ContainsKey("perfmoninterval"))
                 try { udInterval.Value = Convert.ToInt32(Args["perfmoninterval"]); }
                 catch { }
-
-            ToolStripControlHost controlHost = new ToolStripControlHost(Recurrence);
-            Recurrence.Enabled = true;
-            controlHost.Padding = controlHost.Margin = RecurrenceDropDown.Margin = RecurrenceDropDown.Padding = new Padding(0);
-            RecurrenceDropDown.AutoClose = false;
-            RecurrenceDropDown.Items.Add(controlHost);
-            HookupRecurrencePopupChildControlsClick(this);
-            ttStatus.SetToolTip(lblRecurrenceDays, "Configure recurring schedule.");
         }
 
         private void HookupRecurrencePopupChildControlsClick(Control Parent)

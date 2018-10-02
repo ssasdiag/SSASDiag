@@ -134,8 +134,9 @@
 /reportusage - Override settings to report usage statistics for this run.
 /start - Start data collection immediately.
    [/noui] - Start collection without presenting any user interface.
-   [/starttime &lt;time&gt;] - Local start date and time in 24-hour format:  mm/dd/yyyy HH:mm:ss
-   [/stoptime &lt;time&gt;] - Local stop date and time in 24-hour format:  mm/dd/yyyy HH:mm:ss
+   [/starttime "&lt;time&gt;"] - Local start date and time with quotes in 24-hour format:  "mm/dd/yyyy HH:mm:ss"
+   [/stoptime "&lt;time&gt;"] - Local stop date and time with qutoes in 24-hour format:  "mm/dd/yyyy HH:mm:ss"
+   [/recurrence &lt;MTWThFSa&gt;] - Repeat schedule on each day of the week included in the list.
 /stop - Stop running data collection.
 /rollover &lt;size&gt; - Size in MB to rollover captured files (and partition zip archive if compressing zip)
    (NOTE: Network traces only capture circularly at the rollover limit so don’t set the limit too low.)
