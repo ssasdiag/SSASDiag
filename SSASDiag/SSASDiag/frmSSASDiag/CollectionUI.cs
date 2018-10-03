@@ -374,32 +374,6 @@ namespace SSASDiag
                                 if (npClient != null)
                                     npClient.ServerMessage -= NpClient_ServerMessage;
                                 npClient = null;
-
-                                if (Args.ContainsKey("recurrence"))
-                                {
-                                    new Thread(new ThreadStart(() =>
-                                    {
-                                        Thread.Sleep(2000); // We need to wait 2s to allow old service to stop before restarting with new recurrence...
-                                        DayOfWeek d = DateTime.Today.DayOfWeek == DayOfWeek.Saturday ? DayOfWeek.Sunday : DateTime.Today.DayOfWeek + 1;
-                                        while (!lblRecurrenceDays.Text.ToLower().Contains(DayLettersFromDay(d)))
-                                        {
-                                            if (d == DayOfWeek.Saturday)
-                                                d = DayOfWeek.Sunday;
-                                            else
-                                                d++;
-                                        }
-
-                                        int iDaysUntilNextStart = d - DateTime.Today.DayOfWeek;
-                                        if (iDaysUntilNextStart < 1) iDaysUntilNextStart += 7;
-
-                                        Invoke(new System.Action(() =>
-                                        {
-                                            dtStopTime.Value = dtStopTime.Value.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
-                                            dtStartTime.Value = dtStartTime.Value.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
-                                            btnCapture_Click(null, null);
-                                        }));
-                                    })).Start();
-                                }
                             }
                         }
                         catch (Exception e)

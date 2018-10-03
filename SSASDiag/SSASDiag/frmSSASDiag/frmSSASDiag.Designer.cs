@@ -822,8 +822,9 @@
             // btnCapture
             // 
             this.btnCapture.BackColor = System.Drawing.Color.Transparent;
+            this.btnCapture.ForeColor = System.Drawing.Color.Transparent;
             this.btnCapture.Enabled = false;
-            this.btnCapture.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.btnCapture.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(0, 255, 255, 255);
             this.btnCapture.FlatAppearance.BorderSize = 0;
             this.btnCapture.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
             this.btnCapture.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;

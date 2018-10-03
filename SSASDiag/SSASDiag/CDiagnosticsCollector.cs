@@ -150,6 +150,7 @@ namespace SSASDiag
             }
         }
 
+        bool bForceStop = false;
         private void npServer_ClientMessage(NamedPipeConnection<string, string> connection, string message)
         {
             if (message == "Initialize pipe")
@@ -178,6 +179,7 @@ namespace SSASDiag
             }
             if (message == "Stop")
             {
+                bForceStop = true;
                 StopAndFinalizeAllDiagnostics();
             }
             else if (message == "Dumping")
@@ -299,6 +301,26 @@ namespace SSASDiag
                 TraceID = sTracePrefix
                     + DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd_HH-mm-ss") + "_UTC"
                     + "_SSASDiag";
+                if (bUseStart)
+                {
+                    SendMessageToClients("Scheduled diagnostic collection starting automatically at " + dtStart.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                    if (bUseEnd)
+                    {
+                        SendMessageToClients("Collection scheduled to stop automatically at " + dtEnd.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                        if (sRecurrencePattern != "")
+                        {
+                            SendMessageToClients("The collection schedule will recur on each of the following days:");
+                            SendMessageToClients(((sRecurrencePattern.Replace("Sa", "").Contains("S") ? "Sunday, " : "") +
+                                                 (sRecurrencePattern.Contains("M") ? "Monday, " : "") +
+                                                 (sRecurrencePattern.Replace("Th", "").Contains("T") ? "Tuesday, " : "") +
+                                                 (sRecurrencePattern.Contains("W") ? "Wednesday, " : "") +
+                                                 (sRecurrencePattern.Contains("Th") ? "Thursday, " : "") +
+                                                 (sRecurrencePattern.Contains("F") ? "Friday, " : "") +
+                                                 (sRecurrencePattern.Contains("Sa") ? "Saturday, " : "")).TrimEnd(' ').TrimEnd(','));
+                        }
+
+                    }
+                }
                 SendMessageToClients("Initialized service for trace with ID: " + TraceID);
 
                 SendMessageToClients("Collecting on computer " + Environment.MachineName + ".");
@@ -1158,11 +1180,33 @@ namespace SSASDiag
         private void FinalizeStop()
         {
             SendMessageToClients("SSASDiag completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-            SendMessageToClients("Stop");
             Debug.WriteLine("SSASDiag collection completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-            PerfMonAndUIPumpTimer.Stop();
-            bScheduledStartPending = false;
-            CompletionCallback();
+            if (sRecurrencePattern == "" || bForceStop)
+            {
+                PerfMonAndUIPumpTimer.Stop();
+                bScheduledStartPending = false;
+                SendMessageToClients("Stop");
+                CompletionCallback();
+            }
+            else
+            {
+                DayOfWeek d = DateTime.Today.DayOfWeek == DayOfWeek.Saturday ? DayOfWeek.Sunday : DateTime.Today.DayOfWeek + 1;
+                while (!sRecurrencePattern.ToLower().Contains(Program.MainForm.DayLettersFromDay(d)))
+                {
+                    if (d == DayOfWeek.Saturday)
+                        d = DayOfWeek.Sunday;
+                    else
+                        d++;
+                }
+
+                int iDaysUntilNextStart = d - DateTime.Today.DayOfWeek;
+                if (iDaysUntilNextStart < 1) iDaysUntilNextStart += 7;
+
+                dtEnd = dtEnd.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
+                dtStart = dtStart.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
+                bScheduledStartPending = true;
+                StartDiagnostics();
+            }
         }
         #endregion EndCapture
 

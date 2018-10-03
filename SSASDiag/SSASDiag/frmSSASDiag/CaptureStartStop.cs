@@ -43,7 +43,7 @@ namespace SSASDiag
                 dc.CompletionCallback = callback_StopAndFinalizeAllDiagnosticsComplete;
         }
 
-        string DayLettersFromDay(DayOfWeek d)
+        public string DayLettersFromDay(DayOfWeek d)
         {
             if (d == DayOfWeek.Sunday) return "s";
             if (d == DayOfWeek.Monday) return "m";
