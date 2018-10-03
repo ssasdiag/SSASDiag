@@ -59,7 +59,7 @@ namespace SSASDiag
             udRollover.Enabled = chkRollover.Checked;
             dtStartTime.Enabled = chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Checked;
-            pnlRecurrence.BackgroundImage = chkStartTime.Checked && chkStopTime.Checked ? lblRecurrenceDays.Text == "" ? Properties.Resources.RecurrenceDisabled : Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceButtonDisabled;
+            pnlRecurrence.BackgroundImage = chkStartTime.Checked && chkStopTime.Checked ? (lblRecurrenceDays.Text == "" ? Properties.Resources.RecurrenceDisabled : Properties.Resources.RecurrenceEnabled) : Properties.Resources.RecurrenceButtonDisabled;
             btnCapture.Image = imgPlay;
             btnCapture.Click += btnCapture_Click;
             txtStatus.Enter -= txtStatus_EnterWhileRunning;

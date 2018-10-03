@@ -227,8 +227,8 @@ namespace SSASDiag
                 else
                     Recurrence.chkRecurringSchedule.Checked = false;
                 //pnlRecurrence.Enabled = Recurrence.chkRecurringSchedule.Checked && chkStartTime.Checked && chkStopTime.Checked;
-                pnlRecurrence.BackgroundImage = (Recurrence.chkRecurringSchedule.Checked && chkStartTime.Checked && chkStopTime.Checked ? Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceDisabled);
-                pnlRecurrence_EnabledChanged(null, null);
+                pnlRecurrence.BackgroundImage = (Recurrence.chkRecurringSchedule.Checked && chkStartTime.Checked && chkStopTime.Checked ? (lblRecurrenceDays.Text == "" ? Properties.Resources.RecurrenceDisabled : Properties.Resources.RecurrenceEnabled) : Properties.Resources.RecurrenceButtonDisabled);
+                //pnlRecurrence_EnabledChanged(null, null);
             }
 
             // UI timer to enable detection of fast/slow scroll to avoid messagebox if fast sliding past middle setting...
@@ -654,7 +654,7 @@ namespace SSASDiag
 
         private void pnlRecurrence_MouseEnter(object sender, EventArgs e)
         {
-            if (pnlRecurrence.BackgroundImage != Properties.Resources.RecurrenceDisabled)
+            if (dtStartTime.Enabled && dtStopTime.Enabled)
                 pnlRecurrence.BackColor = SystemColors.ControlLight;
         }
 
