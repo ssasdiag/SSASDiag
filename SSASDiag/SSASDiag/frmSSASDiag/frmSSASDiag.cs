@@ -204,7 +204,7 @@ namespace SSASDiag
             RecurrenceDropDown.AutoClose = false;
             RecurrenceDropDown.Items.Add(controlHost);
             HookupRecurrencePopupChildControlsClick(this);
-            ttStatus.SetToolTip(lblRecurrenceDays, "Configure recurring schedule.");
+            ttStatus.SetToolTip(lblRecurrenceDays, "Recurring schedule.");
             if (Args.ContainsKey("recurrence"))
             {
                 string sched = Args["recurrence"].ToLower();
@@ -227,8 +227,8 @@ namespace SSASDiag
                 else
                     Recurrence.chkRecurringSchedule.Checked = false;
                 //pnlRecurrence.Enabled = Recurrence.chkRecurringSchedule.Checked && chkStartTime.Checked && chkStopTime.Checked;
-                pnlRecurrence.BackgroundImage = (Recurrence.chkRecurringSchedule.Checked && chkStartTime.Checked && chkStopTime.Checked ? Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceDisabled);
-                pnlRecurrence_EnabledChanged(null, null);
+                pnlRecurrence.BackgroundImage = (Recurrence.chkRecurringSchedule.Checked && chkStartTime.Checked && chkStopTime.Checked ? Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceButtonDisabled);
+                lblRecurrenceDays.Visible = dtStopTime.Enabled && dtStartTime.Enabled && Recurrence.chkRecurringSchedule.Checked;
             }
 
             // UI timer to enable detection of fast/slow scroll to avoid messagebox if fast sliding past middle setting...
@@ -654,7 +654,7 @@ namespace SSASDiag
 
         private void pnlRecurrence_MouseEnter(object sender, EventArgs e)
         {
-            if (pnlRecurrence.BackgroundImage != Properties.Resources.RecurrenceDisabled)
+            if (pnlRecurrence.BackgroundImage != Properties.Resources.RecurrenceButtonDisabled && dtStopTime.Enabled)
                 pnlRecurrence.BackColor = SystemColors.ControlLight;
         }
 

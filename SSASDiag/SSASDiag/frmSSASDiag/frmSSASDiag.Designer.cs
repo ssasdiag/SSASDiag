@@ -414,7 +414,7 @@
             this.pnlRecurrence.Name = "pnlRecurrence";
             this.pnlRecurrence.Size = new System.Drawing.Size(37, 43);
             this.pnlRecurrence.TabIndex = 69;
-            this.ttStatus.SetToolTip(this.pnlRecurrence, "Configure recurring schedule.");
+            this.ttStatus.SetToolTip(this.pnlRecurrence, "Recurring schedule.");
             this.pnlRecurrence.Click += new System.EventHandler(this.pnlRecurrence_Click);
             this.pnlRecurrence.MouseEnter += new System.EventHandler(this.pnlRecurrence_MouseEnter);
             this.pnlRecurrence.MouseLeave += new System.EventHandler(this.pnlRecurrence_MouseLeave);

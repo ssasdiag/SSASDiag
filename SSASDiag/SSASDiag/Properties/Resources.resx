@@ -878,6 +878,6 @@ order by duration desc</value>
     <value>..\Resources\RecurrenceEnabled.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="RecurrenceButtonDisabled" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\RecurrenceDisabled1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    <value>..\Resources\RecurrenceButtonDisabled.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

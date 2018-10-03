@@ -325,7 +325,8 @@
     <None Include="Resources\Annotation.png" />
     <None Include="Resources\RecurrenceDisabled.png" />
     <None Include="Resources\RecurrenceEnabled.png" />
-    <None Include="Resources\RecurrenceDisabled1.png" />
+    <None Include="Resources\RecurrenceDisabledButtonDisabled.png" />
+    <None Include="Resources\RecurrenceButtonDisabled.png" />
     <Content Include="Resources\stop-button-th.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

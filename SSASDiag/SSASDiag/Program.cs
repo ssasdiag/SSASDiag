@@ -309,6 +309,11 @@ namespace SSASDiag
             dumpkey.SetValue("DumpCount", 3, RegistryValueKind.DWord);
             dumpkey.SetValue("DumpType", 2, RegistryValueKind.DWord);
             dumpkey.Close();
+            dumpkey = Registry.LocalMachine.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\SSASDiagServiceWorker.exe");
+            dumpkey.SetValue("DumpFolder", binlocation, RegistryValueKind.String);
+            dumpkey.SetValue("DumpCount", 3, RegistryValueKind.DWord);
+            dumpkey.SetValue("DumpType", 2, RegistryValueKind.DWord);
+            dumpkey.Close();
         }
 
         public static void ShutdownDebugTrace()

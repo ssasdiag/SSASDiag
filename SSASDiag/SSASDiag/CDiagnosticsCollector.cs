@@ -672,14 +672,14 @@ namespace SSASDiag
             if (bRunning)
             {
                 bRunning = false;
-                if (bGetPerfMon)
+                if (bGetPerfMon && !bScheduledStartPending)
                 {
                     bPerfMonRunning = false;
                     m_PdhHelperInstance.Dispose();
                     SendMessageToClients("Stopped performance monitor logging.");
                 }
 
-                if (bGetConfigDetails)
+                if (bGetConfigDetails && !bScheduledStartPending)
                 {
                     // Grab event logs post repro
                     EvtExportLog(IntPtr.Zero, "Application", "*", Environment.CurrentDirectory + "\\" + TraceID + "\\" + TraceID + "_Application.evtx", EventExportLogFlags.ChannelPath);
@@ -687,7 +687,7 @@ namespace SSASDiag
                     SendMessageToClients("Collected Application and System event logs.");
                 }
 
-                if (bGetNetwork)
+                if (bGetNetwork && !bScheduledStartPending)
                 {
                     BackgroundWorker bgStopNetwork = new BackgroundWorker();
                     bgStopNetwork.DoWork += bgStopNewtworkWorker;
@@ -996,7 +996,7 @@ namespace SSASDiag
 
         private void bgFinalProfilerAndZipSteps(object sender, DoWorkEventArgs e)
         {
-            if (bGetProfiler)
+            if (bGetProfiler && !bScheduledStartPending)
             {
                 if (Environment.GetCommandLineArgs().Where(a=>a.Contains("nowaitonstop")).Count() == 0)
                 {
@@ -1086,13 +1086,16 @@ namespace SSASDiag
             // The last line captured in text file here:
             SendMessageToClients("Stoppped SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
 
-            List<string> log = File.ReadAllLines(svcOutputPath).ToList();
-            string captureduration = log.Where(l => l.StartsWith("Diagnostics captured for ")).Last();
-            log = log.Where(l => !l.StartsWith("Diagnostics captured for ") && !String.IsNullOrWhiteSpace(l)).ToList();
-            log.Add(captureduration);
-            File.WriteAllLines(TraceID + "\\SSASDiag.log", log);
+            if (!bScheduledStartPending)
+            {
+                List<string> log = File.ReadAllLines(svcOutputPath).ToList();
+                string captureduration = log.Where(l => l.StartsWith("Diagnostics captured for ")).Last();
+                log = log.Where(l => !l.StartsWith("Diagnostics captured for ") && !String.IsNullOrWhiteSpace(l)).ToList();
+                log.Add(captureduration);
+                File.WriteAllLines(TraceID + "\\SSASDiag.log", log);
+            }
 
-            if (bCompress)
+            if (bCompress && !bScheduledStartPending)
             {
                 SendMessageToClients("Creating zip file of output: " + Environment.CurrentDirectory + "\\" + TraceID + ".zip.");
 
@@ -1116,7 +1119,7 @@ namespace SSASDiag
                 { frmSSASDiag.LogException(ex); }
             }
 
-            if (bDeleteRaw)
+            if (bDeleteRaw && !bScheduledStartPending)
             {
                 try
                 {

@@ -37,6 +37,8 @@ namespace SSASDiag
                 : "";
             Program.MainForm.pnlRecurrence.Width = Program.MainForm.lblRecurrenceDays.Width < 37 ? 37 : Program.MainForm.lblRecurrenceDays.Width;
             Program.MainForm.lblRecurrenceDays.Left = Program.MainForm.pnlRecurrence.Width / 2 - Program.MainForm.lblRecurrenceDays.Width / 2 + 1;
+            if (Program.MainForm.lblRecurrenceDays.Width < 37) Program.MainForm.Width = 37;
+            if (Program.MainForm.lblRecurrenceDays.Text != "") Program.MainForm.lblRecurrenceDays.Visible = true;
         }
 
         private void chkDays_CheckedChanged(object sender, EventArgs e)

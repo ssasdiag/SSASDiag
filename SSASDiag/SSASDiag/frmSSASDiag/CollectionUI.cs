@@ -66,7 +66,7 @@ namespace SSASDiag
                             File.Delete(svcOutputPath);
                         dc = new CDiagnosticsCollector(TracePrefix, (cbsdi == null ? "" : (InstanceName.ToUpper() == "MSSQLSERVER" ? "" : InstanceName)), cbsdi.ServiceName, (InstanceName == "Power BI Report Server" ? PBIRSPort : cbsdi.InstanceID), cbsdi.SQLProgramDir, cbsdi.SQLSharedDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
                             txtStatus,
-                            (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked, Args["recurrence"],
+                            (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked, Args.ContainsKey("recurrence") ? Args["recurrence"] : "",
                             chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked, cbsdi.Cluster, svcOutputPath);
                         while (!dc.npServer._connections.Exists(c => c.IsConnected))
                             Thread.Sleep(100);
@@ -210,7 +210,8 @@ namespace SSASDiag
             btnCapture.Click -= btnCapture_Click;
             tbAnalysis.ForeColor = SystemColors.ControlDark;
             tcCollectionAnalysisTabs.Refresh();
-            pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceDisabled;
+            pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceButtonDisabled;
+            lblRecurrenceDays.Visible = dtStopTime.Enabled && dtStartTime.Enabled && Recurrence.chkRecurringSchedule.Checked;
             btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
         }
 
@@ -823,7 +824,8 @@ namespace SSASDiag
                         dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
                 }
             }
-            pnlRecurrence.BackgroundImage = dtStartTime.Enabled && dtStopTime.Enabled ? lblRecurrenceDays.Text == "" ? Properties.Resources.RecurrenceDisabled : Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceDisabled;
+            pnlRecurrence.BackgroundImage = dtStartTime.Enabled && dtStopTime.Enabled ? (lblRecurrenceDays.Text == "" ? Properties.Resources.RecurrenceDisabled : Properties.Resources.RecurrenceEnabled) : Properties.Resources.RecurrenceButtonDisabled;
+            lblRecurrenceDays.Visible = dtStopTime.Enabled && dtStartTime.Enabled && Recurrence.chkRecurringSchedule.Checked;
         }
         private void chkStartTime_CheckedChanged(object sender, EventArgs e)
         {
@@ -831,7 +833,8 @@ namespace SSASDiag
             if (Environment.UserInteractive && chkStartTime.Checked && dtStartTime.Value < DateTime.Now.AddMinutes(2))
                 dtStartTime.Value = DateTime.Now.AddMinutes(2);
 
-            pnlRecurrence.BackgroundImage = dtStartTime.Enabled && dtStopTime.Enabled ? lblRecurrenceDays.Text == "" ? Properties.Resources.RecurrenceDisabled : Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceDisabled;
+            pnlRecurrence.BackgroundImage = dtStartTime.Enabled && dtStopTime.Enabled ? (lblRecurrenceDays.Text == "" ? Properties.Resources.RecurrenceDisabled : Properties.Resources.RecurrenceEnabled) : Properties.Resources.RecurrenceButtonDisabled;
+            lblRecurrenceDays.Visible = dtStopTime.Enabled && dtStartTime.Enabled && Recurrence.chkRecurringSchedule.Checked;
         }
         private void chkAutoRestart_CheckedChanged(object sender, EventArgs e)
         {
