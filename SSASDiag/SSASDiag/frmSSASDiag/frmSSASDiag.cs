@@ -226,7 +226,8 @@ namespace SSASDiag
                     Recurrence.chkRecurringSchedule.Checked = true;
                 else
                     Recurrence.chkRecurringSchedule.Checked = false;
-                pnlRecurrence.Enabled = Recurrence.chkRecurringSchedule.Checked && chkStartTime.Checked && chkStopTime.Checked;
+                //pnlRecurrence.Enabled = Recurrence.chkRecurringSchedule.Checked && chkStartTime.Checked && chkStopTime.Checked;
+                pnlRecurrence.BackgroundImage = (Recurrence.chkRecurringSchedule.Checked && chkStartTime.Checked && chkStopTime.Checked ? Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceDisabled);
                 pnlRecurrence_EnabledChanged(null, null);
             }
 
@@ -653,7 +654,7 @@ namespace SSASDiag
 
         private void pnlRecurrence_MouseEnter(object sender, EventArgs e)
         {
-            if (pnlRecurrence.Enabled)
+            if (pnlRecurrence.BackgroundImage != Properties.Resources.RecurrenceDisabled)
                 pnlRecurrence.BackColor = SystemColors.ControlLight;
         }
 

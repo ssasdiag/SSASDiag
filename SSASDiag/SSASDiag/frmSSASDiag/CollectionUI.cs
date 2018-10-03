@@ -210,7 +210,8 @@ namespace SSASDiag
             btnCapture.Click -= btnCapture_Click;
             tbAnalysis.ForeColor = SystemColors.ControlDark;
             tcCollectionAnalysisTabs.Refresh();
-            pnlRecurrence.Enabled = btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
+            pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceDisabled;
+            btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
         }
 
         string svcName = "";
@@ -822,7 +823,7 @@ namespace SSASDiag
                         dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
                 }
             }
-            pnlRecurrence.Enabled = dtStartTime.Enabled && dtStopTime.Enabled;
+            pnlRecurrence.BackgroundImage = dtStartTime.Enabled && dtStopTime.Enabled ? lblRecurrenceDays.Text == "" ? Properties.Resources.RecurrenceDisabled : Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceDisabled;
         }
         private void chkStartTime_CheckedChanged(object sender, EventArgs e)
         {
@@ -830,7 +831,7 @@ namespace SSASDiag
             if (Environment.UserInteractive && chkStartTime.Checked && dtStartTime.Value < DateTime.Now.AddMinutes(2))
                 dtStartTime.Value = DateTime.Now.AddMinutes(2);
 
-            pnlRecurrence.Enabled = dtStartTime.Enabled && dtStopTime.Enabled;
+            pnlRecurrence.BackgroundImage = dtStartTime.Enabled && dtStopTime.Enabled ? lblRecurrenceDays.Text == "" ? Properties.Resources.RecurrenceDisabled : Properties.Resources.RecurrenceEnabled : Properties.Resources.RecurrenceDisabled;
         }
         private void chkAutoRestart_CheckedChanged(object sender, EventArgs e)
         {

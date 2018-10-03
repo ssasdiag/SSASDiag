@@ -409,13 +409,12 @@
             this.pnlRecurrence.BackgroundImage = global::SSASDiag.Properties.Resources.RecurrenceButtonDisabled;
             this.pnlRecurrence.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
             this.pnlRecurrence.Controls.Add(this.lblRecurrenceDays);
-            this.pnlRecurrence.Enabled = false;
+            this.pnlRecurrence.Enabled = true;
             this.pnlRecurrence.Location = new System.Drawing.Point(210, 134);
             this.pnlRecurrence.Name = "pnlRecurrence";
             this.pnlRecurrence.Size = new System.Drawing.Size(37, 43);
             this.pnlRecurrence.TabIndex = 69;
             this.ttStatus.SetToolTip(this.pnlRecurrence, "Configure recurring schedule.");
-            this.pnlRecurrence.EnabledChanged += new System.EventHandler(this.pnlRecurrence_EnabledChanged);
             this.pnlRecurrence.Click += new System.EventHandler(this.pnlRecurrence_Click);
             this.pnlRecurrence.MouseEnter += new System.EventHandler(this.pnlRecurrence_MouseEnter);
             this.pnlRecurrence.MouseLeave += new System.EventHandler(this.pnlRecurrence_MouseLeave);
