@@ -204,7 +204,7 @@ namespace SSASDiag
             RecurrenceDropDown.AutoClose = false;
             RecurrenceDropDown.Items.Add(controlHost);
             HookupRecurrencePopupChildControlsClick(this);
-            ttStatus.SetToolTip(lblRecurrenceDays, "Recurring schedule.");
+            ttStatus.SetToolTip(lblRecurrenceDays, "Recurring Schedule");
             if (Args.ContainsKey("recurrence"))
             {
                 string sched = Args["recurrence"].ToLower();
