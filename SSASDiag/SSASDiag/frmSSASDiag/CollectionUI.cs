@@ -211,7 +211,7 @@ namespace SSASDiag
             tbAnalysis.ForeColor = SystemColors.ControlDark;
             tcCollectionAnalysisTabs.Refresh();
             pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceButtonDisabled;
-            lblRecurrenceDays.Visible = dtStopTime.Enabled && dtStartTime.Enabled && Recurrence.chkRecurringSchedule.Checked;
+            lblRecurrenceDays.Visible = chkStartTime.Checked && chkStopTime.Checked && Recurrence.chkRecurringSchedule.Checked;
             btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
         }
 
@@ -309,6 +309,12 @@ namespace SSASDiag
                         }
                         ));
                     }
+                }
+                else if (message.StartsWith("Increment schedule by days: "))
+                {
+                    int days = Convert.ToInt32(message.Replace("Increment schedule by days: ", ""));
+                    dtStartTime.Value = dtStartTime.Value.AddDays(days);
+                    dtStopTime.Value = dtStopTime.Value.AddDays(days);
                 }
                 else if (message == "Dumping")
                 {

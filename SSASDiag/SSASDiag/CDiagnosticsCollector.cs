@@ -292,7 +292,7 @@ namespace SSASDiag
 
                 }
                 TimeSpan ts = dtStart - DateTime.Now;
-                SendMessageToClients("Time remaining until collection starts: " + ts.ToString("hh\\:mm\\:ss"));
+                SendMessageToClients("Time remaining until collection starts: " + ts.ToString("dd\\:hh\\:mm\\:ss"));
                 bScheduledStartPending = true;
                 return;
             }
@@ -611,7 +611,7 @@ namespace SSASDiag
             if (bScheduledStartPending)
             {
                 TimeSpan ts = dtStart - DateTime.Now;
-                SendMessageToClients("Time remaining until collection starts: " + ts.ToString("hh\\:mm\\:ss"));
+                SendMessageToClients("Time remaining until collection starts: " + ts.ToString("dd\\:hh\\:mm\\:ss"));
                 if (ts.TotalSeconds <= 0)
                 {
                     SendMessageToClients("Scheduled start time reached at " + dtStart.ToString("MM/dd/yyyy HH:mm:ss UTCzzz")
@@ -1208,6 +1208,7 @@ namespace SSASDiag
                 dtEnd = dtEnd.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
                 dtStart = dtStart.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
                 bScheduledStartPending = true;
+                SendMessageToClients("Increment schedule by days: " + iDaysUntilNextStart);
                 StartDiagnostics();
             }
         }
