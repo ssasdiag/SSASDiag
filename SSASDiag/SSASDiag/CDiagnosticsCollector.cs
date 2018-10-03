@@ -43,7 +43,7 @@ namespace SSASDiag
         System.Timers.Timer PerfMonAndUIPumpTimer = new System.Timers.Timer();
         RichTextBox txtStatus;
         DateTime m_StartTime = DateTime.Now;
-        string sTracePrefix = "", sInstanceName, sInstanceID, sASServiceName, sInstanceVersion, sInstanceMode, sInstanceEdition, sLogDir, sConfigDir, sServiceAccount, sRemoteAdminUser, sRemoteAdminDomain, sSQLProgramDir, sSQLSharedDir;
+        string sTracePrefix = "", sInstanceName, sInstanceID, sASServiceName, sInstanceVersion, sInstanceMode, sInstanceEdition, sLogDir, sConfigDir, sServiceAccount, sRemoteAdminUser, sRemoteAdminDomain, sSQLProgramDir, sSQLSharedDir, sRecurrencePattern;
         SecureString sRemoteAdminPassword;
         int iInterval = 0, iRollover = 0, iCurrentTimerTicksSinceLastInterval = 0;
         bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetBAK, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true;
@@ -94,11 +94,12 @@ namespace SSASDiag
                 int RolloverMaxMB, bool Rollover, 
                 DateTime Start, bool UseStart, 
                 DateTime End, bool UseEnd, 
+                string RecurrencePattern,
                 bool GetConfigDetails, bool GetProfiler, bool GetPerfMon, bool GetNetwork, bool Cluster, string ServiceOutputPath)
         {
             PerfMonAndUIPumpTimer.Interval = 1000;
             PerfMonAndUIPumpTimer.Elapsed += CollectorPumpTick;
-            sTracePrefix = TraceFilesPrefix; sInstanceName = InstanceName; sInstanceVersion = InstanceVersion; sInstanceMode = InstanceMode; sInstanceEdition = InstanceEdition; sConfigDir = ConfigDir; sLogDir = LogDir; sServiceAccount = ServiceAccount; sSQLProgramDir = SQLProgramDir; sSQLSharedDir = SQLSharedDir; sInstanceID = InstanceID; sASServiceName = ASServiceName;
+            sTracePrefix = TraceFilesPrefix; sInstanceName = InstanceName; sInstanceVersion = InstanceVersion; sInstanceMode = InstanceMode; sInstanceEdition = InstanceEdition; sConfigDir = ConfigDir; sLogDir = LogDir; sServiceAccount = ServiceAccount; sSQLProgramDir = SQLProgramDir; sSQLSharedDir = SQLSharedDir; sInstanceID = InstanceID; sASServiceName = ASServiceName; sRecurrencePattern = RecurrencePattern;
             txtStatus = StatusTextBox;
             bGetXMLA = IncludeXMLA; bGetABF = IncludeABF; bGetBAK = IncludeBAK;
             iInterval = Interval;
@@ -271,7 +272,23 @@ namespace SSASDiag
 
             if (bUseStart && DateTime.Now < dtStart)
             {
-                SendMessageToClients("Scheduled Diagnostic collection starts automatically at " + dtStart.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                SendMessageToClients("Scheduled diagnostic collection starts automatically at " + dtStart.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                if (bUseEnd)
+                {
+                    SendMessageToClients("Collection scheduled to stop automatically at " + dtEnd.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                    if (sRecurrencePattern != "")
+                    {
+                        SendMessageToClients("The collection schedule will recur on each of the following days:");
+                        SendMessageToClients(((sRecurrencePattern.Replace("Sa", "").Contains("S") ? "Sunday, " : "") +
+                                             (sRecurrencePattern.Contains("M") ? "Monday, " : "") +
+                                             (sRecurrencePattern.Replace("Th", "").Contains("T") ? "Tuesday, " : "") +
+                                             (sRecurrencePattern.Contains("W") ? "Wednesday, " : "") +
+                                             (sRecurrencePattern.Contains("Th") ? "Thursday, " : "") +
+                                             (sRecurrencePattern.Contains("F") ? "Friday, " : "") +
+                                             (sRecurrencePattern.Contains("Sa") ? "Saturday, " : "")).TrimEnd(' ').TrimEnd(','));
+                    }
+
+                }
                 TimeSpan ts = dtStart - DateTime.Now;
                 SendMessageToClients("Time remaining until collection starts: " + ts.ToString("hh\\:mm\\:ss"));
                 bScheduledStartPending = true;

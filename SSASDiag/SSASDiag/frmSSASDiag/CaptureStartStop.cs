@@ -42,6 +42,17 @@ namespace SSASDiag
             if (dc != null)
                 dc.CompletionCallback = callback_StopAndFinalizeAllDiagnosticsComplete;
         }
+
+        string DayLettersFromDay(DayOfWeek d)
+        {
+            if (d == DayOfWeek.Sunday) return "s";
+            if (d == DayOfWeek.Monday) return "m";
+            if (d == DayOfWeek.Tuesday) return "t";
+            if (d == DayOfWeek.Wednesday) return "w";
+            if (d == DayOfWeek.Thursday) return "th";
+            if (d == DayOfWeek.Friday) return "f";
+            else return "sa";
+        }
         private void callback_StopAndFinalizeAllDiagnosticsComplete()
         {
             btnHangDumps.Visible = btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = true;

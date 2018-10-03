@@ -56,7 +56,7 @@ namespace SSASDiag
                     txtStatus.Cursor = Cursors.Arrow;
                     txtStatus.GotFocus += txtStatus_GotFocusWhileRunning;
                     txtStatus.Enter += txtStatus_EnterWhileRunning;
-                    
+
                     if (!Environment.UserInteractive)
                     {
                         if (Args.ContainsKey("workingdir")) Environment.CurrentDirectory = Args["workingdir"];
@@ -66,7 +66,7 @@ namespace SSASDiag
                             File.Delete(svcOutputPath);
                         dc = new CDiagnosticsCollector(TracePrefix, (cbsdi == null ? "" : (InstanceName.ToUpper() == "MSSQLSERVER" ? "" : InstanceName)), cbsdi.ServiceName, (InstanceName == "Power BI Report Server" ? PBIRSPort : cbsdi.InstanceID), cbsdi.SQLProgramDir, cbsdi.SQLSharedDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
                             txtStatus,
-                            (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked,
+                            (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked, Args["recurrence"],
                             chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked, cbsdi.Cluster, svcOutputPath);
                         while (!dc.npServer._connections.Exists(c => c.IsConnected))
                             Thread.Sleep(100);
@@ -74,9 +74,9 @@ namespace SSASDiag
                         LogFeatureUse("Collection", "InstanceVersion=" + m_instanceVersion + ",InstanceType=" + m_instanceType + ",InstanceEdition=" + m_instanceEdition + ",PerfMonInterval=" + udInterval.Value + ",AutoRestartProfiler=" + chkAutoRestart.Checked +
                                                     ",UseZip=" + chkZip.Checked + ",DeleteRawDataAfterZip=" + chkDeleteRaw.Checked + ",IncludeProfilerVerbosePerfDetails=" + chkProfilerPerfDetails.Checked +
                                                     ",IncludeXMLA=" + chkXMLA.Checked + ",IncludeABF=" + chkABF.Checked + ",IncludeBAK=" + chkBAK.Checked + (chkRollover.Checked ? ",RolloverMB=" + udRollover.Value : "") +
-                                                    (chkStartTime.Checked ? ",StartTime=" + dtStartTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "") +
-                                                    (chkStopTime.Checked ? ",StopTime=" + dtStopTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "")
-                                                    + ",ConfigDetails=" + chkGetConfigDetails.Checked + ",Profiler=" + chkGetProfiler.Checked + ",PerfMon=" + chkGetPerfMon.Checked + ",NetworkTrace=" + chkGetNetwork.Checked + ",RunningAsService=" + !Environment.UserInteractive + ",Clustered=" + cbsdi.Cluster);
+                                                    (chkStartTime.Checked ? ",StartTime=" + DateTime.Parse(dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:00")).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "") +
+                                                    (chkStopTime.Checked ? ",StopTime=" + DateTime.Parse(dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:00")).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "")
+                                                    + ",ConfigDetails=" + chkGetConfigDetails.Checked + ",Profiler=" + chkGetProfiler.Checked + ",PerfMon=" + chkGetPerfMon.Checked + ",NetworkTrace=" + chkGetNetwork.Checked + ",RunningAsService=" + !Environment.UserInteractive + ",Clustered=" + cbsdi.Cluster + ",Recurrence=" + lblRecurrenceDays.Text);
                         dc.CompletionCallback = callback_StartDiagnosticsComplete;
                         new Thread(new ThreadStart(() => dc.StartDiagnostics())).Start();
                     }
@@ -87,7 +87,7 @@ namespace SSASDiag
                         string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
                         string sInstanceServiceConfig = Program.TempPath + "SSASDiagService_" + InstanceName + ".exe";
                         svcOutputPath = sInstanceServiceConfig.Substring(0, sInstanceServiceConfig.IndexOf(".exe")) + ".output.log";
-                        
+
                         string sMsg = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\nInstalling collection service SSASDiag_" + InstanceName + ".";
                         txtStatus.Text = sMsg;
                         tPumpUIUpdatesPreServiceStart.Interval = 1000;
@@ -126,8 +126,9 @@ namespace SSASDiag
                                 " /instance \"" + (InstanceName == "" ? "MSSQLServer" : InstanceName) + "\"" +
                                 (chkDeleteRaw.Checked ? " /deleteraw" : "") +
                                 (chkRollover.Checked ? " /rollover " + udRollover.Value : "") +
-                                (chkStartTime.Checked ? " /starttime \"" + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
-                                (chkStopTime.Checked ? " /stoptime \"" + dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:ss") + "\"" : "") +
+                                (chkStartTime.Checked ? " /starttime \"" + dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:00") + "\"" : "") +
+                                (chkStopTime.Checked ? " /stoptime \"" + dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:00") + "\"" : "") +
+                                (lblRecurrenceDays.Text != "" ? " /recurrence " + lblRecurrenceDays.Text : "") +
                                 (chkAutoRestart.Checked ? " /autorestartprofiler" : "") +
                                 " /perfmoninterval " + udInterval.Value +
                                 (chkGetConfigDetails.Checked ? " /config" : "") +
@@ -164,7 +165,8 @@ namespace SSASDiag
                                 p.CreateNoWindow = true;
                                 Program.ShutdownDebugTrace();
                                 Process.Start(p).WaitForExit();
-                                txtStatus.Invoke(new System.Action(()=> txtStatus.AppendText("\r\nCollection service SSASDiag_" + cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "") + " is running.\r\nCollection initializing...")));
+                                txtStatus.Invoke(new System.Action(()=> txtStatus.AppendText("\r\nCollection service SSASDiag_" + cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "") + " is running.\r\n" +
+                                      "Collection initializing...")));
                             })).Start();
                         })).Start();
                     }
@@ -177,7 +179,11 @@ namespace SSASDiag
                     if (!Environment.UserInteractive)
                         new Thread(new ThreadStart(() => dc.StopAndFinalizeAllDiagnostics())).Start();
                     else
+                    {
+                        if (Args.ContainsKey("recurrence"))
+                            Args.Remove("recurrence");
                         npClient.PushMessage("Stop");
+                    }
                 }
             }
         }
@@ -229,8 +235,8 @@ namespace SSASDiag
                     Invoke(new System.Action(() =>
                     {
                         string InstanceName = cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "");
-                        txtStatus.Text = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n"
-                                        + "Collection service SSASDiag_" + InstanceName + " started.";
+                    txtStatus.Text = "Initializing SSAS diagnostics collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".\r\n"
+                                    + "Collection service SSASDiag_" + InstanceName + " started.";
                         InitializeCaptureUI();
                         if (Args.ContainsKey("noui"))
                         {
@@ -368,6 +374,32 @@ namespace SSASDiag
                                 if (npClient != null)
                                     npClient.ServerMessage -= NpClient_ServerMessage;
                                 npClient = null;
+
+                                if (Args.ContainsKey("recurrence"))
+                                {
+                                    new Thread(new ThreadStart(() =>
+                                    {
+                                        Thread.Sleep(2000); // We need to wait 2s to allow old service to stop before restarting with new recurrence...
+                                        DayOfWeek d = DateTime.Today.DayOfWeek == DayOfWeek.Saturday ? DayOfWeek.Sunday : DateTime.Today.DayOfWeek + 1;
+                                        while (!lblRecurrenceDays.Text.ToLower().Contains(DayLettersFromDay(d)))
+                                        {
+                                            if (d == DayOfWeek.Saturday)
+                                                d = DayOfWeek.Sunday;
+                                            else
+                                                d++;
+                                        }
+
+                                        int iDaysUntilNextStart = d - DateTime.Today.DayOfWeek;
+                                        if (iDaysUntilNextStart < 1) iDaysUntilNextStart += 7;
+
+                                        Invoke(new System.Action(() =>
+                                        {
+                                            dtStopTime.Value = dtStopTime.Value.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
+                                            dtStartTime.Value = dtStartTime.Value.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
+                                            btnCapture_Click(null, null);
+                                        }));
+                                    })).Start();
+                                }
                             }
                         }
                         catch (Exception e)
@@ -808,17 +840,22 @@ namespace SSASDiag
             }
             else
             {
-                if (dtStartTime.Value < DateTime.Now.AddMinutes(2))
-                    dtStartTime.Value = DateTime.Now.AddMinutes(2);
-                if (dtStopTime.Value < dtStartTime.Value.AddMinutes(2))
-                    dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
+                if (Environment.UserInteractive)
+                {
+                    if (dtStartTime.Value < DateTime.Now.AddMinutes(2))
+                        dtStartTime.Value = DateTime.Now.AddMinutes(2);
+                    if (dtStopTime.Value < dtStartTime.Value.AddMinutes(2))
+                        dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
+                }
             }
             pnlRecurrence.Enabled = dtStartTime.Enabled && dtStopTime.Enabled;
         }
         private void chkStartTime_CheckedChanged(object sender, EventArgs e)
         {
             dtStartTime.Enabled = chkStartTime.Checked;
-            if (chkStartTime.Checked && dtStartTime.Value < DateTime.Now.AddMinutes(2)) dtStartTime.Value = DateTime.Now.AddMinutes(2);
+            if (Environment.UserInteractive && chkStartTime.Checked && dtStartTime.Value < DateTime.Now.AddMinutes(2))
+                dtStartTime.Value = DateTime.Now.AddMinutes(2);
+
             pnlRecurrence.Enabled = dtStartTime.Enabled && dtStopTime.Enabled;
         }
         private void chkAutoRestart_CheckedChanged(object sender, EventArgs e)

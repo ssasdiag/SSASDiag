@@ -36,7 +36,7 @@ namespace SSASDiag
         Image imgPlay = Properties.Resources.play, imgPlayLit = Properties.Resources.play_lit, imgPlayHalfLit = Properties.Resources.play_half_lit,
             imgStop = Properties.Resources.stop_button_th, imgStopLit = Properties.Resources.stop_button_lit, imgStopHalfLit = Properties.Resources.stop_button_half_lit;
         bool bClosing = false, bFullyInitialized = false;
-        Dictionary<string, string> Args = new Dictionary<string, string>();
+        public Dictionary<string, string> Args = new Dictionary<string, string>();
 
         #endregion locals
 
@@ -196,7 +196,7 @@ namespace SSASDiag
             {
                 chkStartTime.Checked = true;
                 try { dtStartTime.Value = Convert.ToDateTime(Args["starttime"]); }
-                catch(Exception ex){ chkStartTime.Checked = false; }
+                catch { chkStartTime.Checked = false; }
             }
             ToolStripControlHost controlHost = new ToolStripControlHost(Recurrence);
             Recurrence.Enabled = true;
@@ -687,20 +687,26 @@ namespace SSASDiag
 
         private void dtStartTime_ValueChanged(object sender, EventArgs e)
         {
-            if (dtStartTime.Value < DateTime.Now.AddMinutes(2))
-                dtStartTime.Value = DateTime.Now.AddMinutes(2);
-            if (dtStopTime.Value < dtStopTime.Value.AddMinutes(2))
-                dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
+            if (Environment.UserInteractive)
+            {
+                if (dtStartTime.Value < DateTime.Now.AddMinutes(2))
+                    dtStartTime.Value = DateTime.ParseExact(DateTime.Now.AddMinutes(2).ToString("MM/dd/yyyy HH:mm:00"), "MM/dd/yyyy HH:mm:ss", null);
+                if (dtStopTime.Value < dtStartTime.Value.AddMinutes(2))
+                    dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
+            }
         }
 
         private void dtStopTime_ValueChanged(object sender, EventArgs e)
         {
-            if (dtStopTime.Value < dtStartTime.Value)
+            if (Environment.UserInteractive)
             {
-                if (dtStopTime.Value > DateTime.Now.AddMinutes(4))
-                    dtStartTime.Value = dtStopTime.Value.AddMinutes(-2);
-                else
-                    dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
+                if (dtStopTime.Value < dtStartTime.Value)
+                {
+                    if (dtStopTime.Value > DateTime.Now.AddMinutes(4))
+                        dtStartTime.Value = dtStopTime.Value.AddMinutes(-2);
+                    else
+                        dtStopTime.Value = dtStartTime.Value.AddMinutes(2);
+                }
             }
         }
 
