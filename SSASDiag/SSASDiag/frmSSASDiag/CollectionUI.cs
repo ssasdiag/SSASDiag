@@ -273,7 +273,7 @@ namespace SSASDiag
                     {
                         Invoke(new System.Action(() =>
                         {
-                            if (btnCapture.Image.Tag as string == "Play Half Lit")
+                            if (btnCapture.Image.Tag == imgPlayHalfLit.Tag || btnCapture.Image.Tag == imgStopHalfLit.Tag)
                             {
                                 btnHangDumps.Enabled = true;
                                 btnCapture.Image = imgStop;
