@@ -67,7 +67,7 @@
             this.richTextBox1.Location = new System.Drawing.Point(30, 59);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.ReadOnly = true;
-            this.richTextBox1.Size = new System.Drawing.Size(714, 426);
+            this.richTextBox1.Size = new System.Drawing.Size(714, 433);
             this.richTextBox1.TabIndex = 3;
             this.richTextBox1.Text = resources.GetString("richTextBox1.Text");
             // 
@@ -75,7 +75,7 @@
             // 
             this.lkSSASDiagSite.AutoSize = true;
             this.lkSSASDiagSite.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lkSSASDiagSite.Location = new System.Drawing.Point(262, 482);
+            this.lkSSASDiagSite.Location = new System.Drawing.Point(262, 495);
             this.lkSSASDiagSite.Margin = new System.Windows.Forms.Padding(0);
             this.lkSSASDiagSite.Name = "lkSSASDiagSite";
             this.lkSSASDiagSite.Size = new System.Drawing.Size(224, 30);
@@ -89,7 +89,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.ClientSize = new System.Drawing.Size(749, 521);
+            this.ClientSize = new System.Drawing.Size(749, 534);
             this.Controls.Add(this.lkSSASDiagSite);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.richTextBox1);

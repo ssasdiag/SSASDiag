@@ -119,29 +119,30 @@
   </resheader>
   <data name="richTextBox1.Text" xml:space="preserve">
     <value>Options:
-/config - Include SSAS configuration and logs in collection.
-/debug - Capture debug log in the location where SSASDiag is run.
-/instance &lt;name&gt; - Name of the AS instance to collect data (MSSQLServer for default instance)
-/network - Capture network traces in collection.
-/perfmon - Include Performance Monitor logs in collection.
-   [/perfmoninterval &lt;interval&gt;] - Override default 15s interval for Performance Monitor logging.
-/profiler - Include SQL Server Profiler traces of the instance in collection.
+/AutomaticHangDumps - Capture hang dumps automatically if the server becomes unresponsive.
+/Config - Include SSAS configuration and logs in collection.
+/Debug - Capture debug log in the location where SSASDiag is run.
+/Instance &lt;name&gt; - Name of the AS instance to collect data (MSSQLServer for default instance)
+/Network - Capture network traces in collection.
+/PerfMon - Include Performance Monitor logs in collection.
+   [/PerfMonInterval &lt;interval&gt;] - Override default 15s interval for Performance Monitor logging.
+/Profiler - Include SQL Server Profiler traces of the instance in collection.
    [/abf] - Include SSAS .abf backups of databases captured in trace.
    [/bak] [/xmla] - Include SQL data source backups and XMLA database scripts of databases captured in trace.
-   [/autorestartprofiler] - Automatically restart profiler trace on SSAS service restart (/stoptime is advised also).
-   [/nowaitonstop] - Skip the normal 20s delay on stopping profiler trace collection.
-   [/verbose] - Include verbose performance details in Profiler tracing.
-/reportusage - Override settings to report usage statistics for this run.
-/start - Start data collection immediately.
-   [/noui] - Start collection without presenting any user interface.
-   [/starttime "&lt;time&gt;"] - Local start date and time with quotes in 24-hour format:  "MM/dd/yyyy HH:mm"
-   [/stoptime "&lt;time&gt;"] - Local stop date and time with qutoes in 24-hour format:  "MM/dd/yyyy HH:mm"
-   [/recurrence &lt;MTWThFSa&gt;] - Repeat schedule on each day of the week included in the list.
-/stop - Stop running data collection.
-/rollover &lt;size&gt; - Size in MB to rollover captured files (and partition zip archive if compressing zip)
+   [/AutoRestartProfiler] - Restart profiler trace on SSAS service restart (/stoptime is advised also).
+   [/NoWaitOnStop] - Skip the normal 20s delay on stopping profiler trace collection.
+   [/Verbose] - Include verbose performance details in Profiler tracing.
+/Reportusage - Override settings to report usage statistics for this run.
+/Start - Start data collection immediately.
+   [/NoUI] - Start collection without presenting any user interface.
+   [/StartTime "&lt;time&gt;"] - Local start date and time with quotes in 24-hour format:  "MM/dd/yyyy HH:mm"
+   [/StopTime "&lt;time&gt;"] - Local stop date and time with qutoes in 24-hour format:  "MM/dd/yyyy HH:mm"
+   [/Recurrence &lt;MTWThFSa&gt;] - Repeat schedule on each day of the week included in the list.
+/Stop - Stop running data collection.
+/Rollover &lt;size&gt; - Size in MB to rollover captured files (and partition zip archive if compressing zip)
    (NOTE: Network traces only capture circularly at the rollover limit so don’t set the limit too low.)
-/workingdir &lt;path&gt; - Path to an output folder for data collection
-/zip [/deleteraw] - Compress data to zip after collection and optionally delete the raw collected data after zip.
+/WorkingDir &lt;path&gt; - Path to an output folder for data collection
+/Zip [/deleteraw] - Compress data to zip after collection and optionally delete the raw collected data after zip.
 
 [filename] | [path] - Open file or path for analysis.  
    Supported Analysis Types: 
