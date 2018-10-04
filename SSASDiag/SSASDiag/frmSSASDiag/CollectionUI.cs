@@ -369,7 +369,7 @@ namespace SSASDiag
                                     SvcPath = SvcPath.Replace("\r\nHKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Services\\" + svcName + "\r\n    ImagePath    REG_EXPAND_SZ    ", "").Replace("\r\n", "");
                                 }
                                 
-                                p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 2000 > nul & \"" + SvcPath + "\" -u");
+                                p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 2 -w 1000 > nul & \"" + SvcPath + "\" -u");
                                 p.WindowStyle = ProcessWindowStyle.Hidden;
                                 p.Verb = "runas";
                                 p.UseShellExecute = true;

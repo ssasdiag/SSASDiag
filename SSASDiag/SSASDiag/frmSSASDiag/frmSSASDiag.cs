@@ -121,6 +121,68 @@ namespace SSASDiag
 
         #region frmSSASDiagEvents
 
+        private bool ServerFileIsNewer(string clientFileVersion, string serverFile)
+        {
+            Version client = new Version(clientFileVersion);
+            Version server = new Version(serverFile);
+            return server > client;
+        }
+        public void CheckForUpdates()
+        {
+            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Starting update check.");
+            string sNewBin = Program.TempPath + "newbin_tmp";
+
+            // Check for new version but just spawn a new thread to do it without blocking...
+            new Thread(new ThreadStart(() =>
+            {
+                try
+                {
+                    // This aspx page exposes the version number of the latest current build there to avoid having to download unnecessarily.
+                    WebRequest req = HttpWebRequest.Create(Uri.EscapeUriString("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx"));
+                    req.Method = "GET";
+                    WebResponse wr = req.GetResponse();
+                    Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Response obtained from SSASDiag server.");
+                    string[] versionInfo = new StreamReader(req.GetResponse().GetResponseStream()).ReadToEnd().Split('\n');
+                    string version = "";
+                    foreach (string v in versionInfo)
+                        if (v.Split('=')[0] == "Version") version = v.Split('=')[1];
+
+
+                    if (version == "" || ServerFileIsNewer(FileVersionInfo.GetVersionInfo(Application.ExecutablePath).FileVersion, version))
+                    {
+                        new EventWaitHandle(false, EventResetMode.ManualReset, "SSASDiagSplashscreenInitializedEvent").Set();
+                        req = HttpWebRequest.Create(Uri.EscapeUriString("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagdownload.aspx"));
+                        req.Method = "GET";
+                        Stream newBin = File.OpenWrite(sNewBin);
+                        req.GetResponse().GetResponseStream().CopyTo(newBin);
+                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Downloaded new bin version and prompting user to apply it.");
+                        newBin.Close();
+
+                        if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
+                        {
+                            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Applying new version and restarting.");
+                            Program.ShutdownDebugTrace();
+                            Process p = new Process();
+                            p.StartInfo.UseShellExecute = true;
+                            p.StartInfo.CreateNoWindow = true;
+                            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                            p.StartInfo.FileName = "cmd.exe";
+                            string AssemblyLocation = (string)AppDomain.CurrentDomain.GetData("originalbinlocation");
+                            p.StartInfo.Arguments = "/c ping 1.1.1.1 -n 2 -w 1000 > nul & move /y \"" + sNewBin + "\" \"" +
+                                                     AssemblyLocation + "\\SSASDiag.exe\" & " +
+                                                     "del /q \"" + Program.TempPath + "SSASDiag.exe\" & \"" +
+                                                     AssemblyLocation + "\\SSASDiag.exe\"";
+                            p.Start();
+                            Application.Exit();
+                            return;
+                        }
+                    }
+                }
+                catch (Exception ex) { Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception checking for updates:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
+                Debug.WriteLine("Update check complete.");
+            })).Start();
+        }
+
         protected override void OnLoad(EventArgs e)
         {
             if (Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("LoggingEnabled", "False") as string == "True" || Args.ContainsKey("debug"))
@@ -289,7 +351,7 @@ namespace SSASDiag
         {
             Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").SetValue("AutoUpdate", automaticallyCheckForUpdatesToolStripMenuItem.Checked);
             if (automaticallyCheckForUpdatesToolStripMenuItem.Checked)
-                Program.CheckForUpdates(AppDomain.CurrentDomain);
+                CheckForUpdates();
         }
 
         public static void SetWeakFileAssociation(string Extension, string KeyName, string OpenWith, string FileDescription, bool Unset = false)
@@ -421,6 +483,9 @@ namespace SSASDiag
             bFullyInitialized = true;
 
             pp.FormClosed += Pp_FormClosed;
+
+            if (Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", "True") as string == "True" && Environment.UserInteractive)
+                CheckForUpdates();
         }
 
         private void enableDiagnosticLoggingToolStripMenuItem_CheckedChanged(object sender, EventArgs e)

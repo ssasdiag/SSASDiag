@@ -45,7 +45,7 @@ namespace SSASDiag
                     Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Started service mode.");
                     if (Environment.GetCommandLineArgs()[1] == "/instance")
                     {
-                        ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 1 -w 1500 > nul & net stop SSASDiag_" + Environment.GetCommandLineArgs()[2]);
+                        ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 2 -w 1000 > nul & net stop SSASDiag_" + Environment.GetCommandLineArgs()[2]);
                         p.WindowStyle = ProcessWindowStyle.Hidden;
                         p.UseShellExecute = true;
                         p.Verb = "runas";
@@ -222,11 +222,7 @@ namespace SSASDiag
                     AppDomainSetup ads = new AppDomainSetup();
                     ads.ApplicationBase = TempPath;
                     AppDomain tempDomain = AppDomain.CreateDomain("SSASDiagTempDomain", null, ads);
-                    tempDomain.SetData("tempbinlocation", TempPath);
-
-                    if (Registry.LocalMachine.CreateSubKey(@"Software\SSASDiag").GetValue("AutoUpdate", "True") as string == "True" && Environment.UserInteractive)
-                        CheckForUpdates(tempDomain);
-                    
+                    tempDomain.SetData("tempbinlocation", TempPath);                    
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
                     Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Preparing to launch executable from temp domain.");
                     ShutdownDebugTrace();
@@ -322,60 +318,6 @@ namespace SSASDiag
             Trace.Listeners.Remove("debuglistener");
         }
 
-        public static void CheckForUpdates(AppDomain tempDomain)
-        {
-            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Starting update check.");
-            string sNewBin = Program.TempPath + "newbin_tmp";
-
-            // Check for new version but just spawn a new thread to do it without blocking...
-            new Thread(new ThreadStart(() =>
-            {
-                try
-                {
-                    // This aspx page exposes the version number of the latest current build there to avoid having to download unnecessarily.
-                    WebRequest req = HttpWebRequest.Create(Uri.EscapeUriString("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagversion.aspx"));
-                    req.Method = "GET";
-                    WebResponse wr = req.GetResponse();
-                    Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Response obtained from SSASDiag server.");
-                    string[] versionInfo = new StreamReader(req.GetResponse().GetResponseStream()).ReadToEnd().Split('\n');
-                    string version = "";
-                    foreach (string v in versionInfo)
-                        if (v.Split('=')[0] == "Version") version = v.Split('=')[1];
-
-                    
-                    if (version == "" || ServerFileIsNewer(FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion, version))
-                    {
-                        req = HttpWebRequest.Create(Uri.EscapeUriString("http://jburchelsrv.southcentralus.cloudapp.azure.com/ssasdiagdownload.aspx"));
-                        req.Method = "GET";
-                        Stream newBin = File.OpenWrite(sNewBin);
-                        req.GetResponse().GetResponseStream().CopyTo(newBin);
-                        Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Downloaded new bin version and prompting user to apply it.");
-                        newBin.Close();
-                        if (MessageBox.Show("SSASDiag has an update!  Restart the tool to use the updated version?", "SSAS Diagnostics Collector Update Available", MessageBoxButtons.OKCancel, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1) == DialogResult.OK)
-                        {
-                            Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Applying new version and restarting.");
-                            ShutdownDebugTrace();
-                            Process p = new Process();
-                            p.StartInfo.UseShellExecute = true;
-                            p.StartInfo.CreateNoWindow = true;
-                            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                            p.StartInfo.FileName = "cmd.exe";
-                            string AssemblyLocation = (string)(AppDomain.CurrentDomain.GetData("originalbinlocation") as string != "" ? AppDomain.CurrentDomain.GetData("originalbinlocation") : Assembly.GetExecutingAssembly().Location);
-                            p.StartInfo.Arguments = "/c ping 1.1.1.1 -n 1 -w 1500 > nul & move /y \"" + sNewBin + "\" \"" +
-                                                     AssemblyLocation + "\\SSASDiag.exe\" & " +
-                                                     "del /q \"" + TempPath + "SSASDiag.exe\" & " + 
-                                                     AssemblyLocation + "\\SSASDiag.exe\"";
-                            p.Start();
-                            Application.Exit();
-                            return;
-                        }
-                    }
-                }
-                catch (Exception ex) { Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception checking for updates:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace); }
-                Debug.WriteLine("Update check complete.");
-            })).Start();
-        }
-
         static private void InstallCDB()
         {
             Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Installing CDB in the background for debugger analysis.");
@@ -411,11 +353,6 @@ namespace SSASDiag
             return DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz");
         }
 
-        private static bool ServerFileIsNewer(string clientFileVersion, string serverFile)
-        {
-            Version client = new Version(clientFileVersion);
-            Version server = new Version(serverFile);
-            return server > client;
-        }
+
     }
 }
