@@ -1347,6 +1347,7 @@
             this.SizeChanged += new System.EventHandler(this.frmSSASDiag_SizeChanged);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.frmSSASDiag_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.frmSSASDiag_DragEnter);
+            this.Move += new System.EventHandler(this.frmSSASDiag_Move);
             this.Resize += new System.EventHandler(this.frmSSASDiag_Resize);
             this.pnlRecurrence.ResumeLayout(false);
             this.pnlRecurrence.PerformLayout();

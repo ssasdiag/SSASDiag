@@ -268,6 +268,7 @@ namespace SSASDiag
 
         private void HookupRecurrencePopupChildControlsClick(Control Parent)
         {
+            Parent.MouseClick += RecurrencePopupClick;
             foreach (Control c in Parent.Controls)
             {
                 if (c != pnlRecurrence)
@@ -733,6 +734,12 @@ namespace SSASDiag
                 else
                     pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceDisabled;
             }
+        }
+
+        private void frmSSASDiag_Move(object sender, EventArgs e)
+        {
+            if (RecurrenceDropDown.Visible)
+                RecurrenceDropDown.Close();
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
