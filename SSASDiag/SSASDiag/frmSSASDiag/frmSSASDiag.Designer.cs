@@ -30,10 +30,10 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSSASDiag));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle21 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle22 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle23 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle24 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.ttStatus = new System.Windows.Forms.ToolTip(this.components);
             this.label3 = new System.Windows.Forms.Label();
             this.txtSaveLocation = new System.Windows.Forms.TextBox();
@@ -54,6 +54,7 @@
             this.lkFeedback = new System.Windows.Forms.LinkLabel();
             this.pnlRecurrence = new System.Windows.Forms.Panel();
             this.lblRecurrenceDays = new System.Windows.Forms.Label();
+            this.chkAutomaticHangDumps = new System.Windows.Forms.CheckBox();
             this.tcCollectionAnalysisTabs = new System.Windows.Forms.TabControl();
             this.tbCollection = new System.Windows.Forms.TabPage();
             this.splitCollectionUI = new System.Windows.Forms.SplitContainer();
@@ -406,10 +407,9 @@
             // pnlRecurrence
             // 
             this.pnlRecurrence.BackColor = System.Drawing.SystemColors.Control;
-            this.pnlRecurrence.BackgroundImage = global::SSASDiag.Properties.Resources.RecurrenceButtonDisabled;
+            this.pnlRecurrence.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("pnlRecurrence.BackgroundImage")));
             this.pnlRecurrence.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
             this.pnlRecurrence.Controls.Add(this.lblRecurrenceDays);
-            this.pnlRecurrence.Enabled = true;
             this.pnlRecurrence.Location = new System.Drawing.Point(210, 134);
             this.pnlRecurrence.Name = "pnlRecurrence";
             this.pnlRecurrence.Size = new System.Drawing.Size(37, 43);
@@ -430,6 +430,19 @@
             this.lblRecurrenceDays.Size = new System.Drawing.Size(0, 9);
             this.lblRecurrenceDays.TabIndex = 0;
             this.lblRecurrenceDays.Click += new System.EventHandler(this.pnlRecurrence_Click);
+            // 
+            // chkAutomaticHangDumps
+            // 
+            this.chkAutomaticHangDumps.AutoSize = true;
+            this.chkAutomaticHangDumps.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkAutomaticHangDumps.Location = new System.Drawing.Point(3, 186);
+            this.chkAutomaticHangDumps.Name = "chkAutomaticHangDumps";
+            this.chkAutomaticHangDumps.Size = new System.Drawing.Size(202, 17);
+            this.chkAutomaticHangDumps.TabIndex = 8;
+            this.chkAutomaticHangDumps.Text = "Automatic hang detection and dumps";
+            this.ttStatus.SetToolTip(this.chkAutomaticHangDumps, "Automatically poll the server and generate hang dumps should it become unavailabl" +
+        "e.");
+            this.chkAutomaticHangDumps.UseVisualStyleBackColor = true;
             // 
             // tcCollectionAnalysisTabs
             // 
@@ -655,6 +668,7 @@
             // 
             this.pnlDiagnosticsToCollect.AutoScroll = true;
             this.pnlDiagnosticsToCollect.BackColor = System.Drawing.SystemColors.Control;
+            this.pnlDiagnosticsToCollect.Controls.Add(this.chkAutomaticHangDumps);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkBAK);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkGetConfigDetails);
             this.pnlDiagnosticsToCollect.Controls.Add(this.chkABF);
@@ -821,13 +835,13 @@
             // btnCapture
             // 
             this.btnCapture.BackColor = System.Drawing.Color.Transparent;
-            this.btnCapture.ForeColor = System.Drawing.Color.Transparent;
             this.btnCapture.Enabled = false;
-            this.btnCapture.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(0, 255, 255, 255);
+            this.btnCapture.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.btnCapture.FlatAppearance.BorderSize = 0;
             this.btnCapture.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
             this.btnCapture.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
             this.btnCapture.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnCapture.ForeColor = System.Drawing.Color.Transparent;
             this.btnCapture.Location = new System.Drawing.Point(269, 76);
             this.btnCapture.Name = "btnCapture";
             this.btnCapture.Size = new System.Drawing.Size(68, 68);
@@ -1146,43 +1160,43 @@
             this.dgdProfilerAnalyses.AllowUserToDeleteRows = false;
             this.dgdProfilerAnalyses.AllowUserToOrderColumns = true;
             this.dgdProfilerAnalyses.AllowUserToResizeRows = false;
-            dataGridViewCellStyle21.BackColor = System.Drawing.Color.AliceBlue;
-            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle21;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.AliceBlue;
+            this.dgdProfilerAnalyses.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             this.dgdProfilerAnalyses.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
             this.dgdProfilerAnalyses.BackgroundColor = System.Drawing.SystemColors.ControlDark;
             this.dgdProfilerAnalyses.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgdProfilerAnalyses.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            dataGridViewCellStyle22.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle22.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle22.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle22.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle22.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle22.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle22.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdProfilerAnalyses.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle22;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdProfilerAnalyses.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dgdProfilerAnalyses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle23.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle23.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle23.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle23.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle23.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle23.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle23.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle23;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgdProfilerAnalyses.DefaultCellStyle = dataGridViewCellStyle3;
             this.dgdProfilerAnalyses.Dock = System.Windows.Forms.DockStyle.Top;
             this.dgdProfilerAnalyses.Location = new System.Drawing.Point(0, 0);
             this.dgdProfilerAnalyses.Margin = new System.Windows.Forms.Padding(0);
             this.dgdProfilerAnalyses.Name = "dgdProfilerAnalyses";
             this.dgdProfilerAnalyses.ReadOnly = true;
             this.dgdProfilerAnalyses.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle24.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle24.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle24.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle24.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle24.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle24.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle24.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgdProfilerAnalyses.RowHeadersDefaultCellStyle = dataGridViewCellStyle24;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgdProfilerAnalyses.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dgdProfilerAnalyses.RowHeadersWidth = 16;
             this.dgdProfilerAnalyses.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.dgdProfilerAnalyses.RowTemplate.Height = 18;
@@ -1463,6 +1477,7 @@
         public System.Windows.Forms.TextBox txtSaveLocation;
         public System.Windows.Forms.Panel pnlRecurrence;
         public System.Windows.Forms.Label lblRecurrenceDays;
+        private System.Windows.Forms.CheckBox chkAutomaticHangDumps;
     }
 }
 

@@ -36,9 +36,20 @@ namespace SSASDiag
         #endregion StatusHandlingDuringCapture
         private void callback_StartDiagnosticsComplete()
         {
-            btnHangDumps.Enabled = btnHangDumps.Visible = true;
-            btnCapture.Image = imgStop;
-            btnCapture.Click += btnCapture_Click;
+            if (InvokeRequired)
+                Invoke(new System.Action(() =>
+                {
+                    btnHangDumps.Enabled = btnHangDumps.Visible = true;
+                    btnCapture.Image = imgStop;
+                    btnCapture.Click += btnCapture_Click;
+                }));
+            else
+            {
+                btnHangDumps.Enabled = btnHangDumps.Visible = true;
+                btnCapture.Image = imgStop;
+                btnCapture.Click += btnCapture_Click;
+            }
+
             if (dc != null)
                 dc.CompletionCallback = callback_StopAndFinalizeAllDiagnosticsComplete;
         }

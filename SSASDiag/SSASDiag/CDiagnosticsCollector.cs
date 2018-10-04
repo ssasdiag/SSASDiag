@@ -45,8 +45,8 @@ namespace SSASDiag
         DateTime m_StartTime = DateTime.Now;
         string sTracePrefix = "", sInstanceName, sInstanceID, sASServiceName, sInstanceVersion, sInstanceMode, sInstanceEdition, sLogDir, sConfigDir, sServiceAccount, sRemoteAdminUser, sRemoteAdminDomain, sSQLProgramDir, sSQLSharedDir, sRecurrencePattern;
         SecureString sRemoteAdminPassword;
-        int iInterval = 0, iRollover = 0, iCurrentTimerTicksSinceLastInterval = 0;
-        bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetBAK, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true;
+        int iInterval = 0, iRollover = 0, iCurrentTimerTicksSinceLastInterval = 0, iSecondsSinceLastHangCheck = 0;
+        bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetBAK, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true, bAutomaticHangDumps = false;
         bool bCollectionFullyInitialized = false, bSuspendUITicking = false;
         DateTime dtStart, dtEnd;
         string svcOutputPath = "";
@@ -95,7 +95,7 @@ namespace SSASDiag
                 DateTime Start, bool UseStart, 
                 DateTime End, bool UseEnd, 
                 string RecurrencePattern,
-                bool GetConfigDetails, bool GetProfiler, bool GetPerfMon, bool GetNetwork, bool Cluster, string ServiceOutputPath)
+                bool GetConfigDetails, bool GetProfiler, bool GetPerfMon, bool GetNetwork, bool Cluster, bool AutomaticHangDumps, string ServiceOutputPath)
         {
             PerfMonAndUIPumpTimer.Interval = 1000;
             PerfMonAndUIPumpTimer.Elapsed += CollectorPumpTick;
@@ -103,7 +103,7 @@ namespace SSASDiag
             txtStatus = StatusTextBox;
             bGetXMLA = IncludeXMLA; bGetABF = IncludeABF; bGetBAK = IncludeBAK;
             iInterval = Interval;
-            bAutoRestart = AutoRestart; bCompress = Compress; bDeleteRaw = DeleteRaw; bPerfEvents = IncludePerfEventsInProfiler; bCluster = Cluster ;
+            bAutoRestart = AutoRestart; bCompress = Compress; bDeleteRaw = DeleteRaw; bPerfEvents = IncludePerfEventsInProfiler; bCluster = Cluster; bAutomaticHangDumps = AutomaticHangDumps;
             iRollover = RolloverMaxMB; bRollover = Rollover;
             dtStart = Start; bUseStart = UseStart;
             dtEnd = End; bUseEnd = UseEnd;
@@ -183,48 +183,59 @@ namespace SSASDiag
                 StopAndFinalizeAllDiagnostics();
             }
             else if (message == "Dumping")
+                CaptureHangDumps();
+        }
+
+        private void CaptureHangDumps()
+        {
+            npServer.PushMessage("Dumping");
+            bCollectionFullyInitialized = false;
+            uint pid = GetProcessIDByServiceName(sASServiceName);
+            if (pid == 0)
             {
-                npServer.PushMessage("Dumping");
-                bCollectionFullyInitialized = false;                
-                uint pid = GetProcessIDByServiceName(sASServiceName);
-                new Thread(new ThreadStart(() =>
-                {
-                    SendMessageToClients("Capturing three hang dumps on-demand, spaced 30s apart.");
-                    for (int i = 0; i < 3; i++)
-                    {
-                        SendMessageToClients("Initiating manual memory dump collection for hang analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-                        try
-                        {
-                            if (!Directory.Exists(Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps")) Directory.CreateDirectory(Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps");
-                            string args = pid + " 0 0x34";
-                            Process p = new Process();
-                            p.StartInfo.CreateNoWindow = true;
-                            p.StartInfo.RedirectStandardOutput = true;
-                            p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                            p.StartInfo.UseShellExecute = false;
-                            p.StartInfo.FileName = Path.Combine(sSQLSharedDir, "SQLDumper.exe");
-                            p.StartInfo.WorkingDirectory = Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps";
-                            p.StartInfo.Arguments = args;
-                            Debug.WriteLine(args);
-                            p.Start();
-                            p.WaitForExit();
-                        }
-                        catch (Exception e)
-                        {
-                            SendMessageToClients("EXCEPTION DUMPING: " + e.Message);
-                        }
-                        SendMessageToClients("Hang dump collection finished at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
-                        if (i < 2)
-                        {
-                            SendMessageToClients("Waiting 30s before capturing dump " + (i + 2) + ".");
-                            if (Environment.GetCommandLineArgs().Where(a => a.Contains("nowaitonstop")).Count() == 0)
-                                Thread.Sleep(30000);
-                        }
-                    }
-                    bCollectionFullyInitialized = true;
-                    npServer.PushMessage("DumpingOver");
-                })).Start();
+                SendMessageToClients("Service process not found when attempting to capture hang dumps.");
+                bCollectionFullyInitialized = true;
+                npServer.PushMessage("DumpingOver");
+                return;
             }
+
+            new Thread(new ThreadStart(() =>
+            {
+                SendMessageToClients("Capturing three hang dumps on-demand, spaced 30s apart.");
+                for (int i = 0; i < 3; i++)
+                {
+                    SendMessageToClients("Initiating manual memory dump collection for hang analysis at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                    try
+                    {
+                        if (!Directory.Exists(Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps")) Directory.CreateDirectory(Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps");
+                        string args = pid + " 0 0x34";
+                        Process p = new Process();
+                        p.StartInfo.CreateNoWindow = true;
+                        p.StartInfo.RedirectStandardOutput = true;
+                        p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        p.StartInfo.UseShellExecute = false;
+                        p.StartInfo.FileName = Path.Combine(sSQLSharedDir, "SQLDumper.exe");
+                        p.StartInfo.WorkingDirectory = Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps";
+                        p.StartInfo.Arguments = args;
+                        Debug.WriteLine(args);
+                        p.Start();
+                        p.WaitForExit();
+                    }
+                    catch (Exception e)
+                    {
+                        SendMessageToClients("EXCEPTION DUMPING: " + e.Message);
+                    }
+                    SendMessageToClients("Hang dump collection finished at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                    if (i < 2)
+                    {
+                        SendMessageToClients("Waiting 30s before capturing dump " + (i + 2) + ".");
+                        if (Environment.GetCommandLineArgs().Where(a => a.Contains("nowaitonstop")).Count() == 0)
+                            Thread.Sleep(30000);
+                    }
+                }
+                bCollectionFullyInitialized = true;
+                npServer.PushMessage("DumpingOver");
+            })).Start();
         }
 
         public static uint GetProcessIDByServiceName(string serviceName)
@@ -363,6 +374,9 @@ namespace SSASDiag
                         frmSSASDiag.LogException(ex);
                     }
                 }
+
+                if (bAutomaticHangDumps)
+                    SendMessageToClients("Checking every 30s to initiate hang dumps automatically if the server becomes unresponsive.");
 
                 if (bGetConfigDetails)
                 {
@@ -622,6 +636,27 @@ namespace SSASDiag
             else
             {
                 iCurrentTimerTicksSinceLastInterval++;
+                iSecondsSinceLastHangCheck++;
+
+                if (iSecondsSinceLastHangCheck == 30 && bAutomaticHangDumps)
+                {
+                    Server s = new Server();
+                    try
+                    {
+                        s.Connect("Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : (sInstanceName == "Power BI Report Server" ? ":" + sInstanceID : "\\" + sInstanceName))) + ";Timeout=1;Integrated Security=SSPI;SSPI=NTLM;", true);
+                        if (!s.Connected)
+                        {
+                            SendMessageToClients("The server did not respond to a connection attempt.  Attempting automatic hang dump capture.");
+                            new Thread(new ThreadStart(() => CaptureHangDumps())).Start();
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        SendMessageToClients("The server did not respond to a connection attempt.  Attempting automatic hang dump capture.");
+                        new Thread(new ThreadStart(() => CaptureHangDumps())).Start();
+                    }
+                    iSecondsSinceLastHangCheck = 0;
+                }
 
                 if (!bSuspendUITicking)
                 {

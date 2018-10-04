@@ -66,8 +66,10 @@ namespace SSASDiag
                             File.Delete(svcOutputPath);
                         dc = new CDiagnosticsCollector(TracePrefix, (cbsdi == null ? "" : (InstanceName.ToUpper() == "MSSQLSERVER" ? "" : InstanceName)), cbsdi.ServiceName, (InstanceName == "Power BI Report Server" ? PBIRSPort : cbsdi.InstanceID), cbsdi.SQLProgramDir, cbsdi.SQLSharedDir, m_instanceVersion, m_instanceType, m_instanceEdition, m_ConfigDir, m_LogDir, (cbsdi == null ? null : cbsdi.ServiceAccount),
                             txtStatus,
-                            (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked, dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked, Args.ContainsKey("recurrence") ? Args["recurrence"] : "",
-                            chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked, cbsdi.Cluster, svcOutputPath);
+                            (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked,
+                            dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked, 
+                            Args.ContainsKey("recurrence") ? Args["recurrence"] : "",
+                            chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked, cbsdi.Cluster, chkAutomaticHangDumps.Checked, svcOutputPath);
                         while (!dc.npServer._connections.Exists(c => c.IsConnected))
                             Thread.Sleep(100);
                         
@@ -139,6 +141,7 @@ namespace SSASDiag
                                 (chkBAK.Checked ? " /bak" : "") +
                                 (chkXMLA.Checked ? " /xmla" : "") +
                                 (chkGetNetwork.Checked ? " /network" : "") +
+                                (chkAutomaticHangDumps.Checked ? " /automatichangdumps" : "") +
                                 (Args.ContainsKey("nowaitonstop") ? " /nowaitonstop" : "") +
                                 (Args.ContainsKey("debug") ? " /debug" : "") +
                                 (enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked ? " /reportusage" : "") +

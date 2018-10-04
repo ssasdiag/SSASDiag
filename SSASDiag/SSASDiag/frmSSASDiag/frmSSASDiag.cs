@@ -261,6 +261,9 @@ namespace SSASDiag
             if (Args.ContainsKey("perfmoninterval"))
                 try { udInterval.Value = Convert.ToInt32(Args["perfmoninterval"]); }
                 catch { }
+
+            if (Args.ContainsKey("automatichangdumps"))
+                chkAutomaticHangDumps.Checked = true;
         }
 
         private void HookupRecurrencePopupChildControlsClick(Control Parent)
