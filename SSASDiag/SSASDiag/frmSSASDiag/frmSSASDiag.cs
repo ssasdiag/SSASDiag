@@ -715,27 +715,6 @@ namespace SSASDiag
             }
         }
 
-        private void pnlRecurrence_EnabledChanged(object sender, EventArgs e)
-        {
-            if (!pnlRecurrence.Enabled)
-            {
-                pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceButtonDisabled;
-                if (btnCapture.Image.Tag!= imgPlayHalfLit.Tag)
-                    lblRecurrenceDays.Text = "";
-                pnlRecurrence.Width = 37;
-            }
-            else
-            {
-                if (Recurrence.chkRecurringSchedule.Checked)
-                {
-                    pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceEnabled;
-                    Recurrence.UpdateDaysLabel();
-                }
-                else
-                    pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceDisabled;
-            }
-        }
-
         private void frmSSASDiag_Move(object sender, EventArgs e)
         {
             if (RecurrenceDropDown.Visible)

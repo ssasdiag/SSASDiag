@@ -71,6 +71,8 @@ namespace SSASDiag
             dtStartTime.Enabled = chkStartTime.Checked;
             dtStopTime.Enabled = chkStopTime.Checked;
             pnlRecurrence.BackgroundImage = chkStartTime.Checked && chkStopTime.Checked ? (lblRecurrenceDays.Text == "" ? Properties.Resources.RecurrenceDisabled : Properties.Resources.RecurrenceEnabled) : Properties.Resources.RecurrenceButtonDisabled;
+            ttStatus.SetToolTip(pnlRecurrence, "Recurring Schedule");
+            ttStatus.SetToolTip(lblRecurrenceDays, "Recurring Schedule");
             btnCapture.Image = imgPlay;
             btnCapture.Click += btnCapture_Click;
             txtStatus.Enter -= txtStatus_EnterWhileRunning;

@@ -214,6 +214,8 @@ namespace SSASDiag
             tbAnalysis.ForeColor = SystemColors.ControlDark;
             tcCollectionAnalysisTabs.Refresh();
             pnlRecurrence.BackgroundImage = Properties.Resources.RecurrenceButtonDisabled;
+            ttStatus.SetToolTip(pnlRecurrence, "");
+            ttStatus.SetToolTip(lblRecurrenceDays, "");
             lblRecurrenceDays.Visible = chkStartTime.Checked && chkStopTime.Checked && Recurrence.chkRecurringSchedule.Checked;
             btnHangDumps.Enabled = txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false;
         }
