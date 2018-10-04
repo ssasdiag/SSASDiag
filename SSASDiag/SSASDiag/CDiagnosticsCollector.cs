@@ -291,7 +291,7 @@ namespace SSASDiag
                     SendMessageToClients("Collection scheduled to stop automatically at " + dtEnd.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
                     if (sRecurrencePattern != "")
                     {
-                        SendMessageToClients("The collection schedule will recur on each of the following days: " + 
+                        SendMessageToClients("Collection schedule recurs on the following days: " + 
                                              ((sRecurrencePattern.Replace("Sa", "").Contains("S") ? "Sun, " : "") +
                                              (sRecurrencePattern.Contains("M") ? "Mon, " : "") +
                                              (sRecurrencePattern.Replace("Th", "").Contains("T") ? "Tue, " : "") +
