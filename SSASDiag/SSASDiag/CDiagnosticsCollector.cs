@@ -645,14 +645,16 @@ namespace SSASDiag
                         s.Connect("Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : (sInstanceName == "Power BI Report Server" ? ":" + sInstanceID : "\\" + sInstanceName))) + ";Timeout=1;Integrated Security=SSPI;SSPI=NTLM;", true);
                         if (!s.Connected)
                         {
-                            SendMessageToClients("The server did not respond to a connection attempt.  Attempting automatic hang dump capture.");
+                            SendMessageToClients("The server did not respond to a connection attempt at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".  Attempting automatic hang dump capture.");
                             new Thread(new ThreadStart(() => CaptureHangDumps())).Start();
+                            return;
                         }
                     }
                     catch (Exception)
                     {
-                        SendMessageToClients("The server did not respond to a connection attempt.  Attempting automatic hang dump capture.");
+                        SendMessageToClients("The server did not respond to a connection attempt at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".  Attempting automatic hang dump capture.");
                         new Thread(new ThreadStart(() => CaptureHangDumps())).Start();
+                        return;
                     }
                     iSecondsSinceLastHangCheck = 0;
                 }
