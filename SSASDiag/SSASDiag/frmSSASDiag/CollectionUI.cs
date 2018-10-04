@@ -313,12 +313,6 @@ namespace SSASDiag
                         ));
                     }
                 }
-                else if (message.StartsWith("Increment schedule by days: "))
-                {
-                    int days = Convert.ToInt32(message.Replace("Increment schedule by days: ", ""));
-                    dtStartTime.Value = dtStartTime.Value.AddDays(days);
-                    dtStopTime.Value = dtStopTime.Value.AddDays(days);
-                }
                 else if (message == "Dumping")
                 {
                     btnCapture.Image = imgStopHalfLit;
@@ -400,6 +394,15 @@ namespace SSASDiag
                         pp.DialogResult = DialogResult.Abort;
                         Invoke(new System.Action(() => pp.Close()));
                     }
+                }
+                else if (message.StartsWith("\r\nIncrement schedule by days: "))
+                {
+                    int days = Convert.ToInt32(message.Replace("\r\nIncrement schedule by days: ", ""));
+                    Invoke(new System.Action(() =>
+                    {
+                        dtStopTime.Value = dtStopTime.Value.AddDays(days);
+                        dtStartTime.Value = dtStartTime.Value.AddDays(days);
+                    }));
                 }
                 else
                     txtStatus.Invoke(new System.Action(() =>

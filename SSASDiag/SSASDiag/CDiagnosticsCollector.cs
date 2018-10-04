@@ -702,12 +702,13 @@ namespace SSASDiag
         public void StopAndFinalizeAllDiagnostics()
         {
             bCollectionFullyInitialized = false;
-            SendMessageToClients("Stopping collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+            
             if (bRunning)
             {
                 bRunning = false;
-                if (sRecurrencePattern != "" && !bForceStop)
-                    bSuspendUITicking = true;
+                SendMessageToClients("Stopping collection at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+                //if (sRecurrencePattern != "" && !bForceStop)
+                //    bSuspendUITicking = true;
                 if (bGetPerfMon && !bScheduledStartPending)
                 {
                     bPerfMonRunning = false;
@@ -1245,6 +1246,7 @@ namespace SSASDiag
 
                 dtEnd = dtEnd.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
                 dtStart = dtStart.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
+                SendMessageToClients("Increment schedule by days: " + iDaysUntilNextStart);
                 bScheduledStartPending = true;
                 StartDiagnostics();
             }
