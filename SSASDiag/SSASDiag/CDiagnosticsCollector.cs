@@ -291,14 +291,14 @@ namespace SSASDiag
                     SendMessageToClients("Collection scheduled to stop automatically at " + dtEnd.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
                     if (sRecurrencePattern != "")
                     {
-                        SendMessageToClients("The collection schedule will recur on each of the following days:");
-                        SendMessageToClients(((sRecurrencePattern.Replace("Sa", "").Contains("S") ? "Sunday, " : "") +
-                                             (sRecurrencePattern.Contains("M") ? "Monday, " : "") +
-                                             (sRecurrencePattern.Replace("Th", "").Contains("T") ? "Tuesday, " : "") +
-                                             (sRecurrencePattern.Contains("W") ? "Wednesday, " : "") +
-                                             (sRecurrencePattern.Contains("Th") ? "Thursday, " : "") +
-                                             (sRecurrencePattern.Contains("F") ? "Friday, " : "") +
-                                             (sRecurrencePattern.Contains("Sa") ? "Saturday, " : "")).TrimEnd(' ').TrimEnd(','));
+                        SendMessageToClients("The collection schedule will recur on each of the following days: " + 
+                                             ((sRecurrencePattern.Replace("Sa", "").Contains("S") ? "Sun, " : "") +
+                                             (sRecurrencePattern.Contains("M") ? "Mon, " : "") +
+                                             (sRecurrencePattern.Replace("Th", "").Contains("T") ? "Tue, " : "") +
+                                             (sRecurrencePattern.Contains("W") ? "Wed, " : "") +
+                                             (sRecurrencePattern.Contains("Th") ? "Thu, " : "") +
+                                             (sRecurrencePattern.Contains("F") ? "Fri, " : "") +
+                                             (sRecurrencePattern.Contains("Sa") ? "Sat, " : "")).TrimEnd(' ').TrimEnd(','));
                     }
 
                 }
@@ -329,7 +329,6 @@ namespace SSASDiag
                                                  (sRecurrencePattern.Contains("F") ? "Friday, " : "") +
                                                  (sRecurrencePattern.Contains("Sa") ? "Saturday, " : "")).TrimEnd(' ').TrimEnd(','));
                         }
-
                     }
                 }
                 SendMessageToClients("Initialized service for trace with ID: " + TraceID);
@@ -707,6 +706,8 @@ namespace SSASDiag
             if (bRunning)
             {
                 bRunning = false;
+                if (sRecurrencePattern != "" && !bForceStop)
+                    bSuspendUITicking = true;
                 if (bGetPerfMon && !bScheduledStartPending)
                 {
                     bPerfMonRunning = false;
@@ -1219,6 +1220,8 @@ namespace SSASDiag
         {
             SendMessageToClients("SSASDiag completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
             Debug.WriteLine("SSASDiag collection completed at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".");
+            if (sRecurrencePattern != "" && !bForceStop)
+                bSuspendUITicking = false;
             if (sRecurrencePattern == "" || bForceStop)
             {
                 PerfMonAndUIPumpTimer.Stop();
@@ -1243,7 +1246,6 @@ namespace SSASDiag
                 dtEnd = dtEnd.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
                 dtStart = dtStart.AddDays(iDaysUntilNextStart > 0 ? iDaysUntilNextStart : 7);
                 bScheduledStartPending = true;
-                SendMessageToClients("Increment schedule by days: " + iDaysUntilNextStart);
                 StartDiagnostics();
             }
         }
