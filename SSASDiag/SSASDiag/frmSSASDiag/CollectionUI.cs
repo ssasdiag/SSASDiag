@@ -69,7 +69,7 @@ namespace SSASDiag
                             (int)udInterval.Value, chkAutoRestart.Checked, chkZip.Checked, chkDeleteRaw.Checked, chkProfilerPerfDetails.Checked, chkXMLA.Checked, chkABF.Checked, chkBAK.Checked, (int)udRollover.Value, chkRollover.Checked,
                             dtStartTime.Value, chkStartTime.Checked, dtStopTime.Value, chkStopTime.Checked, 
                             Args.ContainsKey("recurrence") ? Args["recurrence"] : "",
-                            chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked, cbsdi.Cluster, chkAutomaticHangDumps.Checked, svcOutputPath);
+                            chkGetConfigDetails.Checked, chkGetProfiler.Checked, chkGetPerfMon.Checked, chkGetNetwork.Checked, cbsdi.Cluster, chkAutomaticHangDumps.Checked, chkFullHangDumps.Checked, svcOutputPath);
                         while (!dc.npServer._connections.Exists(c => c.IsConnected))
                             Thread.Sleep(100);
                         
@@ -78,7 +78,7 @@ namespace SSASDiag
                                                     ",IncludeXMLA=" + chkXMLA.Checked + ",IncludeABF=" + chkABF.Checked + ",IncludeBAK=" + chkBAK.Checked + (chkRollover.Checked ? ",RolloverMB=" + udRollover.Value : "") +
                                                     (chkStartTime.Checked ? ",StartTime=" + DateTime.Parse(dtStartTime.Value.ToString("MM/dd/yyyy HH:mm:00")).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "") +
                                                     (chkStopTime.Checked ? ",StopTime=" + DateTime.Parse(dtStopTime.Value.ToString("MM/dd/yyyy HH:mm:00")).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") : "")
-                                                    + ",ConfigDetails=" + chkGetConfigDetails.Checked + ",Profiler=" + chkGetProfiler.Checked + ",PerfMon=" + chkGetPerfMon.Checked + ",NetworkTrace=" + chkGetNetwork.Checked + ",RunningAsService=" + !Environment.UserInteractive + ",Clustered=" + cbsdi.Cluster + ",Recurrence=" + lblRecurrenceDays.Text);
+                                                    + ",ConfigDetails=" + chkGetConfigDetails.Checked + ",Profiler=" + chkGetProfiler.Checked + ",PerfMon=" + chkGetPerfMon.Checked + ",NetworkTrace=" + chkGetNetwork.Checked + ",RunningAsService=" + !Environment.UserInteractive + ",Clustered=" + cbsdi.Cluster + ",Recurrence=" + lblRecurrenceDays.Text + ",AutomaticHangDumps=" + chkAutomaticHangDumps.Checked + ",FullDumps=" + chkFullHangDumps.Checked);
                         dc.CompletionCallback = callback_StartDiagnosticsComplete;
                         new Thread(new ThreadStart(() => dc.StartDiagnostics())).Start();
                     }
@@ -589,7 +589,6 @@ namespace SSASDiag
                                     cbInstances.Invoke(new System.Action(() => npClient = new NamedPipeClient<string>(svcName)));
                                     npClient.ServerMessage += NpClient_ServerMessage;
                                     npClient.Start();
-                                    npClient.WaitForConnection();
 
                                     callback_StartDiagnosticsComplete();
                                     Invoke(new System.Action(() => txtSaveLocation.Enabled = btnSaveLocation.Enabled = tbAnalysis.Enabled = chkZip.Enabled = chkDeleteRaw.Enabled = grpDiagsToCapture.Enabled = dtStopTime.Enabled = chkStopTime.Enabled = chkAutoRestart.Enabled = dtStartTime.Enabled = chkRollover.Enabled = chkStartTime.Enabled = udRollover.Enabled = udInterval.Enabled = cbInstances.Enabled = lblInterval.Enabled = lblInterval2.Enabled = false));

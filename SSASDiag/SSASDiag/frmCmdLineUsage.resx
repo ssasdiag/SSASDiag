@@ -119,7 +119,7 @@
   </resheader>
   <data name="richTextBox1.Text" xml:space="preserve">
     <value>Options:
-/AutomaticHangDumps - Capture hang dumps automatically if the server becomes unresponsive.
+/AutomaticHangDumps [ /FullHangDumps] - Captures automatic hang dumps on unresponsive server.
 /Config - Include SSAS configuration and logs in collection.
 /Debug - Capture debug log in the location where SSASDiag is run.
 /Instance &lt;name&gt; - Name of the AS instance to collect data (MSSQLServer for default instance)

@@ -46,7 +46,7 @@ namespace SSASDiag
         string sTracePrefix = "", sInstanceName, sInstanceID, sASServiceName, sInstanceVersion, sInstanceMode, sInstanceEdition, sLogDir, sConfigDir, sServiceAccount, sRemoteAdminUser, sRemoteAdminDomain, sSQLProgramDir, sSQLSharedDir, sRecurrencePattern;
         SecureString sRemoteAdminPassword;
         int iInterval = 0, iRollover = 0, iCurrentTimerTicksSinceLastInterval = 0, iSecondsSinceLastHangCheck = 0;
-        bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetBAK, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true, bAutomaticHangDumps = false;
+        bool bAutoRestart = false, bRollover = false, bUseStart, bUseEnd, bGetConfigDetails, bGetProfiler, bGetXMLA, bGetABF, bGetBAK, bGetPerfMon, bGetNetwork, bCompress = true, bDeleteRaw = true, bPerfEvents = true, bAutomaticHangDumps = false, bFullHangDumps = false;
         bool bCollectionFullyInitialized = false, bSuspendUITicking = false;
         DateTime dtStart, dtEnd;
         string svcOutputPath = "";
@@ -95,7 +95,7 @@ namespace SSASDiag
                 DateTime Start, bool UseStart, 
                 DateTime End, bool UseEnd, 
                 string RecurrencePattern,
-                bool GetConfigDetails, bool GetProfiler, bool GetPerfMon, bool GetNetwork, bool Cluster, bool AutomaticHangDumps, string ServiceOutputPath)
+                bool GetConfigDetails, bool GetProfiler, bool GetPerfMon, bool GetNetwork, bool Cluster, bool AutomaticHangDumps, bool FullHangDumps, string ServiceOutputPath)
         {
             PerfMonAndUIPumpTimer.Interval = 1000;
             PerfMonAndUIPumpTimer.Elapsed += CollectorPumpTick;
@@ -103,7 +103,7 @@ namespace SSASDiag
             txtStatus = StatusTextBox;
             bGetXMLA = IncludeXMLA; bGetABF = IncludeABF; bGetBAK = IncludeBAK;
             iInterval = Interval;
-            bAutoRestart = AutoRestart; bCompress = Compress; bDeleteRaw = DeleteRaw; bPerfEvents = IncludePerfEventsInProfiler; bCluster = Cluster; bAutomaticHangDumps = AutomaticHangDumps;
+            bAutoRestart = AutoRestart; bCompress = Compress; bDeleteRaw = DeleteRaw; bPerfEvents = IncludePerfEventsInProfiler; bCluster = Cluster; bAutomaticHangDumps = AutomaticHangDumps; bFullHangDumps = FullHangDumps;
             iRollover = RolloverMaxMB; bRollover = Rollover;
             dtStart = Start; bUseStart = UseStart;
             dtEnd = End; bUseEnd = UseEnd;
@@ -208,7 +208,11 @@ namespace SSASDiag
                     try
                     {
                         if (!Directory.Exists(Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps")) Directory.CreateDirectory(Environment.CurrentDirectory + "\\" + TraceID + "\\HangDumps");
-                        string args = pid + " 0 0x34";
+                        string args = pid + " 0 ";
+                        if (bFullHangDumps)
+                            args += "0x34";
+                        else
+                            args += "0x0";
                         Process p = new Process();
                         p.StartInfo.CreateNoWindow = true;
                         p.StartInfo.RedirectStandardOutput = true;
@@ -645,6 +649,7 @@ namespace SSASDiag
                         s.Connect("Data source=" + (bCluster ? sInstanceName.Replace(" (Clustered Instance)", "") : Environment.MachineName + (sInstanceName == "" ? "" : (sInstanceName == "Power BI Report Server" ? ":" + sInstanceID : "\\" + sInstanceName))) + ";Timeout=1;Integrated Security=SSPI;SSPI=NTLM;", true);
                         if (!s.Connected)
                         {
+                            bAutomaticHangDumps = false; // only collect once
                             SendMessageToClients("The server did not respond to a connection attempt at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".  Attempting automatic hang dump capture.");
                             new Thread(new ThreadStart(() => CaptureHangDumps())).Start();
                             return;
@@ -652,6 +657,7 @@ namespace SSASDiag
                     }
                     catch (Exception)
                     {
+                        bAutomaticHangDumps = false; // only collect once
                         SendMessageToClients("The server did not respond to a connection attempt at " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss UTCzzz") + ".  Attempting automatic hang dump capture.");
                         new Thread(new ThreadStart(() => CaptureHangDumps())).Start();
                         return;

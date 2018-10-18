@@ -326,6 +326,8 @@ namespace SSASDiag
 
             if (Args.ContainsKey("automatichangdumps"))
                 chkAutomaticHangDumps.Checked = true;
+            if (Args.ContainsKey("fullhangdumps"))
+                chkFullHangDumps.Checked = true;
         }
 
         private void HookupRecurrencePopupChildControlsClick(Control Parent)
@@ -784,6 +786,14 @@ namespace SSASDiag
         {
             if (RecurrenceDropDown.Visible)
                 RecurrenceDropDown.Close();
+        }
+
+        private void chkFullHangDumps_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!chkFullHangDumps.Checked)
+                chkAutomaticHangDumps.Checked = false;
+            else
+                MessageBox.Show("Automatic hang dump collection with full dumps can lead to large memory dumps being written to disk.  Enable this option with caution.", "Full Dump Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)
