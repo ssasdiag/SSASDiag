@@ -790,10 +790,17 @@ namespace SSASDiag
 
         private void chkFullHangDumps_CheckedChanged(object sender, EventArgs e)
         {
-            if (!chkFullHangDumps.Checked)
-                chkAutomaticHangDumps.Checked = false;
-            else
+            if (chkFullHangDumps.Checked)
+            {
+                chkAutomaticHangDumps.Checked = true;
                 MessageBox.Show("Automatic hang dump collection with full dumps can lead to large memory dumps being written to disk.  Enable this option with caution.", "Full Dump Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+        }
+
+        private void chkAutomaticHangDumps_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!chkAutomaticHangDumps.Checked)
+                chkFullHangDumps.Checked = false;
         }
 
         private void chkAllowUsageStatsCollection_CheckedChanged(object sender, EventArgs e)

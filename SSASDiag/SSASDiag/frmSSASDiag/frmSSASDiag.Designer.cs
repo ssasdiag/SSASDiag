@@ -444,6 +444,7 @@
             this.ttStatus.SetToolTip(this.chkAutomaticHangDumps, "Automatically poll the server and generate hang dumps should it become unavailabl" +
         "e.");
             this.chkAutomaticHangDumps.UseVisualStyleBackColor = true;
+            this.chkAutomaticHangDumps.CheckedChanged += new System.EventHandler(this.chkAutomaticHangDumps_CheckedChanged);
             // 
             // chkFullHangDumps
             // 
