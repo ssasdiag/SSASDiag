@@ -673,7 +673,7 @@ namespace SSASDiag
                         string sSvcUser = "";
                         foreach (ManagementObject svc in mgmtSearcher.Get())
                             sSvcUser = svc["startname"] as string;
-                        if (sSvcUser.Contains(".")) sSvcUser = sSvcUser.Replace(".", Environment.UserDomainName);
+                        if (sSvcUser.Contains(".\\")) sSvcUser = sSvcUser.Replace(".\\", Environment.UserDomainName + "\\");
                         if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
 
                         string ConfigPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + s.ServiceName, false).GetValue("ImagePath") as string;

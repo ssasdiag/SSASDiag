@@ -225,6 +225,7 @@ namespace SSASDiag
                     tempDomain.SetData("tempbinlocation", TempPath);                    
                     tempDomain.SetData("originalbinlocation", currentAssembly.Location.Substring(0, currentAssembly.Location.LastIndexOf("\\")));
                     Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Preparing to launch executable from temp domain.");
+                    Debug.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Launch location: " + currentAssembly.Location);
                     ShutdownDebugTrace();
                     // Execute the domain.
                     ret = tempDomain.ExecuteAssemblyByName(currentAssembly.FullName);
