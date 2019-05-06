@@ -373,7 +373,9 @@ namespace SSASDiag
                     }
                     catch (Exception ex)
                     {
-                        SendMessageToClients("Adding access permissions for SSAS service account " + sServiceAccount + " to output folder failed:\n\t" + ex.Message + "");
+                        string err = "Adding access permissions for SSAS service account " + sServiceAccount + " to output folder failed:\n\t" + ex.Message + "";
+                        SendMessageToClients(err);
+                        Exception exNew = new Exception(ex.Message + "\r\n" + err, ex);
                         frmSSASDiag.LogException(ex);
                     }
                 }

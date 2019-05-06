@@ -916,7 +916,7 @@ namespace SSASDiag
         public static void LogException(Exception ex)
         {
             System.Diagnostics.Trace.WriteLine(Program.CurrentFormattedLocalDateTime() + ": Exception:\r\n" + ex.Message + "\r\n at stack:\r\n" + ex.StackTrace);
-            LogFeatureUse("Exception", "Message:\n" + ex.Message + "\n at stack:\n" + ex.StackTrace);   
+            LogFeatureUse("Exception", "Message:\n" + ex.Message + "\n at stack:\n" + ex.StackTrace + ex.InnerException != null ? "\nInnerException: " + ex.InnerException.Message : "");   
         }
         #endregion frmSSASDiagEvents
 
