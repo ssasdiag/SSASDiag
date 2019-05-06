@@ -16,6 +16,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Data.SqlClient;
 using System.Configuration;
+using System.DirectoryServices.AccountManagement;
 using System.IO.Pipes;
 using NamedPipeWrapper;
 
@@ -674,6 +675,13 @@ namespace SSASDiag
                         foreach (ManagementObject svc in mgmtSearcher.Get())
                             sSvcUser = svc["startname"] as string;
                         if (sSvcUser.Contains(".\\")) sSvcUser = sSvcUser.Replace(".\\", Environment.UserDomainName + "\\");
+                        if (sSvcUser.Contains("@"))
+                        {
+                            PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
+                            UserPrincipal user = UserPrincipal.FindByIdentity(ctx, sSvcUser);
+                            if (user != null)
+                                sSvcUser = Environment.UserDomainName + "\\" + user.SamAccountName;
+                        }
                         if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
 
                         string ConfigPath = Registry.LocalMachine.OpenSubKey("SYSTEM\\ControlSet001\\Services\\" + s.ServiceName, false).GetValue("ImagePath") as string;
