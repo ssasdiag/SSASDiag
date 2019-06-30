@@ -18,6 +18,7 @@ using System.Data.SqlClient;
 using System.Configuration;
 using System.DirectoryServices.AccountManagement;
 using System.IO.Pipes;
+using System.DirectoryServices;
 using NamedPipeWrapper;
 
 namespace SSASDiag
@@ -677,10 +678,13 @@ namespace SSASDiag
                         if (sSvcUser.Contains(".\\")) sSvcUser = sSvcUser.Replace(".\\", Environment.UserDomainName + "\\");
                         if (sSvcUser.Contains("@"))
                         {
-                            PrincipalContext ctx = new PrincipalContext(ContextType.Domain);
-                            UserPrincipal user = UserPrincipal.FindByIdentity(ctx, sSvcUser);
-                            if (user != null)
-                                sSvcUser = Environment.UserDomainName + "\\" + user.SamAccountName;
+                            string rootContext = new DirectoryEntry("LDAP://RootDSE").Properties["rootDomainNamingContext"].Value as string;
+                            DirectoryEntry root = new DirectoryEntry("GC://" + rootContext);
+                            string searchFilter = string.Format("(&(anr={0})(objectCategory=user)(objectClass=user))", sSvcUser.Substring(0, sSvcUser.IndexOf("@")));
+                            string domain = new DirectorySearcher(root, searchFilter).FindOne().Path;
+                            domain = domain.Substring(domain.IndexOf(",DC=") + 4);
+                            domain = domain.Substring(0, domain.IndexOf(","));
+                            sSvcUser = domain + "\\" + sSvcUser.Substring(0, sSvcUser.IndexOf("@"));
                         }
                         if (sSvcUser == "LocalSystem") sSvcUser = "NT AUTHORITY\\SYSTEM";
 
