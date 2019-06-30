@@ -168,7 +168,8 @@ namespace SSASDiag
                             p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                             p.StartInfo.FileName = "cmd.exe";
                             string AssemblyLocation = (string)AppDomain.CurrentDomain.GetData("originalbinlocation");
-                            p.StartInfo.Arguments = "/c ping 1.1.1.1 -n 2 -w 1000 > nul & move /y \"" + sNewBin + "\" \"" +
+                            // pings a non-routable address once setting timeout to 2500ms to pause before copying over new binary and re-running
+                            p.StartInfo.Arguments = "/c ping 10.0.0.0 -n 1 -w 2500 > nul & move /y \"" + sNewBin + "\" \"" +
                                                      AssemblyLocation + "\\SSASDiag.exe\" & " +
                                                      "del /q \"" + Program.TempPath + "SSASDiag.exe\" & \"" +
                                                      AssemblyLocation + "\\SSASDiag.exe\"";
