@@ -111,7 +111,7 @@ namespace SSASDiag
             svcOutputPath = ServiceOutputPath;
             PipeSecurity ps = new PipeSecurity();
             ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null) as IdentityReference, PipeAccessRights.FullControl, AccessControlType.Allow));
-            ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), PipeAccessRights.ReadWrite | PipeAccessRights.Synchronize, AccessControlType.Allow));
+            ps.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null), PipeAccessRights.FullControl | PipeAccessRights.ReadWrite | PipeAccessRights.Synchronize, AccessControlType.Allow));
             npServer = new NamedPipeServer<string>("SSASDiag_" + (InstanceName == "" ? "MSSQLSERVER" : InstanceName), ps);
             npServer.ClientMessage += npServer_ClientMessage;
             npServer.ClientConnected += NpServer_ClientConnected;
@@ -121,6 +121,11 @@ namespace SSASDiag
         private void NpServer_ClientConnected(NamedPipeConnection<string, string> connection)
         {
             connection.PushMessage("Initialize pipe");
+            ImpersonateNamedPipeConnection(connection);
+            clientWaiter.Set();
+            ImpersonateNamedPipeConnection(connection);
+            if (Environment.UserName != "SYSTEM")
+                Program.LaunchingUser = Environment.UserName;
         }
 
         private SecureString GetSecureString(string source)
@@ -153,14 +158,6 @@ namespace SSASDiag
         bool bForceStop = false;
         private void npServer_ClientMessage(NamedPipeConnection<string, string> connection, string message)
         {
-            if (message == "Initialize pipe")
-            {
-                ImpersonateNamedPipeConnection(connection);
-                clientWaiter.Set();
-                ImpersonateNamedPipeConnection(connection);
-                if (Environment.UserName != "SYSTEM")
-                    Program.LaunchingUser = Environment.UserName;
-            }
             if (message.StartsWith("Administrator="))
             {
                 string[] KeyVals = message.Split(';');

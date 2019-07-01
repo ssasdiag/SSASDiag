@@ -105,7 +105,7 @@ namespace SSASDiag
             {
                 try
                 {
-                    ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 2 -w 1000 > nul & net stop " + svcName);
+                    ProcessStartInfo p = new ProcessStartInfo("cmd.exe", "/c ping 10.0.0.0 -n 1 -w 2500 > nul & net stop " + svcName);
                     p.WindowStyle = ProcessWindowStyle.Hidden;
                     p.Verb = "runas";
                     p.UseShellExecute = false;

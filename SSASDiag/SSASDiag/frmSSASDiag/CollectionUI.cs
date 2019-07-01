@@ -125,7 +125,7 @@ namespace SSASDiag
                             svcconfig[svcconfig.FindIndex(s => s.StartsWith("CommandLine="))]
                                 =
                                 "CommandLine=" + Program.TempPath + "\\SSASDiagServiceWorker\\SSASDiagServiceWorker.exe" +
-                                " /workingdir \"" + txtSaveLocation.Text + "\"" +
+                                " /workingdir \"" + txtSaveLocation.Text.TrimEnd(new char[] {' ', '\\' }) + "\"" +
                                 (chkZip.Checked ? " /zip" : "") +
                                 " /instance \"" + (InstanceName == "" ? "MSSQLServer" : InstanceName) + "\"" +
                                 (chkDeleteRaw.Checked ? " /deleteraw" : "") +
@@ -147,7 +147,7 @@ namespace SSASDiag
                                 (Args.ContainsKey("nowaitonstop") ? " /nowaitonstop" : "") +
                                 (Args.ContainsKey("debug") ? " /debug" : "") +
                                 (enableAnonymousUsageStatisticCollectionToolStripMenuItem.Checked ? " /reportusage" : "") +
-                                " /outputdir \"" + Environment.CurrentDirectory + "\"" +
+                                " /outputdir \"" + txtSaveLocation.Text.TrimEnd(new char[] { ' ', '\\' }) + "\"" +
                                 " /start";
                             File.WriteAllLines(sInstanceServiceConfig.Replace(".exe", ".ini"), svcconfig.ToArray());
 
@@ -157,10 +157,6 @@ namespace SSASDiag
                                 npClient = null;
                             }
                             txtStatus.Invoke(new System.Action(()=> txtStatus.Text += "\r\nStarting service..."));
-                            npClient = new NamedPipeClient<string>("SSASDiag_" + InstanceName);
-                            npClient.ServerMessage += NpClient_ServerMessage;
-                            npClient.Start();
-                            npClient.PushMessage("Initialize Pipe");
                             string svcName = "SSASDiag_" + InstanceName;
                             new Thread(new ThreadStart(() =>
                             {
@@ -172,6 +168,10 @@ namespace SSASDiag
                                 Process.Start(p).WaitForExit();
                                 txtStatus.Invoke(new System.Action(()=> txtStatus.AppendText("\r\nCollection service SSASDiag_" + cbInstances.Text.Replace("Default instance (", "").Replace(" (Clustered Instance", "").Replace(")", "") + " is running.\r\n" +
                                       "Collection initializing...")));
+                                Thread.Sleep(1000);
+                                npClient = new NamedPipeClient<string>("SSASDiag_" + InstanceName);
+                                npClient.ServerMessage += NpClient_ServerMessage;
+                                npClient.Start();
                             })).Start();
                         })).Start();
                     }
@@ -371,7 +371,7 @@ namespace SSASDiag
                                     SvcPath = SvcPath.Replace("\r\nHKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Services\\" + svcName + "\r\n    ImagePath    REG_EXPAND_SZ    ", "").Replace("\r\n", "");
                                 }
                                 
-                                p = new ProcessStartInfo("cmd.exe", "/c ping 1.1.1.1 -n 2 -w 1000 > nul & \"" + SvcPath + "\" -u");
+                                p = new ProcessStartInfo("cmd.exe", "/c ping 10.0.0.0 -n 1 -w 2500 > nul & \"" + SvcPath + "\" -u");
                                 p.WindowStyle = ProcessWindowStyle.Hidden;
                                 p.Verb = "runas";
                                 p.UseShellExecute = true;
