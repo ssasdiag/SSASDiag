@@ -116,16 +116,14 @@ namespace SSASDiag
             npServer.ClientMessage += npServer_ClientMessage;
             npServer.ClientConnected += NpServer_ClientConnected;
             npServer.Start();
+            while (npServer._connections.Count == 0)
+                Thread.Sleep(100);
         }
 
         private void NpServer_ClientConnected(NamedPipeConnection<string, string> connection)
         {
             connection.PushMessage("Initialize pipe");
-            ImpersonateNamedPipeConnection(connection);
             clientWaiter.Set();
-            ImpersonateNamedPipeConnection(connection);
-            if (Environment.UserName != "SYSTEM")
-                Program.LaunchingUser = Environment.UserName;
         }
 
         private SecureString GetSecureString(string source)
@@ -156,8 +154,11 @@ namespace SSASDiag
         }
 
         bool bForceStop = false;
+        bool bServiceInitialized = false;
         private void npServer_ClientMessage(NamedPipeConnection<string, string> connection, string message)
         {
+            while (!bServiceInitialized && message != "Initialize pipe")
+                Thread.Sleep(100);
             if (message.StartsWith("Administrator="))
             {
                 string[] KeyVals = message.Split(';');
@@ -178,6 +179,13 @@ namespace SSASDiag
             {
                 bForceStop = true;
                 StopAndFinalizeAllDiagnostics();
+            }
+            if (message == "Initialize pipe")
+            {
+                ImpersonateNamedPipeConnection(connection);
+                if (Environment.UserName != "SYSTEM")
+                    Program.LaunchingUser = Environment.UserName;
+                bServiceInitialized = true;
             }
             else if (message == "Dumping")
                 CaptureHangDumps();
@@ -275,7 +283,7 @@ namespace SSASDiag
         public void StartDiagnostics()
         {
             bCollectionFullyInitialized = false;
-            while (!npServer._connections.Exists(c => c.IsConnected))
+            while (!npServer._connections.Exists(c => c.IsConnected) || !bServiceInitialized)
                 System.Threading.Thread.Sleep(100);
             m_StartTime = DateTime.Now;
             bScheduledStartPending = false;
